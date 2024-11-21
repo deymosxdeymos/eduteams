@@ -1,0 +1,65 @@
+{
+  "students": [
+    {
+      "id": "1",
+      "gender": "male",
+      "personality": {
+        "ei": 1,
+        "ns": -1,
+        "tf": 0,
+        "jp": 1
+      },
+      "competencies": {
+        "English": 0.8,
+        "programming in python": 0.7,
+        "machine learning": 0.6
+      }
+    },
+    {
+      "id": "2",
+      "gender": "female",
+      "personality": {
+        "ei": -1,
+        "ns": 1,
+        "tf": -1,
+        "jp": -1
+      },
+      "competencies": {
+        "English": 0.9,
+        "programming in python": 0.5,
+        "machine learning": 0.7
+      }
+    },
+    {
+      "id": "3",
+      "gender": "male",
+      "personality": {
+        "ei": 0,
+        "ns": 1,
+        "tf": 1,
+        "jp": 0
+      },
+      "competencies": {
+        "English": 0.7,
+        "programming in python": 0.8,
+        "machine learning": 0.8
+      }
+    },
+    {
+      "id": "4",
+      "gender": "female",
+      "personality": {
+        "ei": 1,
+        "ns": 0,
+        "tf": -1,
+        "jp": 1
+      },
+      "competencies": {
+        "English": 0.85,
+        "programming in python": 0.9,
+        "machine learning": 0.5
+      }
+    }
+  ],
+  "preferences over tasks": []
+}
