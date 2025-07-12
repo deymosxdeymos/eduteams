@@ -59,7 +59,7 @@ export default function Home() {
 
         {/* boxed statement */}
         <div className='absolute inset-0 flex flex-col items-center justify-center px-4'>
-          <div className='bg-white p-10 rounded-xl w-[900px] text-start shadow-lg grid grid-cols-4'>
+          <div className='bg-white p-10 rounded-xl w-[900px] text-start shadow-lg grid grid-cols-4 relative'>
             <div className='col-span-3'>
               <h1 className='text-5xl font-bold text-blue-600 mb-4'>
                 Apa itu EquiTeam
@@ -70,7 +70,15 @@ export default function Home() {
                 seimbang berdasarkan berbagai aspek
               </p>
             </div>
-            <div className='col-span-2'>{/* Smaller empty space */}</div>
+            <div className='col-span-1'>{/* Smaller empty space */}</div>
+            <div className='absolute -top-14 right-1'>
+              <Image
+                src='/question.svg'
+                width={120}
+                height={120}
+                alt='question icon'
+              />
+            </div>
           </div>
         </div>
       </section>
