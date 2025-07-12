@@ -97,6 +97,54 @@ This document provides context to AI models assisting with the codebase.
 - Unit and integration tests in `__tests__` directories
 - Mock with appropriate libraries for Prisma and modules
 
+## CI & Deployment
+
+### Garnix CI (Nix-based)
+
+- **CI Platform:** Garnix CI - Nix-native continuous integration
+- **Configuration:** `flake.nix` (no traditional CI YAML files needed)
+- **Package Manager:** pnpm (for Nix compatibility with lockfile)
+- **Build System:** pnpm2nix-nzbr for reproducible Node.js builds
+
+### Flake Structure
+
+```nix
+# Standard outputs that Garnix discovers automatically:
+packages.${system}.default     # Main application build
+checks.${system}.build        # Build verification check  
+checks.${system}.lint         # Lint verification check
+devShells.${system}.default   # Development environment
+```
+
+### Development Workflow
+
+- **Local development:** `nix develop` (enters reproducible dev shell)
+- **Local build test:** `nix build` (tests the full build)
+- **Local checks:** `nix flake check` (runs all CI checks locally)
+- **Package management:** Use pnpm within `nix develop` shell
+
+### CI Philosophy
+
+- **Single source of truth:** Everything defined in `flake.nix`
+- **Reproducible builds:** Same result everywhere, offline-capable after first build
+- **Binary caching:** Garnix provides automatic caching for fast builds
+- **Real verification:** Actual builds and lints, not static validation
+- **No hybrid approaches:** Pure Nix, no GitHub Actions or Docker needed
+
+### Best Practices
+
+- Use `mkPnpmPackage` for Node.js applications with proper dependency locking
+- Expose meaningful checks (build, lint, test) rather than static validations
+- Set environment variables (`NEXT_TELEMETRY_DISABLED=1`) in build phases
+- Keep dev shell minimal but complete (Node.js, pnpm, git)
+- Monitor lockfile compatibility (pnpm v9 vs Nix tooling)
+
+### Troubleshooting
+
+- **Lockfile issues:** May need to downgrade pnpm lockfile version for Nix compatibility
+- **Network errors:** Normal in local Nix sandbox, works fine on Garnix infrastructure  
+- **Build failures:** Use `nix log` to inspect detailed build logs
+
 ## AI Assistant Guidelines
 
 - **Prioritize Performance & Correctness:** Solutions should be efficient and robust
@@ -106,3 +154,4 @@ This document provides context to AI models assisting with the codebase.
 - **Provide Actionable Recommendations:** Suggest concrete changes
 - **Explain Trade-offs:** Mention pros and cons when relevant
 - **Use Bun for all operations:** Package management, testing, and development scripts
+- **Note on CI:** Use `nix develop` for development, pnpm for package management within Nix
