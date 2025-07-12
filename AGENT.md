@@ -99,51 +99,77 @@ This document provides context to AI models assisting with the codebase.
 
 ## CI & Deployment
 
-### Garnix CI (Nix-based)
+### GitHub Actions CI
 
-- **CI Platform:** Garnix CI - Nix-native continuous integration
-- **Configuration:** `flake.nix` (no traditional CI YAML files needed)
-- **Package Manager:** pnpm (for Nix compatibility with lockfile)
-- **Build System:** pnpm2nix-nzbr for reproducible Node.js builds
+- **CI Platform:** GitHub Actions - Native GitHub integration
+- **Configuration:** `.github/workflows/` YAML files
+- **Package Manager:** Bun for fastest package management
+- **Runtime:** Bun for build, test, and lint operations
 
-### Flake Structure
+### Workflow Structure
 
-```nix
-# Standard outputs that Garnix discovers automatically:
-packages.${system}.default     # Main application build
-checks.${system}.build        # Build verification check  
-checks.${system}.lint         # Lint verification check
-devShells.${system}.default   # Development environment
+```yaml
+# Standard workflows in .github/workflows/:
+ci.yml              # Main CI pipeline (build, test, lint, type-check)
+deploy-preview.yml  # Preview deployments for PRs
+deploy-prod.yml     # Production deployment
 ```
 
 ### Development Workflow
 
-- **Local development:** `nix develop` (enters reproducible dev shell)
-- **Local build test:** `nix build` (tests the full build)
-- **Local checks:** `nix flake check` (runs all CI checks locally)
-- **Package management:** Use pnpm within `nix develop` shell
+- **Local development:** `bun install && bun dev`
+- **Local build test:** `bun run build`
+- **Local checks:** `bun run lint && bun run type-check && bun test`
+- **Package management:** Use `bun` for all operations
 
 ### CI Philosophy
 
-- **Single source of truth:** Everything defined in `flake.nix`
-- **Reproducible builds:** Same result everywhere, offline-capable after first build
-- **Binary caching:** Garnix provides automatic caching for fast builds
-- **Real verification:** Actual builds and lints, not static validation
-- **No hybrid approaches:** Pure Nix, no GitHub Actions or Docker needed
+- **Fast and reliable:** Leverage Bun's speed for package management and builds
+- **Matrix testing:** Test across multiple Node.js versions if needed
+- **Caching:** Cache `node_modules` and build artifacts
+- **Real verification:** Actual builds, tests, and lints on every PR
+- **Branch protection:** Require CI checks to pass before merge
 
-### Best Practices
+### GitHub Actions Best Practices
 
-- Use `mkPnpmPackage` for Node.js applications with proper dependency locking
-- Expose meaningful checks (build, lint, test) rather than static validations
-- Set environment variables (`NEXT_TELEMETRY_DISABLED=1`) in build phases
-- Keep dev shell minimal but complete (Node.js, pnpm, git)
-- Monitor lockfile compatibility (pnpm v9 vs Nix tooling)
+- Use latest stable Bun version for consistency
+- Cache dependencies with `actions/cache` using `bun.lockb`
+- Set `NEXT_TELEMETRY_DISABLED=1` to avoid telemetry in CI
+- Use `fail-fast: false` for matrix builds to see all results
+- Store build artifacts for debugging failed builds
+- Use secrets for environment variables and API keys
 
-### Troubleshooting
+### Workflow Examples
 
-- **Lockfile issues:** May need to downgrade pnpm lockfile version for Nix compatibility
-- **Network errors:** Normal in local Nix sandbox, works fine on Garnix infrastructure  
-- **Build failures:** Use `nix log` to inspect detailed build logs
+**Main CI Workflow:**
+```yaml
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run type-check  
+      - run: bun run test
+      - run: bun run build
+```
+
+### GitHub CLI Integration
+
+- Use `gh` command for managing issues, PRs, and releases
+- Create PR templates and issue templates in `.github/`
+- Automate releases with GitHub Actions + `gh` CLI
+- Manage branch protection rules via `gh api`
+
+### Deployment Options
+
+- **Vercel:** Automatic deployments with GitHub integration
+- **Netlify:** Alternative with similar GitHub integration
+- **Self-hosted:** Custom deployment via GitHub Actions
 
 ## AI Assistant Guidelines
 
@@ -154,4 +180,4 @@ devShells.${system}.default   # Development environment
 - **Provide Actionable Recommendations:** Suggest concrete changes
 - **Explain Trade-offs:** Mention pros and cons when relevant
 - **Use Bun for all operations:** Package management, testing, and development scripts
-- **Note on CI:** Use `nix develop` for development, pnpm for package management within Nix
+- **Note on CI:** Use GitHub Actions for CI/CD, `gh` CLI for GitHub management
