@@ -23,31 +23,24 @@
         version = "0.1.0";
         src = ./.;
         
-        buildScript = "build";
+        nodejs = node;
+        pnpm = pnpm;
         
-        preBuild = ''
-          export HOME=$TMPDIR
-          export NEXT_TELEMETRY_DISABLED=1
-        '';
+        script = "build";
+        distDir = ".next";
       };
 
-      # Lint check
+      # Lint check - simpler version
       lintCheck = pkgs.mkPnpmPackage {
         pname = "eduteams-lint";
         version = "0.1.0";
         src = ./.;
         
-        buildScript = "lint";
+        nodejs = node;
+        pnpm = pnpm;
         
-        preBuild = ''
-          export HOME=$TMPDIR
-          export NEXT_TELEMETRY_DISABLED=1
-        '';
-        
-        # Override to just run lint, no build artifacts
-        installPhase = ''
-          echo "Lint passed!" > $out
-        '';
+        script = "lint";
+        distDir = "dist";  # dummy dist dir since we only care about the script running
       };
     in {
       # Development shell
