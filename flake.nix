@@ -1,51 +1,53 @@
 {
-  description = "eduteams – Next 15 + pnpm-lock v9, built with Dream2nix";
+  description = "eduteams – Next.js 15 + pnpm (built with pnpm2nix-nzbr)";
 
   inputs = {
-    nixpkgs.url     = "github:NixOS/nixpkgs/nixos-24.11";
-    dream2nix.url   = "github:jkarni/dream2nix";
-    dream2nix.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url   = "github:NixOS/nixpkgs/nixos-24.11";
+
+    # actively maintained fork that supports lockfile-v9
+    pnpm2nix = {
+      url = "github:nzbr/pnpm2nix-nzbr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, dream2nix, flake-utils, ... }:
+  outputs = { nixpkgs, pnpm2nix, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+        node = pkgs.nodejs_20;               # Node 20 LTS – meets Next 15 req
         pnpm = pkgs.nodePackages.pnpm;
-      in
-      let
-        # ─── Dream2nix package built from pnpm-lock.yaml ──────────────────
-        eduteams = dream2nix.lib.evalModules {
-          packageSets.nixpkgs = pkgs;
-          modules = [
-            dream2nix.modules.dream2nix.nodejs-pnpm-lock-v9
-            dream2nix.modules.dream2nix.nodejs-granular-v3
-            {
-              mkDerivation.src = ./.;                 # project root
-              nodejs-pnpm-lock-v9.pnpmLockFile = ./pnpm-lock.yaml;
-              name    = "eduteams";
-              version = "0.1.0";
-            }
-          ];
+      in rec {
+        # ─────────── build artefact ───────────
+        packages.default = pnpm2nix.lib.mkPnpmPackage {
+          pname      = "eduteams";
+          version    = "0.1.0";
+          src        = ./.;
+
+          nodejs     = node;
+          pnpm       = pnpm;
+
+          script     = "build";              # runs: pnpm run build → next build
+          distDir    = ".next";              # keep the production bundle
         };
-      in {
-        ####################################################################
-        # Standard flake keys only — nix flake metadata is now happy       #
-        ####################################################################
 
-        packages.default = eduteams;
-
-        checks.lint = pkgs.runCommand "lint" { } ''
+        # ─────────── CI check: lint ───────────
+        # copy the source into /build because runCommand starts in an empty dir
+        checks.lint = pkgs.runCommand "lint" { src = ./.; } ''
+          cp -R $src source
+          cd source
           ${pnpm}/bin/pnpm lint
           touch $out
         '';
 
+        # ─────────── dev shell ───────────
         devShells.default = pkgs.mkShell {
-          packages = [ pkgs.nodejs_20 pnpm ];
+          packages = [ node pnpm ];
           shellHook = ''
-            echo "🔧 Node  : $(node -v)"
-            echo "🔧 pnpm  : $(pnpm -v)"
+            echo "🔧  Node  $(node  -v)"
+            echo "🔧  pnpm $(pnpm -v)"
           '';
         };
       });
