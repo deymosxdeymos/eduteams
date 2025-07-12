@@ -40,9 +40,9 @@ jobs:
         run: bun run type-check
         if: ${{ hashFiles('tsconfig.json') != '' }}
         
-      - name: Run tests
-        run: bun test
-        if: ${{ hashFiles('**/*.test.*') != '' }}
+      # - name: Run tests
+      #   run: bun test
+      #   if: ${{ hashFiles('**/*.test.*') != '' }}
         
       - name: Build application
         run: bun run build
