@@ -1,58 +1,85 @@
 {
-  description = "eduteams – Next.js 15 + pnpm (built with pnpm2nix-nzbr)";
+  description = "eduteams – Next.js 15 + pnpm";
 
   inputs = {
-    nixpkgs.url   = "github:NixOS/nixpkgs/nixos-24.11";
-
-    # actively maintained fork that supports lockfile-v9
-    pnpm2nix = {
-      url = "github:nzbr/pnpm2nix-nzbr";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
   };
 
-  outputs = { nixpkgs, pnpm2nix, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        # ─── pull in the pnpm2nix overlay so pkgs has mkPnpmPackage ───────
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ pnpm2nix.overlays.default ];
-        };
+  outputs = { nixpkgs, ... }: 
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      # Development shell
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [ 
+          pkgs.nodejs_20 
+          pkgs.nodePackages.pnpm 
+          pkgs.git 
+        ];
+        shellHook = ''
+          echo "🔧 Node  $(node  -v)"
+          echo "🔧 pnpm $(pnpm -v)"
+          echo "🔧 Git   $(git --version)"
+        '';
+      };
 
-        node = pkgs.nodejs_20;
-        pnpm = pkgs.nodePackages.pnpm;
-      in rec {
-        # ─────────── build artefact ───────────
-        packages.default = pkgs.mkPnpmPackage {
-          pname      = "eduteams";
-          version    = "0.1.0";
-          src        = ./.;
-
-          nodejs     = node;
-          pnpm       = pnpm;
-
-          script     = "build";    # runs: pnpm run build  → next build
-          distDir    = ".next";    # production bundle
-        };
-
-        # ─────────── CI check: lint ───────────
-        checks.lint = pkgs.runCommand "lint" { src = ./.; } ''
-          cp -R $src source
+      # CI checks - this is what Garnix will run
+      checks.${system} = {
+        build = pkgs.runCommand "eduteams-build" {
+          buildInputs = [ pkgs.nodejs_20 pkgs.nodePackages.pnpm ];
+        } ''
+          cp -r ${./.} source
           cd source
-          ${pnpm}/bin/pnpm lint
-          touch $out
+          chmod -R +w .
+          export HOME=$TMPDIR
+          export NEXT_TELEMETRY_DISABLED=1
+          
+          echo "Installing dependencies..."
+          pnpm install --no-frozen-lockfile
+          
+          echo "Building application..."
+          pnpm run build
+          
+          echo "Build successful!" > $out
         '';
 
-        # ─────────── dev-shell ───────────
-        devShells.default = pkgs.mkShell {
-          packages = [ node pnpm ];
-          shellHook = ''
-            echo "🔧 Node  $(node  -v)"
-            echo "🔧 pnpm $(pnpm -v)"
-          '';
-        };
-      });
+        lint = pkgs.runCommand "eduteams-lint" { 
+          buildInputs = [ pkgs.nodejs_20 pkgs.nodePackages.pnpm ];
+        } ''
+          cp -r ${./.} source
+          cd source
+          chmod -R +w .
+          export HOME=$TMPDIR
+          export NEXT_TELEMETRY_DISABLED=1
+          
+          echo "Installing dependencies..."
+          pnpm install --no-frozen-lockfile
+          
+          echo "Running lint..."
+          pnpm run lint
+          
+          echo "Lint passed!" > $out
+        '';
+      };
+
+      # Alias the build check as the default package  
+      packages.${system}.default = pkgs.runCommand "eduteams-default" {
+        buildInputs = [ pkgs.nodejs_20 pkgs.nodePackages.pnpm ];
+      } ''
+        cp -r ${./.} source
+        cd source
+        chmod -R +w .
+        export HOME=$TMPDIR
+        export NEXT_TELEMETRY_DISABLED=1
+        
+        echo "Installing dependencies..."
+        pnpm install --frozen-lockfile
+        
+        echo "Building application..."
+        pnpm run build
+        
+        echo "Build successful!" > $out
+      '';
+    };
 }
