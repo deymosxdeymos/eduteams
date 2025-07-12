@@ -1,82 +1,73 @@
-# Garnix CI - Next Steps
+# Garnix CI - Full Nix Implementation
 
-## 🚨 Immediate Improvements (1-2 hours)
+## 🎯 Current Status: FULL GARNIX 
+- ✅ Removed GitHub Actions (we don't need it!)
+- ✅ Using pnpm2nix-nzbr for lockfile v9 support  
+- ✅ Real build check using `mkPnpmPackage`
+- ✅ Real lint check using `mkPnpmPackage`
+- ✅ Single source of truth: everything in Nix
 
-### 1. Single Source of Truth for Node Version
-- [ ] Create `versions.json` or use flake output for Node version
-- [ ] Update GitHub Actions to read Node version from flake: `echo "NODE=$(nix eval .#legacyPackages.x86_64-linux.nodejs.version --raw) >> $GITHUB_ENV"`
-- [ ] Remove hardcoded Node 20 from `.github/workflows/ci.yml`
+## 🔧 Immediate Tasks (Testing & Polish)
 
-### 2. Optimize GitHub Actions Build Speed
-- [ ] Add `.next/cache` caching to GitHub Actions workflow
-- [ ] Cache pnpm store: `~/.pnpm-store`
-- [ ] Use `actions/cache@v4` for faster builds
+### 1. Test the Full Build
+- [ ] Run `nix flake check` to ensure builds work
+- [ ] Fix any lockfile compatibility issues
+- [ ] Verify offline builds work: `nix build --offline`
+- [ ] Test development shell: `nix develop`
 
-### 3. Reusable Static Checks
-- [ ] Move static validation from `flake.nix` to `scripts/check.sh`
-- [ ] Update both Nix checks and GitHub Actions to use same script
-- [ ] Add ESLint/TypeScript config checksum validation
+### 2. Handle Potential Issues
+- [ ] If lockfile v9 still fails, downgrade pnpm and regenerate lock
+- [ ] Add buildInputs for any missing build dependencies
+- [ ] Configure proper distDir for Next.js output
+- [ ] Ensure all environment variables are set correctly
 
-## 🔧 Technical Debt (3-5 hours)
+### 3. Documentation
+- [ ] Update README with Garnix-only CI approach
+- [ ] Add Garnix status badges
+- [ ] Document `nix develop` workflow for contributors  
+- [ ] Remove any references to GitHub Actions
 
-### 4. Upgrade to Full Nix Build (pnpm2nix)
-**Goal**: Single pipeline, fully reproducible builds in Garnix
+## 🚀 Optimization (Next Phase)
 
-#### Steps:
-- [ ] Add `pnpm2nix.url = "github:nix-community/pnpm2nix"` to flake inputs
-- [ ] Create `nix/` directory for generated files
-- [ ] Run update script:
-  ```bash
-  pnpm2nix --lock pnpm-lock.yaml --output nix/pnpm-deps.nix
-  ```
-- [ ] Replace "success" package with real build using generated deps
-- [ ] Add `postInstall` phase for `pnpm run build`
-- [ ] Test offline build works: `nix build --offline`
-- [ ] Commit generated `nix/pnpm-deps.nix` file
+### 4. Performance & Caching
+- [ ] Configure Garnix binary cache for faster builds
+- [ ] Optimize pnpm2nix dependency resolution
+- [ ] Add proper Next.js build caching in Nix
+- [ ] Document cache warming strategies
 
-### 5. Binary Cache Setup
-- [ ] Configure Garnix binary cache for faster contributor onboarding
-- [ ] Document how contributors can use cached node_modules
-- [ ] Add cache warming for common development dependencies
+### 5. Advanced Checks
+- [ ] Add type checking as separate check
+- [ ] Add test running (when tests exist)
+- [ ] Add security scanning of dependencies
+- [ ] Add bundle size analysis
 
-## 📋 Documentation & Process
+## 🎯 Long-term Goals
 
-### 6. Developer Experience
-- [ ] Update README with Garnix CI status badges
-- [ ] Document two-phase CI approach (static + build)
-- [ ] Add troubleshooting guide for lockfile version issues
-- [ ] Create onboarding docs for `nix develop`
+### 6. Production Deployment
+- [ ] Add production build configuration  
+- [ ] Set up deployment pipeline from Garnix
+- [ ] Add environment-specific builds (staging/prod)
+- [ ] Configure secrets management in Nix
 
-### 7. Monitoring & Alerts
-- [ ] Set up notifications for CI failures
-- [ ] Monitor GitHub Actions vs Garnix result divergence
-- [ ] Track build times and cache hit rates
+### 7. Multi-Environment Support
+- [ ] Add ARM64 support for M1/M2 Macs
+- [ ] Test on different Linux distributions  
+- [ ] Add Windows support via WSL
+- [ ] Cross-compilation setup
 
-## 🎯 Long-term Goals (Future Sprints)
-
-### 8. Full Nixification
-- [ ] Migrate from hybrid to single Nix pipeline
-- [ ] Remove GitHub Actions dependency
-- [ ] Implement proper supply chain security with locked dependencies
-- [ ] Add Nix-based deployment pipeline
-
-### 9. Advanced Features
-- [ ] Multi-architecture builds (ARM64 + x86_64)
-- [ ] Preview deployments triggered by Garnix
-- [ ] Integration tests in Nix environment
-- [ ] Security scanning of dependencies
-
-## 🚫 Won't Do (Oracle confirmed)
-- ❌ Use `__impure` flags (requires experimental features)
-- ❌ dream2nix without prefetch (network restrictions)  
-- ❌ Vendored node_modules tarball (inflates repo)
+## 🚫 What We Ditched
+- ❌ GitHub Actions (redundant with Garnix)
+- ❌ Hybrid approach (full Nix is better)
+- ❌ Static-only validation (real builds are better)
+- ❌ Network dependencies during build (pnpm2nix handles it)
 
 ---
 
-## Current Status: ✅ Hybrid Working
-- Static validation in Garnix ✅
-- Build/lint in GitHub Actions ✅
-- Development shell available ✅
-- Ready for incremental upgrades ✅
+## 💪 Why This Approach Rocks
+- **Single source of truth**: Everything defined in flake.nix
+- **Reproducible builds**: Same result every time, anywhere
+- **Binary caching**: Garnix caches everything for speed
+- **Offline builds**: Works without internet after first build
+- **Supply chain security**: All dependencies locked and verified
 
-**Next Priority**: Items 1-3 for immediate wins, then item 4 for full Nix builds.
+**Next Priority**: Test the build, fix any issues, then optimize!

@@ -3,20 +3,64 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    pnpm2nix.url = "github:nzbr/pnpm2nix-nzbr";
+    pnpm2nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, ... }: 
+  outputs = { nixpkgs, pnpm2nix, ... }: 
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ pnpm2nix.overlays.default ];
+      };
+      node = pkgs.nodejs_20;
+      pnpm = pkgs.nodePackages.pnpm;
+
+      # Build the application with pnpm2nix
+      app = pkgs.mkPnpmPackage {
+        pname = "eduteams";
+        version = "0.1.0";
+        src = ./.;
+        
+        nodejs = node;
+        pnpm = pnpm;
+        
+        script = "build";
+        distDir = ".next";
+        
+        # Set environment variables for Next.js build
+        preBuild = ''
+          export HOME=$TMPDIR
+          export NEXT_TELEMETRY_DISABLED=1
+        '';
+      };
+
+      # Lint check
+      lintCheck = pkgs.mkPnpmPackage {
+        pname = "eduteams-lint";
+        version = "0.1.0";
+        src = ./.;
+        
+        nodejs = node;
+        pnpm = pnpm;
+        
+        script = "lint";
+        
+        # Override to just run lint, no build artifacts
+        installPhase = ''
+          echo "Lint passed!" > $out
+        '';
+        
+        preBuild = ''
+          export HOME=$TMPDIR
+          export NEXT_TELEMETRY_DISABLED=1
+        '';
+      };
     in {
       # Development shell
       devShells.${system}.default = pkgs.mkShell {
-        packages = [ 
-          pkgs.nodejs_20 
-          pkgs.nodePackages.pnpm 
-          pkgs.git 
-        ];
+        packages = [ node pnpm pkgs.git ];
         shellHook = ''
           echo "🔧 Node  $(node  -v)"
           echo "🔧 pnpm $(pnpm -v)"
@@ -24,82 +68,13 @@
         '';
       };
 
-      # Basic validation checks that don't require network access
+      # Main package
+      packages.${system}.default = app;
+
+      # CI checks that actually build and lint
       checks.${system} = {
-        # Check that required files exist and are valid
-        structure = pkgs.runCommand "eduteams-structure-check" {} ''
-          echo "Checking project structure..."
-          
-          # Check required files exist
-          if [[ ! -f "${./.}/package.json" ]]; then
-            echo "ERROR: package.json not found"
-            exit 1
-          fi
-          
-          if [[ ! -f "${./.}/pnpm-lock.yaml" ]]; then
-            echo "ERROR: pnpm-lock.yaml not found"
-            exit 1
-          fi
-          
-          if [[ ! -f "${./.}/next.config.ts" ]]; then
-            echo "ERROR: next.config.ts not found"
-            exit 1
-          fi
-          
-          echo "✓ All required files present"
-          echo "Project structure check passed!" > $out
-        '';
-
-        # Validate package.json syntax
-        package-json = pkgs.runCommand "eduteams-package-json-check" {
-          buildInputs = [ pkgs.jq ];
-        } ''
-          echo "Validating package.json..."
-          
-          if ! jq . "${./.}/package.json" > /dev/null; then
-            echo "ERROR: package.json is not valid JSON"
-            exit 1
-          fi
-          
-          # Check required fields
-          if ! jq -e '.scripts.build' "${./.}/package.json" > /dev/null; then
-            echo "ERROR: build script not found in package.json"
-            exit 1
-          fi
-          
-          if ! jq -e '.scripts.lint' "${./.}/package.json" > /dev/null; then
-            echo "ERROR: lint script not found in package.json"
-            exit 1
-          fi
-          
-          echo "✓ package.json is valid"
-          echo "Package.json validation passed!" > $out
-        '';
-
-        # Check TypeScript configuration
-        typescript = pkgs.runCommand "eduteams-typescript-check" {
-          buildInputs = [ pkgs.jq ];
-        } ''
-          echo "Checking TypeScript configuration..."
-          
-          if [[ ! -f "${./.}/tsconfig.json" ]]; then
-            echo "ERROR: tsconfig.json not found"
-            exit 1
-          fi
-          
-          if ! jq . "${./.}/tsconfig.json" > /dev/null; then
-            echo "ERROR: tsconfig.json is not valid JSON"
-            exit 1
-          fi
-          
-          echo "✓ TypeScript configuration is valid"
-          echo "TypeScript check passed!" > $out
-        '';
+        build = app;
+        lint = lintCheck;
       };
-
-      # Simple package that just succeeds for now
-      packages.${system}.default = pkgs.runCommand "eduteams-success" {} ''
-        echo "eduteams build configured for Garnix CI" > $out
-      '';
     };
 }
