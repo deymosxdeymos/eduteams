@@ -33,8 +33,8 @@ This document provides context to AI models assisting with the codebase.
 - **Development server:** `bun dev`
 - **Build:** `bun run build`
 - **Test:** `bun test`
-- **Type check:** `bun run type-check` (if available)
-- **Lint:** `bun run lint` (if available)
+- **Type check:** `bun run type-check`
+- **Lint:** `bun run lint`
 
 ## Coding Standards & Best Practices
 
@@ -103,7 +103,7 @@ This document provides context to AI models assisting with the codebase.
 
 - **CI Platform:** GitHub Actions - Native GitHub integration
 - **Configuration:** `.github/workflows/` YAML files
-- **Package Manager:** Bun for fastest package management
+- **Package Manager:** Bun for fastest package management and execution
 - **Runtime:** Bun for build, test, and lint operations
 
 ### Workflow Structure
@@ -120,13 +120,13 @@ deploy-prod.yml     # Production deployment
 - **Local development:** `bun install && bun dev`
 - **Local build test:** `bun run build`
 - **Local checks:** `bun run lint && bun run type-check && bun test`
-- **Package management:** Use `bun` for all operations
+- **Package management:** Use `bun` for all operations (install, add, remove, run)
 
 ### CI Philosophy
 
 - **Fast and reliable:** Leverage Bun's speed for package management and builds
 - **Matrix testing:** Test across multiple Node.js versions if needed
-- **Caching:** Cache `node_modules` and build artifacts
+- **Caching:** Cache `bun.lockb` and build artifacts
 - **Real verification:** Actual builds, tests, and lints on every PR
 - **Branch protection:** Require CI checks to pass before merge
 
@@ -154,7 +154,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run type-check  
-      - run: bun run test
+      - run: bun test
       - run: bun run build
 ```
 
@@ -181,3 +181,4 @@ jobs:
 - **Explain Trade-offs:** Mention pros and cons when relevant
 - **Use Bun for all operations:** Package management, testing, and development scripts
 - **Note on CI:** Use GitHub Actions for CI/CD, `gh` CLI for GitHub management
+- **Bun best practices:** Leverage Bun's speed, use `bun.lockb` for lockfile, prefer `bun run` over npm scripts
