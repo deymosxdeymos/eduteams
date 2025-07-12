@@ -3,49 +3,59 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-    pnpm2nix.url = "github:nzbr/pnpm2nix-nzbr";
-    pnpm2nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, pnpm2nix, ... }: 
+  outputs = { nixpkgs, ... }: 
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ pnpm2nix.overlays.default ];
-      };
-      node = pkgs.nodejs_20;
-      pnpm = pkgs.nodePackages.pnpm;
-
-      # Build the application with pnpm2nix
-      app = pkgs.mkPnpmPackage {
+      pkgs = import nixpkgs { inherit system; };
+      
+      # Build the application using buildPnpmPackage
+      app = pkgs.stdenv.mkDerivation {
         pname = "eduteams";
         version = "0.1.0";
         src = ./.;
         
-        nodejs = node;
-        pnpm = pnpm;
+        buildInputs = [ pkgs.nodejs_20 pkgs.nodePackages.pnpm ];
         
-        script = "build";
-        distDir = ".next";
+        buildPhase = ''
+          export HOME=$TMPDIR
+          export NEXT_TELEMETRY_DISABLED=1
+          pnpm install --frozen-lockfile
+          pnpm run build
+        '';
+        
+        installPhase = ''
+          mkdir -p $out
+          cp -r .next $out/
+          cp package.json $out/
+        '';
       };
 
-      # Lint check - simpler version
-      lintCheck = pkgs.mkPnpmPackage {
+      # Lint check using simple derivation
+      lintCheck = pkgs.stdenv.mkDerivation {
         pname = "eduteams-lint";
         version = "0.1.0";
         src = ./.;
         
-        nodejs = node;
-        pnpm = pnpm;
+        buildInputs = [ pkgs.nodejs_20 pkgs.nodePackages.pnpm ];
         
-        script = "lint";
-        distDir = "dist";  # dummy dist dir since we only care about the script running
+        buildPhase = ''
+          export HOME=$TMPDIR
+          export NEXT_TELEMETRY_DISABLED=1
+          pnpm install --frozen-lockfile
+          pnpm run lint
+        '';
+        
+        installPhase = ''
+          mkdir -p $out
+          echo "Lint passed!" > $out/result
+        '';
       };
     in {
       # Development shell
       devShells.${system}.default = pkgs.mkShell {
-        packages = [ node pnpm pkgs.git ];
+        packages = [ pkgs.nodejs_20 pkgs.nodePackages.pnpm pkgs.git ];
         shellHook = ''
           echo "🔧 Node  $(node  -v)"
           echo "🔧 pnpm $(pnpm -v)"
