@@ -23,13 +23,8 @@
         version = "0.1.0";
         src = ./.;
         
-        nodejs = node;
-        pnpm = pnpm;
+        buildScript = "build";
         
-        script = "build";
-        distDir = ".next";
-        
-        # Set environment variables for Next.js build
         preBuild = ''
           export HOME=$TMPDIR
           export NEXT_TELEMETRY_DISABLED=1
@@ -42,19 +37,16 @@
         version = "0.1.0";
         src = ./.;
         
-        nodejs = node;
-        pnpm = pnpm;
-        
-        script = "lint";
-        
-        # Override to just run lint, no build artifacts
-        installPhase = ''
-          echo "Lint passed!" > $out
-        '';
+        buildScript = "lint";
         
         preBuild = ''
           export HOME=$TMPDIR
           export NEXT_TELEMETRY_DISABLED=1
+        '';
+        
+        # Override to just run lint, no build artifacts
+        installPhase = ''
+          echo "Lint passed!" > $out
         '';
       };
     in {
