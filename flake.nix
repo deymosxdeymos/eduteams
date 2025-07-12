@@ -16,12 +16,17 @@
   outputs = { nixpkgs, pnpm2nix, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        node = pkgs.nodejs_20;               # Node 20 LTS – meets Next 15 req
+        # ─── pull in the pnpm2nix overlay so pkgs has mkPnpmPackage ───────
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ pnpm2nix.overlays.default ];
+        };
+
+        node = pkgs.nodejs_20;
         pnpm = pkgs.nodePackages.pnpm;
       in rec {
         # ─────────── build artefact ───────────
-        packages.default = pnpm2nix.lib.mkPnpmPackage {
+        packages.default = pkgs.mkPnpmPackage {
           pname      = "eduteams";
           version    = "0.1.0";
           src        = ./.;
@@ -29,12 +34,11 @@
           nodejs     = node;
           pnpm       = pnpm;
 
-          script     = "build";              # runs: pnpm run build → next build
-          distDir    = ".next";              # keep the production bundle
+          script     = "build";    # runs: pnpm run build  → next build
+          distDir    = ".next";    # production bundle
         };
 
         # ─────────── CI check: lint ───────────
-        # copy the source into /build because runCommand starts in an empty dir
         checks.lint = pkgs.runCommand "lint" { src = ./.; } ''
           cp -R $src source
           cd source
@@ -42,12 +46,12 @@
           touch $out
         '';
 
-        # ─────────── dev shell ───────────
+        # ─────────── dev-shell ───────────
         devShells.default = pkgs.mkShell {
           packages = [ node pnpm ];
           shellHook = ''
-            echo "🔧  Node  $(node  -v)"
-            echo "🔧  pnpm $(pnpm -v)"
+            echo "🔧 Node  $(node  -v)"
+            echo "🔧 pnpm $(pnpm -v)"
           '';
         };
       });
