@@ -11,6 +11,8 @@
   "dependencies": {
     "@prisma/client": "^6.11.1",
     "better-auth": "^1.2.12",
+    "clsx": "^2.1.1",
+    "motion": "^12.23.3",
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -25,7 +27,7 @@
     "eslint-config-next": "15.3.5",
     "prettier": "^3.6.2",
     "prisma": "^6.11.1",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.1.11",
     "typescript": "^5"
   }
 }
