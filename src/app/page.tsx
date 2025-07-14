@@ -1,3 +1,4 @@
+import Logo from '@/components/logo';
 import Image from 'next/image';
 import { LoginButton } from '@/components/auth/login-button';
 import { UserDisplay } from '@/components/auth/user-info';
@@ -8,12 +9,7 @@ export default function Home() {
       <UserDisplay />
       <section className='bg-blue-600 min-h-screen flex flex-col'>
         {/* header */}
-        <header className='flex flex-row justify-center items-center pt-10 w-full gap-2'>
-          <Image src='/logo.png' width={50} height={50} alt='logo' />
-          <p className='text-white text-3xl font-bold'>
-            Equi<span className='text-white font-light'>Team</span>
-          </p>
-        </header>
+        <Logo />
 
         {/* hero content */}
         <div className='flex flex-col items-center justify-center gap-8 px-4 pt-20'>
