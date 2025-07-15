@@ -18,13 +18,13 @@ export default function DataDiriPage() {
           Isi data diri
         </h1>
         <Image
-          src='/emoji/grimming-face.svg'
+          src='/emoji/pencil.svg'
           width={80}
           height={80}
           alt='question icon'
         />
       </div>
-      <div className='flex items-start justify-center py-20 px-8'>
+      <div className='flex items-start justify-center py-14 px-8'>
         <DataDiriForm />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
