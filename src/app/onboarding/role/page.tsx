@@ -8,19 +8,47 @@ import { ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function RolePage() {
   const [selectedRole, setSelectedRole] = useState<
     'dosen' | 'mahasiswa' | undefined
   >();
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleRoleSelect = (role: 'dosen' | 'mahasiswa') => {
     setSelectedRole(role);
   };
 
-  const handleNext = () => {
-    if (selectedRole) {
-      router.push(`/onboarding/data-diri/${selectedRole}`);
+  const handleNext = async () => {
+    if (!selectedRole) return;
+
+    setIsLoading(true);
+    try {
+      // First, save the role
+      const roleResponse = await fetch('/api/user/role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: selectedRole }),
+      });
+
+      if (roleResponse.ok) {
+        // Then update onboarding progress
+        await fetch('/api/user/onboarding-progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ step: 'role' }),
+        });
+
+        router.push(`/onboarding/data-diri/${selectedRole}`);
+      }
+    } catch (error) {
+      console.error('Error selecting role:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -51,9 +79,9 @@ export default function Home() {
           size='long'
           className='w-[700px]'
           onClick={handleNext}
-          disabled={!selectedRole}
+          disabled={!selectedRole || isLoading}
         >
-          Lanjut
+          {isLoading ? 'Loading...' : 'Lanjut'}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

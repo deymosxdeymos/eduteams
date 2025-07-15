@@ -16,6 +16,32 @@ export default function KepribadianPage() {
     setIsModalOpen(false);
   };
 
+  const handleComplete = async () => {
+    try {
+      // Save progress before completing
+      await fetch('/api/user/onboarding-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ step: 'kepribadian' }),
+      });
+
+      const response = await fetch('/api/user/complete-onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error completing kepribadian:', error);
+    }
+  };
+
   return (
     <main className='bg-white min-h-screen'>
       <InstructionModal isOpen={isModalOpen} onCloseAction={handleCloseModal} />
@@ -43,7 +69,7 @@ export default function KepribadianPage() {
         >
           <ArrowLeft strokeWidth={3} className='font-bold text-black text-lg' />
         </Button>
-        <Button variant='onboarding' size='long'>
+        <Button variant='onboarding' size='long' onClick={handleComplete}>
           Lanjut
           <ArrowRight
             strokeWidth={3}
