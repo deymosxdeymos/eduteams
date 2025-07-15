@@ -1,4 +1,18 @@
 import { describe, it, expect, mock, beforeEach } from 'bun:test';
+
+// Mock NextResponse - MUST be before imports
+mock.module('next/server', () => ({
+  NextResponse: {
+    json: mock((data: any, options?: any) => {
+      return {
+        json: async () => data,
+        status: options?.status || 200,
+        headers: new Headers(),
+      };
+    }),
+  },
+}));
+
 import { POST as onboardingProgressPost } from '@/app/api/user/onboarding-progress/route';
 import { GET as onboardingStatusGet } from '@/app/api/user/onboarding-status/route';
 import { getCurrentUser } from '@/lib/api-utils';
