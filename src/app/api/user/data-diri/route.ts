@@ -3,6 +3,50 @@ import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export async function GET() {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        nimNpm: true,
+        role: true,
+        onboardingData: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const onboardingData = user.onboardingData as {
+      jenisKelamin?: string;
+    } | null;
+    const jenisKelamin = onboardingData?.jenisKelamin || '';
+
+    return NextResponse.json({
+      namaLengkap: user.name || '',
+      nimNpm: user.nimNpm || '',
+      jenisKelamin,
+      role: user.role || '',
+    });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth.api.getSession({
@@ -43,6 +87,10 @@ export async function POST(request: NextRequest) {
       data: {
         name: namaLengkap,
         nimNpm: role === 'mahasiswa' ? nim : npm,
+        role,
+        onboardingData: {
+          jenisKelamin,
+        },
         isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
       },
     });
