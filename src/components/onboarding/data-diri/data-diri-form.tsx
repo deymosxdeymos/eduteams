@@ -15,33 +15,65 @@ import {
 import { InputRounded } from '@/components/ui/input-rounded';
 import { UserRound } from 'lucide-react';
 
-const formSchema = z.object({
-  namaLengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
-  nim: z
-    .string()
-    .min(8, 'NIM minimal 8 karakter')
-    .max(15, 'NIM maksimal 15 karakter'),
-  jenisKelamin: z.string().min(1, 'Pilih jenis kelamin'),
-});
+interface DataDiriFormProps {
+  role: 'dosen' | 'mahasiswa';
+  onSubmitAction: (data: {
+    namaLengkap: string;
+    nim?: string;
+    npm?: string;
+    jenisKelamin: string;
+  }) => Promise<void>;
+}
 
-export default function DataDiriForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+const createFormSchema = (role: 'dosen' | 'mahasiswa') => {
+  const baseSchema = {
+    namaLengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
+    jenisKelamin: z.string().min(1, 'Pilih jenis kelamin'),
+  };
+
+  if (role === 'mahasiswa') {
+    return z.object({
+      ...baseSchema,
+      nim: z
+        .string()
+        .min(8, 'NIM minimal 8 karakter')
+        .max(15, 'NIM maksimal 15 karakter'),
+    });
+  } else {
+    return z.object({
+      ...baseSchema,
+      npm: z
+        .string()
+        .min(8, 'NPM minimal 8 karakter')
+        .max(15, 'NPM maksimal 15 karakter'),
+    });
+  }
+};
+
+export default function DataDiriForm({
+  role,
+  onSubmitAction,
+}: DataDiriFormProps) {
+  const formSchema = createFormSchema(role);
+  type FormData = z.infer<typeof formSchema>;
+
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      namaLengkap: '',
-      nim: '',
-      jenisKelamin: '',
-    },
+    defaultValues:
+      role === 'mahasiswa'
+        ? { namaLengkap: '', nim: '', jenisKelamin: '' }
+        : { namaLengkap: '', npm: '', jenisKelamin: '' },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  function handleSubmit(values: FormData) {
+    onSubmitAction(values);
   }
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        id='data-diri-form'
+        onSubmit={form.handleSubmit(handleSubmit)}
         className='space-y-8 w-full max-w-2xl'
       >
         <FormField
@@ -69,23 +101,25 @@ export default function DataDiriForm() {
 
         <FormField
           control={form.control}
-          name='nim'
+          name={role === 'mahasiswa' ? 'nim' : 'npm'}
           render={({ field }) => (
             <FormItem>
               <FormLabel className='text-black text-xl font-normal'>
-                Nomor Induk Mahasiswa (NIM)
+                {role === 'mahasiswa'
+                  ? 'Nomor Induk Mahasiswa (NIM)'
+                  : 'Nomor Pokok Pegawai (NPM)'}
               </FormLabel>
               <FormControl>
                 <div className='relative'>
                   <Image
                     src='/icons/nim.svg'
-                    alt='NIM icon'
+                    alt={`${role === 'mahasiswa' ? 'NIM' : 'NPM'} icon`}
                     width={16}
                     height={16}
                     className='absolute left-3 top-1/2 -translate-y-1/2'
                   />
                   <InputRounded
-                    placeholder='Masukkan NIM'
+                    placeholder={`Masukkan ${role === 'mahasiswa' ? 'NIM' : 'NPM'}`}
                     {...field}
                     className='pl-10'
                   />
