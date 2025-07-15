@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { UserRound } from 'lucide-react';
 
 const formSchema = z.object({
   namaLengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
@@ -48,11 +49,18 @@ export default function DataDiriForm() {
           name='namaLengkap'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-black font-medium'>
+              <FormLabel className='text-black text-xl font-normal'>
                 Nama Lengkap
               </FormLabel>
               <FormControl>
-                <InputRounded placeholder='Masukkan nama lengkap' {...field} />
+                <div className='relative'>
+                  <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black' />
+                  <InputRounded
+                    placeholder='Masukkan nama lengkap'
+                    {...field}
+                    className='pl-10'
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -64,11 +72,24 @@ export default function DataDiriForm() {
           name='nim'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-black font-medium'>
+              <FormLabel className='text-black text-xl font-normal'>
                 Nomor Induk Mahasiswa (NIM)
               </FormLabel>
               <FormControl>
-                <InputRounded placeholder='Masukkan NIM' {...field} />
+                <div className='relative'>
+                  <Image
+                    src='/icons/nim.svg'
+                    alt='NIM icon'
+                    width={16}
+                    height={16}
+                    className='absolute left-3 top-1/2 -translate-y-1/2'
+                  />
+                  <InputRounded
+                    placeholder='Masukkan NIM'
+                    {...field}
+                    className='pl-10'
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -80,7 +101,7 @@ export default function DataDiriForm() {
           name='jenisKelamin'
           render={({ field }) => (
             <FormItem>
-              <FormLabel className='text-black font-medium'>
+              <FormLabel className='text-black text-xl font-normal'>
                 Jenis Kelamin
               </FormLabel>
               <FormControl>
@@ -88,18 +109,20 @@ export default function DataDiriForm() {
                   <button
                     type='button'
                     onClick={() => field.onChange('laki-laki')}
-                    className={`bg-blue-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 transition-all ${
-                      field.value === 'laki-laki' ? 'ring-2 ring-blue-300' : ''
+                    className={`bg-blue-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
+                      field.value === 'laki-laki'
+                        ? 'ring-4 ring-blue-300 scale-105'
+                        : 'hover:bg-blue-200'
                     }`}
                   >
                     <Image
                       src='/laki.svg'
-                      width={60}
-                      height={60}
+                      width={80}
+                      height={80}
                       alt='laki-laki'
                       className='mb-[-10px]'
                     />
-                    <p className='font-bold text-center text-blue-950 text-sm tracking-tighter leading-none uppercase'>
+                    <p className='font-bold text-center text-blue-950 text-md tracking-tighter leading-none uppercase'>
                       Laki-laki
                     </p>
                   </button>
@@ -107,18 +130,20 @@ export default function DataDiriForm() {
                   <button
                     type='button'
                     onClick={() => field.onChange('perempuan')}
-                    className={`bg-pink-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 transition-all ${
-                      field.value === 'perempuan' ? 'ring-2 ring-pink-300' : ''
+                    className={`bg-pink-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
+                      field.value === 'perempuan'
+                        ? 'ring-4 ring-pink-300 scale-105'
+                        : 'hover:bg-pink-200'
                     }`}
                   >
                     <Image
                       src='/perempuan.svg'
-                      width={60}
-                      height={60}
+                      width={80}
+                      height={80}
                       alt='perempuan'
                       className='mb-[-10px]'
                     />
-                    <p className='font-bold text-center text-pink-950 text-sm tracking-tighter leading-none uppercase'>
+                    <p className='font-bold text-center text-pink-950 text-md tracking-tighter leading-none uppercase'>
                       Perempuan
                     </p>
                   </button>
