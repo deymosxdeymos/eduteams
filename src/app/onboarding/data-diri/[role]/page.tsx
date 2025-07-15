@@ -1,33 +1,38 @@
+'use client';
+
 import Logo from '@/components/logo';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import DataDiriForm from '@/components/onboarding/data-diri/data-diri-form';
+import { useRouter } from 'next/navigation';
 
 export default function DataDiriPage() {
+  const router = useRouter();
   return (
     <main className='bg-white min-h-screen'>
       <Logo color='black' />
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
+        <h1 className='font-bold text-black text-6xl tracking-tighter'>
+          Isi data diri
+        </h1>
         <Image
           src='/emoji/grimming-face.svg'
           width={80}
           height={80}
           alt='question icon'
         />
-        <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          Data Diri
-        </h1>
       </div>
       <div className='flex items-start justify-center py-20 px-8'>
         <DataDiriForm />
       </div>
-      <div className='flex items-center justify-center gap-x-2'>
+      <div className='flex items-center justify-center gap-x-6'>
         <Button
           variant='ghost'
           size='icon'
-          className='rounded-full w-12 h-12 border border-black'
+          className='rounded-full w-14 h-14 border border-black'
+          onClick={() => router.push('/onboarding/role')}
         >
           <ArrowLeft strokeWidth={3} className='font-bold text-black text-lg' />
         </Button>
