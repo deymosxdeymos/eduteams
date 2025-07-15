@@ -1,10 +1,57 @@
+'use client';
+
 import Logo from '@/components/logo';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import RoleSelect from '@/components/onboarding/role/role-select';
 import { ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function RolePage() {
+  const [selectedRole, setSelectedRole] = useState<
+    'dosen' | 'mahasiswa' | undefined
+  >();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleRoleSelect = (role: 'dosen' | 'mahasiswa') => {
+    setSelectedRole(role);
+  };
+
+  const handleNext = async () => {
+    if (!selectedRole) return;
+
+    setIsLoading(true);
+    try {
+      // First, save the role
+      const roleResponse = await fetch('/api/user/role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: selectedRole }),
+      });
+
+      if (roleResponse.ok) {
+        // Then update onboarding progress
+        await fetch('/api/user/onboarding-progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ step: 'role' }),
+        });
+
+        router.push(`/onboarding/data-diri/${selectedRole}`);
+      }
+    } catch (error) {
+      console.error('Error selecting role:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <main className='bg-white min-h-screen'>
       <Logo color='black' />
@@ -21,11 +68,20 @@ export default function Home() {
         </h1>
       </div>
       <div className='flex items-center justify-center space-y-2 py-20'>
-        <RoleSelect />
+        <RoleSelect
+          onRoleSelect={handleRoleSelect}
+          selectedRole={selectedRole}
+        />
       </div>
       <div className='flex items-center justify-center gap-x-2'>
-        <Button variant='onboarding' size='long'>
-          Lanjut
+        <Button
+          variant='onboarding'
+          size='long'
+          className='w-[700px]'
+          onClick={handleNext}
+          disabled={!selectedRole || isLoading}
+        >
+          {isLoading ? 'Loading...' : 'Lanjut'}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

@@ -5,10 +5,58 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import DataDiriForm from '@/components/onboarding/data-diri/data-diri-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
 
 export default function DataDiriPage() {
   const router = useRouter();
+  const params = useParams();
+  const role = params.role as 'dosen' | 'mahasiswa';
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (formData: {
+    namaLengkap: string;
+    nim?: string;
+    npm?: string;
+    jenisKelamin: string;
+  }) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/user/data-diri', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          role,
+        }),
+      });
+
+      if (response.ok) {
+        // Save progress
+        await fetch('/api/user/onboarding-progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ step: 'data-diri' }),
+        });
+
+        // Navigate based on role
+        if (role === 'mahasiswa') {
+          router.push('/onboarding/kepribadian');
+        } else {
+          router.push('/dashboard');
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting data-diri:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className='bg-white min-h-screen'>
       <Logo color='black' />
@@ -18,14 +66,14 @@ export default function DataDiriPage() {
           Isi data diri
         </h1>
         <Image
-          src='/emoji/grimming-face.svg'
+          src='/emoji/pencil.svg'
           width={80}
           height={80}
           alt='question icon'
         />
       </div>
-      <div className='flex items-start justify-center py-20 px-8'>
-        <DataDiriForm />
+      <div className='flex items-start justify-center py-14 px-8'>
+        <DataDiriForm role={role} onSubmitAction={handleSubmit} />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
         <Button
@@ -36,8 +84,14 @@ export default function DataDiriPage() {
         >
           <ArrowLeft strokeWidth={3} className='font-bold text-black text-lg' />
         </Button>
-        <Button variant='onboarding' size='long'>
-          Lanjut
+        <Button
+          variant='onboarding'
+          size='long'
+          form='data-diri-form'
+          type='submit'
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Saving...' : 'Lanjut'}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

@@ -1,11 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { createAuthClient } from 'better-auth/client';
+import { authClient } from '@/lib/auth-client';
 import LetterSwapForward from '@/components/ui/letter-swap-forward';
-
-
-const authClient = createAuthClient();
 
 export function LoginButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,19 +10,15 @@ export function LoginButton() {
   const signIn = async () => {
     setIsLoading(true);
     try {
-      const data = await authClient.signIn.social({
+      await authClient.signIn.social({
         provider: 'google',
+        callbackURL: '/onboarding/role',
       });
-
-      // For testing - just log the data
-      console.log('Sign-in successful:', data);
     } catch (error) {
       console.error('Error signing in:', error);
-    } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <button
       onClick={signIn}

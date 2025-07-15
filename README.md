@@ -1,36 +1,244 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EduTeams
+
+A comprehensive educational platform built with Next.js and TypeScript, featuring user onboarding, role-based access control, and personality assessment.
+
+## Technology Stack
+
+- **Framework:** Next.js 15 with App Router
+- **Language:** TypeScript
+- **Runtime:** Bun (package management, testing, development)
+- **Styling:** Tailwind CSS with Shadcn/ui components
+- **Database:** PostgreSQL with Prisma ORM
+- **Authentication:** better-auth with session management
+- **Testing:** Bun test with comprehensive coverage
+- **Client State:** SWR for data fetching and caching
+
+## Prerequisites
+
+- [Bun](https://bun.sh/) (latest version)
+- [PostgreSQL](https://www.postgresql.org/) database
+- [Node.js](https://nodejs.org/) 18+ (for compatibility)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
+```
+
+### 2. Database Setup
+
+1. Create a PostgreSQL database
+2. Copy environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Configure your database URL in `.env.local`
+4. Run database migrations:
+   ```bash
+   bun prisma migrate dev
+   ```
+
+### 3. Start Development Server
+
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Core Commands
 
-## Learn More
+```bash
+# Start development server with Turbopack
+bun dev
 
-To learn more about Next.js, take a look at the following resources:
+# Build for production
+bun run build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Start production server
+bun start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Run linter
+bun run lint
 
-## Deploy on Vercel
+# Run type checking
+bun run type-check
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Testing Commands
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Run all tests
+bun test
+
+# Run tests with coverage
+bun test:coverage
+
+# Run tests in watch mode
+bun test:watch
+
+# Run tests for CI (with coverage and bail on first failure)
+bun test:ci
+
+# Update test snapshots
+bun test:update-snapshots
+```
+
+### Database Commands
+
+```bash
+# Generate Prisma client
+bun prisma generate
+
+# Run database migrations
+bun prisma migrate dev
+
+# Reset database
+bun prisma migrate reset
+
+# Open Prisma Studio
+bun prisma studio
+```
+
+## Project Structure
+
+```
+├── src/
+│   ├── app/                    # Next.js App Router pages
+│   │   ├── api/               # API routes
+│   │   ├── dashboard/         # Dashboard pages
+│   │   ├── onboarding/        # Onboarding flow
+│   │   └── globals.css        # Global styles
+│   ├── components/            # React components
+│   │   ├── auth/             # Authentication components
+│   │   ├── onboarding/       # Onboarding components
+│   │   └── ui/               # UI components (Shadcn/ui)
+│   └── lib/                   # Utilities and configurations
+│       ├── api-utils.ts      # API utilities and auth wrappers
+│       ├── auth.ts           # Authentication configuration
+│       ├── authorization.ts  # Authorization logic
+│       ├── prisma.ts         # Database client
+│       └── utils.ts          # General utilities
+├── __tests__/                 # Test files
+├── prisma/                    # Database schema and migrations
+├── public/                    # Static assets
+├── bunfig.toml               # Bun configuration
+└── docker-compose.yml        # Database development setup
+```
+
+## Features
+
+### User Authentication
+
+- Secure session-based authentication with better-auth
+- Role-based access control (Student, Lecturer, Admin)
+- Protected routes with middleware
+
+### Onboarding Flow
+
+- Multi-step onboarding process
+- Role-specific data collection
+- Progress tracking and resume functionality
+- Personality assessment for students
+
+### Dashboard
+
+- Role-based dashboard views
+- User profile management
+- Progress tracking
+
+## Testing
+
+The project uses Bun's built-in test runner with comprehensive coverage:
+
+- **Unit Tests:** Component and utility testing
+- **Integration Tests:** API route testing
+- **End-to-End Tests:** Complete user flow testing
+- **Coverage:** 77%+ line coverage with detailed reporting
+
+Run tests with:
+
+```bash
+bun test
+```
+
+## Code Quality
+
+### Type Safety
+
+- Strict TypeScript configuration
+- Comprehensive type definitions
+- Prisma-generated types
+
+### Linting & Formatting
+
+- ESLint with Next.js configuration
+- Prettier for code formatting
+- Pre-commit hooks for quality assurance
+
+### Performance
+
+- Next.js App Router with Server Components
+- Optimized data fetching with SWR
+- Efficient caching strategies
+- Image optimization
+
+## Environment Variables
+
+Create a `.env.local` file with:
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/eduteams"
+
+# Authentication
+BETTER_AUTH_SECRET="your-secret-key"
+BETTER_AUTH_URL="http://localhost:3000"
+
+# Optional: Redis for caching
+REDIS_URL="redis://localhost:6379"
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `bun test`
+5. Run linting: `bun run lint`
+6. Run type checking: `bun run type-check`
+7. Commit your changes: `git commit -m 'Add amazing feature'`
+8. Push to the branch: `git push origin feature/amazing-feature`
+9. Open a Pull Request
+
+## Deployment
+
+### Vercel (Recommended)
+
+The easiest way to deploy is using the [Vercel Platform](https://vercel.com/new).
+
+1. Connect your GitHub repository
+2. Configure environment variables
+3. Deploy automatically on push
+
+### Docker
+
+```bash
+# Build the image
+docker build -t eduteams .
+
+# Run the container
+docker run -p 3000:3000 eduteams
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the development team.

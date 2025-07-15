@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main>
       <UserDisplay />
-      <section className='bg-blue-600 min-h-screen flex flex-col'>
+      <section className='bg-blue-background min-h-screen flex flex-col'>
         {/* header */}
         <Logo />
 
@@ -15,7 +15,7 @@ export default function Home() {
         <div className='flex flex-col items-center justify-center gap-8 px-4 pt-20'>
           <div className='text-center'>
             <h1 className='text-white text-7xl font-bold tracking-tight mb-4'>
-              Dimana <span className='text-green-500'>Keadilan</span>
+              Dimana <span className='text-lime-200'>Keadilan</span>
             </h1>
             <h1 className='text-white text-7xl font-bold tracking-tight'>
               Menciptakan Keunggulan
@@ -35,7 +35,7 @@ export default function Home() {
       </section>
 
       {/* hills */}
-      <section className='relative bg-blue-600 -mt-40'>
+      <section className='relative bg-blue-background -mt-30'>
         <svg
           width='100%'
           height='500'
@@ -55,7 +55,7 @@ export default function Home() {
         <div className='absolute inset-0 flex flex-col items-center justify-center px-4'>
           <div className='bg-white p-10 rounded-xl w-[900px] text-start shadow-lg grid grid-cols-4 relative'>
             <div className='col-span-3'>
-              <h1 className='text-5xl font-bold text-blue-600 mb-4'>
+              <h1 className='text-5xl font-bold text-blue-background mb-4'>
                 Apa itu EquiTeam
               </h1>
               <p className='text-black font-light text-lg leading-tight'>
@@ -78,7 +78,7 @@ export default function Home() {
       </section>
 
       {/* mascot */}
-      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-335px)]'>
+      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-290px)]'>
         <Image src='/mascot.svg' width={190} height={190} alt='mascot' />
       </div>
     </main>
