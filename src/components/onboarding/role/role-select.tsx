@@ -1,9 +1,27 @@
+'use client';
+
 import Image from 'next/image';
 
-export default function RoleSelect() {
+interface RoleSelectProps {
+  onRoleSelect: (role: 'dosen' | 'mahasiswa') => void;
+  selectedRole?: 'dosen' | 'mahasiswa';
+}
+
+export default function RoleSelect({
+  onRoleSelect,
+  selectedRole,
+}: RoleSelectProps) {
   return (
     <div className='flex gap-x-16 items-center justify-center'>
-      <div className='bg-amber-100 flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2'>
+      <div
+        className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-200 ${
+          selectedRole === 'dosen'
+            ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
+            : 'bg-amber-100 hover:bg-amber-200'
+        }`}
+        onClick={() => onRoleSelect('dosen')}
+      >
+        {' '}
         <Image
           src='/dosen.svg'
           width={240}
@@ -18,7 +36,15 @@ export default function RoleSelect() {
           Dosen
         </h1>
       </div>
-      <div className='bg-green-100 flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2'>
+      <div
+        className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-200 ${
+          selectedRole === 'mahasiswa'
+            ? 'bg-green-200 ring-4 ring-green-300 scale-105'
+            : 'bg-green-100 hover:bg-green-200'
+        }`}
+        onClick={() => onRoleSelect('mahasiswa')}
+      >
+        {' '}
         <Image
           src='/mahasiswa.svg'
           width={240}
