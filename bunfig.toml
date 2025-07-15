@@ -1,0 +1,29 @@
+[test]
+# Enable coverage reporting
+coverage = true
+coverageReporter = ["text", "lcov"]
+
+# Skip test files from coverage
+coverageSkipTestFiles = true
+
+# Preload setup files
+preload = ["./__tests__/setup.ts", "./__tests__/dom-setup.ts"]
+
+# Test timeout (10 seconds)
+timeout = 10000
+
+# Coverage directory
+coverageDirectory = "coverage"
+
+# Coverage thresholds - temporarily disabled to debug
+# coverageThreshold = { lines = 0.75, functions = 0.6, statements = 0.75 }
+
+# Ignore patterns for coverage
+coveragePathIgnorePatterns = [
+  "**/*.d.ts",
+  "**/*.config.*",
+  "**/node_modules/**",
+  "**/__tests__/**",
+  "**/coverage/**",
+  "**/.next/**"
+]

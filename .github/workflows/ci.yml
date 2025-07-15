@@ -40,9 +40,28 @@ jobs:
         run: bun run type-check
         if: ${{ hashFiles('tsconfig.json') != '' }}
 
-      # - name: Run tests
-      #   run: bun test
-      #   if: ${{ hashFiles('**/*.test.*') != '' }}
+      - name: Run tests with coverage
+        run: bun run test:ci
+        if: ${{ hashFiles('**/*.test.*') != '' }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            junit.xml
+            coverage/
+          retention-days: 30
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
       - name: Build application
         run: bun run build
