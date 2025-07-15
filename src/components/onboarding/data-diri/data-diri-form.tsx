@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Image from 'next/image';
+import useSWR from 'swr';
+import { useEffect } from 'react';
 import {
   Form,
   FormControl,
@@ -50,12 +52,19 @@ const createFormSchema = (role: 'dosen' | 'mahasiswa') => {
   }
 };
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export default function DataDiriForm({
   role,
   onSubmitAction,
 }: DataDiriFormProps) {
   const formSchema = createFormSchema(role);
   type FormData = z.infer<typeof formSchema>;
+
+  const { data: existingData, isLoading } = useSWR(
+    '/api/user/data-diri',
+    fetcher
+  );
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -65,8 +74,30 @@ export default function DataDiriForm({
         : { namaLengkap: '', npm: '', jenisKelamin: '' },
   });
 
+  useEffect(() => {
+    if (existingData && !isLoading) {
+      const formValues: FormData = {
+        namaLengkap: existingData.namaLengkap || '',
+        jenisKelamin: existingData.jenisKelamin || '',
+        ...(role === 'mahasiswa'
+          ? { nim: existingData.nimNpm || '' }
+          : { npm: existingData.nimNpm || '' }),
+      } as FormData;
+
+      form.reset(formValues);
+    }
+  }, [existingData, isLoading, form, role]);
+
   function handleSubmit(values: FormData) {
     onSubmitAction(values);
+  }
+
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center w-full max-w-2xl'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
+      </div>
+    );
   }
 
   return (
