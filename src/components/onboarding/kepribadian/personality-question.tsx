@@ -103,14 +103,47 @@ export default function PersonalityQuestion({
             <div className='text-md text-green-400 font-light'>Setuju</div>
           </div>
 
-          {hasError && (
+          <motion.div
+            key={hasError ? `error-${Date.now()}` : 'no-error'}
+            initial={{ opacity: 0, height: 0, y: -10 }}
+            animate={{
+              opacity: hasError ? 1 : 0,
+              height: hasError ? 'auto' : 0,
+              y: hasError ? 0 : -10,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: 'easeOut',
+            }}
+            className='overflow-hidden'
+          >
             <div className='flex items-center justify-start px-30 mt-4 text-red-700'>
-              <MessageSquareWarning className='w-4 h-4 mr-2' />
-              <span className='text-sm font-normal'>
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{
+                  duration: 0.4,
+                  type: 'spring',
+                  stiffness: 200,
+                  damping: 10,
+                }}
+              >
+                <MessageSquareWarning className='w-4 h-4 mr-2' />
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: 0.1,
+                  ease: 'easeOut',
+                }}
+                className='text-sm font-normal'
+              >
                 Pertanyaan ini wajib diisi
-              </span>
+              </motion.span>
             </div>
-          )}
+          </motion.div>
         </div>
       </div>
 
