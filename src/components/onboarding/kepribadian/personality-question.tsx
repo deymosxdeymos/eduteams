@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { MessageSquareWarning } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface PersonalityQuestionProps {
   question: string;
@@ -18,6 +19,8 @@ export default function PersonalityQuestion({
   questionId,
 }: PersonalityQuestionProps) {
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const [previousValue, setPreviousValue] = useState<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const likertScale = [
     { icon: 'sangat-tidak-setuju', label: 'Sangat Tidak\nSetuju', value: 1 },
@@ -28,6 +31,9 @@ export default function PersonalityQuestion({
   ];
 
   const handleSelection = (value: number) => {
+    if (isAnimating) return; // Prevent clicks during animation
+    setIsAnimating(true);
+    setPreviousValue(selectedValue);
     setSelectedValue(value);
     onAnswerAction(value);
   };
@@ -53,12 +59,33 @@ export default function PersonalityQuestion({
 
             <div className='flex items-start justify-between relative flex-1 mx-8'>
               {likertScale.map((item, index) => (
-                <div
-                  key={index}
-                  className='flex flex-col items-center space-y-3 relative z-10 cursor-pointer'
+                <motion.div
+                  key={item.value}
+                  className='relative z-10 flex flex-col items-center space-y-3 cursor-pointer'
                   onClick={() => handleSelection(item.value)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{
+                    scale:
+                      selectedValue === item.value
+                        ? [1, 1.15]
+                        : previousValue === item.value
+                          ? [1.15, 1]
+                          : 1,
+                    y: selectedValue === item.value ? -5 : 0,
+                  }}
+                  transition={{
+                    duration: 0.15,
+                    ease: 'easeOut',
+                    delay: previousValue === item.value ? 0 : 0.05,
+                  }}
+                  onAnimationComplete={() => {
+                    if (selectedValue === item.value) {
+                      setIsAnimating(false);
+                    }
+                  }}
                 >
-                  <div className='bg-white flex items-center justify-center w-16 h-16'>
+                  <div className='w-16 h-16 bg-white flex items-center justify-center'>
                     <Image
                       src={`/mbti/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
                       width={48}
@@ -67,9 +94,10 @@ export default function PersonalityQuestion({
                       className='object-contain'
                     />
                   </div>
-                </div>
+                </motion.div>
               ))}
-              <div className='absolute top-8 left-0 right-0 h-1 bg-gray-300 z-0'></div>
+
+              <div className='absolute top-8 left-0 right-0 h-1 bg-gray-300 z-[1]' />
             </div>
 
             <div className='text-md text-green-400 font-light'>Setuju</div>
