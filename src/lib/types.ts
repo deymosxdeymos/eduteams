@@ -44,6 +44,29 @@ export interface ApiResponse<T = unknown> {
   message?: string;
 }
 
+export interface PersonalityApiResponse {
+  scores: {
+    ei: number;
+    sn: number;
+    tf: number;
+    pj: number;
+  };
+  mbtiType: string;
+  timestamp: string;
+}
+
+export interface QuestionApiResponse {
+  questions: Array<{
+    id: string;
+    text: string;
+    dimension: string;
+    order: number;
+    reversed?: boolean;
+  }>;
+  totalPages: number;
+  currentPage: number;
+}
+
 export class HttpError extends Error {
   constructor(
     public status: number,
