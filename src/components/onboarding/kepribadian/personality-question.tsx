@@ -9,7 +9,8 @@ interface PersonalityQuestionProps {
   question: string;
   onAnswerAction: (value: number) => void;
   hasError?: boolean;
-  questionId?: number;
+  questionId?: number | string;
+  initialValue?: number;
 }
 
 export default function PersonalityQuestion({
@@ -17,8 +18,9 @@ export default function PersonalityQuestion({
   onAnswerAction,
   hasError = false,
   questionId,
+  initialValue,
 }: PersonalityQuestionProps) {
-  const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const [selectedValue, setSelectedValue] = useState<number | null>(initialValue || null);
   const [previousValue, setPreviousValue] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -58,7 +60,7 @@ export default function PersonalityQuestion({
             </div>
 
             <div className='flex items-start justify-between relative flex-1 mx-8'>
-              {likertScale.map((item, index) => (
+              {likertScale.map((item) => (
                 <motion.div
                   key={item.value}
                   className='relative z-10 flex flex-col items-center space-y-3 cursor-pointer'
