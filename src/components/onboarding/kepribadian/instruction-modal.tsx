@@ -66,12 +66,12 @@ export default function InstructionModal({
                 >
                   <div className='bg-white flex items-center justify-center w-16 h-16'>
                     <Image
-                      src={`/${item.icon}.svg`}
+                      src={`/mbti/${item.icon}.svg`}
                       width={48}
                       height={48}
                       alt={item.label}
                       className='object-contain'
-                    />
+                    />{' '}
                   </div>
                   <p className='text-sm text-black text-center max-w-24 leading-tight whitespace-pre-line font-medium'>
                     {item.label}
