@@ -11,8 +11,20 @@ const isCloudDatabase = process.env.DATABASE_URL?.includes('prisma+postgres');
 const prisma =
   globalForPrisma.prisma ||
   (isCloudDatabase
-    ? new PrismaClient().$extends(withAccelerate())
-    : new PrismaClient());
+    ? new PrismaClient({
+        log:
+          process.env.NODE_ENV === 'development'
+            ? ['query', 'error', 'warn']
+            : ['error'],
+        errorFormat: 'pretty',
+      }).$extends(withAccelerate())
+    : new PrismaClient({
+        log:
+          process.env.NODE_ENV === 'development'
+            ? ['query', 'error', 'warn']
+            : ['error'],
+        errorFormat: 'pretty',
+      }));
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
