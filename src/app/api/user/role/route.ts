@@ -1,36 +1,25 @@
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
+import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+const roleSchema = z.object({
+  role: z.enum(['dosen', 'mahasiswa', 'admin']),
+});
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const POST = withAuth(
+  withValidation(
+    (data: unknown) => roleSchema.parse(data),
+    async (_request: NextRequest, { user, validatedData }) => {
+      const { role } = validatedData;
+
+      // Update user role in database
+      await prisma.user.update({
+        where: { id: user!.id },
+        data: { role },
+      });
+
+      return createApiResponse({ success: true });
     }
-
-    const { role } = await request.json();
-
-    if (!['dosen', 'mahasiswa', 'admin'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
-    }
-
-    // Update user role in database
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { role },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error setting user role:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+  )
+);
