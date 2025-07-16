@@ -91,6 +91,43 @@ This document provides context to AI models assisting with the codebase.
   - Long-term TODOs
   - Clarifying confusing code that even a senior engineer wouldn't initially understand
 
+## Critical Performance & Correctness Rules
+
+### Performance Rules
+
+- **Never fetch data in Client Components** - Always use Server Components for data fetching
+- **Use streaming boundaries** - Wrap expensive components in `<Suspense>` with proper fallbacks
+- **Cache aggressively** - Use Next.js 14+ cache tags and revalidation
+- **Minimize client bundle** - Only mark components as `"use client"` when absolutely necessary
+
+### Type Safety & Correctness
+
+- **Strict TypeScript** - Enable `strict: true` in tsconfig.json
+- **Route validation** - Use zod schemas for all API route inputs
+- **Error boundaries** - Implement proper error.tsx files for each route segment
+- **Metadata consistency** - Always export `generateMetadata` for SEO
+
+### Database & API
+
+- **Query optimization** - Use Prisma's `select`/`include` to avoid over-fetching
+- **Connection pooling** - Configure Prisma connection limits
+- **Rate limiting** - Implement per-route rate limiting
+- **Input validation** - Validate all API inputs with zod schemas
+
+### Build & Deployment
+
+- **Static analysis** - Run `bun run type-check` and `bun run lint` in CI
+- **Bundle analysis** - Use `@next/bundle-analyzer` to monitor bundle size
+- **Edge runtime** - Use `export const runtime = 'edge'` for API routes when possible
+
+### Prisma & Edge Runtime
+
+**Note:** Prisma does NOT support edge runtime due to Node.js dependencies. For edge-compatible database access:
+
+- Use **Drizzle ORM** or **Kysely** for edge runtime
+- Use **Neon serverless driver** or **PlanetScale serverless driver**
+- Keep Prisma for traditional Node.js runtime only
+
 ### Testing
 
 - **Test runner:** `bun test`
@@ -142,6 +179,7 @@ deploy-prod.yml     # Production deployment
 ### Workflow Examples
 
 **Main CI Workflow:**
+
 ```yaml
 name: CI
 on: [push, pull_request]
@@ -153,7 +191,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run lint
-      - run: bun run type-check  
+      - run: bun run type-check
       - run: bun test
       - run: bun run build
 ```
