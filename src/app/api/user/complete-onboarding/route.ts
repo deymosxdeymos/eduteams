@@ -1,30 +1,58 @@
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
+import { calculatePersonalityScores } from '@/lib/personality';
+import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
 
-export async function POST() {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+const completeOnboardingSchema = z.object({
+  answers: z.record(z.string(), z.number().min(1).max(5)).optional(),
+});
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const POST = withAuth(
+  withValidation(
+    (data: unknown) => completeOnboardingSchema.parse(data),
+    async (_request: NextRequest, { user, validatedData }) => {
+      const { answers } = validatedData;
+
+      // Get current user to check role
+      const currentUser = await prisma.user.findUnique({
+        where: { id: user!.id },
+        select: { role: true },
+      });
+
+      if (!currentUser) {
+        return createApiResponse(null, 'User not found', 404);
+      }
+
+      const updateData: {
+        isOnboarded: boolean;
+        ei?: number;
+        sn?: number;
+        tf?: number;
+        pj?: number;
+      } = { isOnboarded: true };
+
+      // If user is mahasiswa and provided answers, calculate personality scores
+      if (currentUser.role === 'mahasiswa' && answers) {
+        const numericAnswers: Record<number, number> = {};
+        for (const [key, value] of Object.entries(answers)) {
+          numericAnswers[parseInt(key)] = value;
+        }
+
+        const scores = calculatePersonalityScores(numericAnswers);
+        updateData.ei = scores.ei;
+        updateData.sn = scores.sn;
+        updateData.tf = scores.tf;
+        updateData.pj = scores.pj;
+      }
+
+      // Mark user as fully onboarded and save personality data if applicable
+      await prisma.user.update({
+        where: { id: user!.id },
+        data: updateData,
+      });
+
+      return createApiResponse({ success: true });
     }
-
-    // Mark user as fully onboarded
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { isOnboarded: true },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error completing onboarding:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+  )
+);

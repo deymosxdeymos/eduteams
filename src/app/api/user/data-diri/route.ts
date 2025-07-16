@@ -1,106 +1,77 @@
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
+import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
 
-export async function GET() {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+const dataDiriSchema = z.object({
+  namaLengkap: z.string().min(1, 'Nama lengkap is required'),
+  nim: z.string().optional(),
+  npm: z.string().optional(),
+  jenisKelamin: z.enum(['laki-laki', 'perempuan']),
+  role: z.enum(['dosen', 'mahasiswa']),
+});
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export const GET = withAuth(async (_request: NextRequest, { user }) => {
+  const currentUser = await prisma.user.findUnique({
+    where: { id: user!.id },
+    select: {
+      name: true,
+      nimNpm: true,
+      role: true,
+      gender: true,
+    },
+  });
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        name: true,
-        nimNpm: true,
-        role: true,
-        onboardingData: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const onboardingData = user.onboardingData as {
-      jenisKelamin?: string;
-    } | null;
-    const jenisKelamin = onboardingData?.jenisKelamin || '';
-
-    return NextResponse.json({
-      namaLengkap: user.name || '',
-      nimNpm: user.nimNpm || '',
-      jenisKelamin,
-      role: user.role || '',
-    });
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  if (!currentUser) {
+    return createApiResponse(null, 'User not found', 404);
   }
-}
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+  // Convert enum to UI format
+  const jenisKelamin =
+    currentUser.gender === 'MALE'
+      ? 'laki-laki'
+      : currentUser.gender === 'FEMALE'
+        ? 'perempuan'
+        : '';
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  return createApiResponse({
+    namaLengkap: currentUser.name || '',
+    nimNpm: currentUser.nimNpm || '',
+    jenisKelamin,
+    role: currentUser.role || '',
+  });
+});
 
-    const { namaLengkap, nim, npm, jenisKelamin, role } = await request.json();
+export const POST = withAuth(
+  withValidation(
+    (data: unknown) => dataDiriSchema.parse(data),
+    async (_request: NextRequest, { user, validatedData }) => {
+      const { namaLengkap, nim, npm, jenisKelamin, role } = validatedData;
 
-    // Validate required fields
-    if (!namaLengkap || !jenisKelamin || !role) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+      // Validate role-specific fields
+      if (role === 'mahasiswa' && !nim) {
+        return createApiResponse(null, 'NIM is required for mahasiswa', 400);
+      }
+      if (role === 'dosen' && !npm) {
+        return createApiResponse(null, 'NPM is required for dosen', 400);
+      }
 
-    // Validate role-specific fields
-    if (role === 'mahasiswa' && !nim) {
-      return NextResponse.json(
-        { error: 'NIM is required for mahasiswa' },
-        { status: 400 }
-      );
-    }
-    if (role === 'dosen' && !npm) {
-      return NextResponse.json(
-        { error: 'NPM is required for dosen' },
-        { status: 400 }
-      );
-    }
+      // Convert UI gender to enum
+      const gender = jenisKelamin === 'laki-laki' ? 'MALE' : 'FEMALE';
 
-    // Update user with data-diri information
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        name: namaLengkap,
-        nimNpm: role === 'mahasiswa' ? nim : npm,
-        role,
-        onboardingData: {
-          jenisKelamin,
+      // Update user with data-diri information
+      await prisma.user.update({
+        where: { id: user!.id },
+        data: {
+          name: namaLengkap,
+          nimNpm: role === 'mahasiswa' ? nim : npm,
+          role,
+          gender,
+          isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
         },
-        isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
-      },
-    });
+      });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error saving data-diri:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+      return createApiResponse({ success: true });
+    }
+  )
+);
