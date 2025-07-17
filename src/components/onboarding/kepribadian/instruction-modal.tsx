@@ -46,7 +46,7 @@ export default function InstructionModal({
               width={120}
               height={120}
               alt='mascot'
-              className='absolute -top-20 left-1/2 transform -translate-x-1/2 z-10'
+              className='absolute -top-20 left-1/2 transform -translate-x-1/2 z-10 w-auto h-auto'
             />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}

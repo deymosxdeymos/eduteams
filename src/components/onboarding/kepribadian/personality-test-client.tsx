@@ -72,6 +72,8 @@ export default function PersonalityTestClient({
 
     if (state.currentPage < totalPages) {
       dispatch({ type: 'NEXT_PAGE' });
+      // Auto scroll to top for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       handleComplete();
     }
@@ -113,7 +115,13 @@ export default function PersonalityTestClient({
       <Logo color='black' />
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
-        <Image src='/emoji/monocle.svg' width={80} height={80} alt='monocle' />
+        <Image
+          src='/emoji/monocle.svg'
+          width={80}
+          height={80}
+          alt='monocle'
+          className='w-20 h-20'
+        />
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
           Tes Kepribadian
         </h1>
