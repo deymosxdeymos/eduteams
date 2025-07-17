@@ -35,7 +35,7 @@ export default function PersonalityTestClient({
   );
   const formRef = useRef<HTMLFormElement>(null);
 
-  const questionsPerPage = 4;
+  const questionsPerPage = 6;
   const totalPages = Math.ceil(questions.length / questionsPerPage);
 
   const currentQuestions = getQuestionsForPage(
