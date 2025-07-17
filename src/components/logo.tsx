@@ -11,7 +11,13 @@ export default function Logo({ color = 'white' }: LogoProps) {
 
   return (
     <header className='flex flex-row justify-center items-center pt-14 w-full gap-2'>
-      <Image src='/logo.png' width={50} height={50} alt='logo' />
+      <Image
+        src='/logo.png'
+        width={50}
+        height={50}
+        alt='logo'
+        className='w-auto h-auto'
+      />
       <p className={`${mainTextClass} text-3xl font-bold`}>
         Equi<span className={`${spanTextClass} font-light`}>Team</span>
       </p>
