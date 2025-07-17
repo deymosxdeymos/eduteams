@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   // Handle auth pages (login/register)
   if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
     if (hasSessionToken) {
-      return NextResponse.redirect(new URL('/onboarding/resume', request.url));
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
   }
