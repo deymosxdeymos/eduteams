@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "db:seed": "bun run prisma/seed-mbti.ts",
+    "db:seed": "bun run prisma/seed.ts",
     "db:reset": "prisma migrate reset --force && bun run db:seed"
   },
   "dependencies": {
