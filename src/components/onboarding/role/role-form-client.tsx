@@ -52,7 +52,7 @@ export default function RoleFormClient({ initialRole }: RoleFormClientProps) {
           {isPending ? 'Loading...' : 'Lanjut'}
           <ArrowRight
             strokeWidth={3}
-            className='font-bold text-white text-lg'
+            className='font-bold text-neutral-400 text-lg'
           />
         </Button>
       </div>
