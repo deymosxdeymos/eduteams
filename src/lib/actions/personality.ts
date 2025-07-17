@@ -45,13 +45,13 @@ export async function submitPersonalityTest(formData: FormData) {
         sn: scores.sn,
         tf: scores.tf,
         pj: scores.pj,
-        mbtiType,
+        mbtiType: mbtiType as any,
         isOnboarded: true,
       },
     });
 
     revalidatePath('/dashboard');
-    redirect('/dashboard');
+    redirect('/dashboard?firstVisit=true');
   } catch (error) {
     if (error instanceof AuthError || error instanceof ValidationError) {
       throw error;
