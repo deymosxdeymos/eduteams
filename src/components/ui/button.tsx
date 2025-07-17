@@ -21,7 +21,7 @@ const buttonVariants = cva(
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:scale-95',
         link: 'text-primary underline-offset-4 hover:underline',
         onboarding:
-          'bg-[#000098] text-white text-lg hover:bg-blue-800 active:scale-95',
+          'bg-[#000098] hover:bg-[#00006C] focus:border-2 text-white text-lg active:scale-95 disabled:bg-neutral-200 disabled:text-neutral-400',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
