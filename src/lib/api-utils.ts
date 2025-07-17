@@ -177,6 +177,7 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
         role: true,
         nimNpm: true,
         isOnboarded: true,
+        hasSeenWelcomeSplash: true,
         onboardingStep: true,
         onboardingData: true,
       },

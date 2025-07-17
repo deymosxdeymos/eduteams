@@ -14,14 +14,14 @@ const prisma =
     ? new PrismaClient({
         log:
           process.env.NODE_ENV === 'development'
-            ? ['query', 'error', 'warn']
+            ? ['error', 'warn']
             : ['error'],
         errorFormat: 'pretty',
       }).$extends(withAccelerate())
     : new PrismaClient({
         log:
           process.env.NODE_ENV === 'development'
-            ? ['query', 'error', 'warn']
+            ? ['error', 'warn']
             : ['error'],
         errorFormat: 'pretty',
       }));
