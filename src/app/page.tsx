@@ -36,7 +36,7 @@ export default function Home() {
       </section>
 
       {/* hills */}
-      <section className='relative bg-blue-background -mt-32 md:-mt-45'>
+      <section className='relative bg-blue-background -mt-32 md:-mt-22'>
         <svg
           width='100%'
           height='500'
@@ -82,7 +82,7 @@ export default function Home() {
       </section>
 
       {/* mascot */}
-      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-180px)] sm:top-[calc(100vh-300px)] lg:top-[calc(100vh-350px)]'>
+      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-180px)] sm:top-[calc(100vh-300px)] lg:top-[calc(100vh-250px)]'>
         <Image
           src='/mascot.svg'
           width={190}
