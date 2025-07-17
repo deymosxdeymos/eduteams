@@ -12,7 +12,7 @@ export default function Home() {
         <Logo />
 
         {/* hero content */}
-        <div className='flex flex-col items-center justify-center gap-8 px-4 pt-20'>
+        <div className='flex flex-col items-center justify-center gap-8 px-4 pt-24'>
           <div className='text-center'>
             <h1 className='text-white text-7xl font-bold tracking-tight mb-4'>
               Dimana <span className='text-lime-200'>Keadilan</span>
@@ -35,7 +35,7 @@ export default function Home() {
       </section>
 
       {/* hills */}
-      <section className='relative bg-blue-background -mt-30'>
+      <section className='relative bg-blue-background -mt-60'>
         <svg
           width='100%'
           height='500'
@@ -78,7 +78,7 @@ export default function Home() {
       </section>
 
       {/* mascot */}
-      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-290px)]'>
+      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-400px)]'>
         <Image src='/mascot.svg' width={190} height={190} alt='mascot' />
       </div>
     </main>
