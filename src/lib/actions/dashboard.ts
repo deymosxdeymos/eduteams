@@ -17,8 +17,6 @@ export async function updateWelcomeSplashStatus() {
       data: { hasSeenWelcomeSplash: true },
     });
 
-    revalidatePath('/dashboard');
-
     return { success: true };
   } catch (error) {
     if (error instanceof AuthError) {
