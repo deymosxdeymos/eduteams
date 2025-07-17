@@ -17,6 +17,7 @@ model User {
   createdAt         DateTime
   updatedAt         DateTime
   isOnboarded       Boolean                @default(false)
+  hasSeenWelcomeSplash Boolean             @default(false)
   nimNpm            String?
   role              String?
   onboardingData    Json?
