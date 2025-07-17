@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { calculatePersonalityScores } from '@/lib/personality';
+import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import { getCurrentUser } from '@/lib/api-utils';
 import { AuthError, ValidationError } from '@/lib/types';
 
@@ -36,6 +36,7 @@ export async function submitPersonalityTest(formData: FormData) {
     }
 
     const scores = calculatePersonalityScores(numericAnswers);
+    const mbtiType = getMBTIType(scores);
 
     await prisma.user.update({
       where: { id: user.id },
@@ -44,6 +45,7 @@ export async function submitPersonalityTest(formData: FormData) {
         sn: scores.sn,
         tf: scores.tf,
         pj: scores.pj,
+        mbtiType,
         isOnboarded: true,
       },
     });
@@ -52,6 +54,17 @@ export async function submitPersonalityTest(formData: FormData) {
     redirect('/dashboard');
   } catch (error) {
     if (error instanceof AuthError || error instanceof ValidationError) {
+      throw error;
+    }
+
+    // Don't catch redirect errors - let them bubble up
+    if (
+      error &&
+      typeof error === 'object' &&
+      'digest' in error &&
+      typeof error.digest === 'string' &&
+      error.digest.includes('NEXT_REDIRECT')
+    ) {
       throw error;
     }
 
