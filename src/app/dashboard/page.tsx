@@ -1,15 +1,28 @@
 import { protectDashboard } from '@/lib/server-auth';
 import Logo from '@/components/logo';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
 
-export default async function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ firstVisit?: string }>;
+}) {
   const user = await protectDashboard();
+  const params = await searchParams;
 
-  // Check if this is the user's first time visiting dashboard after onboarding
-  // Will be handled by client component using query parameters
+  const isFirstVisit = params.firstVisit === 'true';
+  const shouldShowSplash = isFirstVisit && !user.hasSeenWelcomeSplash;
 
+  if (shouldShowSplash) {
+    await updateWelcomeSplashStatus();
+  }
   return (
-    <DashboardClient>
+    <DashboardClient
+      user={user}
+      shouldShowSplash={shouldShowSplash}
+      isFirstVisit={isFirstVisit}
+    >
       <main className='bg-white min-h-screen'>
         <Logo color='black' />
 
