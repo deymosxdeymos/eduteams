@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { WelcomeSplash } from './welcome-splash';
 import { ExtendedUser } from '@/lib/types';
 
@@ -16,6 +16,8 @@ export function DashboardClient({
   shouldShowSplash,
   isFirstVisit,
 }: DashboardClientProps) {
+  const [showSplash, setShowSplash] = useState(shouldShowSplash);
+
   useEffect(() => {
     if (isFirstVisit) {
       // Clean up URL to remove firstVisit parameter
@@ -23,8 +25,12 @@ export function DashboardClient({
     }
   }, [isFirstVisit]);
 
-  if (shouldShowSplash) {
-    return <WelcomeSplash />;
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <WelcomeSplash onAnimationComplete={handleSplashComplete} />;
   }
 
   return <>{children}</>;
