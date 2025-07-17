@@ -1,61 +1,42 @@
-'use client';
-
 import Logo from '@/components/logo';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
-import DataDiriForm from '@/components/onboarding/data-diri/data-diri-form';
-import { useRouter, useParams } from 'next/navigation';
-import { useState } from 'react';
+import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
+import { redirect } from 'next/navigation';
+import { protectOnboardingPage } from '@/lib/server-auth';
+import { getDataDiri } from '@/lib/actions/data-diri';
+import Link from 'next/link';
 
-export default function DataDiriPage() {
-  const router = useRouter();
-  const params = useParams();
-  const role = params.role as 'dosen' | 'mahasiswa';
-  const [isSubmitting, setIsSubmitting] = useState(false);
+interface DataDiriPageProps {
+  params: Promise<{
+    role: 'dosen' | 'mahasiswa';
+  }>;
+}
 
-  const handleSubmit = async (formData: {
-    namaLengkap: string;
-    nim?: string;
-    npm?: string;
-    jenisKelamin: string;
-  }) => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/user/data-diri', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          role,
-        }),
-      });
+export default async function DataDiriPage({ params }: DataDiriPageProps) {
+  const { role } = await params;
 
-      if (response.ok) {
-        // Save progress
-        await fetch('/api/user/onboarding-progress', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ step: 'data-diri' }),
-        });
+  // Validate role parameter
+  if (!['dosen', 'mahasiswa'].includes(role)) {
+    redirect('/onboarding/role');
+  }
 
-        // Navigate based on role
-        if (role === 'mahasiswa') {
-          router.push('/onboarding/kepribadian');
-        } else {
-          router.push('/dashboard');
-        }
-      }
-    } catch (error) {
-      console.error('Error submitting data-diri:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // Protect the onboarding page
+  await protectOnboardingPage();
+
+  let initialData;
+  try {
+    initialData = await getDataDiri();
+  } catch {
+    // If we can't fetch data, start with empty form
+    initialData = {
+      namaLengkap: '',
+      nimNpm: '',
+      jenisKelamin: '',
+      role: '',
+    };
+  }
 
   return (
     <main className='bg-white min-h-screen'>
@@ -73,25 +54,28 @@ export default function DataDiriPage() {
         />
       </div>
       <div className='flex items-start justify-center py-14 px-8'>
-        <DataDiriForm role={role} onSubmitAction={handleSubmit} />
+        <DataDiriFormClient role={role} initialData={initialData} />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
-        <Button
-          variant='ghost'
-          size='icon'
-          className='rounded-full w-14 h-14 border border-black'
-          onClick={() => router.push('/onboarding/role')}
-        >
-          <ArrowLeft strokeWidth={3} className='font-bold text-black text-lg' />
-        </Button>
+        <Link href='/onboarding/role'>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='rounded-full w-14 h-14 border border-black'
+          >
+            <ArrowLeft
+              strokeWidth={3}
+              className='font-bold text-black text-lg'
+            />
+          </Button>
+        </Link>
         <Button
           variant='onboarding'
           size='long'
           form='data-diri-form'
           type='submit'
-          disabled={isSubmitting}
         >
-          {isSubmitting ? 'Saving...' : 'Lanjut'}
+          Lanjut
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'
