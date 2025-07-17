@@ -20,7 +20,7 @@ export default async function ResumePage() {
   });
 
   if (user.isOnboarded) {
-    redirect('/dashboard');
+    redirect('/dashboard?firstVisit=true');
   }
 
   // Determine where to redirect based on onboarding step
@@ -34,11 +34,11 @@ export default async function ResumePage() {
       if (user.role === 'mahasiswa') {
         redirect('/onboarding/kepribadian');
       } else {
-        redirect('/dashboard');
+        redirect('/dashboard?firstVisit=true');
       }
     case 'kepribadian':
       // User completed kepribadian, go to dashboard
-      redirect('/dashboard');
+      redirect('/dashboard?firstVisit=true');
     default:
       // No progress yet, start with role selection
       redirect('/onboarding/role');

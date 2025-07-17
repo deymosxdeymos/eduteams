@@ -6,11 +6,10 @@ export default async function Dashboard() {
   const user = await protectDashboard();
 
   // Check if this is the user's first time visiting dashboard after onboarding
-  // We'll use a simple approach: check if they just completed onboarding
-  const isFirstTime = user.isOnboarded === true;
+  // Will be handled by client component using query parameters
 
   return (
-    <DashboardClient isFirstTime={isFirstTime}>
+    <DashboardClient>
       <main className='bg-white min-h-screen'>
         <Logo color='black' />
 
