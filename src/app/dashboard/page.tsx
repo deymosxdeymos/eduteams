@@ -1,9 +1,7 @@
 import { protectDashboard } from '@/lib/server-auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import Sidebar from '@/components/dashboard/sidebar';
 import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
-import Nav from '@/components/dashboard/nav';
-import Content from '@/components/dashboard/content';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 
 export default async function Dashboard({
   searchParams,
@@ -25,17 +23,7 @@ export default async function Dashboard({
       shouldShowSplash={shouldShowSplash}
       isFirstVisit={isFirstVisit}
     >
-      <main className='bg-accent px-10 py-8 h-screen flex flex-col'>
-        <div className='mb-8'>
-          <Nav />
-        </div>
-        <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-          <Sidebar />
-          <div className='px-8 pb-0'>
-            <Content />
-          </div>
-        </div>
-      </main>
+      <DashboardLayout />
     </DashboardClient>
   );
 }
