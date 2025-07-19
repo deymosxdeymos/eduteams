@@ -342,14 +342,14 @@ export class MBTIQuestionsManager {
     };
   }
 
-  private async getFromRedis(key: string): Promise<any> {
+  private async getFromRedis<T>(key: string): Promise<T | null> {
     if (!this.redis) return null;
 
     try {
       const data = await this.redis.get(key);
       if (data) {
         this.metrics.cache.hits++;
-        return JSON.parse(data as string);
+        return JSON.parse(data as string) as T;
       }
       this.metrics.cache.misses++;
       return null;
@@ -360,9 +360,9 @@ export class MBTIQuestionsManager {
     }
   }
 
-  private async setInRedis(
+  private async setInRedis<T>(
     key: string,
-    value: any,
+    value: T,
     ttl?: number
   ): Promise<void> {
     if (!this.redis) return;
@@ -377,14 +377,14 @@ export class MBTIQuestionsManager {
     }
   }
 
-  private getFromMemory(key: string): any {
+  private getFromMemory<T>(key: string): T | null {
     if (!this.memoryCache) return null;
 
     try {
       const data = this.memoryCache.get(key);
-      if (data) {
+      if (data !== undefined) {
         this.metrics.cache.hits++;
-        return data;
+        return data as T;
       }
       this.metrics.cache.misses++;
       return null;
@@ -395,7 +395,7 @@ export class MBTIQuestionsManager {
     }
   }
 
-  private setInMemory(key: string, value: any, ttl?: number): void {
+  private setInMemory<T>(key: string, value: T, ttl?: number): void {
     if (!this.memoryCache) return;
 
     try {
@@ -437,7 +437,7 @@ export class MBTIQuestionsManager {
               this.config.database.timeout
             )
           ),
-        ])) as any[];
+        ])) as { id: string; name: string; description: string | null }[];
 
         const questions = skills
           .map(skill => this.parseQuestionData(skill))
@@ -661,12 +661,12 @@ export class MBTIQuestionsManager {
     this.metrics.cache.totalRequests++;
     const cacheKey = 'mbti:questions';
 
-    let questions = this.getFromMemory(cacheKey);
+    let questions = this.getFromMemory<MBTIQuestion[]>(cacheKey);
     if (questions) {
       return questions;
     }
 
-    questions = await this.getFromRedis(cacheKey);
+    questions = await this.getFromRedis<MBTIQuestion[]>(cacheKey);
     if (questions) {
       this.setInMemory(cacheKey, questions);
       return questions;
@@ -696,12 +696,12 @@ export class MBTIQuestionsManager {
     const PAGE_SIZE = 6;
     const cacheKey = `mbti:page:${page}`;
 
-    let pageQuestions = this.getFromMemory(cacheKey);
+    let pageQuestions = this.getFromMemory<MBTIQuestion[]>(cacheKey);
     if (pageQuestions) {
       return pageQuestions;
     }
 
-    pageQuestions = await this.getFromRedis(cacheKey);
+    pageQuestions = await this.getFromRedis<MBTIQuestion[]>(cacheKey);
     if (pageQuestions) {
       this.setInMemory(cacheKey, pageQuestions);
       return pageQuestions;
@@ -720,12 +720,12 @@ export class MBTIQuestionsManager {
   async getTotalPages(): Promise<number> {
     const cacheKey = 'mbti:total-pages';
 
-    let totalPages = this.getFromMemory(cacheKey);
+    let totalPages = this.getFromMemory<number>(cacheKey);
     if (totalPages) {
       return totalPages;
     }
 
-    totalPages = await this.getFromRedis(cacheKey);
+    totalPages = await this.getFromRedis<number>(cacheKey);
     if (totalPages) {
       this.setInMemory(cacheKey, totalPages);
       return totalPages;

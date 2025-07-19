@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import { getCurrentUser } from '@/lib/api-utils';
 import { AuthError, ValidationError } from '@/lib/types';
+import type { MBTIType } from '@/generated/prisma';
 
 const personalitySubmissionSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)),
@@ -45,7 +46,7 @@ export async function submitPersonalityTest(formData: FormData) {
         sn: scores.sn,
         tf: scores.tf,
         pj: scores.pj,
-        mbtiType: mbtiType as any,
+        mbtiType: mbtiType as MBTIType,
         isOnboarded: true,
       },
     });

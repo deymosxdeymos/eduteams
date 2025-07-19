@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/api-utils';
 import { AuthError } from '@/lib/types';

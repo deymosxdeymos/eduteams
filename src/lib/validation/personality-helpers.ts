@@ -17,7 +17,7 @@ export class PersonalityValidationError extends Error {
     message: string,
     public readonly field: string,
     public readonly code: string,
-    public readonly details?: any
+    public readonly details?: unknown
   ) {
     super(message);
     this.name = 'PersonalityValidationError';
@@ -238,12 +238,13 @@ export function sanitizePersonalityScores(
 }
 
 export function parseConstraintError(
-  error: any
+  error: unknown
 ): DatabaseConstraintError | null {
   if (!error || typeof error !== 'object') return null;
 
-  const message = error.message || '';
-  const code = error.code || '';
+  const errorObj = error as { message?: string; code?: string };
+  const message = errorObj.message || '';
+  const code = errorObj.code || '';
 
   if (code === '23514' || message.includes('check constraint')) {
     const constraintMatch = message.match(/constraint "([^"]+)"/);
@@ -304,7 +305,7 @@ export function formatValidationError(
   message: string;
   field: string;
   code: string;
-  details?: any;
+  details?: unknown;
 } {
   return {
     message: error.message,
@@ -327,18 +328,18 @@ export function formatValidationError(
 }
 
 export function isPersonalityValidationError(
-  error: any
+  error: unknown
 ): error is PersonalityValidationError {
   return error instanceof PersonalityValidationError;
 }
 
 export function isDatabaseConstraintError(
-  error: any
+  error: unknown
 ): error is DatabaseConstraintError {
   return error instanceof DatabaseConstraintError;
 }
 
-export function handlePersonalityError(error: any): never {
+export function handlePersonalityError(error: unknown): never {
   const constraintError = parseConstraintError(error);
 
   if (constraintError) {
@@ -349,5 +350,6 @@ export function handlePersonalityError(error: any): never {
     throw error;
   }
 
-  throw new Error(`Unexpected error: ${error.message || error}`);
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  throw new Error(`Unexpected error: ${errorMessage}`);
 }
