@@ -12,17 +12,17 @@ export default function Home() {
         <Logo />
 
         {/* hero content */}
-        <div className='flex flex-col items-center justify-center gap-8 px-4 pt-24'>
+        <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-32'>
           <div className='text-center'>
-            <h1 className='text-white text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
-              Dimana <span className='text-lime-200'>Keadilan</span>
+            <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
+              Dimana <span className='text-amber-300'>Keadilan</span>
             </h1>
-            <h1 className='text-white text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight'>
+            <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight'>
               Menciptakan Keunggulan
             </h1>
           </div>
 
-          <p className='text-center text-white text-lg sm:text-xl lg:text-2xl mt-10 max-w-4xl'>
+          <p className='text-center text-white text-base sm:text-xl lg:text-2xl mt-6 sm:mt-10 max-w-4xl'>
             Setiap hasil yang hebat dimulai dengan tim yang hebat. Selamat
             <br className='hidden sm:block' /> datang di EquiTeam, mari kita
             mulai sesuatu yang luar biasa.
@@ -32,65 +32,234 @@ export default function Home() {
           <div className='mt-4'>
             <LoginButton />
           </div>
-        </div>
-      </section>
-
-      {/* hills */}
-      <section className='relative bg-blue-background -mt-32 md:-mt-22'>
-        <svg
-          width='100%'
-          height='500'
-          viewBox='0 0 1440 500'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'
-          className='w-full'
-          preserveAspectRatio='none'
-        >
-          <path
-            d='M685 0C961.643 0 1220.17 28.1832 1440 77.0742V500H0V62.4658C203.94 22.6132 437.201 0 685 0Z'
-            fill='#DBFA78'
-          />
-        </svg>
-
-        {/* boxed statement */}
-        <div className='absolute inset-0 flex flex-col items-center justify-center px-4 pt-16 sm:pt-0'>
-          <div className='bg-white p-6 sm:p-8 lg:p-10 rounded-xl w-full max-w-[900px] text-start shadow-lg grid grid-cols-1 lg:grid-cols-4 relative mt-16 sm:mt-0'>
-            <div className='col-span-1 lg:col-span-3 pr-0 lg:pr-4'>
-              <h1 className='text-xl sm:text-3xl lg:text-5xl font-bold text-blue-background mb-3 sm:mb-4'>
-                Apa itu EquiTeam
-              </h1>
-              <p className='text-black font-light text-sm sm:text-base lg:text-lg leading-relaxed'>
-                EquiTeam adalah platform inovatif yang menggunakan algoritma
-                cerdas untuk membentuk kelompok belajar atau kerja yang adil dan
-                seimbang berdasarkan berbagai aspek
-              </p>
-            </div>
-            <div className='col-span-1 hidden lg:block'>
-              {/* Smaller empty space */}
-            </div>
-            <div className='absolute -top-6 right-2 sm:-top-8 sm:right-1 lg:-top-14 lg:right-1'>
-              <Image
-                src='/question.svg'
-                width={80}
-                height={80}
-                alt='question icon'
-                className='w-[50px] h-[50px] sm:w-[80px] sm:h-[80px] lg:w-[120px] lg:h-[120px]'
-              />
-            </div>
+          {/* mascot */}
+          <div className='flex items-center justify-center z-10 mt-4'>
+            <Image
+              src='/landing/Illustration.svg'
+              width={700}
+              height={700}
+              alt='mascot'
+              className='w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] h-auto'
+              priority
+            />
           </div>
         </div>
       </section>
 
-      {/* mascot */}
-      <div className='absolute left-1/2 transform -translate-x-1/2 z-30 top-[calc(100vh-180px)] sm:top-[calc(100vh-300px)] lg:top-[calc(100vh-250px)]'>
+      {/* hills */}
+      <section className='relative bg-white mt-10'>
         <Image
-          src='/mascot.svg'
-          width={190}
-          height={190}
-          alt='mascot'
-          className='w-[100px] h-[100px] sm:w-[150px] sm:h-[150px] lg:w-[190px] lg:h-[190px]'
+          src='/landing/Subtract.svg'
+          width={1920}
+          height={400}
+          alt='hills'
+          className='absolute left-0 right-0 -top-24 sm:-top-36 md:-top-48 lg:-top-48 z-0 w-full h-auto'
+          priority
         />
-      </div>
+
+        {/* text statement */}
+        <div className=' flex flex-col items-center justify-center px-2 sm:px-4'>
+          <Image
+            src='/landing/ENFJ.svg'
+            width={200}
+            height={200}
+            alt='ENFJ'
+            className='flex mr-auto ml-40 -mt-34 z-10'
+          />
+          <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
+            <div className='flex items-center justify-center h-full'>
+              <h1 className='text-lg sm:text-3xl lg:text-7xl font-extrabold text-blue-background leading-snug mb-2 sm:mb-4'>
+                EquiTeam <br /> itu apa sih?
+              </h1>
+            </div>
+            <div className='flex items-center justify-center text-black text-xl font normal h-full'>
+              <p>
+                EquiTeam bukan sekadar alat pembagi kelompok biasa. Kami adalah
+                sebuah platform pintar yang dirancang untuk mengakhiri drama
+                &quot;salah tim&quot;. <br />
+                <br />
+                Dengan bantuan kecerdasan buatan, kami memastikan setiap
+                kelompok memiliki kombinasi anggota yang pas, baik dari segi
+                keahlian maupun cara kerja, sehingga semua orang bisa nyaman
+                berkontribusi dan meraih hasil terbaik bersama.
+              </p>
+            </div>
+          </div>
+          <Image
+            src='/landing/ENTJ.svg'
+            width={200}
+            height={200}
+            alt='ENTJ'
+            className='absolute right-0 -bottom-16'
+          />{' '}
+        </div>
+      </section>
+
+      {/* grey area underneath */}
+      <section className='bg-accent min-h-[200px] flex flex-col items-center justify-center p-10'>
+        <h1 className='text-black text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4'>
+          Relate dengan permasalahan ini?
+        </h1>
+        <p className='text-gray-900 text-base sm:text-xl lg:text-2xl text-center px-4'>
+          Permasalahan-permasalahan ini pasti sering banget terjadi di
+          perkuliahan kalian
+        </p>
+        {/* 3 problem cards row */}
+        <div className='w-full max-w-5xl mx-auto mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch'>
+          {/* Card 1 */}
+          <div className='bg-gradient-to-b from-white to-lime-100 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+            <h1 className='text-emerald-900 font-bold text-5xl mb-1'>
+              Partisipasi tim tidak merata
+            </h1>
+            <Image
+              src='/landing/INFJ.svg'
+              width={200}
+              height={200}
+              alt='INFJ'
+              className='ml-auto -mr-6'
+            />
+          </div>
+          {/* Card 2 */}
+          <div className='bg-gradient-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+            <h1 className='text-orange-900 font-bold text-5xl mb-1'>
+              Terdapat kelompok terbuang
+            </h1>
+            <Image
+              src='/landing/ESTP.svg'
+              width={200}
+              height={200}
+              alt='ESTP'
+              className='ml-auto -mr-6'
+            />
+          </div>
+          {/* Card 3 */}
+          <div className='bg-gradient-to-b from-white to-indigo-200 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+            <h1 className='text-violet-900 font-bold text-5xl mb-1'>
+              Keahlian <br /> di tim tidak seimbang
+            </h1>
+            <Image
+              src='/landing/INTJ.svg'
+              width={200}
+              height={200}
+              alt='INTJ'
+              className='ml-auto -mr-6'
+            />
+          </div>
+        </div>
+        <div className='text-center italic justify-start text-gray-900 text-3xl font-medium mt-22'>
+          Dengan adanya EquiTeam,
+          <br />
+          hal-hal tersebut akan teratasi dengan lebih mudah
+        </div>
+      </section>
+
+      <section className='bg-white min-h-[200px] flex flex-col items-center justify-center px-10 py-18'>
+        <h1 className='text-blue-background text-5xl font-extrabold mt-2'>
+          Solusi EquiTeam
+        </h1>
+        <p className='text-gray-900 text-base sm:text-xl lg:text-2xl text-center mt-4'>
+          Sistem cerdas yang membagi kelompok berdasarkan 4 aspek fundamental untuk <br /> menciptakan tim yang seimbang dan produktif
+        </p>
+
+        {/* First row: 2 cards */}
+        <div className='w-full max-w-6xl mx-auto mt-16 grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <div className='bg-white rounded-3xl shadow-md p-6'>
+            <h2 className='text-black font-bold text-2xl mb-4'>
+              Bagaimana EquiTeam bekerja?
+            </h2>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-8 h-8 bg-blue-background rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">1</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-gray-900 text-base font-semibold mb-1">Input Data Mahasiswa</h3>
+                <p className="text-gray-900 text-sm">Sistem mengumpulkan data personality, skills, preferences, dan gender</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-8 h-8 bg-blue-background rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">2</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-gray-900 text-base font-semibold mb-1">Analisis AI</h3>
+                <p className="text-gray-900 text-sm">AI menganalisis kompatibilitas dan keseimbangan untuk pembentukan tim optimal</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 bg-blue-background rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">3</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-gray-900 text-base font-semibold mb-1">Pembentukan Tim</h3>
+                <p className="text-gray-900 text-sm">Sistem membentuk kelompok yang seimbang berdasarkan hasil analisis</p>
+              </div>
+            </div>
+          </div>
+
+          <div className='bg-indigo-800 rounded-3xl shadow-md p-6 border text-center'>
+            <h2 className='text-white font-bold text-2xl leading-10'>
+              4 Aspek Utama
+            </h2>
+            <p className='text-white text-lg font-light leading-7'>
+              Yang dianalisis untuk pembagian kelompok optimal
+            </p>
+
+            <div className='grid grid-cols-2 gap-4 mt-6'>
+              <div className='bg-white/10 rounded-xl p-4 text-center'>
+                <h3 className='text-emerald-400 font-bold text-2xl mb-2'>Personality</h3>
+                <p className='text-white text-sm font-light'>Based on MBTI</p>
+              </div>
+              <div className='bg-white/10 rounded-xl p-4 text-center'>
+                <h3 className='text-amber-400 font-bold text-2xl mb-2'>Skills</h3>
+                <p className='text-white text-sm font-light'>Technical & soft skills</p>
+              </div>
+              <div className='bg-white/10 rounded-xl p-4 text-center'>
+                <h3 className='text-sky-400 font-bold text-2xl mb-2'>Gender</h3>
+                <p className='text-white text-sm font-light'>Balanced <br /> Representation</p>
+              </div>
+              <div className='bg-white/10 rounded-xl p-4 text-center'>
+                <h3 className='text-indigo-400 font-bold text-2xl mb-2'>Preferences</h3>
+                <p className='text-white text-sm font-light'>Preferences for <br /> task topics</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Second row: 4 cards */}
+        <div className='w-full max-w-6xl mx-auto mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+          <div className='flex flex-col items-center'>
+            <div className='bg-emerald-100 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+              <Image src='/landing/personality.svg' width={200} height={200} alt='Personality' className='p-6' />
+            </div>
+            <h1 className='text-emerald-700 font-bold text-2xl mb-2 text-center whitespace-nowrap'>Personality Matching</h1>
+            <p className='text-gray-900 text-sm text-center font-normal'>Kombinasi introvert-extrovert, thinking-feeling untuk dinamika yang seimbang</p>
+          </div>
+          <div className='flex flex-col items-center'>
+            <div className='bg-amber-100 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+              <Image src='/landing/skill.svg' width={200} height={200} alt='Skills' className='p-6' />
+            </div>
+            <h1 className='text-amber-700 font-bold text-2xl mb-2 text-center'>Skill Balancing</h1>
+            <p className='text-gray-900 text-sm text-center font-normal'>Distribusi kemampuan yang merata agar setiap tim memiliki kekuatan yang setara</p>
+          </div>
+          <div className='flex flex-col items-center'>
+            <div className='bg-sky-200 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+              <Image src='/landing/gender.svg' width={200} height={200} alt='Gender' className='p-6' />
+            </div>
+            <h1 className='text-sky-700 font-bold text-2xl mb-2 text-center'>Gender Balance</h1>
+            <p className='text-gray-900 text-sm text-center font-normal'>Representasi yang adil untuk perspektif yang beragam dan inklusif</p>
+          </div>
+          <div className='flex flex-col items-center'>
+            <div className='bg-indigo-100 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+              <Image src='/landing/preference-task.svg' width={200} height={200} alt='Preferences' className='p-6' />
+            </div>
+            <h1 className='text-indigo-700 font-bold text-2xl mb-2 text-center'>Task Preference</h1>
+            <p className='text-gray-900 text-sm text-center font-normal'>Menyesuaikan ketertarikan mahasiswa terhadap topik tugas yang tersedia</p>
+          </div>
+        </div>
+      </section>
+      <section className='bg-blue-background min-h-[200px] flex flex-col items-center justify-center px-10 py-18'>
+        <h1 className='text-white text-5xl font-bold mt-2'>Manfaat untuk Semua</h1>
+      </section>
     </main>
   );
 }
