@@ -1,31 +1,21 @@
 import { ClassCard } from './class-card';
+import type { ClassGridProps } from '@/types/dashboard';
 
-interface Class {
-  id: string;
-  title: string;
-  academicYear: string;
-  studentCount: number;
-  classCode: string;
-}
-
-interface ClassGridProps {
-  classes: Class[];
-}
-
-export function ClassGrid({ classes = [] }: ClassGridProps) {
-  const mockClasses: Class[] = [
-    {
-      id: '1',
-      title: 'Pemrograman Web',
-      academicYear: 'T.A 2025/2026',
-      studentCount: 32,
-      classCode: 'RA',
-    },
-  ];
-
-  const displayClasses = classes.length > 0 ? classes : mockClasses;
+export function ClassGrid({ classes = [], showNoResults = false }: ClassGridProps) {
   const totalSlots = 12;
-  const emptySlots = Math.max(0, totalSlots - displayClasses.length);
+  const emptySlots = Math.max(0, totalSlots - classes.length);
+
+  // Show "no results" message if search returned empty and we're in search mode
+  if (showNoResults) {
+    return (
+      <div className='h-full flex items-center justify-center pt-4 pb-6'>
+        <div className='text-center'>
+          <p className='text-gray-500 text-lg font-medium'>Tidak ada kelas yang ditemukan</p>
+          <p className='text-gray-400 text-sm mt-2'>Coba gunakan kata kunci yang berbeda</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='h-full flex flex-col pt-4 pb-6'>
@@ -36,7 +26,7 @@ export function ClassGrid({ classes = [] }: ClassGridProps) {
           scrollbarColor: '#cbd5e1 transparent',
         }}
       >
-        {displayClasses.map(classItem => (
+        {classes.map(classItem => (
           <ClassCard
             key={classItem.id}
             title={classItem.title}

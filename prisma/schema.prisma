@@ -37,6 +37,7 @@ model User {
   taskPreferences   TaskPreference[]
   ownedTeamRequests TeamFormationRequest[] @relation("TeamRequestOwner")
   teamMemberships   TeamMember[]
+  courses           Course[]
 
   @@index([email])
   @@index([role])
@@ -264,6 +265,24 @@ model TeamMember {
   @@index([userId])
   @@index([assignedSkillIds], type: Gin)
   @@map("team_members")
+}
+
+model Course {
+  id                   String   @id @default(uuid())
+  namaMataKuliah       String
+  kelas                String
+  tahunAwalPeriode     Int
+  tahunAkhirPeriode    Int
+  periode              String
+  dosenId              String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  dosen                User     @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+
+  @@index([dosenId])
+  @@index([tahunAwalPeriode, tahunAkhirPeriode])
+  @@index([periode])
+  @@map("courses")
 }
 
 enum Gender {

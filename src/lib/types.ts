@@ -1,4 +1,4 @@
-import { User as PrismaUser } from '@/generated/prisma';
+import { User as PrismaUser, Course as PrismaCourse } from '@/generated/prisma';
 
 export type UserRole = 'dosen' | 'mahasiswa' | 'admin';
 
@@ -65,6 +65,12 @@ export interface QuestionApiResponse {
   }>;
   totalPages: number;
   currentPage: number;
+}
+
+export type Course = PrismaCourse;
+
+export interface CourseWithDosen extends Course {
+  dosen: Pick<ExtendedUser, 'id' | 'name' | 'email'>;
 }
 
 // Error classes moved to lib/utils/errors.ts
