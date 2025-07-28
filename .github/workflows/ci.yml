@@ -43,6 +43,8 @@ jobs:
       - name: Run tests with coverage
         run: bun run test:ci
         if: ${{ hashFiles('**/*.test.*') != '' }}
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
