@@ -13,8 +13,8 @@ export default async function RolePage() {
   }
 
   return (
-    <main className='bg-white min-h-screen'>
-      <Logo color='black' />
+    <main className='bg-white min-h-screen p-12'>
+      <Logo color='black' className='justify-center' />
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <Image

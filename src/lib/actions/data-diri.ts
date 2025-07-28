@@ -15,9 +15,12 @@ const dataDiriSchema = z.object({
   role: z.enum(['dosen', 'mahasiswa']),
 });
 
-export async function submitDataDiri(formData: FormData) {
+export async function submitDataDiri(
+  formData: FormData,
+  getCurrentUserImpl = getCurrentUser
+) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserImpl();
     if (!user) {
       throw new AuthError('Authentication required');
     }
@@ -87,9 +90,9 @@ export async function submitDataDiri(formData: FormData) {
   }
 }
 
-export async function getDataDiri() {
+export async function getDataDiri(getCurrentUserImpl = getCurrentUser) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserImpl();
     if (!user) {
       throw new AuthError('Authentication required');
     }

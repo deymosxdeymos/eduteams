@@ -39,8 +39,8 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
   }
 
   return (
-    <main className='bg-white min-h-screen'>
-      <Logo color='black' />
+    <main className='bg-white min-h-screen p-12'>
+      <Logo color='black' className='justify-center' />
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
