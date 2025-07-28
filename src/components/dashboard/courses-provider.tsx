@@ -9,7 +9,7 @@ interface CoursesProviderProps {
   onClassCreated?: () => void;
 }
 
-async function CoursesData({ dosenId, onClassCreated }: CoursesProviderProps) {
+async function CoursesData({ dosenId }: CoursesProviderProps) {
   const courses = await getCoursesByLecturer(dosenId);
   const classCards = courses.map(transformCourseToClassCard);
 
@@ -23,7 +23,7 @@ async function CoursesData({ dosenId, onClassCreated }: CoursesProviderProps) {
           />
         </div>
         <div className='flex-1 px-6 min-h-0 overflow-hidden'>
-          <EmptyClassState onClassCreated={onClassCreated} />
+          <EmptyClassState />
         </div>
       </>
     );

@@ -4,6 +4,8 @@ import RoleFormClient from '@/components/onboarding/role/role-form-client';
 import { getCurrentUserRole } from '@/lib/actions/role';
 import { redirect } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default async function RolePage() {
   const currentUserData = await getCurrentUserRole();
 
