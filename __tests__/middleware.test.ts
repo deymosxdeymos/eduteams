@@ -95,7 +95,7 @@ describe('Middleware', () => {
   });
 
   describe('Authentication Detection', () => {
-    test('should allow authenticated users to stay on homepage', async () => {
+    test('should redirect authenticated users from homepage to resume', async () => {
       const request = new NextRequest('http://localhost:3000/') as any;
       request.cookies = {
         get: (name: string) =>
@@ -106,8 +106,12 @@ describe('Middleware', () => {
 
       await middleware(request);
 
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRedirect).not.toHaveBeenCalled();
+      expect(mockRedirect).toHaveBeenCalledWith(
+        expect.objectContaining({
+          href: 'http://localhost:3000/onboarding/resume',
+        })
+      );
+      expect(mockNext).not.toHaveBeenCalled();
     });
 
     test('should detect unauthenticated users', async () => {

@@ -21,8 +21,10 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  // Allow authenticated users to access homepage
-  // Remove automatic redirect to onboarding/resume for homepage
+  // Redirect authenticated users from homepage to onboarding/resume
+  if (pathname === '/' && hasSessionToken) {
+    return NextResponse.redirect(new URL('/onboarding/resume', request.url));
+  }
 
   // Handle auth pages (login/register)
   if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
