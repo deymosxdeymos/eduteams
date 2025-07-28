@@ -51,6 +51,11 @@ jobs:
         run: bun run type-check
         if: ${{ hashFiles('tsconfig.json') != '' }}
 
+      - name: Run migrations
+        run: bun prisma migrate deploy
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
+
       - name: Run tests with coverage
         run: bun run test:ci
         if: ${{ hashFiles('**/*.test.*') != '' }}
