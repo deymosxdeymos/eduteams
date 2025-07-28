@@ -1,6 +1,6 @@
 import { describe, test, expect, mock, beforeEach } from 'bun:test';
 import { NextRequest, NextResponse } from 'next/server';
-import { middleware } from '@/middleware';
+import { middleware } from '../src/middleware';
 
 // Mock Next.js server components
 const mockRedirect = mock();
@@ -95,18 +95,19 @@ describe('Middleware', () => {
   });
 
   describe('Authentication Detection', () => {
-    test('should detect authenticated users via session token', async () => {
-      const request = new NextRequest('http://localhost:3000/', {
-        cookies: { 'better-auth.session_token': 'valid-token' },
-      }) as any;
+    test('should allow authenticated users to stay on homepage', async () => {
+      const request = new NextRequest('http://localhost:3000/') as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
-      expect(mockRedirect).toHaveBeenCalledWith(
-        expect.objectContaining({
-          href: 'http://localhost:3000/onboarding/resume',
-        })
-      );
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockRedirect).not.toHaveBeenCalled();
     });
 
     test('should detect unauthenticated users', async () => {
@@ -121,9 +122,13 @@ describe('Middleware', () => {
 
   describe('Homepage Redirect Logic', () => {
     test('should redirect authenticated users from homepage to resume', async () => {
-      const request = new NextRequest('http://localhost:3000/', {
-        cookies: { 'better-auth.session_token': 'valid-token' },
-      }) as any;
+      const request = new NextRequest('http://localhost:3000/') as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
@@ -145,30 +150,38 @@ describe('Middleware', () => {
   });
 
   describe('Auth Routes Handling', () => {
-    test('should redirect authenticated users from login to resume', async () => {
-      const request = new NextRequest('http://localhost:3000/login', {
-        cookies: { 'better-auth.session_token': 'valid-token' },
-      }) as any;
+    test('should redirect authenticated users from login to dashboard', async () => {
+      const request = new NextRequest('http://localhost:3000/login') as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
       expect(mockRedirect).toHaveBeenCalledWith(
         expect.objectContaining({
-          href: 'http://localhost:3000/onboarding/resume',
+          href: 'http://localhost:3000/dashboard',
         })
       );
     });
 
-    test('should redirect authenticated users from register to resume', async () => {
-      const request = new NextRequest('http://localhost:3000/register', {
-        cookies: { 'better-auth.session_token': 'valid-token' },
-      }) as any;
+    test('should redirect authenticated users from register to dashboard', async () => {
+      const request = new NextRequest('http://localhost:3000/register') as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
       expect(mockRedirect).toHaveBeenCalledWith(
         expect.objectContaining({
-          href: 'http://localhost:3000/onboarding/resume',
+          href: 'http://localhost:3000/dashboard',
         })
       );
     });
@@ -220,9 +233,13 @@ describe('Middleware', () => {
     });
 
     test('should allow authenticated users to access dashboard', async () => {
-      const request = new NextRequest('http://localhost:3000/dashboard', {
-        cookies: { 'better-auth.session_token': 'valid-token' },
-      }) as any;
+      const request = new NextRequest('http://localhost:3000/dashboard') as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
@@ -231,9 +248,15 @@ describe('Middleware', () => {
     });
 
     test('should allow authenticated users to access onboarding', async () => {
-      const request = new NextRequest('http://localhost:3000/onboarding/role', {
-        cookies: { 'better-auth.session_token': 'valid-token' },
-      }) as any;
+      const request = new NextRequest(
+        'http://localhost:3000/onboarding/role'
+      ) as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
@@ -274,9 +297,11 @@ describe('Middleware', () => {
     });
 
     test('should handle empty session token', async () => {
-      const request = new NextRequest('http://localhost:3000/dashboard', {
-        cookies: { 'better-auth.session_token': '' },
-      }) as any;
+      const request = new NextRequest('http://localhost:3000/dashboard') as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token' ? { value: '' } : undefined,
+      };
 
       await middleware(request);
 
@@ -303,11 +328,14 @@ describe('Middleware', () => {
 
     test('should handle deep nested onboarding paths', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/onboarding/data-diri/mahasiswa',
-        {
-          cookies: { 'better-auth.session_token': 'valid-token' },
-        }
+        'http://localhost:3000/onboarding/data-diri/mahasiswa'
       ) as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 
@@ -317,11 +345,14 @@ describe('Middleware', () => {
 
     test('should handle resume page correctly', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/onboarding/resume',
-        {
-          cookies: { 'better-auth.session_token': 'valid-token' },
-        }
+        'http://localhost:3000/onboarding/resume'
       ) as any;
+      request.cookies = {
+        get: (name: string) =>
+          name === 'better-auth.session_token'
+            ? { value: 'valid-token' }
+            : undefined,
+      };
 
       await middleware(request);
 

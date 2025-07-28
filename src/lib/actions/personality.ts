@@ -13,9 +13,12 @@ const personalitySubmissionSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)),
 });
 
-export async function submitPersonalityTest(formData: FormData) {
+export async function submitPersonalityTest(
+  formData: FormData,
+  getCurrentUserImpl = getCurrentUser
+) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserImpl();
     if (!user) {
       throw new AuthError('Authentication required');
     }

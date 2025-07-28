@@ -2,6 +2,13 @@ import { describe, it, expect, mock, beforeEach } from 'bun:test';
 
 // Mock auth - MUST be before imports
 const mockGetSession = mock();
+mock.module('@/lib/auth', () => ({
+  auth: {
+    api: {
+      getSession: mockGetSession,
+    },
+  },
+}));
 mock.module('../../src/lib/auth', () => ({
   auth: {
     api: {
@@ -38,7 +45,8 @@ mock.module('next/cache', () => ({
   revalidatePath: mock(),
 }));
 
-import { POST as personalityPost } from '../../src/app/api/user/personality/route';
+import { createPersonalityPost } from '../../src/app/api/user/personality/route';
+
 import { submitPersonalityTest } from '../../src/lib/actions/personality';
 import {
   calculatePersonalityScores,
@@ -223,9 +231,9 @@ describe('Personality Feature Integration Tests', () => {
       formData.append('answers', JSON.stringify(answers));
 
       // Should throw redirect error on success
-      await expect(submitPersonalityTest(formData)).rejects.toThrow(
-        'Failed to submit personality test'
-      );
+      await expect(
+        submitPersonalityTest(formData, mockGetCurrentUser)
+      ).rejects.toThrow('Failed to submit personality test');
 
       // Verify database was updated with scores and isOnboarded flag
       expect(mockPrismaUpdate).toHaveBeenCalledWith({
@@ -299,7 +307,7 @@ describe('Personality Feature Integration Tests', () => {
       formData.append('answers', JSON.stringify(testAnswers));
 
       try {
-        await submitPersonalityTest(formData);
+        await submitPersonalityTest(formData, mockGetCurrentUser);
       } catch (error) {
         // Expected redirect error
         expect((error as Error).message).toBe(
@@ -725,9 +733,9 @@ describe('Personality Feature Integration Tests', () => {
       const formData = new FormData();
       formData.append('answers', JSON.stringify(completeAnswers));
 
-      await expect(submitPersonalityTest(formData)).rejects.toThrow(
-        'Failed to submit personality test'
-      );
+      await expect(
+        submitPersonalityTest(formData, mockGetCurrentUser)
+      ).rejects.toThrow('Failed to submit personality test');
 
       // Step 3: Verify final state
       expect(mockPrismaUpdate).toHaveBeenCalledTimes(2);
