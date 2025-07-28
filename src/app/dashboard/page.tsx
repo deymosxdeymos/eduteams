@@ -5,6 +5,8 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Dashboard - EduTeams',

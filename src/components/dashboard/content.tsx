@@ -16,6 +16,7 @@ interface Class {
 
 interface ContentProps {
   hasClasses?: boolean;
+  dosenId?: string;
 }
 
 export default function Content({ hasClasses = true }: ContentProps) {
@@ -43,7 +44,7 @@ export default function Content({ hasClasses = true }: ContentProps) {
       <StatisticsCards />
       <div className='bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden'>
         <div className='p-6 pb-0'>
-          <SearchInput onCreateClass={createMockClasses} />
+          <SearchInput onClassCreated={createMockClasses} />
         </div>
         <div className='flex-1 px-6 min-h-0 overflow-hidden'>
           {hasClasses ? <ClassGrid classes={classes} /> : <EmptyClassState />}
