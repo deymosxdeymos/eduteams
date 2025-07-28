@@ -14,9 +14,6 @@
     "test:ci": "bun test --coverage --bail",
     "test:update-snapshots": "bun test --update-snapshots",
     "test:bail": "bun test --bail",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
     "db:seed": "bun run prisma/seed.ts",
     "db:reset": "prisma migrate reset --force && bun run db:seed"
   },
@@ -48,7 +45,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@playwright/test": "^1.54.1",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.0",
