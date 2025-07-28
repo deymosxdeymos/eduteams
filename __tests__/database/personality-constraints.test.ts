@@ -6,7 +6,7 @@ import {
   beforeAll,
   afterAll,
 } from 'bun:test';
-import { PrismaClient } from '@/generated/prisma';
+import prisma from '../../src/lib/prisma';
 import {
   validatePersonalityScores,
   validateMBTIType,
@@ -17,9 +17,7 @@ import {
   PersonalityValidationError,
   DatabaseConstraintError,
   parseConstraintError,
-} from '@/lib/validation/personality-helpers';
-
-const prisma = new PrismaClient();
+} from '../../src/lib/validation/personality-helpers';
 
 describe('Database Constraint Validation', () => {
   beforeAll(async () => {
@@ -306,7 +304,10 @@ describe('Database Constraint Validation', () => {
 
       const validLevels = [0.0, 2.5, 5.0, 7.5, 10.0];
 
+      let usedLevels = new Set();
       for (const level of validLevels) {
+        if (usedLevels.has(level)) continue; // skip duplicate
+        usedLevels.add(level);
         await expect(
           prisma.personSkill.create({
             data: {
