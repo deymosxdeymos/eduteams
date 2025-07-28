@@ -1,7 +1,8 @@
+import React from 'react';
 import { describe, test, expect, beforeEach, mock } from 'bun:test';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PersonalityTestClient from '../../../src/components/onboarding/kepribadian/personality-test-client';
-import type { MBTIQuestion } from '../../../src/lib/mbti-questions';
+import PersonalityTestClient from 'src/components/onboarding/kepribadian/personality-test-client';
+import type { MBTIQuestion } from '../../../src/lib/mbti-questions'; // path is correct
 
 // Mock dependencies
 const mockRouter = {

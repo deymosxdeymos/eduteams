@@ -13,16 +13,13 @@ export const POST = withAuth(
     (data: unknown) => personalitySchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
       const { answers } = validatedData;
-
       // Convert string keys to numbers for calculation
       const numericAnswers: Record<number, number> = {};
       for (const [key, value] of Object.entries(answers)) {
         numericAnswers[parseInt(key)] = value;
       }
-
       // Calculate MBTI scores from answers
       const scores = calculatePersonalityScores(numericAnswers);
-
       // Update user with personality scores
       await prisma.user.update({
         where: { id: user!.id },
@@ -33,7 +30,6 @@ export const POST = withAuth(
           pj: scores.pj,
         },
       });
-
       return createApiResponse({
         success: true,
         scores,
