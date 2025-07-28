@@ -11,9 +11,12 @@ const roleSchema = z.object({
   role: z.enum(['dosen', 'mahasiswa']),
 });
 
-export async function submitRole(formData: FormData) {
+export async function submitRole(
+  formData: FormData,
+  getCurrentUserImpl = getCurrentUser
+) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserImpl();
     if (!user) {
       throw new AuthError('Authentication required');
     }
@@ -61,9 +64,9 @@ export async function submitRole(formData: FormData) {
   }
 }
 
-export async function getCurrentUserRole() {
+export async function getCurrentUserRole(getCurrentUserImpl = getCurrentUser) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserImpl();
     if (!user) {
       return null;
     }

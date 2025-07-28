@@ -31,7 +31,7 @@ export default function RoleSelect({
           priority
         />
         <h1
-          className='font-bold text-center text-amber-950 text-5xl 
+          className='font-bold text-center text-amber-950 text-5xl
 		tracking-tighter leading-none uppercase'
         >
           Dosen
@@ -51,7 +51,7 @@ export default function RoleSelect({
           width={240}
           height={240}
           alt='mahasiswa'
-          className='mb-[-30px] w-auto h-auto'
+          className='mb-[-30px]'
         />
         <h1 className='font-bold text-center text-green-950 text-5xl tracking-tighter leading-none uppercase'>
           Mahasiswa
