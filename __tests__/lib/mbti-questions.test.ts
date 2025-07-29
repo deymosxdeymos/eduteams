@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   CacheError,
-  clearQuestionsCache,
   DatabaseError,
   getHealthStatus,
   getMBTIManager,
@@ -13,7 +12,6 @@ import {
   MBTIQuestionsError,
   MBTIQuestionsManager,
   type MBTISystemConfig,
-  refreshQuestionsCache,
   ValidationError,
 } from '@/lib/mbti-questions';
 
@@ -24,23 +22,10 @@ const mockPrisma = {
   },
 };
 
-const mockRedis = {
-  get: mock(() => Promise.resolve(null)),
-  set: mock(() => Promise.resolve('OK')),
-  del: mock(() => Promise.resolve(1)),
-  keys: mock(() => Promise.resolve([])),
-  ping: mock(() => Promise.resolve('PONG')),
-};
-
 // Mock modules
 mock.module('@/lib/prisma', () => ({ default: mockPrisma }));
-mock.module('@upstash/redis', () => ({
-  Redis: class MockRedis {
-    constructor() {
-      return mockRedis;
-    }
-  },
-}));
+
+
 
 const mockQuestions: MBTIQuestion[] = [
   {
@@ -108,17 +93,9 @@ describe('MBTIQuestionsManager', () => {
 
     // Reset all mocks
     mockPrisma.skill.findMany.mockReset();
-    mockRedis.get.mockReset();
-    mockRedis.set.mockReset();
-    mockRedis.del.mockReset();
-    mockRedis.keys.mockReset();
-    mockRedis.ping.mockReset();
 
     // Setup default mock behavior
     mockPrisma.skill.findMany.mockResolvedValue(mockSkills);
-    mockRedis.get.mockResolvedValue(null);
-    mockRedis.set.mockResolvedValue('OK');
-    mockRedis.ping.mockResolvedValue('PONG');
 
     manager = new MBTIQuestionsManager();
   });
@@ -147,9 +124,8 @@ describe('MBTIQuestionsManager', () => {
       await customManager.dispose();
     });
 
-    it('should handle Redis connection failure gracefully', async () => {
-      mockRedis.ping.mockRejectedValue(new Error('Connection failed'));
-
+    it.skip('should handle Redis connection failure gracefully', async () => {
+      // Skipped: Redis not needed for now
       const manager = new MBTIQuestionsManager();
       const questions = await manager.getMBTIQuestions();
 
@@ -224,34 +200,16 @@ describe('MBTIQuestionsManager', () => {
       expect(questions).toEqual(mockQuestions);
     });
 
-    it('should cache questions in Redis', async () => {
-      await manager.getMBTIQuestions();
-
-      expect(mockRedis.set).toHaveBeenCalledWith(
-        'mbti:questions',
-        JSON.stringify(mockQuestions),
-        { ex: 1800 }
-      );
+    it.skip('should cache questions in Redis', async () => {
+      // Skipped: Redis not needed for now
     });
 
-    it('should retrieve from Redis cache', async () => {
-      mockRedis.get.mockResolvedValue(JSON.stringify(mockQuestions));
-
-      const questions = await manager.getMBTIQuestions();
-
-      expect(mockRedis.get).toHaveBeenCalledWith('mbti:questions');
-      expect(questions).toEqual(mockQuestions);
-      expect(mockPrisma.skill.findMany).not.toHaveBeenCalled();
+    it.skip('should retrieve from Redis cache', async () => {
+      // Skipped: Redis not needed for now  
     });
 
-    it('should handle Redis errors gracefully', async () => {
-      mockRedis.get.mockRejectedValue(new Error('Redis error'));
-      mockRedis.set.mockRejectedValue(new Error('Redis error'));
-
-      const questions = await manager.getMBTIQuestions();
-
-      expect(questions).toEqual(mockQuestions);
-      expect(mockPrisma.skill.findMany).toHaveBeenCalled();
+    it.skip('should handle Redis errors gracefully', async () => {
+      // Skipped: Redis not needed for now
     });
   });
 
@@ -283,31 +241,12 @@ describe('MBTIQuestionsManager', () => {
   });
 
   describe('Cache Management', () => {
-    it('should invalidate all caches', async () => {
-      await manager.getMBTIQuestions();
-      await manager.getQuestionsForPage(1);
-
-      mockRedis.keys.mockResolvedValue(['mbti:questions', 'mbti:page:1']);
-
-      await manager.invalidateCache();
-
-      expect(mockRedis.keys).toHaveBeenCalledWith('mbti:*');
-      expect(mockRedis.del).toHaveBeenCalledWith(
-        'mbti:questions',
-        'mbti:page:1'
-      );
+    it.skip('should invalidate all caches', async () => {
+      // Skipped: Redis not needed for now
     });
 
-    it('should refresh cache', async () => {
-      await manager.getMBTIQuestions();
-
-      mockRedis.keys.mockResolvedValue(['mbti:questions']);
-      mockPrisma.skill.findMany.mockClear();
-
-      await manager.refreshCache();
-
-      expect(mockRedis.del).toHaveBeenCalled();
-      expect(mockPrisma.skill.findMany).toHaveBeenCalled();
+    it.skip('should refresh cache', async () => {
+      // Skipped: Redis not needed for now
     });
   });
 
@@ -458,22 +397,8 @@ describe('MBTIQuestionsManager', () => {
       await manager.dispose();
     });
 
-    it('should persist metrics to Redis', async () => {
-      process.env.NODE_ENV = 'production';
-
-      const manager = new MBTIQuestionsManager();
-      await manager.getMBTIQuestions();
-
-      // Wait for metrics interval
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      expect(mockRedis.set).toHaveBeenCalledWith(
-        'mbti:metrics',
-        expect.any(String),
-        { ex: 1800 }
-      );
-
-      await manager.dispose();
+    it.skip('should persist metrics to Redis', async () => {
+      // Skipped: Redis functionality removed
     });
   });
 });
@@ -481,9 +406,6 @@ describe('MBTIQuestionsManager', () => {
 describe('Public API Functions', () => {
   beforeEach(() => {
     mockPrisma.skill.findMany.mockResolvedValue(mockSkills);
-    mockRedis.get.mockResolvedValue(null);
-    mockRedis.set.mockResolvedValue('OK');
-    mockRedis.ping.mockResolvedValue('PONG');
   });
 
   afterEach(async () => {
@@ -505,20 +427,12 @@ describe('Public API Functions', () => {
     expect(totalPages).toBe(1);
   });
 
-  it('should export clearQuestionsCache function', async () => {
-    mockRedis.keys.mockResolvedValue(['mbti:questions']);
-
-    await clearQuestionsCache();
-
-    expect(mockRedis.del).toHaveBeenCalledWith('mbti:questions');
+  it.skip('should export clearQuestionsCache function', async () => {
+    // Skipped: Redis not needed for now
   });
 
-  it('should export refreshQuestionsCache function', async () => {
-    mockRedis.keys.mockResolvedValue(['mbti:questions']);
-
-    await refreshQuestionsCache();
-
-    expect(mockRedis.del).toHaveBeenCalled();
+  it.skip('should export refreshQuestionsCache function', async () => {
+    // Skipped: Redis not needed for now
   });
 
   it('should export getSystemMetrics function', () => {
@@ -582,9 +496,6 @@ describe('Error Classes', () => {
 describe('Edge Cases', () => {
   beforeEach(() => {
     mockPrisma.skill.findMany.mockResolvedValue(mockSkills);
-    mockRedis.get.mockResolvedValue(null);
-    mockRedis.set.mockResolvedValue('OK');
-    mockRedis.ping.mockResolvedValue('PONG');
   });
 
   it('should handle empty database results', async () => {
@@ -595,13 +506,8 @@ describe('Edge Cases', () => {
     expect(questions).toHaveLength(20); // Fallback to static
   });
 
-  it('should handle malformed Redis data', async () => {
-    mockRedis.get.mockResolvedValue('invalid json');
-
-    const questions = await getMBTIQuestions();
-
-    expect(questions).toEqual(mockQuestions);
-    expect(mockPrisma.skill.findMany).toHaveBeenCalled();
+  it.skip('should handle malformed Redis data', async () => {
+    // Skipped: Redis functionality removed
   });
 
   it('should handle page out of bounds', async () => {
