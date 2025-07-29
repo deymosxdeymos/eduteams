@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { submitPersonalityTest } from '../../../src/lib/actions/personality';
 import { AuthError, ValidationError } from '../../../src/lib/types';
 

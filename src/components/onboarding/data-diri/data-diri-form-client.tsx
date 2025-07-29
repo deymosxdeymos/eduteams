@@ -1,11 +1,11 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { UserRound } from 'lucide-react';
 import Image from 'next/image';
 import { useTransition } from 'react';
-import { submitDataDiri } from '@/lib/actions/data-diri';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import {
   Form,
   FormControl,
@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { InputRounded } from '@/components/ui/input-rounded';
-import { UserRound } from 'lucide-react';
+import { submitDataDiri } from '@/lib/actions/data-diri';
 
 interface DataDiriFormClientProps {
   role: 'dosen' | 'mahasiswa';
@@ -185,11 +185,15 @@ export default function DataDiriFormClient({
                   role='radiogroup'
                   aria-labelledby='gender-label'
                 >
+                  {/* biome-ignore lint/a11y/useSemanticElements: Custom gender selection with images */}
                   <button
                     type='button'
                     role='radio'
                     aria-checked={field.value === 'laki-laki'}
                     onClick={() => field.onChange('laki-laki')}
+                    onKeyDown={e =>
+                      e.key === 'Enter' && field.onChange('laki-laki')
+                    }
                     className={`bg-blue-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
                       field.value === 'laki-laki'
                         ? 'ring-4 ring-blue-300 scale-105'
@@ -208,11 +212,15 @@ export default function DataDiriFormClient({
                     </p>
                   </button>
 
+                  {/* biome-ignore lint/a11y/useSemanticElements: Custom gender selection with images */}
                   <button
                     type='button'
                     role='radio'
                     aria-checked={field.value === 'perempuan'}
                     onClick={() => field.onChange('perempuan')}
+                    onKeyDown={e =>
+                      e.key === 'Enter' && field.onChange('perempuan')
+                    }
                     className={`bg-pink-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
                       field.value === 'perempuan'
                         ? 'ring-4 ring-pink-300 scale-105'

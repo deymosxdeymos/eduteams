@@ -1,5 +1,5 @@
+import { HomeIcon, LayoutGrid, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { HomeIcon, LayoutGrid, Settings, LogOut } from 'lucide-react';
 
 export default function Sidebar() {
   return (

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { MessageSquareWarning } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MessageSquareWarning } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
 
 interface PersonalityQuestionProps {
   question: string;

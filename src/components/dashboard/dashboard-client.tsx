@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { ExtendedUser } from '@/lib/types';
 import { WelcomeSplash } from './welcome-splash';
-import { ExtendedUser } from '@/lib/types';
 
 interface DashboardClientProps {
   children: React.ReactNode;

@@ -1,9 +1,11 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { DialogDescription } from '@radix-ui/react-dialog';
+import { Loader2, Plus } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -26,14 +29,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  courseCreateSchema,
-  type CourseCreateInput,
-} from '@/lib/validations/course';
 import type { Course } from '@/lib/types';
-import { DialogDescription } from '@radix-ui/react-dialog';
+import {
+  type CourseCreateInput,
+  courseCreateSchema,
+} from '@/lib/validations/course';
 
 interface CreateClassModalProps {
   onClassCreated?: (course: Course) => void;
@@ -108,9 +108,6 @@ export default function CreateClassModal({
     }
   };
 
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear + i);
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -139,6 +136,8 @@ export default function CreateClassModal({
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
+                role='img'
+                aria-label='Success checkmark'
               >
                 <path
                   strokeLinecap='round'

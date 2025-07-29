@@ -1,7 +1,7 @@
 'use client';
 
-import { ErrorBoundary } from 'react-error-boundary';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -24,6 +24,7 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
             administrator jika masalah berlanjut.
           </p>
           <button
+            type='button'
             onClick={resetErrorBoundary}
             className='inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
           >

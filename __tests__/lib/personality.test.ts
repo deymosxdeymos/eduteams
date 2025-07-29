@@ -1,8 +1,8 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import {
+  type AnswerRecord,
   calculatePersonalityScores,
   getMBTIType,
-  type AnswerRecord,
 } from '@/lib/personality';
 
 describe('Personality Calculation Tests', () => {

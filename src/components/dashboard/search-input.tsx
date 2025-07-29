@@ -1,8 +1,8 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import CreateClassModal from './create-class-modal';
 import type { Course } from '@/lib/types';
+import CreateClassModal from './create-class-modal';
 
 interface SearchInputProps {
   onClassCreated?: (course: Course) => void;

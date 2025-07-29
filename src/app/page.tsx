@@ -1,9 +1,9 @@
-import Logo from '@/components/logo';
+import { Mail, Phone } from 'lucide-react';
 import Image from 'next/image';
-import { Phone, Mail } from 'lucide-react';
-import { SocialRow } from '@/components/ui/social-row';
 import { LoginButton } from '@/components/auth/login-button';
 import { UserDisplay } from '@/components/auth/user-info';
+import Logo from '@/components/logo';
+import { SocialRow } from '@/components/ui/social-row';
 
 export default function Home() {
   return (

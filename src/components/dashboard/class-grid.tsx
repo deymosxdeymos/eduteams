@@ -1,5 +1,5 @@
-import { ClassCard } from './class-card';
 import type { ClassGridProps } from '@/types/dashboard';
+import { ClassCard } from './class-card';
 
 export function ClassGrid({
   classes = [],

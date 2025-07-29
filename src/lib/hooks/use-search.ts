@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useDebounce } from './use-debounce';
 import type { Class } from '@/types/dashboard';
+import { useDebounce } from './use-debounce';
 
 interface UseSearchProps {
   data: Class[];

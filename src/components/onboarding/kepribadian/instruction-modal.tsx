@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 
 interface InstructionModalProps {
   isOpen: boolean;
@@ -88,9 +88,9 @@ export default function InstructionModal({
 
               <div className='mb-8'>
                 <div className='flex items-start justify-between relative px-4'>
-                  {likertScale.map((item, index) => (
+                  {likertScale.map(item => (
                     <div
-                      key={index}
+                      key={item.icon}
                       className='flex flex-col items-center space-y-3 relative z-10'
                     >
                       <div className='bg-white flex items-center justify-center w-16 h-16'>

@@ -1,23 +1,23 @@
 'use client';
 
-import Logo from '@/components/logo';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useReducer, useRef } from 'react';
+import { useReducer, useRef, useState } from 'react';
+import Logo from '@/components/logo';
 import InstructionModal from '@/components/onboarding/kepribadian/instruction-modal';
 import PersonalityQuestion from '@/components/onboarding/kepribadian/personality-question';
-import type { MBTIQuestion } from '@/lib/mbti-questions';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { submitPersonalityTest } from '@/lib/actions/personality';
+import type { MBTIQuestion } from '@/lib/mbti-questions';
 import {
-  personalityTestReducer,
-  initialPersonalityTestState,
-  getQuestionsForPage,
-  validateCurrentPageQuestions,
-  scrollToFirstError,
   convertAnswersForSubmission,
+  getQuestionsForPage,
+  initialPersonalityTestState,
+  personalityTestReducer,
+  scrollToFirstError,
+  validateCurrentPageQuestions,
 } from '@/lib/personality-test-utils';
 
 interface PersonalityTestClientProps {

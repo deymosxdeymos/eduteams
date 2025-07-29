@@ -1,9 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import RoleSelect from '@/components/onboarding/role/role-select';
 import { ArrowRight } from 'lucide-react';
 import { useState, useTransition } from 'react';
+import RoleSelect from '@/components/onboarding/role/role-select';
+import { Button } from '@/components/ui/button';
 import { submitRole } from '@/lib/actions/role';
 
 interface RoleFormClientProps {

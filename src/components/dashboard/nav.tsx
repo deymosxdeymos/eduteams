@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ExtendedUser } from '@/lib/types';
+import type { ExtendedUser } from '@/lib/types';
 
 interface NavProps {
   user: ExtendedUser;

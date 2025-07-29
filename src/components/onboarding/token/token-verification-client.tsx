@@ -1,13 +1,13 @@
 'use client';
 
+import { ArrowLeft, ArrowRight, Key } from 'lucide-react';
+import Link from 'next/link';
+import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
-import { ArrowRight, ArrowLeft, Key } from 'lucide-react';
-import { useState, useTransition } from 'react';
 import { verifyDosenToken } from '@/lib/actions/token';
-import Link from 'next/link';
 
-export default function () {
+export default function TokenVerificationClient() {
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();

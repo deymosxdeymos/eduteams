@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { performance } from 'perf_hooks';
-import { performanceMonitor } from './utils/performance-monitor';
 import prisma from '../../src/lib/prisma';
+import { performanceMonitor } from './utils/performance-monitor';
 
 interface DatabaseQueryMetrics {
   queryType: string;

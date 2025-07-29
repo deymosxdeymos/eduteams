@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { performance } from 'perf_hooks';
-import { performanceMonitor } from '../utils/performance-monitor';
+import { getMBTIManager } from '@/lib/mbti-questions';
 import {
   calculatePersonalityScores,
   clearPersonalityCache,
 } from '@/lib/personality';
-import { getMBTIManager } from '@/lib/mbti-questions';
+import { performanceMonitor } from '../utils/performance-monitor';
 
 interface MemorySnapshot {
   timestamp: number;
@@ -320,7 +320,7 @@ class MemoryMonitor {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i];
   }
 
   printMemoryReport(report: MemoryLeakReport): void {

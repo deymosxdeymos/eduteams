@@ -1,8 +1,8 @@
-import Logo from '@/components/logo';
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
+import Logo from '@/components/logo';
 import RoleFormClient from '@/components/onboarding/role/role-form-client';
 import { getCurrentUserRole } from '@/lib/actions/role';
-import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { SearchInput } from './search-input';
-import { ClassGrid } from './class-grid';
 import { useSearch } from '@/lib/hooks/use-search';
 import type { Class } from '@/types/dashboard';
+import { ClassGrid } from './class-grid';
+import { SearchInput } from './search-input';
 
 interface CoursesSearchWrapperProps {
   courses: Class[];

@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import CreateClassModal from './create-class-modal';
 import type { Course } from '@/lib/types';
+import CreateClassModal from './create-class-modal';
 
 interface EmptyClassStateProps {
   onClassCreated?: (course: Course) => void;

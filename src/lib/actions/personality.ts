@@ -1,13 +1,13 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
-import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
-import { getCurrentUser } from '@/lib/api-utils';
-import { AuthError, ValidationError } from '@/lib/types';
 import type { MBTIType } from '@/generated/prisma';
+import { getCurrentUser } from '@/lib/api-utils';
+import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
+import prisma from '@/lib/prisma';
+import { AuthError, ValidationError } from '@/lib/types';
 
 const personalitySubmissionSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)),

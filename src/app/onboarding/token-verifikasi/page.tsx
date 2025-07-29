@@ -1,8 +1,7 @@
+import { redirect } from 'next/navigation';
 import Logo from '@/components/logo';
-
 import TokenVerificationClient from '@/components/onboarding/token/token-verification-client';
 import { getCurrentUser } from '@/lib/api-utils';
-import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
