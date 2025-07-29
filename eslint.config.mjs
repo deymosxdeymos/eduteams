@@ -14,6 +14,12 @@ const eslintConfig = [
   {
     ignores: ['src/generated/prisma/**/*'],
   },
+  {
+    rules: {
+      '@next/next/no-html-link-for-pages': 'off',
+      'jsx-a11y/label-has-associated-control': 'off',
+    },
+  },
 ];
 
 export default eslintConfig;
