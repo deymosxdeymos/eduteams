@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-export default function Error({
+export default function OnboardingError({
   error,
   reset,
 }: {
@@ -25,6 +25,7 @@ export default function Error({
           again.
         </p>
         <button
+          type='button'
           onClick={reset}
           className='bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors'
         >

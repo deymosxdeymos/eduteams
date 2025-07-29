@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-export default function Error({
+export default function DashboardError({
   error,
   reset,
 }: {
@@ -24,6 +24,7 @@ export default function Error({
           We encountered an error loading your dashboard. Please try again.
         </p>
         <button
+          type='button'
           onClick={reset}
           className='bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors'
         >

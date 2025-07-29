@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
-import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
 
 const roleSchema = z.object({
   role: z.enum(['dosen', 'mahasiswa', 'admin']),
@@ -15,7 +15,7 @@ export const POST = withAuth(
 
       // Update user role in database
       await prisma.user.update({
-        where: { id: user!.id },
+        where: { id: user?.id },
         data: { role },
       });
 

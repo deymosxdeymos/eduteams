@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
+import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 
 const onboardingProgressSchema = z.object({
@@ -14,7 +14,7 @@ export const POST = withAuth(
       const { step } = validatedData;
 
       await prisma.user.update({
-        where: { id: user!.id },
+        where: { id: user?.id },
         data: { onboardingStep: step },
       });
 

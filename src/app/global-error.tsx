@@ -14,7 +14,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html>
+    <html lang='en'>
       <body>
         <div className='min-h-screen flex items-center justify-center bg-gray-50'>
           <div className='max-w-md w-full bg-white shadow-lg rounded-lg p-6'>
@@ -26,6 +26,7 @@ export default function GlobalError({
                 A critical error occurred. Please refresh the page.
               </p>
               <button
+                type='button'
                 onClick={reset}
                 className='bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors'
               >
