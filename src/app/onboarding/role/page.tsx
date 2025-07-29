@@ -11,7 +11,14 @@ export default async function RolePage() {
 
   // If user already has a role and has completed this step, redirect to next step
   if (currentUserData?.role && currentUserData.onboardingStep !== 'role') {
-    redirect(`/onboarding/data-diri/${currentUserData.role}`);
+    if (
+      currentUserData.role === 'dosen' &&
+      currentUserData.onboardingStep === 'role'
+    ) {
+      redirect('/onboarding/token-verifikasi');
+    } else {
+      redirect(`/onboarding/data-diri/${currentUserData.role}`);
+    }
   }
 
   return (

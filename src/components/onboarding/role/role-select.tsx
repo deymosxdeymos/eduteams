@@ -17,17 +17,17 @@ export default function RoleSelect({
         className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-200 ${
           selectedRole === 'dosen'
             ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
-            : 'bg-amber-100 hover:bg-amber-200'
+            : 'bg-accent hover:bg-amber-200'
         }`}
         onClick={() => onRoleSelect('dosen')}
       >
         {' '}
         <Image
-          src='/dosen.svg'
+          src={selectedRole === 'dosen' ? '/dosen.svg' : '/dosen-inactive.svg'}
           width={240}
           height={240}
           alt='dosen'
-          className='mb-[-30px] w-auto h-auto'
+          className='mb-[-20px] w-auto h-auto'
           priority
         />
         <h1
@@ -41,17 +41,21 @@ export default function RoleSelect({
         className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-200 ${
           selectedRole === 'mahasiswa'
             ? 'bg-green-200 ring-4 ring-green-300 scale-105'
-            : 'bg-green-100 hover:bg-green-200'
+            : 'bg-accent hover:bg-green-200'
         }`}
         onClick={() => onRoleSelect('mahasiswa')}
       >
         {' '}
         <Image
-          src='/mahasiswa.svg'
+          src={
+            selectedRole === 'mahasiswa'
+              ? '/mahasiswa.svg'
+              : '/mahasiswa-inactive.svg'
+          }
           width={240}
           height={240}
           alt='mahasiswa'
-          className='mb-[-30px]'
+          className='mb-[-20px]'
         />
         <h1 className='font-bold text-center text-green-950 text-5xl tracking-tighter leading-none uppercase'>
           Mahasiswa
