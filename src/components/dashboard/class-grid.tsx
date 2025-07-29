@@ -1,17 +1,21 @@
 import { ClassCard } from './class-card';
 import type { ClassGridProps } from '@/types/dashboard';
 
-export function ClassGrid({ classes = [], showNoResults = false }: ClassGridProps) {
-  const totalSlots = 12;
-  const emptySlots = Math.max(0, totalSlots - classes.length);
-
+export function ClassGrid({
+  classes = [],
+  showNoResults = false,
+}: ClassGridProps) {
   // Show "no results" message if search returned empty and we're in search mode
   if (showNoResults) {
     return (
       <div className='h-full flex items-center justify-center pt-4 pb-6'>
         <div className='text-center'>
-          <p className='text-gray-500 text-lg font-medium'>Tidak ada kelas yang ditemukan</p>
-          <p className='text-gray-400 text-sm mt-2'>Coba gunakan kata kunci yang berbeda</p>
+          <p className='text-gray-500 text-lg font-medium'>
+            Tidak ada kelas yang ditemukan
+          </p>
+          <p className='text-gray-400 text-sm mt-2'>
+            Coba gunakan kata kunci yang berbeda
+          </p>
         </div>
       </div>
     );
@@ -20,7 +24,7 @@ export function ClassGrid({ classes = [], showNoResults = false }: ClassGridProp
   return (
     <div className='h-full flex flex-col pt-4 pb-6'>
       <div
-        className='grid grid-cols-4 gap-6 overflow-y-auto flex-1'
+        className='grid grid-cols-3 gap-6 overflow-y-auto flex-1'
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#cbd5e1 transparent',
@@ -34,9 +38,6 @@ export function ClassGrid({ classes = [], showNoResults = false }: ClassGridProp
             studentCount={classItem.studentCount}
             classCode={classItem.classCode}
           />
-        ))}
-        {Array.from({ length: emptySlots }).map((_, index) => (
-          <ClassCard key={`empty-${index}`} isEmpty />
         ))}
       </div>
     </div>

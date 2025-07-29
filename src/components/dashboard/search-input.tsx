@@ -11,11 +11,11 @@ interface SearchInputProps {
   placeholder?: string;
 }
 
-export function SearchInput({ 
-  onClassCreated, 
-  searchValue = '', 
+export function SearchInput({
+  onClassCreated,
+  searchValue = '',
   onSearchChange = () => {},
-  placeholder = 'Cari mata kuliah, kelas, atau periode...'
+  placeholder = 'Mencari sesuatu?',
 }: SearchInputProps) {
   return (
     <div className='flex justify-between items-center'>
@@ -25,7 +25,7 @@ export function SearchInput({
           type='text'
           placeholder={placeholder}
           value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={e => onSearchChange(e.target.value)}
           className='flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-400'
         />
         <Search className='w-5 h-5 text-gray-400' />

@@ -1,11 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 
 interface ClassCardProps {
-  title?: string;
-  academicYear?: string;
-  studentCount?: number;
-  classCode?: string;
-  isEmpty?: boolean;
+  title: string;
+  academicYear: string;
+  studentCount: number;
+  classCode: string;
 }
 
 export function ClassCard({
@@ -15,7 +14,7 @@ export function ClassCard({
   classCode,
 }: ClassCardProps) {
   return (
-    <div className='bg-white border border-gray-200 rounded-2xl p-6 w-[363px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer'>
+    <div className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer'>
       <div className='flex flex-col h-full'>
         <div className='flex justify-between items-start mb-4'>
           <div className='flex gap-2'>
@@ -24,13 +23,13 @@ export function ClassCard({
               className='bg-red-50 text-red-900 text-xs'
             >
               <div className='h-2 w-2 rounded-full bg-red-900'></div>{' '}
-              {classCode || 'RA'}
+              {classCode}
             </Badge>
             <Badge
               variant='default'
               className='rounded-2xl font-normal text-xs text-sky-900 bg-sky-50'
             >
-              {studentCount || 24} mahasiswa
+              {studentCount} mahasiswa
             </Badge>
           </div>
           <button className='text-gray-400 hover:text-gray-600'>
@@ -40,11 +39,11 @@ export function ClassCard({
           </button>
         </div>
         <h3 className='font-semibold text-gray-800 text-2xl line-clamp-2 leading-tight flex-1'>
-          {title || 'Kelas Contoh'}
+          {title}
         </h3>
         <div className='mt-auto'>
           <p className='text-gray-600 text-sm'>
-            {academicYear || 'T.A 2025/2026'}
+            {academicYear}
           </p>
         </div>
       </div>
