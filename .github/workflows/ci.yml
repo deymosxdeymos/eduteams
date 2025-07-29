@@ -44,7 +44,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Run linter
+      - name: Run linter and formatter
         run: bun run lint
 
       - name: Run type check
