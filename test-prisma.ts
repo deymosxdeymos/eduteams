@@ -19,7 +19,6 @@ async function testPrismaConnection() {
     console.log('\n🎯 Testing skill table...');
     const skillCount = await prisma.skill.count();
     console.log(`✅ Skill count: ${skillCount}`);
-
   } catch (error) {
     console.error('❌ Error testing Prisma connection:', error);
   } finally {
