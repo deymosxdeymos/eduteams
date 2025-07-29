@@ -11,7 +11,6 @@
     "includes": [
       "src/**/*",
       "app/**/*",
-      "__tests__/**/*",
       "components/**/*",
       "lib/**/*",
       "types/**/*",
@@ -26,7 +25,11 @@
       "!**/.next/**",
       "!**/dist/**",
       "!**/build/**",
-      "!**/coverage/**"
+      "!**/coverage/**",
+      "!__tests__/**/*",
+      "!**/*.test.*",
+      "!**/*.spec.*",
+      "!types/bun-test.d.ts"
     ]
   },
   "formatter": {

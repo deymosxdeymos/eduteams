@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
-import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
 
 const dataDiriSchema = z.object({
   namaLengkap: z.string().min(1, 'Nama lengkap is required'),
@@ -13,7 +13,7 @@ const dataDiriSchema = z.object({
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
   const currentUser = await prisma.user.findUnique({
-    where: { id: user!.id },
+    where: { id: user?.id },
     select: {
       name: true,
       nimNpm: true,
@@ -61,7 +61,7 @@ export const POST = withAuth(
 
       // Update user with data-diri information
       await prisma.user.update({
-        where: { id: user!.id },
+        where: { id: user?.id },
         data: {
           name: namaLengkap,
           nimNpm: role === 'mahasiswa' ? nim : npm,

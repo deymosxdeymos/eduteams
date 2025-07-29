@@ -29,5 +29,12 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "src/generated/prisma"]
+  "exclude": [
+    "node_modules",
+    "src/generated/prisma",
+    "__tests__/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "types/bun-test.d.ts"
+  ]
 }

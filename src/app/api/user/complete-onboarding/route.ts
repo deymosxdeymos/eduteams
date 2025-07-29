@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
+import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import { calculatePersonalityScores } from '@/lib/personality';
-import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
+import prisma from '@/lib/prisma';
 
 const completeOnboardingSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)).optional(),
@@ -16,7 +16,7 @@ export const POST = withAuth(
 
       // Get current user to check role
       const currentUser = await prisma.user.findUnique({
-        where: { id: user!.id },
+        where: { id: user?.id },
         select: { role: true },
       });
 
@@ -48,7 +48,7 @@ export const POST = withAuth(
 
       // Mark user as fully onboarded and save personality data if applicable
       await prisma.user.update({
-        where: { id: user!.id },
+        where: { id: user?.id },
         data: updateData,
       });
 

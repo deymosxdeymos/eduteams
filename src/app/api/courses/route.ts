@@ -1,7 +1,15 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+import {
+  createApiResponse,
+  createErrorResponse,
+  withAuth,
+  withValidation,
+} from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
-import { withAuth, withValidation, createApiResponse, createErrorResponse } from '@/lib/api-utils';
-import { courseCreateSchema, type CourseCreateInput } from '@/lib/validations/course';
+import {
+  type CourseCreateInput,
+  courseCreateSchema,
+} from '@/lib/validations/course';
 
 export const POST = withAuth(
   withValidation(
@@ -10,7 +18,7 @@ export const POST = withAuth(
       const courseData = validatedData as CourseCreateInput;
 
       // Only dosen can create courses
-      if (user!.role !== 'dosen') {
+      if (user?.role !== 'dosen') {
         return createErrorResponse('Only dosen can create courses', 403);
       }
 
@@ -18,7 +26,7 @@ export const POST = withAuth(
       const course = await prisma.course.create({
         data: {
           ...courseData,
-          dosenId: user!.id,
+          dosenId: user?.id,
         },
         include: {
           dosen: {
@@ -38,12 +46,12 @@ export const POST = withAuth(
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
   // Only dosen can view their courses
-  if (user!.role !== 'dosen') {
+  if (user?.role !== 'dosen') {
     return createErrorResponse('Only dosen can view courses', 403);
   }
 
   const courses = await prisma.course.findMany({
-    where: { dosenId: user!.id },
+    where: { dosenId: user?.id },
     include: {
       dosen: {
         select: {

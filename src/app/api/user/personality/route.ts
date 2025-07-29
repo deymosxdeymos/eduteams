@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
+import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import { calculatePersonalityScores } from '@/lib/personality';
-import { withAuth, withValidation, createApiResponse } from '@/lib/api-utils';
+import prisma from '@/lib/prisma';
 
 const personalitySchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)),
@@ -22,7 +22,7 @@ export const POST = withAuth(
       const scores = calculatePersonalityScores(numericAnswers);
       // Update user with personality scores
       await prisma.user.update({
-        where: { id: user!.id },
+        where: { id: user?.id },
         data: {
           ei: scores.ei,
           sn: scores.sn,
