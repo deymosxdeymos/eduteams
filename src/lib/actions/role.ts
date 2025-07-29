@@ -42,7 +42,11 @@ export async function submitRole(
     revalidatePath('/onboarding');
 
     // Redirect to next step
-    redirect(`/onboarding/data-diri/${role}`);
+    if (role === 'dosen') {
+      redirect('/onboarding/token-verifikasi');
+    } else {
+      redirect(`/onboarding/data-diri/${role}`);
+    }
   } catch (error) {
     if (error instanceof AuthError || error instanceof ValidationError) {
       throw error;

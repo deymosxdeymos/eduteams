@@ -1,38 +1,38 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { AnimationOptions, motion, stagger, useAnimate } from "motion/react"
+import { useState } from 'react';
+import { AnimationOptions, motion, stagger, useAnimate } from 'motion/react';
 
 interface TextProps {
-  label: string
-  reverse?: boolean
-  transition?: AnimationOptions
-  staggerDuration?: number
-  staggerFrom?: "first" | "last" | "center" | number
-  className?: string
-  onClick?: () => void
+  label: string;
+  reverse?: boolean;
+  transition?: AnimationOptions;
+  staggerDuration?: number;
+  staggerFrom?: 'first' | 'last' | 'center' | number;
+  className?: string;
+  onClick?: () => void;
 }
 
 const LetterSwapForward = ({
   label,
   reverse = true,
   transition = {
-    type: "spring",
+    type: 'spring',
     duration: 0.7,
   },
   staggerDuration = 0.03,
-  staggerFrom = "first",
+  staggerFrom = 'first',
   className,
   onClick,
   ...props
 }: TextProps) => {
-  const [scope, animate] = useAnimate()
-  const [blocked, setBlocked] = useState(false)
+  const [scope, animate] = useAnimate();
+  const [blocked, setBlocked] = useState(false);
 
   const hoverStart = () => {
-    if (blocked) return
+    if (blocked) return;
 
-    setBlocked(true)
+    setBlocked(true);
 
     // Function to merge user transition with stagger and delay
     const mergeTransition = (baseTransition: AnimationOptions) => ({
@@ -40,15 +40,15 @@ const LetterSwapForward = ({
       delay: stagger(staggerDuration, {
         from: staggerFrom,
       }),
-    })
+    });
 
     animate(
-      ".letter",
-      { y: reverse ? "100%" : "-100%" },
+      '.letter',
+      { y: reverse ? '100%' : '-100%' },
       mergeTransition(transition)
     ).then(() => {
       animate(
-        ".letter",
+        '.letter',
         {
           y: 0,
         },
@@ -56,28 +56,28 @@ const LetterSwapForward = ({
           duration: 0,
         }
       ).then(() => {
-        setBlocked(false)
-      })
-    })
+        setBlocked(false);
+      });
+    });
 
     animate(
-      ".letter-secondary",
+      '.letter-secondary',
       {
-        top: "0%",
+        top: '0%',
       },
       mergeTransition(transition)
     ).then(() => {
       animate(
-        ".letter-secondary",
+        '.letter-secondary',
         {
-          top: reverse ? "-100%" : "100%",
+          top: reverse ? '-100%' : '100%',
         },
         {
           duration: 0,
         }
-      )
-    })
-  }
+      );
+    });
+  };
 
   return (
     <span
@@ -87,12 +87,12 @@ const LetterSwapForward = ({
       ref={scope}
       {...props}
     >
-      <span className="sr-only">{label}</span>
+      <span className='sr-only'>{label}</span>
 
-      {label.split("").map((letter: string, i: number) => {
+      {label.split('').map((letter: string, i: number) => {
         return (
           <span
-            className="whitespace-pre relative flex"
+            className='whitespace-pre relative flex'
             key={i}
             aria-hidden={true}
           >
@@ -100,16 +100,16 @@ const LetterSwapForward = ({
               {letter}
             </motion.span>
             <motion.span
-              className="absolute letter-secondary "
-              style={{ top: reverse ? "-100%" : "100%" }}
+              className='absolute letter-secondary '
+              style={{ top: reverse ? '-100%' : '100%' }}
             >
               {letter}
             </motion.span>
           </span>
-        )
+        );
       })}
     </span>
-  )
-}
+  );
+};
 
-export default LetterSwapForward
+export default LetterSwapForward;

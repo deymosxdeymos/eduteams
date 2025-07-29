@@ -6,6 +6,8 @@ import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form
 import { redirect } from 'next/navigation';
 import { protectOnboardingPage } from '@/lib/server-auth';
 import { getDataDiri } from '@/lib/actions/data-diri';
+
+import prisma from '@/lib/prisma';
 import Link from 'next/link';
 
 interface DataDiriPageProps {
@@ -23,7 +25,22 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
   }
 
   // Protect the onboarding page
-  await protectOnboardingPage();
+  const user = await protectOnboardingPage();
+
+  // For dosen, check if they have verified their token
+  if (role === 'dosen') {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        onboardingStep: true,
+      },
+    });
+
+    // If dosen hasn't verified token yet, redirect to token verification
+    if (!currentUser?.onboardingStep || currentUser.onboardingStep === 'role') {
+      redirect('/onboarding/token-verifikasi');
+    }
+  }
 
   let initialData;
   try {
@@ -57,7 +74,13 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
         <DataDiriFormClient role={role} initialData={initialData} />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
-        <Link href='/onboarding/role'>
+        <Link
+          href={
+            role === 'dosen'
+              ? '/onboarding/token-verifikasi'
+              : '/onboarding/role'
+          }
+        >
           <Button
             variant='ghost'
             size='icon'

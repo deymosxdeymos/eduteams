@@ -29,8 +29,19 @@ export default async function ResumePage() {
   // onboardingStep represents the LAST COMPLETED step
   switch (user.onboardingStep) {
     case 'role':
-      // User completed role selection, next is data-diri
-      redirect(`/onboarding/data-diri/${user.role}`);
+      // User completed role selection
+      if (user.role === 'dosen') {
+        // Dosen needs token verification next
+        redirect('/onboarding/token-verifikasi');
+        return;
+      } else {
+        // Mahasiswa goes directly to data-diri
+        redirect(`/onboarding/data-diri/${user.role}`);
+        return;
+      }
+    case 'token-verified':
+      // Dosen completed token verification, next is data-diri
+      redirect('/onboarding/data-diri/dosen');
       return;
     case 'data-diri':
       // User completed data-diri, next is kepribadian (only for mahasiswa)
