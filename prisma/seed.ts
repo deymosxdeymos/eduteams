@@ -159,9 +159,56 @@ async function seedMBTIQuestions() {
   }
 }
 
+async function seedDosenTokens() {
+  console.log('🌱 Starting dosen token seeding...');
+
+  try {
+    await prisma.$transaction(async tx => {
+      // Clear existing dosen tokens and usage records
+      try {
+        await tx.dosenTokenUsage.deleteMany({});
+        await tx.dosenToken.deleteMany({});
+        console.log('✅ Cleared existing dosen tokens and usage records');
+      } catch (error) {
+        // Tables might not exist yet, that's okay
+        console.log('✅ No existing dosen tokens to clear (tables may be new)');
+      }
+
+      // Create single shared token for all dosen
+      const sharedToken = `DOSEN_SHARED_${Date.now()}`;
+
+      const createdToken = await tx.dosenToken.create({
+        data: withTimestamps({
+          id: randomUUID(),
+          token: sharedToken,
+          description: 'Shared token for all dosen verification',
+        }),
+        select: {
+          id: true,
+          token: true,
+          description: true,
+        },
+      });
+
+      console.log(`✅ Created shared dosen token`);
+
+      // Print token for admin reference
+      console.log('\n🔐 Generated Dosen Token:');
+      console.log(`   Token: ${createdToken.token}`);
+      console.log('   (This token can be used by multiple dosen)');
+    });
+
+    console.log('🎉 Dosen token seeding completed successfully!');
+  } catch (error) {
+    console.error('❌ Error seeding dosen token:', error);
+    throw error;
+  }
+}
+
 async function main() {
   try {
     await seedMBTIQuestions();
+    await seedDosenTokens();
   } catch (error) {
     console.error('Seeding failed:', error);
     process.exit(1);
@@ -175,4 +222,4 @@ if (require.main === module) {
   main();
 }
 
-export { seedMBTIQuestions };
+export { seedMBTIQuestions, seedDosenTokens };
