@@ -20,7 +20,8 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
             Terjadi kesalahan
           </h3>
           <p className='text-gray-600 mb-4 max-w-md'>
-            Gagal memuat data kelas. Silakan coba lagi atau hubungi administrator jika masalah berlanjut.
+            Gagal memuat data kelas. Silakan coba lagi atau hubungi
+            administrator jika masalah berlanjut.
           </p>
           <button
             onClick={resetErrorBoundary}

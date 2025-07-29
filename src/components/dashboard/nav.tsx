@@ -1,7 +1,12 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { ExtendedUser } from '@/lib/types';
 
-export default function Nav() {
+interface NavProps {
+  user: ExtendedUser;
+}
+
+export default function Nav({ user }: NavProps) {
   return (
     <div className='flex flex-row justify-between items-center px-3'>
       <div className='flex gap-x-10'>
@@ -14,7 +19,7 @@ export default function Nav() {
         {/* TODO: will make this nav working when in a class e.g Dashboard > Class Name */}
         <div className='leading-loose'>
           <h1 className='text-3xl font-semibold tracking-tight'>
-            Halo, John Doe!
+            Halo, {user.name}!
           </h1>
           <p className='text-lg font-normal mt-2'>
             Explore information and activity about your lorem ipsum

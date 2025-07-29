@@ -1,8 +1,12 @@
 import Image from 'next/image';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import CreateClassModal from './create-class-modal';
+import type { Course } from '@/lib/types';
 
-export function EmptyClassState() {
+interface EmptyClassStateProps {
+  onClassCreated?: (course: Course) => void;
+}
+
+export function EmptyClassState({ onClassCreated }: EmptyClassStateProps) {
   return (
     <div className='flex flex-col items-center justify-center gap-y-4 mx-auto h-full'>
       <Image
@@ -19,12 +23,7 @@ export function EmptyClassState() {
           Buat kelas untuk memulai pembagian kelompok
         </p>
       </div>
-      <Button variant='onboarding' className='rounded-full w-48 py-7'>
-        <Plus strokeWidth={3} className=' text-white' />
-        <p className='text-white font-semibold text-base leading-tight'>
-          Buat Kelas Baru
-        </p>
-      </Button>
+      <CreateClassModal onClassCreated={onClassCreated} />
     </div>
   );
 }

@@ -23,15 +23,14 @@ export function CoursesSearchWrapper({ courses }: CoursesSearchWrapperProps) {
   return (
     <>
       <div className='p-6 pb-0'>
-        <SearchInput 
-          searchValue={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
+        <SearchInput searchValue={searchTerm} onSearchChange={setSearchTerm} />
       </div>
       <div className='flex-1 px-6 min-h-0 overflow-hidden'>
-        <ClassGrid 
-          classes={filteredCourses} 
-          showNoResults={searchTerm.trim() !== '' && filteredCourses.length === 0}
+        <ClassGrid
+          classes={filteredCourses}
+          showNoResults={
+            searchTerm.trim() !== '' && filteredCourses.length === 0
+          }
         />
       </div>
     </>

@@ -28,14 +28,20 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { courseCreateSchema, type CourseCreateInput } from '@/lib/validations/course';
+import {
+  courseCreateSchema,
+  type CourseCreateInput,
+} from '@/lib/validations/course';
 import type { Course } from '@/lib/types';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 interface CreateClassModalProps {
   onClassCreated?: (course: Course) => void;
 }
 
-export default function CreateClassModal({ onClassCreated }: CreateClassModalProps) {
+export default function CreateClassModal({
+  onClassCreated,
+}: CreateClassModalProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +79,7 @@ export default function CreateClassModal({ onClassCreated }: CreateClassModalPro
 
         const result = await response.json();
         setSuccess(true);
-        
+
         // Call callback if provided
         if (onClassCreated) {
           onClassCreated(result.data);
@@ -108,41 +114,57 @@ export default function CreateClassModal({ onClassCreated }: CreateClassModalPro
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="onboarding" className="rounded-full w-48 py-7">
-          <Plus strokeWidth={3} className="text-white" />
-          <p className="text-white font-semibold text-base leading-tight">
+        <Button variant='onboarding' className='rounded-full w-48 py-7'>
+          <Plus strokeWidth={3} className='text-white' />
+          <p className='text-white font-semibold text-base leading-tight'>
             Buat Kelas Baru
           </p>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className='rounded-2xl sm:max-w-xl'>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Buat Kelas Baru</DialogTitle>
+          <DialogTitle className='text-xl font-medium'>
+            Buat Kelas Baru
+          </DialogTitle>
+          <DialogDescription className='text-sm font-normal'>
+            Silahkan isi seluruh data di bawah untuk membuat kelas baru
+          </DialogDescription>
         </DialogHeader>
-        
+
         {success ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className='flex flex-col items-center justify-center py-8 space-y-4'>
+            <div className='w-12 h-12 bg-green-100 rounded-full flex items-center justify-center'>
+              <svg
+                className='w-6 h-6 text-green-600'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M5 13l4 4L19 7'
+                />
               </svg>
             </div>
-            <p className="text-green-600 font-medium">Kelas berhasil dibuat!</p>
+            <p className='text-green-600 font-medium'>Kelas berhasil dibuat!</p>
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
               <FormField
                 control={form.control}
-                name="namaMataKuliah"
+                name='namaMataKuliah'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nama Mata Kuliah</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Masukkan nama mata kuliah"
+                        placeholder='Masukkan nama mata kuliah'
                         {...field}
                         disabled={isPending}
+                        className='file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-12 w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
                       />
                     </FormControl>
                     <FormMessage />
@@ -152,26 +174,26 @@ export default function CreateClassModal({ onClassCreated }: CreateClassModalPro
 
               <FormField
                 control={form.control}
-                name="kelas"
+                name='kelas'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Kelas</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={isPending}
                     >
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih kelas" />
+                        <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
+                          <SelectValue placeholder='Pilih kelas' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="RA">RA</SelectItem>
-                        <SelectItem value="RB">RB</SelectItem>
-                        <SelectItem value="RC">RC</SelectItem>
-                        <SelectItem value="RD">RD</SelectItem>
-                        <SelectItem value="RE">RE</SelectItem>
+                        <SelectItem value='RA'>RA</SelectItem>
+                        <SelectItem value='RB'>RB</SelectItem>
+                        <SelectItem value='RC'>RC</SelectItem>
+                        <SelectItem value='RD'>RD</SelectItem>
+                        <SelectItem value='RE'>RE</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -179,85 +201,77 @@ export default function CreateClassModal({ onClassCreated }: CreateClassModalPro
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="tahunAwalPeriode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tahun Awal</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        defaultValue={field.value?.toString()}
+              <FormField
+                control={form.control}
+                name='tahunAwalPeriode'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tahun Awal</FormLabel>
+                    <FormControl>
+                      <Input
+                        type='text'
+                        placeholder='Masukkan tahun awal'
+                        value={field.value ?? ''}
+                        onChange={e => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          field.onChange(value ? Number(value) : '');
+                        }}
                         disabled={isPending}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih tahun" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {yearOptions.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="tahunAkhirPeriode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tahun Akhir</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        defaultValue={field.value?.toString()}
-                        disabled={isPending}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih tahun" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {yearOptions.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        inputMode='numeric'
+                        pattern='[0-9]*'
+                        className='flex h-12 w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
-                name="periode"
+                name='tahunAkhirPeriode'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tahun Akhir</FormLabel>
+                    <FormControl>
+                      <Input
+                        type='text'
+                        placeholder='Masukkan tahun akhir'
+                        value={field.value ?? ''}
+                        onChange={e => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          field.onChange(value ? Number(value) : '');
+                        }}
+                        disabled={isPending}
+                        inputMode='numeric'
+                        pattern='[0-9]*'
+                        className='flex h-12 w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='periode'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Periode</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={isPending}
                     >
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih periode" />
+                        <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
+                          <SelectValue placeholder='Pilih periode' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ganjil">Ganjil</SelectItem>
-                        <SelectItem value="genap">Genap</SelectItem>
+                        <SelectItem value='ganjil'>Ganjil</SelectItem>
+                        <SelectItem value='genap'>Genap</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -266,22 +280,23 @@ export default function CreateClassModal({ onClassCreated }: CreateClassModalPro
               />
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                  <p className="text-red-600 text-sm">{error}</p>
+                <div className='bg-red-50 border border-red-200 rounded-md p-3'>
+                  <p className='text-red-600 text-sm'>{error}</p>
                 </div>
               )}
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className='flex justify-end space-x-3 text-md pt-4'>
                 <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
+                  variant='onboarding'
+                  className='flex flex-1 rounded-full font-semibold py-6 !text-sm'
+                  type='submit'
                   disabled={isPending}
                 >
-                  Batal
-                </Button>
-                <Button type="submit" disabled={isPending}>
-                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isPending ? (
+                    <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                  ) : (
+                    <Plus strokeWidth={3} className='mr-1 h-4 w-4' />
+                  )}
                   {isPending ? 'Membuat...' : 'Buat Kelas'}
                 </Button>
               </div>
