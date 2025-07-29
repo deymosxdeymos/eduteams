@@ -25,8 +25,8 @@ export const PersonalityScoreSchema = z
   .number()
   .min(-1.0, 'Personality score must be between -1.0 and 1.0')
   .max(1.0, 'Personality score must be between -1.0 and 1.0')
-  .refine(val => !isNaN(val), 'Personality score must be a valid number')
-  .refine(val => isFinite(val), 'Personality score must be finite');
+  .refine(val => !Number.isNaN(val), 'Personality score must be a valid number')
+  .refine(val => Number.isFinite(val), 'Personality score must be finite');
 
 export const MBTITypeSchema = z.enum(MBTI_TYPES, {
   message: 'Invalid MBTI type. Must be one of the 16 valid types.',
@@ -135,64 +135,64 @@ export const SkillLevelSchema = z
   .number()
   .min(0.0, 'Skill level must be between 0.0 and 10.0')
   .max(10.0, 'Skill level must be between 0.0 and 10.0')
-  .refine(val => !isNaN(val), 'Skill level must be a valid number')
-  .refine(val => isFinite(val), 'Skill level must be finite');
+  .refine(val => !Number.isNaN(val), 'Skill level must be a valid number')
+  .refine(val => Number.isFinite(val), 'Skill level must be finite');
 
 export const PreferenceSchema = z
   .number()
   .min(-1.0, 'Preference must be between -1.0 and 1.0')
   .max(1.0, 'Preference must be between -1.0 and 1.0')
-  .refine(val => !isNaN(val), 'Preference must be a valid number')
-  .refine(val => isFinite(val), 'Preference must be finite');
+  .refine(val => !Number.isNaN(val), 'Preference must be a valid number')
+  .refine(val => Number.isFinite(val), 'Preference must be finite');
 
 export const SimilaritySchema = z
   .number()
   .min(0.0, 'Similarity must be between 0.0 and 1.0')
   .max(1.0, 'Similarity must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Similarity must be a valid number')
-  .refine(val => isFinite(val), 'Similarity must be finite');
+  .refine(val => !Number.isNaN(val), 'Similarity must be a valid number')
+  .refine(val => Number.isFinite(val), 'Similarity must be finite');
 
 export const ImportanceSchema = z
   .number()
   .min(0.0, 'Importance must be between 0.0 and 1.0')
   .max(1.0, 'Importance must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Importance must be a valid number')
-  .refine(val => isFinite(val), 'Importance must be finite');
+  .refine(val => !Number.isNaN(val), 'Importance must be a valid number')
+  .refine(val => Number.isFinite(val), 'Importance must be finite');
 
 export const QualitySchema = z
   .number()
   .min(0.0, 'Quality must be between 0.0 and 1.0')
   .max(1.0, 'Quality must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Quality must be a valid number')
-  .refine(val => isFinite(val), 'Quality must be finite');
+  .refine(val => !Number.isNaN(val), 'Quality must be a valid number')
+  .refine(val => Number.isFinite(val), 'Quality must be finite');
 
 export const AlphaSchema = z
   .number()
   .min(0.0, 'Alpha must be between 0.0 and 1.0')
   .max(1.0, 'Alpha must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Alpha must be a valid number')
-  .refine(val => isFinite(val), 'Alpha must be finite');
+  .refine(val => !Number.isNaN(val), 'Alpha must be a valid number')
+  .refine(val => Number.isFinite(val), 'Alpha must be finite');
 
 export const BetaSchema = z
   .number()
   .min(0.0, 'Beta must be between 0.0 and 1.0')
   .max(1.0, 'Beta must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Beta must be a valid number')
-  .refine(val => isFinite(val), 'Beta must be finite');
+  .refine(val => !Number.isNaN(val), 'Beta must be a valid number')
+  .refine(val => Number.isFinite(val), 'Beta must be finite');
 
 export const GammaSchema = z
   .number()
   .min(0.0, 'Gamma must be between 0.0 and 1.0')
   .max(1.0, 'Gamma must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Gamma must be a valid number')
-  .refine(val => isFinite(val), 'Gamma must be finite');
+  .refine(val => !Number.isNaN(val), 'Gamma must be a valid number')
+  .refine(val => Number.isFinite(val), 'Gamma must be finite');
 
 export const DeltaSchema = z
   .number()
   .min(0.0, 'Delta must be between 0.0 and 1.0')
   .max(1.0, 'Delta must be between 0.0 and 1.0')
-  .refine(val => !isNaN(val), 'Delta must be a valid number')
-  .refine(val => isFinite(val), 'Delta must be finite');
+  .refine(val => !Number.isNaN(val), 'Delta must be a valid number')
+  .refine(val => Number.isFinite(val), 'Delta must be finite');
 
 export const TeamSizeSchema = z
   .number()

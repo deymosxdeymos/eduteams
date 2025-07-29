@@ -1,9 +1,9 @@
-import { protectDashboard } from '@/lib/server-auth';
-import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Metadata } from 'next';
+import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
+import { protectDashboard } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 

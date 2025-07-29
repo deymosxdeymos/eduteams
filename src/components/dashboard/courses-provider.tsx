@@ -41,9 +41,9 @@ function CoursesLoading() {
       <div className='flex-1 px-6 min-h-0 overflow-hidden'>
         <div className='h-full flex flex-col pt-4 pb-6'>
           <div className='grid grid-cols-4 gap-6 overflow-y-auto flex-1'>
-            {Array.from({ length: 4 }).map((_, index) => (
+            {Array.from({ length: 4 }, (_, index) => (
               <div
-                key={index}
+                key={`loading-skeleton-${Date.now()}-${index}`}
                 className='h-48 bg-gray-100 animate-pulse rounded-3xl'
               />
             ))}

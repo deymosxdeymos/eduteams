@@ -1,7 +1,12 @@
 'use client';
 
+import {
+  type AnimationOptions,
+  motion,
+  stagger,
+  useAnimate,
+} from 'motion/react';
 import { useState } from 'react';
-import { AnimationOptions, motion, stagger, useAnimate } from 'motion/react';
 
 interface TextProps {
   label: string;
@@ -80,10 +85,17 @@ const LetterSwapForward = ({
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Animation component used inside interactive elements
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Animation component used inside interactive elements
     <span
       className={`flex justify-center items-center relative overflow-hidden  ${className} `}
       onMouseEnter={hoverStart}
       onClick={onClick}
+      {...(onClick && {
+        onKeyDown: (e: React.KeyboardEvent) => e.key === 'Enter' && onClick(),
+        role: 'button',
+        tabIndex: 0,
+      })}
       ref={scope}
       {...props}
     >
@@ -93,7 +105,7 @@ const LetterSwapForward = ({
         return (
           <span
             className='whitespace-pre relative flex'
-            key={i}
+            key={`letter-${i}-${letter}`}
             aria-hidden={true}
           >
             <motion.span className={`relative letter`} style={{ top: 0 }}>

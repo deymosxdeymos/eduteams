@@ -1,7 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
-import { ReactNode } from 'react';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -10,10 +10,8 @@ const fetcher = async (url: string) => {
     const error = new Error('An error occurred while fetching the data.');
     const errorData = await res.json().catch(() => ({}));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (error as any).info = errorData;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (error as any).status = res.status;
+    (error as Error & { info?: unknown; status?: number }).info = errorData;
+    (error as Error & { info?: unknown; status?: number }).status = res.status;
     throw error;
   }
 

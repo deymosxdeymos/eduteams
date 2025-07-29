@@ -1,4 +1,7 @@
-import { User as PrismaUser, Course as PrismaCourse } from '@/generated/prisma';
+import type {
+  Course as PrismaCourse,
+  User as PrismaUser,
+} from '@/generated/prisma';
 
 export type UserRole = 'dosen' | 'mahasiswa' | 'admin';
 
@@ -75,9 +78,9 @@ export interface CourseWithDosen extends Course {
 
 // Error classes moved to lib/utils/errors.ts
 export {
-  HttpError,
   AuthError,
   AuthorizationError,
+  HttpError,
   NotFoundError,
   ValidationError,
 } from './utils/errors';

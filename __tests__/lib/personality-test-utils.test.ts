@@ -1,15 +1,15 @@
-import { describe, test, expect, beforeEach } from 'bun:test';
-import {
-  personalityTestReducer,
-  initialPersonalityTestState,
-  getQuestionsForPage,
-  validateCurrentPageQuestions,
-  scrollToFirstError,
-  convertAnswersForSubmission,
-  type PersonalityTestState,
-  type PersonalityTestAction,
-} from '../../src/lib/personality-test-utils';
+import { beforeEach, describe, expect, test } from 'bun:test';
 import type { MBTIQuestion } from '../../src/lib/mbti-questions';
+import {
+  convertAnswersForSubmission,
+  getQuestionsForPage,
+  initialPersonalityTestState,
+  type PersonalityTestAction,
+  type PersonalityTestState,
+  personalityTestReducer,
+  scrollToFirstError,
+  validateCurrentPageQuestions,
+} from '../../src/lib/personality-test-utils';
 
 describe('Personality Test Utils', () => {
   const mockQuestions: MBTIQuestion[] = [

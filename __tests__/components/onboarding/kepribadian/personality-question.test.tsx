@@ -1,5 +1,5 @@
-import { describe, test, expect, beforeEach, mock } from 'bun:test';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import PersonalityQuestion from '../../../../src/components/onboarding/kepribadian/personality-question';
 

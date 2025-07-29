@@ -28,7 +28,7 @@ export function personalityTestReducer(
   action: PersonalityTestAction
 ): PersonalityTestState {
   switch (action.type) {
-    case 'SET_ANSWER':
+    case 'SET_ANSWER': {
       const newErrors = new Set(state.validationErrors);
       newErrors.delete(action.payload.questionId);
       return {
@@ -39,6 +39,7 @@ export function personalityTestReducer(
         },
         validationErrors: newErrors,
       };
+    }
 
     case 'NEXT_PAGE':
       return {
@@ -58,13 +59,14 @@ export function personalityTestReducer(
         validationErrors: action.payload,
       };
 
-    case 'CLEAR_VALIDATION_ERROR':
+    case 'CLEAR_VALIDATION_ERROR': {
       const clearedErrors = new Set(state.validationErrors);
       clearedErrors.delete(action.payload);
       return {
         ...state,
         validationErrors: clearedErrors,
       };
+    }
 
     case 'SET_SUBMITTING':
       return {

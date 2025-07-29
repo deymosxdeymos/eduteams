@@ -32,8 +32,14 @@ export function ClassCard({
               {studentCount} mahasiswa
             </Badge>
           </div>
-          <button className='text-gray-400 hover:text-gray-600'>
-            <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
+          <button type='button' className='text-gray-400 hover:text-gray-600'>
+            <svg
+              className='w-4 h-4'
+              fill='currentColor'
+              viewBox='0 0 20 20'
+              role='img'
+              aria-label='Options'
+            >
               <path d='M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z' />
             </svg>
           </button>
@@ -42,9 +48,7 @@ export function ClassCard({
           {title}
         </h3>
         <div className='mt-auto'>
-          <p className='text-gray-600 text-sm'>
-            {academicYear}
-          </p>
+          <p className='text-gray-600 text-sm'>{academicYear}</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mock NextResponse - MUST be before imports
 mock.module('next/server', () => ({
@@ -16,8 +16,8 @@ mock.module('next/server', () => ({
 import { POST as onboardingProgressPost } from '@/app/api/user/onboarding-progress/route';
 import { GET as onboardingStatusGet } from '@/app/api/user/onboarding-status/route';
 import { getCurrentUser } from '@/lib/api-utils';
-import { middleware } from '@/middleware';
 import prisma from '@/lib/prisma';
+import { middleware } from '@/middleware';
 
 // Mock dependencies
 mock.module('@/lib/api-utils', () => ({

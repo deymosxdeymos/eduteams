@@ -1,20 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
-  getMBTIQuestions,
-  getQuestionsForPage,
-  getTotalPages,
+  CacheError,
   clearQuestionsCache,
-  refreshQuestionsCache,
-  getSystemMetrics,
+  DatabaseError,
   getHealthStatus,
   getMBTIManager,
-  MBTIQuestionsManager,
-  MBTIQuestionsError,
-  CacheError,
-  DatabaseError,
-  ValidationError,
+  getMBTIQuestions,
+  getQuestionsForPage,
+  getSystemMetrics,
+  getTotalPages,
   type MBTIQuestion,
+  MBTIQuestionsError,
+  MBTIQuestionsManager,
   type MBTISystemConfig,
+  refreshQuestionsCache,
+  ValidationError,
 } from '@/lib/mbti-questions';
 
 // Mock dependencies

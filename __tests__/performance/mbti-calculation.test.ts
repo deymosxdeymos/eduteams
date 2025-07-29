@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { performance } from 'perf_hooks';
-import { performanceMonitor } from '../utils/performance-monitor';
 import {
+  type AnswerRecord,
   calculatePersonalityScores,
   clearPersonalityCache,
-  PersonalityScores,
-  AnswerRecord,
+  type PersonalityScores,
 } from '@/lib/personality';
+import { performanceMonitor } from '../utils/performance-monitor';
 
 interface TestDataset {
   size: number;
@@ -520,8 +520,7 @@ describe('MBTI Calculation Performance Tests', () => {
       const durations = results.map(r => r.avgDuration);
       const mean = durations.reduce((a, b) => a + b, 0) / durations.length;
       const variance =
-        durations.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
-        durations.length;
+        durations.reduce((a, b) => a + (b - mean) ** 2, 0) / durations.length;
       const stdDev = Math.sqrt(variance);
       const cv = stdDev / mean;
 

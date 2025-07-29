@@ -1,7 +1,7 @@
+import type { ExtendedUser } from '@/lib/types';
+import Content from './content';
 import Nav from './nav';
 import Sidebar from './sidebar';
-import Content from './content';
-import { ExtendedUser } from '@/lib/types';
 
 interface DashboardLayoutProps {
   dosenId: string;

@@ -1,22 +1,22 @@
 import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  beforeAll,
   afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
 } from 'bun:test';
 import prisma from '../../src/lib/prisma';
 import {
-  validatePersonalityScores,
-  validateMBTIType,
-  validatePersonalityData,
-  validateUserPersonalityUpdate,
   calculateMBTIFromScores,
-  validatePersonalityCompleteness,
-  PersonalityValidationError,
   DatabaseConstraintError,
+  PersonalityValidationError,
   parseConstraintError,
+  validateMBTIType,
+  validatePersonalityCompleteness,
+  validatePersonalityData,
+  validatePersonalityScores,
+  validateUserPersonalityUpdate,
 } from '../../src/lib/validation/personality-helpers';
 
 describe('Database Constraint Validation', () => {
@@ -304,7 +304,7 @@ describe('Database Constraint Validation', () => {
 
       const validLevels = [0.0, 2.5, 5.0, 7.5, 10.0];
 
-      let usedLevels = new Set();
+      const usedLevels = new Set();
       for (const level of validLevels) {
         if (usedLevels.has(level)) continue; // skip duplicate
         usedLevels.add(level);

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useRef } from 'react';
 import { motion, useAnimationFrame, useMotionValue } from 'motion/react';
+import type React from 'react';
+import { useRef } from 'react';
 
 // Simple className utility function
 function cn(...classes: (string | undefined)[]) {

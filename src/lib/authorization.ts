@@ -1,4 +1,4 @@
-import { UserRole, ExtendedUser } from '@/lib/types';
+import type { ExtendedUser, UserRole } from '@/lib/types';
 
 export function canAccessDashboard(user: ExtendedUser): boolean {
   return user.isOnboarded && !!user.role;

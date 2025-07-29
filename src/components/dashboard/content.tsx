@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { StatisticsCards } from './statistics-cards';
-import { SearchInput } from './search-input';
-import { EmptyClassState } from './empty-class-state';
-import { ClassGrid } from './class-grid';
 import type { Course } from '@/lib/types';
 import type { Class } from '@/types/dashboard';
+import { ClassGrid } from './class-grid';
+import { EmptyClassState } from './empty-class-state';
+import { SearchInput } from './search-input';
+import { StatisticsCards } from './statistics-cards';
 
 interface ContentProps {
   dosenId?: string;
@@ -19,12 +19,12 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-export default function Content({}: ContentProps) {
+export default function Content(_props: ContentProps) {
   const { data, error, mutate } = useSWR('/api/courses', fetcher);
   const [searchValue, setSearchValue] = useState('');
 
   const courses: Course[] = data?.data || [];
-  
+
   // Convert Course data to Class format expected by ClassGrid
   const classes: Class[] = courses.map(course => ({
     id: course.id,
@@ -36,9 +36,10 @@ export default function Content({}: ContentProps) {
 
   // Filter classes based on search
   const filteredClasses = searchValue
-    ? classes.filter(classItem =>
-        classItem.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-        classItem.classCode.toLowerCase().includes(searchValue.toLowerCase())
+    ? classes.filter(
+        classItem =>
+          classItem.title.toLowerCase().includes(searchValue.toLowerCase()) ||
+          classItem.classCode.toLowerCase().includes(searchValue.toLowerCase())
       )
     : classes;
 
@@ -67,7 +68,10 @@ export default function Content({}: ContentProps) {
         </div>
         <div className='flex-1 px-6 min-h-0 overflow-hidden'>
           {hasClasses ? (
-            <ClassGrid classes={filteredClasses} showNoResults={showNoResults} />
+            <ClassGrid
+              classes={filteredClasses}
+              showNoResults={showNoResults}
+            />
           ) : (
             <EmptyClassState onClassCreated={handleClassCreated} />
           )}

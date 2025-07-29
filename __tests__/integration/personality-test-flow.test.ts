@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mock auth - MUST be before imports
 const mockGetSession = mock();
@@ -48,11 +48,11 @@ mock.module('next/cache', () => ({
 import { createPersonalityPost } from '../../src/app/api/user/personality/route';
 
 import { submitPersonalityTest } from '../../src/lib/actions/personality';
+import { getCurrentUser } from '../../src/lib/api-utils';
 import {
   calculatePersonalityScores,
   getMBTIType,
 } from '../../src/lib/personality';
-import { getCurrentUser } from '../../src/lib/api-utils';
 import prisma from '../../src/lib/prisma';
 
 // Mock dependencies

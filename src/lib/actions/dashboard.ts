@@ -1,7 +1,7 @@
 'use server';
 
-import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/api-utils';
+import prisma from '@/lib/prisma';
 import { AuthError } from '@/lib/types';
 
 export async function updateWelcomeSplashStatus() {

@@ -1,11 +1,11 @@
 import { performance } from 'perf_hooks';
-import { performanceMonitor } from './utils/performance-monitor';
+import { getMBTIManager } from '@/lib/mbti-questions';
 import {
   calculatePersonalityScores,
   clearPersonalityCache,
 } from '@/lib/personality';
-import { getMBTIManager } from '@/lib/mbti-questions';
 import prisma from '@/lib/prisma';
+import { performanceMonitor } from './utils/performance-monitor';
 
 interface PerformanceTestSuite {
   name: string;

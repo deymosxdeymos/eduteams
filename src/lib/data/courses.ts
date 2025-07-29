@@ -1,6 +1,6 @@
-import prisma from '@/lib/prisma';
-import { Course } from '@/lib/types';
 import { unstable_cache } from 'next/cache';
+import prisma from '@/lib/prisma';
+import type { Course } from '@/lib/types';
 
 export async function getCoursesByLecturer(dosenId: string): Promise<Course[]> {
   return await unstable_cache(

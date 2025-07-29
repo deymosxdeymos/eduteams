@@ -39,7 +39,7 @@ export function LoadingSpinner({
       >
         {bars.map((_, i) => (
           <div
-            key={`spinner-bar-${i}`}
+            key={`spinner-bar-${i}-${spinnerSize}`}
             className='absolute rounded-md'
             style={{
               background: `var(--spinner-color)`,

@@ -1,15 +1,15 @@
 import { ZodError } from 'zod';
 import {
-  PersonalityScoresSchema,
-  MBTITypeSchema,
-  PersonalityDataSchema,
-  AnswerRecordSchema,
-  UserPersonalityUpdateSchema,
-  MBTI_TYPES,
-  type PersonalityScores,
-  type MBTIType,
   type AnswerRecord,
+  AnswerRecordSchema,
+  MBTI_TYPES,
+  type MBTIType,
+  MBTITypeSchema,
   type PersonalityData,
+  PersonalityDataSchema,
+  type PersonalityScores,
+  PersonalityScoresSchema,
+  UserPersonalityUpdateSchema,
 } from './personality';
 
 export class PersonalityValidationError extends Error {
@@ -205,10 +205,10 @@ export function validatePersonalityCompleteness(data: {
 
   if (hasAllScores && data.mbtiType) {
     const scores = {
-      ei: data.ei!,
-      sn: data.sn!,
-      tf: data.tf!,
-      pj: data.pj!,
+      ei: data.ei as number,
+      sn: data.sn as number,
+      tf: data.tf as number,
+      pj: data.pj as number,
     };
 
     if (!validateMBTIScoreConsistency(scores, data.mbtiType as MBTIType)) {

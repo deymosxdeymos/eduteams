@@ -1,4 +1,4 @@
-import { describe, test, expect, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 // Mock dependencies - MUST be before imports
 mock.module('next/navigation', () => ({
@@ -12,8 +12,8 @@ mock.module('@/lib/api-utils', () => ({
 }));
 
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/api-utils';
 import ResumePage from '@/app/onboarding/resume/page';
+import { getCurrentUser } from '@/lib/api-utils';
 
 describe('Resume Page Logic', () => {
   const mockRedirect = redirect as any;

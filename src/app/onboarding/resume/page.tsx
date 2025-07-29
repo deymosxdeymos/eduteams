@@ -1,5 +1,5 @@
-import { getCurrentUser } from '@/lib/api-utils';
 import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,14 +1,14 @@
-import Logo from '@/components/logo';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
-import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { protectOnboardingPage } from '@/lib/server-auth';
+import Logo from '@/components/logo';
+import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
+import { Button } from '@/components/ui/button';
 import { getDataDiri } from '@/lib/actions/data-diri';
 
 import prisma from '@/lib/prisma';
-import Link from 'next/link';
+import { protectOnboardingPage } from '@/lib/server-auth';
 
 interface DataDiriPageProps {
   params: Promise<{
@@ -42,7 +42,12 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
     }
   }
 
-  let initialData;
+  let initialData: {
+    namaLengkap: string;
+    nimNpm: string;
+    jenisKelamin: string;
+    role: string;
+  };
   try {
     initialData = await getDataDiri();
   } catch {

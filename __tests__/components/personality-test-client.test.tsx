@@ -1,6 +1,6 @@
-import React from 'react';
-import { describe, test, expect, beforeEach, mock } from 'bun:test';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type React from 'react';
 import PersonalityTestClient from 'src/components/onboarding/kepribadian/personality-test-client';
 import type { MBTIQuestion } from '../../../src/lib/mbti-questions'; // path is correct
 
