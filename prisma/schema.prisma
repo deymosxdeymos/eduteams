@@ -38,6 +38,7 @@ model User {
   ownedTeamRequests TeamFormationRequest[] @relation("TeamRequestOwner")
   teamMemberships   TeamMember[]
   courses           Course[]
+  dosenTokenUsages  DosenTokenUsage[]
 
   @@index([email])
   @@index([role])
@@ -283,6 +284,33 @@ model Course {
   @@index([tahunAwalPeriode, tahunAkhirPeriode])
   @@index([periode])
   @@map("courses")
+}
+
+model DosenToken {
+  id          String            @id @default(uuid())
+  token       String            @unique
+  description String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  usages      DosenTokenUsage[]
+
+  @@index([token])
+  @@map("dosen_tokens")
+}
+
+model DosenTokenUsage {
+  id        String      @id @default(uuid())
+  tokenId   String
+  userId    String
+  usedAt    DateTime    @default(now())
+  createdAt DateTime    @default(now())
+  token     DosenToken  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tokenId, userId])
+  @@index([tokenId])
+  @@index([userId])
+  @@map("dosen_token_usage")
 }
 
 enum Gender {
