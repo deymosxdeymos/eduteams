@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { performance } from 'perf_hooks';
 import { performanceMonitor } from './utils/performance-monitor';
-import prisma from '@/lib/prisma';
+import prisma from '../../src/lib/prisma';
 
 interface DatabaseQueryMetrics {
   queryType: string;
@@ -304,26 +304,31 @@ describe('Database Query Performance Tests', () => {
       testUserIds = await createTestUsers(500);
       testSkillIds = await createTestSkills(100);
 
-      // Create some person-skill relationships
-      const personSkills = [];
-      for (let i = 0; i < 1000; i++) {
+      // Create some person-skill relationships with unique (personId, skillId) pairs
+      const usedPairs = new Set<string>();
+      let created = 0;
+      const maxPairs = Math.min(testUserIds.length * testSkillIds.length, 1000);
+      while (created < maxPairs) {
         const userId =
           testUserIds[Math.floor(Math.random() * testUserIds.length)];
         const skillId =
           testSkillIds[Math.floor(Math.random() * testSkillIds.length)];
-
-        try {
-          await prisma.personSkill.create({
-            data: {
-              personId: userId,
-              skillId: skillId,
-              level: Math.random() * 5,
-            },
-          });
-        } catch (error) {
-          // Ignore duplicate key errors
-        }
+        const pairKey = `${userId}:${skillId}`;
+        if (usedPairs.has(pairKey)) continue;
+        usedPairs.add(pairKey);
+        await prisma.personSkill.create({
+          data: {
+            personId: userId,
+            skillId: skillId,
+            level: Math.random() * 5,
+          },
+        });
+        created++;
       }
+
+      // TypeScript: ensure testUserIds and testSkillIds are string[]
+      testUserIds = testUserIds.map(String);
+      testSkillIds = testSkillIds.map(String);
 
       const result = await performanceMonitor.measureAsync(
         'Complex user query with joins',

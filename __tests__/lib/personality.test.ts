@@ -1,8 +1,8 @@
 import { describe, test, expect } from 'bun:test';
-import { 
-  calculatePersonalityScores, 
+import {
+  calculatePersonalityScores,
   getMBTIType,
-  type AnswerRecord 
+  type AnswerRecord,
 } from '@/lib/personality';
 
 describe('Personality Calculation Tests', () => {
@@ -15,7 +15,7 @@ describe('Personality Calculation Tests', () => {
       }
 
       const scores = calculatePersonalityScores(allStronglyAgree);
-      
+
       // With all 5s and considering reversed questions, we expect specific patterns
       expect(scores.ei).toBeGreaterThan(-1);
       expect(scores.ei).toBeLessThanOrEqual(1);
@@ -34,7 +34,7 @@ describe('Personality Calculation Tests', () => {
       }
 
       const scores = calculatePersonalityScores(allNeutral);
-      
+
       // All neutral answers should result in 0 scores
       expect(scores.ei).toBe(0);
       expect(scores.sn).toBe(0);
@@ -55,7 +55,7 @@ describe('Personality Calculation Tests', () => {
       };
 
       const scores = calculatePersonalityScores(partialAnswers);
-      
+
       // Should still calculate scores for available answers
       expect(scores.ei).toBeGreaterThan(-1);
       expect(scores.ei).toBeLessThanOrEqual(1);
@@ -77,19 +77,34 @@ describe('Personality Calculation Tests', () => {
         4: 4, // agree -> reversed -> 2 -> negative E
         5: 5, // strongly agree -> 5 -> positive I
         6: 1, // strongly disagree -> 1 -> negative E
-        
+
         // SN dimension (7-12): All toward S
-        7: 1, 8: 1, 9: 5, 10: 1, 11: 5, 12: 1,
-        
-        // TF dimension (13-18): All toward T  
-        13: 1, 14: 5, 15: 5, 16: 1, 17: 5, 18: 1,
-        
+        7: 1,
+        8: 1,
+        9: 5,
+        10: 1,
+        11: 5,
+        12: 1,
+
+        // TF dimension (13-18): All toward T
+        13: 1,
+        14: 5,
+        15: 5,
+        16: 1,
+        17: 5,
+        18: 1,
+
         // PJ dimension (19-24): All toward J
-        19: 1, 20: 5, 21: 1, 22: 5, 23: 1, 24: 5,
+        19: 1,
+        20: 5,
+        21: 1,
+        22: 5,
+        23: 1,
+        24: 5,
       };
 
       const scores = calculatePersonalityScores(testAnswers);
-      
+
       // Verify scores are within valid range
       expect(scores.ei).toBeGreaterThan(-1);
       expect(scores.ei).toBeLessThanOrEqual(1);
@@ -102,10 +117,10 @@ describe('Personality Calculation Tests', () => {
   describe('getMBTIType', () => {
     test('should return correct MBTI type for extreme scores', () => {
       const extremeIntrovert = {
-        ei: 1,   // Introvert
-        sn: -1,  // Sensing
-        tf: 1,   // Feeling
-        pj: -1   // Judging
+        ei: 1, // Introvert
+        sn: -1, // Sensing
+        tf: 1, // Feeling
+        pj: -1, // Judging
       };
 
       expect(getMBTIType(extremeIntrovert)).toBe('ISFJ');
@@ -114,9 +129,9 @@ describe('Personality Calculation Tests', () => {
     test('should handle borderline scores correctly', () => {
       const borderlineScores = {
         ei: -0.1, // Slightly Extrovert
-        sn: 0.1,  // Slightly iNtuition
+        sn: 0.1, // Slightly iNtuition
         tf: -0.1, // Slightly Thinking
-        pj: 0.1   // Slightly Perceiving
+        pj: 0.1, // Slightly Perceiving
       };
 
       expect(getMBTIType(borderlineScores)).toBe('ENTP');
@@ -127,7 +142,7 @@ describe('Personality Calculation Tests', () => {
         ei: 0,
         sn: 0,
         tf: 0,
-        pj: 0
+        pj: 0,
       };
 
       expect(getMBTIType(zeroScores)).toBe('INFP');
@@ -137,9 +152,9 @@ describe('Personality Calculation Tests', () => {
   describe('Edge Cases', () => {
     test('should handle empty answers object', () => {
       const emptyAnswers: AnswerRecord = {};
-      
+
       const scores = calculatePersonalityScores(emptyAnswers);
-      
+
       expect(scores.ei).toBe(0);
       expect(scores.sn).toBe(0);
       expect(scores.tf).toBe(0);
@@ -154,7 +169,7 @@ describe('Personality Calculation Tests', () => {
       }
 
       const scores = calculatePersonalityScores(extremeAnswers);
-      
+
       expect(scores.ei).toBeGreaterThanOrEqual(-1);
       expect(scores.ei).toBeLessThanOrEqual(1);
       expect(scores.sn).toBeGreaterThanOrEqual(-1);
