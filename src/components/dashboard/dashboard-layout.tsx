@@ -22,10 +22,10 @@ export function DashboardLayout({ user }: DashboardLayoutProps) {
         <Nav user={user} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar user={user} />
+        <Sidebar />
         <div className='px-8 pb-0 min-h-0'>
           {isDosen && <Content />}
-          {isMahasiswa && <StudentDashboard user={user} />}
+          {isMahasiswa && <StudentDashboard />}
           {!isDosen && !isMahasiswa && (
             <div className='flex items-center justify-center h-full'>
               <p className='text-muted-foreground'>

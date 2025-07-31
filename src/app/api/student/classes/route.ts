@@ -26,6 +26,7 @@ async function getStudentClasses(
                 name: true,
               },
             },
+            enrollments: true, // Include all enrollments to count students
           },
         },
       },
@@ -45,6 +46,7 @@ async function getStudentClasses(
       periode: enrollment.course.periode,
       dosen: enrollment.course.dosen,
       enrolledAt: enrollment.enrolledAt,
+      studentCount: enrollment.course.enrollments.length, // Add student count
     }));
 
     return NextResponse.json({

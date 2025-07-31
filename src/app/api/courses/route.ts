@@ -60,6 +60,7 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
           email: true,
         },
       },
+      enrollments: true, // Add enrollments to get student count
     },
     orderBy: { createdAt: 'desc' },
   });

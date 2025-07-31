@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,13 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [shakeKey, setShakeKey] = useState(0); // Key to trigger shake animation
 
   const hasError = Boolean(error);
+
+  const triggerShake = () => {
+    setShakeKey(prev => prev + 1); // Increment key to restart animation
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +59,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
             result.error || 'Kode yang Anda masukkan salah. Silahkan coba lagi'
           );
         }
+        triggerShake(); // Trigger shake animation on error
         return;
       }
 
@@ -63,8 +70,9 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
         setSuccessMessage('');
         onClassJoined?.();
       }, 1500);
-    } catch (_err) {
+    } catch {
       setError('Kode yang Anda masukkan salah. Silahkan coba lagi');
+      triggerShake(); // Trigger shake animation on error
     } finally {
       setIsLoading(false);
     }
@@ -103,22 +111,37 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
             >
               Kode Kelas
             </label>
-            <InputRounded
-              id='token'
-              value={classToken}
-              onChange={e => {
-                setClassToken(e.target.value);
-                if (error) setError(''); // Clear error when user types
-              }}
-              placeholder='687ad8sa'
-              disabled={isLoading}
-              aria-invalid={hasError}
-              className={`w-full ${
+            <motion.div
+              key={shakeKey} // Key changes to restart animation
+              animate={
                 hasError
-                  ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20'
-                  : ''
-              }`}
-            />
+                  ? {
+                      x: [-4, 4, -3, 3, -2, 2, 0],
+                      transition: {
+                        duration: 0.4,
+                        ease: 'easeInOut',
+                      },
+                    }
+                  : {}
+              }
+            >
+              <InputRounded
+                id='token'
+                value={classToken}
+                onChange={e => {
+                  setClassToken(e.target.value);
+                  if (error) setError(''); // Clear error when user types
+                }}
+                placeholder='687ad8sa'
+                disabled={isLoading}
+                aria-invalid={hasError}
+                className={`w-full ${
+                  hasError
+                    ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20'
+                    : ''
+                }`}
+              />
+            </motion.div>
             {error && <p className='text-sm text-red-600 mt-2'>{error}</p>}
             {successMessage && (
               <p className='text-sm text-green-600 mt-2'>{successMessage}</p>
