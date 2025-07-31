@@ -21,6 +21,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
   const [classToken, setClassToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +29,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
 
     setIsLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       const response = await fetch('/api/student/join-class', {
@@ -44,9 +46,13 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
         throw new Error(result.error || 'Failed to join class');
       }
 
-      setIsOpen(false);
-      setClassToken('');
-      onClassJoined?.();
+      setSuccessMessage(result.message || 'Successfully joined class!');
+      setTimeout(() => {
+        setIsOpen(false);
+        setClassToken('');
+        setSuccessMessage('');
+        onClassJoined?.();
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -94,6 +100,9 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
               className='w-full'
             />
             {error && <p className='text-sm text-red-600 mt-2'>{error}</p>}
+            {successMessage && (
+              <p className='text-sm text-green-600 mt-2'>{successMessage}</p>
+            )}
           </div>
 
           <Button

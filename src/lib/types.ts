@@ -1,5 +1,6 @@
 import type {
   Course as PrismaCourse,
+  CourseEnrollment as PrismaCourseEnrollment,
   User as PrismaUser,
 } from '@/generated/prisma';
 
@@ -71,9 +72,15 @@ export interface QuestionApiResponse {
 }
 
 export type Course = PrismaCourse;
+export type CourseEnrollment = PrismaCourseEnrollment;
 
 export interface CourseWithDosen extends Course {
   dosen: Pick<ExtendedUser, 'id' | 'name' | 'email'>;
+}
+
+export interface CourseWithEnrollments extends Course {
+  dosen: Pick<ExtendedUser, 'id' | 'name' | 'email'>;
+  enrollments: CourseEnrollment[];
 }
 
 // Error classes moved to lib/utils/errors.ts
