@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import type { Course, ExtendedUser } from '@/lib/types';
 
 interface NavProps {
@@ -32,8 +33,9 @@ export default function Nav({ user, className }: NavProps) {
                 Halo, {user.name}!
               </h1>
               <p className='text-lg font-normal mt-2'>
-                Pantau aktivitas dan kelola kelas Anda dengan mudah melalui
-                dashboard ini
+                {canAccessMahasiswaFeatures(user)
+                  ? 'Yuk, cek progres kelas dan siap-siap mulai bareng kelompokmu!'
+                  : 'Pantau aktivitas dan kelola kelas Anda dengan mudah melalui dashboard ini'}
               </p>
             </div>
           )}
