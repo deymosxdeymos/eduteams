@@ -23,6 +23,8 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const hasError = Boolean(error);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!classToken.trim()) return;
@@ -43,7 +45,15 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to join class');
+        // Show specific error message for invalid token
+        if (response.status === 404) {
+          setError('Kode yang Anda masukkan salah. Silahkan coba lagi');
+        } else {
+          setError(
+            result.error || 'Kode yang Anda masukkan salah. Silahkan coba lagi'
+          );
+        }
+        return;
       }
 
       setSuccessMessage(result.message || 'Successfully joined class!');
@@ -53,8 +63,8 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
         setSuccessMessage('');
         onClassJoined?.();
       }, 1500);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } catch (_err) {
+      setError('Kode yang Anda masukkan salah. Silahkan coba lagi');
     } finally {
       setIsLoading(false);
     }
@@ -87,17 +97,27 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
           <div className='space-y-3'>
             <label
               htmlFor='token'
-              className='text-sm font-medium text-gray-900 block'
+              className={`text-sm font-medium block ${
+                hasError ? 'text-red-600' : 'text-gray-900'
+              }`}
             >
               Kode Kelas
             </label>
             <InputRounded
               id='token'
               value={classToken}
-              onChange={e => setClassToken(e.target.value)}
+              onChange={e => {
+                setClassToken(e.target.value);
+                if (error) setError(''); // Clear error when user types
+              }}
               placeholder='687ad8sa'
               disabled={isLoading}
-              className='w-full'
+              aria-invalid={hasError}
+              className={`w-full ${
+                hasError
+                  ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20'
+                  : ''
+              }`}
             />
             {error && <p className='text-sm text-red-600 mt-2'>{error}</p>}
             {successMessage && (
