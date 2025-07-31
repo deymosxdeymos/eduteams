@@ -51,7 +51,9 @@
       "recommended": true,
       "a11y": {
         "noLabelWithoutControl": "off",
-        "useSemanticElements": "off"
+        "useSemanticElements": "off",
+        "noSvgWithoutTitle": "off",
+        "useButtonType": "off"
       },
       "suspicious": {
         "noDocumentCookie": "off",
