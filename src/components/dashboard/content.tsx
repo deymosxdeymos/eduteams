@@ -9,17 +9,13 @@ import { EmptyClassState } from './empty-class-state';
 import { SearchInput } from './search-input';
 import { StatisticsCards } from './statistics-cards';
 
-interface ContentProps {
-  dosenId?: string;
-}
-
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch');
   return res.json();
 };
 
-export default function Content(_props: ContentProps) {
+export default function Content() {
   const { data, error, mutate } = useSWR('/api/courses', fetcher);
   const [searchValue, setSearchValue] = useState('');
 

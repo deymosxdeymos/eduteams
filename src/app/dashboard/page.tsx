@@ -35,7 +35,7 @@ export default async function Dashboard({
       isFirstVisit={isFirstVisit}
     >
       <Suspense fallback={<div>Loading dashboard...</div>}>
-        <DashboardLayout dosenId={user.id} user={user} />
+        <DashboardLayout user={user} />
       </Suspense>
     </DashboardClient>
   );

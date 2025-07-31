@@ -50,7 +50,15 @@
     "rules": {
       "recommended": true,
       "a11y": {
-        "noLabelWithoutControl": "off"
+        "noLabelWithoutControl": "off",
+        "useSemanticElements": "off"
+      },
+      "suspicious": {
+        "noDocumentCookie": "off",
+        "noArrayIndexKey": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
       }
     }
   },

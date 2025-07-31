@@ -185,7 +185,6 @@ export default function DataDiriFormClient({
                   role='radiogroup'
                   aria-labelledby='gender-label'
                 >
-                  {/* biome-ignore lint/a11y/useSemanticElements: Custom gender selection with images */}
                   <button
                     type='button'
                     role='radio'
@@ -212,7 +211,6 @@ export default function DataDiriFormClient({
                     </p>
                   </button>
 
-                  {/* biome-ignore lint/a11y/useSemanticElements: Custom gender selection with images */}
                   <button
                     type='button'
                     role='radio'

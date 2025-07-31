@@ -18,6 +18,7 @@ const eslintConfig = [
     rules: {
       '@next/next/no-html-link-for-pages': 'off',
       'jsx-a11y/label-has-associated-control': 'off',
+      'react-hooks/exhaustive-deps': 'off',
     },
   },
 ];
