@@ -71,7 +71,9 @@ export function ClassCard({
                 variant='destructive'
                 className={`${badgeColors.bg} ${badgeColors.text} text-xs`}
               >
-                <div className={`h-2 w-2 rounded-full ${badgeColors.dot}`}></div>{' '}
+                <div
+                  className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
+                ></div>{' '}
                 {classCode}
               </Badge>
             )}

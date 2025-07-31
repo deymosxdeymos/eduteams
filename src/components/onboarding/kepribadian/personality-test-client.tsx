@@ -109,10 +109,10 @@ export default function PersonalityTestClient({
   };
 
   return (
-    <main className='bg-white min-h-screen px-12 pb-14'>
+    <main className='bg-white min-h-screen px-12 py-14'>
       <InstructionModal isOpen={isModalOpen} onCloseAction={handleCloseModal} />
 
-      <Logo color='black' />
+      <Logo color='black' className='justify-center' />
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <Image
