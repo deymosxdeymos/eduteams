@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
@@ -64,6 +65,11 @@ async function joinClass(
         studentId: user.id,
       },
     });
+
+    // Revalidate the dosen's courses cache so student count updates
+    console.log(`Revalidating cache for dosen: ${course.dosenId}`);
+    revalidateTag(`courses-${course.dosenId}`);
+    console.log(`Cache revalidated for tag: courses-${course.dosenId}`);
 
     return NextResponse.json({
       success: true,

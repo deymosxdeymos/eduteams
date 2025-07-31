@@ -1,30 +1,32 @@
-import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
 import type { Course, CourseEnrollment } from '@/lib/types';
 
 export async function getCoursesByLecturer(dosenId: string): Promise<Course[]> {
-  return await unstable_cache(
-    async () => {
-      return prisma.course.findMany({
-        where: {
-          dosenId,
-        },
-        include: {
-          enrollments: true,
-        },
-        orderBy: [
-          { tahunAwalPeriode: 'desc' },
-          { periode: 'desc' },
-          { namaMataKuliah: 'asc' },
-        ],
-      });
+  // Disable cache temporarily to test
+  const courses = await prisma.course.findMany({
+    where: {
+      dosenId,
     },
-    [`courses-${dosenId}`],
-    {
-      tags: [`courses-${dosenId}`],
-      revalidate: 3600, // Cache for 1 hour
-    }
-  )();
+    include: {
+      enrollments: true,
+    },
+    orderBy: [
+      { tahunAwalPeriode: 'desc' },
+      { periode: 'desc' },
+      { namaMataKuliah: 'asc' },
+    ],
+  });
+
+  console.log(
+    `[NO CACHE] Fetched ${courses.length} courses for dosen ${dosenId}`
+  );
+  courses.forEach(course => {
+    console.log(
+      `[NO CACHE] Course "${course.namaMataKuliah}" (${course.kelas}): ${course.enrollments.length} enrollments`
+    );
+  });
+
+  return courses;
 }
 
 export function transformCourseToClassCard(

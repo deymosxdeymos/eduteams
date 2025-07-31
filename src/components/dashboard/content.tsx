@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import type { Course } from '@/lib/types';
+import type { CourseWithEnrollments } from '@/lib/types';
 import type { Class } from '@/types/dashboard';
 import { ClassGrid } from './class-grid';
 import { EmptyClassState } from './empty-class-state';
@@ -19,14 +19,14 @@ export default function Content() {
   const { data, error, mutate } = useSWR('/api/courses', fetcher);
   const [searchValue, setSearchValue] = useState('');
 
-  const courses: Course[] = data?.data || [];
+  const courses: CourseWithEnrollments[] = data?.data || [];
 
   // Convert Course data to Class format expected by ClassGrid
   const classes: Class[] = courses.map(course => ({
     id: course.id,
     title: course.namaMataKuliah,
     academicYear: `T.A ${course.tahunAwalPeriode}/${course.tahunAkhirPeriode}`,
-    studentCount: 0, // TODO: Add student count from course enrollment
+    studentCount: course.enrollments?.length || 0, // Use actual enrollment count
     classCode: course.kelas,
   }));
 

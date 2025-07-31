@@ -33,7 +33,7 @@
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.23.6",
+    "framer-motion": "^12.23.12",
     "lucide-react": "^0.526.0",
     "motion": "^12.23.3",
     "next": "15.4.1",

@@ -4,13 +4,8 @@ import { HomeIcon, LayoutGrid, LogOut, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
-import type { ExtendedUser } from '@/lib/types';
 
-interface SidebarProps {
-  user: ExtendedUser;
-}
-
-export default function Sidebar({ user: _user }: SidebarProps) {
+export default function Sidebar() {
   const router = useRouter();
 
   const handleLogout = async () => {

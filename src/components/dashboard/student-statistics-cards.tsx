@@ -1,12 +1,4 @@
-import type { ExtendedUser } from '@/lib/types';
-
-interface StudentStatisticsCardsProps {
-  user: ExtendedUser;
-}
-
-export function StudentStatisticsCards({
-  user: _user,
-}: StudentStatisticsCardsProps) {
+export function StudentStatisticsCards() {
   return (
     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
       <div className='bg-white rounded-2xl p-6 shadow-sm'>

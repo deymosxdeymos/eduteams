@@ -2,16 +2,9 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import type { ExtendedUser } from '@/lib/types';
 import { EmptyStudentClassState } from './empty-student-class-state';
 import { SearchInput } from './search-input';
 import { StudentClassGrid } from './student-class-grid';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
-};
 
 interface StudentClass {
   id: string;
@@ -19,16 +12,21 @@ interface StudentClass {
   kelas: string;
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
+  studentCount: number;
   dosen?: {
     name: string;
   };
 }
 
-interface StudentDashboardProps {
-  user: ExtendedUser;
-}
+const fetcher = (url: string) =>
+  fetch(url).then(res => {
+    if (!res.ok) {
+      throw new Error('Failed to fetch');
+    }
+    return res.json();
+  });
 
-export function StudentDashboard({ user: _user }: StudentDashboardProps) {
+export function StudentDashboard() {
   const { data, error, mutate } = useSWR('/api/student/classes', fetcher);
   const [searchValue, setSearchValue] = useState('');
 

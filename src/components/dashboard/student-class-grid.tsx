@@ -1,9 +1,16 @@
+'use client';
+
+import { User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
+
 interface StudentClass {
   id: string;
   namaMataKuliah: string;
   kelas: string;
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
+  studentCount: number; // Add student count
   dosen?: {
     name: string;
   };
@@ -14,10 +21,35 @@ interface StudentClassGridProps {
   showNoResults: boolean;
 }
 
+const getClassBadgeColor = (classCode: string) => {
+  const colorMap: Record<string, { bg: string; text: string; dot: string }> = {
+    RA: { bg: 'bg-violet-100', text: 'text-violet-800', dot: 'bg-violet-800' },
+    RB: { bg: 'bg-rose-100', text: 'text-rose-800', dot: 'bg-rose-800' },
+    RC: { bg: 'bg-pink-100', text: 'text-pink-800', dot: 'bg-pink-800' },
+    RD: { bg: 'bg-orange-100', text: 'text-orange-800', dot: 'bg-orange-800' },
+    RE: { bg: 'bg-lime-100', text: 'text-lime-800', dot: 'bg-lime-800' },
+    'tanpa-kelas': {
+      bg: 'bg-gray-50',
+      text: 'text-gray-900',
+      dot: 'bg-gray-900',
+    },
+  };
+
+  return (
+    colorMap[classCode] || {
+      bg: 'bg-gray-50',
+      text: 'text-gray-900',
+      dot: 'bg-gray-900',
+    }
+  );
+};
+
 export function StudentClassGrid({
   classes,
   showNoResults,
 }: StudentClassGridProps) {
+  const router = useRouter();
+
   if (showNoResults) {
     return (
       <div className='flex flex-col items-center justify-center h-64 text-center'>
@@ -46,71 +78,72 @@ export function StudentClassGrid({
     );
   }
 
+  const handleClassClick = (classId: string) => {
+    router.push(`/dashboard/class/${classId}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, classId: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClassClick(classId);
+    }
+  };
+
   return (
     <div className='py-6'>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {classes.map(classItem => (
-          <div
-            key={classItem.id}
-            className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 hover:shadow-md transition-shadow'
-          >
-            <div className='flex items-start justify-between mb-4'>
-              <div className='w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center'>
-                <svg
-                  className='w-5 h-5 text-white'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                  role='img'
-                  aria-label='Class icon'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
-                  />
-                </svg>
+        {classes.map(classItem => {
+          const badgeColors = getClassBadgeColor(classItem.kelas);
+
+          return (
+            <div
+              key={classItem.id}
+              role='button'
+              tabIndex={0}
+              className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left'
+              onClick={() => handleClassClick(classItem.id)}
+              onKeyDown={e => handleKeyDown(e, classItem.id)}
+            >
+              <div className='flex flex-col h-full'>
+                <div className='flex justify-between items-start mb-4'>
+                  <div className='flex gap-2'>
+                    {classItem.kelas !== 'tanpa-kelas' && (
+                      <Badge
+                        variant='destructive'
+                        className={`${badgeColors.bg} ${badgeColors.text} text-xs`}
+                      >
+                        <div
+                          className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
+                        ></div>{' '}
+                        {classItem.kelas}
+                      </Badge>
+                    )}
+                    <Badge
+                      variant='default'
+                      className='rounded-2xl font-normal text-xs text-sky-900 bg-sky-50'
+                    >
+                      {classItem.studentCount} mahasiswa
+                    </Badge>
+                  </div>
+                </div>
+                <h3 className='font-semibold text-gray-800 text-2xl line-clamp-2 leading-tight flex-1'>
+                  {classItem.namaMataKuliah}
+                </h3>
+                <div className='mt-auto space-y-2'>
+                  <div className='flex items-center gap-2'>
+                    <User className='w-4 h-4 text-gray-600' />
+                    <span className='text-gray-600 text-sm'>
+                      {classItem.dosen?.name || 'N/A'}
+                    </span>
+                  </div>
+                  <p className='text-gray-600 text-sm'>
+                    {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
+                  </p>
+                </div>
               </div>
             </div>
-
-            <h3 className='font-semibold text-gray-900 mb-2 text-lg leading-tight'>
-              {classItem.namaMataKuliah}
-            </h3>
-
-            <div className='space-y-2'>
-              <div className='flex items-center justify-between text-sm'>
-                <span className='text-gray-600'>Kelas</span>
-                <span className='font-medium text-gray-900'>
-                  {classItem.kelas}
-                </span>
-              </div>
-
-              <div className='flex items-center justify-between text-sm'>
-                <span className='text-gray-600'>Tahun Ajaran</span>
-                <span className='font-medium text-gray-900'>
-                  {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
-                </span>
-              </div>
-
-              <div className='flex items-center justify-between text-sm'>
-                <span className='text-gray-600'>Dosen</span>
-                <span className='font-medium text-gray-900'>
-                  {classItem.dosen?.name || 'N/A'}
-                </span>
-              </div>
-            </div>
-
-            <div className='mt-4 pt-4 border-t border-blue-200'>
-              <button
-                type='button'
-                className='w-full bg-blue-600 text-white py-2 px-4 rounded-xl font-medium hover:bg-blue-700 transition-colors'
-              >
-                Lihat Kelas
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
