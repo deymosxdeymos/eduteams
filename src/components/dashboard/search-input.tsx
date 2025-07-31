@@ -3,12 +3,14 @@
 import { Search } from 'lucide-react';
 import type { Course } from '@/lib/types';
 import CreateClassModal from './create-class-modal';
+import JoinClassModal from './join-class-modal';
 
 interface SearchInputProps {
-  onClassCreated?: (course: Course) => void;
+  onClassCreated?: (course?: Course) => void;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   placeholder?: string;
+  isStudent?: boolean;
 }
 
 export function SearchInput({
@@ -16,10 +18,15 @@ export function SearchInput({
   searchValue = '',
   onSearchChange = () => {},
   placeholder = 'Mencari sesuatu?',
+  isStudent = false,
 }: SearchInputProps) {
   return (
     <div className='flex justify-between items-center'>
-      <CreateClassModal onClassCreated={onClassCreated} />
+      {isStudent ? (
+        <JoinClassModal onClassJoined={() => onClassCreated?.()} />
+      ) : (
+        <CreateClassModal onClassCreated={onClassCreated} />
+      )}
       <div className='flex items-center gap-3 px-6 py-3 border rounded-4xl w-86'>
         <input
           type='text'

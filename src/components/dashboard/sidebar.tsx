@@ -4,8 +4,13 @@ import { HomeIcon, LayoutGrid, LogOut, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
+import type { ExtendedUser } from '@/lib/types';
 
-export default function Sidebar() {
+interface SidebarProps {
+  user: ExtendedUser;
+}
+
+export default function Sidebar({ user: _user }: SidebarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -22,7 +27,6 @@ export default function Sidebar() {
       className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border shadow-sm'
       style={{ height: 'calc(100%)' }}
     >
-      {/* TODO: make the button worked, onboarding for active*/}
       <div className='flex flex-col gap-y-6'>
         <Button
           variant='onboarding'
