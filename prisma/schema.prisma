@@ -38,6 +38,7 @@ model User {
   ownedTeamRequests TeamFormationRequest[] @relation("TeamRequestOwner")
   teamMemberships   TeamMember[]
   courses           Course[]
+  courseEnrollments CourseEnrollment[]
   dosenTokenUsages  DosenTokenUsage[]
 
   @@index([email])
@@ -269,23 +270,40 @@ model TeamMember {
 }
 
 model Course {
-  id                   String   @id @default(uuid())
+  id                   String             @id @default(uuid())
   namaMataKuliah       String
   kelas                String
   tahunAwalPeriode     Int
   tahunAkhirPeriode    Int
   periode              String
   dosenId              String
-  shareToken           String?  @unique @default(cuid())
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  dosen                User     @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+  shareToken           String?            @unique @default(cuid())
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  dosen                User               @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+  enrollments          CourseEnrollment[]
 
   @@index([dosenId])
   @@index([tahunAwalPeriode, tahunAkhirPeriode])
   @@index([periode])
   @@index([shareToken])
   @@map("courses")
+}
+
+model CourseEnrollment {
+  id         String   @id @default(uuid())
+  courseId   String
+  studentId  String
+  enrolledAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, studentId])
+  @@index([courseId])
+  @@index([studentId])
+  @@map("course_enrollments")
 }
 
 model DosenToken {

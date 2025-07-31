@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
-import type { Course } from '@/lib/types';
+import type { Course, CourseEnrollment } from '@/lib/types';
 
 export async function getCoursesByLecturer(dosenId: string): Promise<Course[]> {
   return await unstable_cache(
@@ -8,6 +8,9 @@ export async function getCoursesByLecturer(dosenId: string): Promise<Course[]> {
       return prisma.course.findMany({
         where: {
           dosenId,
+        },
+        include: {
+          enrollments: true,
         },
         orderBy: [
           { tahunAwalPeriode: 'desc' },
@@ -24,12 +27,14 @@ export async function getCoursesByLecturer(dosenId: string): Promise<Course[]> {
   )();
 }
 
-export function transformCourseToClassCard(course: Course) {
+export function transformCourseToClassCard(
+  course: Course & { enrollments?: CourseEnrollment[] }
+) {
   return {
     id: course.id,
     title: course.namaMataKuliah,
     academicYear: `T.A ${course.tahunAwalPeriode}/${course.tahunAkhirPeriode}`,
-    studentCount: 0, // TODO: Add student count from enrollment table when available
+    studentCount: course.enrollments?.length || 0,
     classCode: course.kelas,
   };
 }
