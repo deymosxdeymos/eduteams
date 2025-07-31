@@ -1,7 +1,22 @@
+'use client';
+
 import { HomeIcon, LayoutGrid, LogOut, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
 
 export default function Sidebar() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <div
       className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border shadow-sm'
@@ -26,7 +41,12 @@ export default function Sidebar() {
           <Settings className='text-black size-5' />
         </Button>
 
-        <Button variant='ghost' size='icon' className='rounded-full w-12 h-12'>
+        <Button
+          variant='ghost'
+          size='icon'
+          className='rounded-full w-12 h-12'
+          onClick={handleLogout}
+        >
           <LogOut className='text-red-400 size-5' />
         </Button>
       </div>

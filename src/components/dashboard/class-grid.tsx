@@ -33,6 +33,7 @@ export function ClassGrid({
         {classes.map(classItem => (
           <ClassCard
             key={classItem.id}
+            id={classItem.id}
             title={classItem.title}
             academicYear={classItem.academicYear}
             studentCount={classItem.studentCount}

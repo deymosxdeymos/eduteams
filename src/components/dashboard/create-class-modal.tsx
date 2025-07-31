@@ -188,6 +188,7 @@ export default function CreateClassModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value='tanpa-kelas'>Tanpa Kelas</SelectItem>
                         <SelectItem value='RA'>RA</SelectItem>
                         <SelectItem value='RB'>RB</SelectItem>
                         <SelectItem value='RC'>RC</SelectItem>

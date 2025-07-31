@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface RoleSelectProps {
   onRoleSelect: (role: 'dosen' | 'mahasiswa') => void;
@@ -11,6 +12,10 @@ export default function RoleSelect({
   onRoleSelect,
   selectedRole,
 }: RoleSelectProps) {
+  const [hoveredRole, setHoveredRole] = useState<'dosen' | 'mahasiswa' | null>(
+    null
+  );
+
   return (
     <div className='flex gap-x-16 items-center justify-center'>
       <button
@@ -22,10 +27,16 @@ export default function RoleSelect({
         }`}
         onClick={() => onRoleSelect('dosen')}
         onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
+        onMouseEnter={() => setHoveredRole('dosen')}
+        onMouseLeave={() => setHoveredRole(null)}
       >
         {' '}
         <Image
-          src={selectedRole === 'dosen' ? '/dosen.svg' : '/dosen-inactive.svg'}
+          src={
+            selectedRole === 'dosen' || hoveredRole === 'dosen'
+              ? '/dosen.svg'
+              : '/dosen-inactive.svg'
+          }
           width={240}
           height={240}
           alt='dosen'
@@ -48,11 +59,13 @@ export default function RoleSelect({
         }`}
         onClick={() => onRoleSelect('mahasiswa')}
         onKeyDown={e => e.key === 'Enter' && onRoleSelect('mahasiswa')}
+        onMouseEnter={() => setHoveredRole('mahasiswa')}
+        onMouseLeave={() => setHoveredRole(null)}
       >
         {' '}
         <Image
           src={
-            selectedRole === 'mahasiswa'
+            selectedRole === 'mahasiswa' || hoveredRole === 'mahasiswa'
               ? '/mahasiswa.svg'
               : '/mahasiswa-inactive.svg'
           }

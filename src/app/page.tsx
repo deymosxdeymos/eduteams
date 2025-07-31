@@ -4,6 +4,7 @@ import { LoginButton } from '@/components/auth/login-button';
 import { UserDisplay } from '@/components/auth/user-info';
 import Logo from '@/components/logo';
 import { SocialRow } from '@/components/ui/social-row';
+import { TextRotate } from '@/components/ui/text-rotate';
 
 export default function Home() {
   return (
@@ -14,10 +15,18 @@ export default function Home() {
         <Logo className='justify-center' />
 
         {/* hero content */}
-        <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-32'>
+        <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
           <div className='text-center'>
             <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
-              Dimana <span className='text-amber-300'>Keadilan</span>
+              Dimana{' '}
+              <TextRotate
+                texts={['Keadilan', 'Kesetaraan', 'Kesempatan']}
+                className='text-amber-300'
+                splitBy='characters'
+                staggerDuration={0.03}
+                rotationInterval={2500}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              />
             </h1>
             <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight'>
               Menciptakan Keunggulan
@@ -55,7 +64,7 @@ export default function Home() {
           width={1920}
           height={400}
           alt='hills'
-          className='absolute left-0 right-0 -top-24 sm:-top-36 md:-top-48 lg:-top-48 z-0 w-full h-auto'
+          className='absolute left-0 right-0 -top-24 sm:-top-36 md:-top-42 lg:-top-44 z-0 w-full h-auto'
           priority
         />
 
