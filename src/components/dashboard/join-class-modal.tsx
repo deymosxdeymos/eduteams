@@ -137,7 +137,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
                 aria-invalid={hasError}
                 className={`w-full ${
                   hasError
-                    ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20'
+                    ? 'text-red-500 border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20'
                     : ''
                 }`}
               />

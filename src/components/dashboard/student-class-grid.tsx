@@ -1,8 +1,18 @@
 'use client';
 
-import { User } from 'lucide-react';
+import { MoreVertical, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface StudentClass {
   id: string;
@@ -19,6 +29,7 @@ interface StudentClass {
 interface StudentClassGridProps {
   classes: StudentClass[];
   showNoResults: boolean;
+  onClassLeft?: () => void;
 }
 
 const getClassBadgeColor = (classCode: string) => {
@@ -47,8 +58,59 @@ const getClassBadgeColor = (classCode: string) => {
 export function StudentClassGrid({
   classes,
   showNoResults,
+  onClassLeft,
 }: StudentClassGridProps) {
   const router = useRouter();
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<StudentClass | null>(null);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLeaveClass = async () => {
+    if (!selectedClass) return;
+
+    setIsLeaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/student/leave-class', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: selectedClass.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to leave class');
+      }
+
+      // Close modal and trigger data refresh
+      setShowLeaveModal(false);
+      setSelectedClass(null);
+
+      // Always call the refresh callback, even on success
+      // This ensures the UI updates immediately
+      if (onClassLeft) {
+        onClassLeft();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  const handleOptionsClick = (e: React.MouseEvent, classItem: StudentClass) => {
+    e.stopPropagation();
+    setSelectedClass(classItem);
+    setShowLeaveModal(true);
+    setError(null); // Reset error when opening modal
+  };
 
   if (showNoResults) {
     return (
@@ -90,61 +152,110 @@ export function StudentClassGrid({
   };
 
   return (
-    <div className='py-6'>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {classes.map(classItem => {
-          const badgeColors = getClassBadgeColor(classItem.kelas);
+    <>
+      <div className='py-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+          {classes.map(classItem => {
+            const badgeColors = getClassBadgeColor(classItem.kelas);
 
-          return (
-            <div
-              key={classItem.id}
-              role='button'
-              tabIndex={0}
-              className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left'
-              onClick={() => handleClassClick(classItem.id)}
-              onKeyDown={e => handleKeyDown(e, classItem.id)}
-            >
-              <div className='flex flex-col h-full'>
-                <div className='flex justify-between items-start mb-4'>
-                  <div className='flex gap-2'>
-                    {classItem.kelas !== 'tanpa-kelas' && (
+            return (
+              <div
+                key={classItem.id}
+                role='button'
+                tabIndex={0}
+                className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left'
+                onClick={() => handleClassClick(classItem.id)}
+                onKeyDown={e => handleKeyDown(e, classItem.id)}
+              >
+                <div className='flex flex-col h-full'>
+                  <div className='flex justify-between items-start mb-4'>
+                    <div className='flex gap-2'>
+                      {classItem.kelas !== 'tanpa-kelas' && (
+                        <Badge
+                          variant='destructive'
+                          className={`${badgeColors.bg} ${badgeColors.text} text-xs flex items-center gap-1`}
+                        >
+                          <div
+                            className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
+                          ></div>
+                          {classItem.kelas}
+                        </Badge>
+                      )}
                       <Badge
-                        variant='destructive'
-                        className={`${badgeColors.bg} ${badgeColors.text} text-xs`}
+                        variant='default'
+                        className='rounded-2xl font-normal text-xs text-sky-900 bg-sky-50'
                       >
-                        <div
-                          className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
-                        ></div>{' '}
-                        {classItem.kelas}
+                        {classItem.studentCount} mahasiswa
                       </Badge>
-                    )}
-                    <Badge
-                      variant='default'
-                      className='rounded-2xl font-normal text-xs text-sky-900 bg-sky-50'
+                    </div>
+                    <button
+                      className='p-1 hover:bg-gray-100 rounded-full transition-colors'
+                      onClick={e => handleOptionsClick(e, classItem)}
                     >
-                      {classItem.studentCount} mahasiswa
-                    </Badge>
+                      <MoreVertical className='w-4 h-4 text-gray-500' />
+                    </button>
                   </div>
-                </div>
-                <h3 className='font-semibold text-gray-800 text-2xl line-clamp-2 leading-tight flex-1'>
-                  {classItem.namaMataKuliah}
-                </h3>
-                <div className='mt-auto space-y-2'>
-                  <div className='flex items-center gap-2'>
-                    <User className='w-4 h-4 text-gray-600' />
-                    <span className='text-gray-600 text-sm'>
-                      {classItem.dosen?.name || 'N/A'}
-                    </span>
+                  <h3 className='font-semibold text-gray-800 text-2xl line-clamp-2 leading-tight flex-1'>
+                    {classItem.namaMataKuliah}
+                  </h3>
+                  <div className='mt-auto space-y-2'>
+                    <div className='flex items-center gap-2'>
+                      <User className='w-4 h-4 text-gray-600' />
+                      <span className='text-gray-600 text-sm'>
+                        {classItem.dosen?.name || 'N/A'}
+                      </span>
+                    </div>
+                    <p className='text-gray-600 text-sm'>
+                      {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
+                    </p>
                   </div>
-                  <p className='text-gray-600 text-sm'>
-                    {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
-                  </p>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {/* Leave Class Modal */}
+      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
+        <DialogContent className='sm:max-w-xs'>
+          <DialogHeader>
+            <DialogTitle className='text-left'>Keluar Kelas?</DialogTitle>
+            <div className='text-left space-y-4'>
+              <DialogDescription>
+                Jika kamu keluar dari kelas ini, kamu tidak akan bisa mengakses
+                tugas, pengumuman, atau informasi dari kelas ini lagi.
+              </DialogDescription>
+              <p className='font-medium text-muted-foreground text-sm'>
+                Apakah kamu yakin ingin keluar?
+              </p>
+              {error && (
+                <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md'>
+                  {error}
+                </p>
+              )}
+            </div>
+          </DialogHeader>
+          <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
+            <Button
+              variant='destructive'
+              onClick={handleLeaveClass}
+              disabled={isLeaving}
+              className='w-full rounded-full'
+            >
+              {isLeaving ? 'Meninggalkan...' : 'Keluar'}
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => setShowLeaveModal(false)}
+              disabled={isLeaving}
+              className='w-full rounded-full'
+            >
+              Batal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

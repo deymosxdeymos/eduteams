@@ -3,8 +3,26 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { ClassPageLayout } from '@/components/dashboard/class-page-layout';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { StudentClassPageLayout } from '@/components/dashboard/student-class-page-layout';
+import {
+  canAccessDosenFeatures,
+  canAccessMahasiswaFeatures,
+} from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
+
+type CourseResult = {
+  id: string;
+  namaMataKuliah: string;
+  kelas: string;
+  tahunAwalPeriode: number;
+  tahunAkhirPeriode: number;
+  periode: string;
+  dosenId: string;
+  shareToken: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -43,13 +61,38 @@ export default async function ClassPage({ params }: ClassPageProps) {
   const user = await protectDashboard();
   const { id } = await params;
 
-  // Fetch class data for breadcrumb
-  const course = await prisma.course.findFirst({
-    where: {
-      id,
-      dosenId: user.id, // Ensure dosen can only access their own courses
-    },
-  });
+  const isDosen = canAccessDosenFeatures(user);
+  const isMahasiswa = canAccessMahasiswaFeatures(user);
+
+  if (!isDosen && !isMahasiswa) {
+    notFound();
+  }
+
+  let course: CourseResult | null = null;
+
+  if (isDosen) {
+    // Dosen: Ensure they can only access their own courses
+    course = await prisma.course.findFirst({
+      where: {
+        id,
+        dosenId: user.id,
+      },
+    });
+  } else if (isMahasiswa) {
+    // Student: Ensure they are enrolled in the course
+    const enrollment = await prisma.courseEnrollment.findUnique({
+      where: {
+        courseId_studentId: {
+          courseId: id,
+          studentId: user.id,
+        },
+      },
+      include: {
+        course: true,
+      },
+    });
+    course = enrollment?.course || null;
+  }
 
   if (!course) {
     notFound();
@@ -58,12 +101,17 @@ export default async function ClassPage({ params }: ClassPageProps) {
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
       <Suspense fallback={<div>Loading class...</div>}>
-        <ClassPageLayout
-          classId={id}
-          dosenId={user.id}
-          user={user}
-          course={course}
-        />
+        {isDosen && (
+          <ClassPageLayout
+            classId={id}
+            dosenId={user.id}
+            user={user}
+            course={course}
+          />
+        )}
+        {isMahasiswa && (
+          <StudentClassPageLayout classId={id} user={user} course={course} />
+        )}
       </Suspense>
     </DashboardClient>
   );
