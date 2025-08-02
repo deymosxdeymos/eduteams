@@ -175,7 +175,7 @@ async function seedDosenTokens() {
       }
 
       // Create single shared token for all dosen
-      const sharedToken = `DOSEN_SHARED_${Date.now()}`;
+      const sharedToken = `SONE-${Date.now()}`;
 
       const createdToken = await tx.dosenToken.create({
         data: withTimestamps({
