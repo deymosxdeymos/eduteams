@@ -71,6 +71,7 @@ export function StudentDashboard() {
             <StudentClassGrid
               classes={filteredClasses}
               showNoResults={showNoResults}
+              onClassLeft={handleClassJoined} // Reuse the same mutate function
             />
           ) : (
             <EmptyStudentClassState onClassJoined={handleClassJoined} />

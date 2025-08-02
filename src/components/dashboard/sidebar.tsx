@@ -1,12 +1,21 @@
 'use client';
 
-import { HomeIcon, LayoutGrid, LogOut, Settings } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 
 export default function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const handleProfileClick = () => {
+    router.push('/dashboard/profile');
+  };
+
+  const handleDashboardClick = () => {
+    router.push('/dashboard');
+  };
 
   const handleLogout = async () => {
     try {
@@ -17,18 +26,29 @@ export default function Sidebar() {
     }
   };
 
+  // Helper function to determine if a route is active
+  const isActive = (path: string) => {
+    if (path === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    return pathname.startsWith(path);
+  };
+
   return (
     <div
-      className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border shadow-sm'
+      className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border'
       style={{ height: 'calc(100%)' }}
     >
       <div className='flex flex-col gap-y-6'>
         <Button
-          variant='onboarding'
+          variant={isActive('/dashboard') ? 'onboarding' : 'ghost'}
           size='icon'
           className='rounded-full w-12 h-12'
+          onClick={handleDashboardClick}
         >
-          <HomeIcon className='text-white size-5' />
+          <HomeIcon
+            className={`size-5 ${isActive('/dashboard') ? 'text-white' : 'text-black'}`}
+          />
         </Button>
 
         <Button variant='ghost' size='icon' className='rounded-full w-12 h-12'>
@@ -36,8 +56,15 @@ export default function Sidebar() {
         </Button>
       </div>
       <div className='flex flex-col gap-y-6'>
-        <Button variant='ghost' size='icon' className='rounded-full w-12 h-12'>
-          <Settings className='text-black size-5' />
+        <Button
+          variant={isActive('/dashboard/profile') ? 'onboarding' : 'ghost'}
+          size='icon'
+          className='rounded-full w-12 h-12'
+          onClick={handleProfileClick}
+        >
+          <CircleUser
+            className={`size-5 ${isActive('/dashboard/profile') ? 'text-white' : 'text-black'}`}
+          />
         </Button>
 
         <Button
