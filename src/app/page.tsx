@@ -24,7 +24,7 @@ export default function Home() {
                 className='text-amber-300'
                 splitBy='characters'
                 staggerDuration={0.03}
-                rotationInterval={2500}
+                rotationInterval={2000}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               />
             </h1>
@@ -64,7 +64,7 @@ export default function Home() {
           width={1920}
           height={400}
           alt='hills'
-          className='absolute left-0 right-0 -top-24 sm:-top-36 md:-top-42 lg:-top-44 z-0 w-full h-auto'
+          className='absolute left-0 right-0 -top-24 sm:-top-36 md:-top-42 z-0 w-full h-auto'
           priority
         />
 
