@@ -45,6 +45,7 @@
 
 @theme {
   --color-blue-background: #000098;
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
 body {
