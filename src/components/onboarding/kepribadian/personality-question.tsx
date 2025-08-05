@@ -44,6 +44,7 @@ export default function PersonalityQuestion({
 
   return (
     <div
+      role='group'
       className='space-y-6'
       id={questionId ? `question-${questionId}` : undefined}
     >

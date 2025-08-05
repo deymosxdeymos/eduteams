@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, afterEach, describe, expect, mock, test } from 'bun:test';
+import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import React from 'react';
 import InstructionModal from '../../../../src/components/onboarding/kepribadian/instruction-modal';
 import PersonalityQuestion from '../../../../src/components/onboarding/kepribadian/personality-question';
@@ -38,6 +38,16 @@ mock.module('framer-motion', () => ({
       >
         {children}
       </div>
+    ),
+    span: ({ children, onClick, onAnimationComplete, ...props }: any) => (
+      <span
+        onClick={onClick}
+        onAnimationEnd={onAnimationComplete}
+        data-testid={props['data-testid'] || 'motion-span'}
+        {...props}
+      >
+        {children}
+      </span>
     ),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => (
@@ -148,6 +158,10 @@ const PersonalityTestIntegration = () => {
 describe('PersonalityQuestion and InstructionModal Integration', () => {
   beforeEach(() => {
     // Reset any global state if needed
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   describe('Modal and Questions Flow', () => {
