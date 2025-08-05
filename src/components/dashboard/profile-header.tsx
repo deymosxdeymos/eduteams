@@ -1,8 +1,9 @@
 'use client';
 
-import { Mars, Pencil, Venus } from 'lucide-react';
+import { Mars, Pencil, Venus, User } from 'lucide-react';
 import Image from 'next/image';
 import type { ExtendedUser } from '@/lib/types';
+import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
 import { Button } from '../ui/button';
 
 interface ProfileHeaderProps {
@@ -10,15 +11,26 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
+  const colorScheme = getMBTIColorScheme(user.mbtiType);
+  
+  // Create gradient based on MBTI category colors
+  const gradientClass = `bg-gradient-to-r ${colorScheme.gradientFrom} ${colorScheme.gradientTo}`;
+
   return (
-    <div className='flex bg-gradient-to-r from-[#57AC78] to-[#6CEBA5] rounded-2xl items-center justify-between p-4'>
+    <div className={`flex ${gradientClass} rounded-2xl items-center justify-between p-4`}>
       <div className='flex items-center gap-4'>
-        <Image
-          src='/mbti-logo/ENFP.svg'
-          alt={user.name}
-          width={50}
-          height={50}
-        />
+        {user.mbtiType ? (
+          <Image
+            src={`/mbti-logo/${user.mbtiType}.svg`}
+            alt={`${user.mbtiType} Logo`}
+            width={50}
+            height={50}
+          />
+        ) : (
+          <div className='w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center'>
+            <User className='w-6 h-6 text-white' />
+          </div>
+        )}
         <div className='flex gap-2 items-start justify-start'>
           <div className='flex flex-col items-start'>
             <h1 className='text-2xl text-white font-bold'>{user.name}</h1>
