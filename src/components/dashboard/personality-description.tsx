@@ -11,62 +11,62 @@ const PERSONALITY_DESCRIPTIONS = {
   ENFP: {
     title: 'The Campaigner',
     description:
-      'ENFP adalah pribadi yang penuh semangat, kreatif, dan ekspresif. Mereka suka mengeksplorasi ide baru, berinteraksi dengan orang lain, dan membangun hubungan yang positif di sekitarnya.\n\nDalam kerja kelompok, ENFP biasanya jadi penyemangat dan penghubung antar anggota. Mereka pandai memahami emosi orang lain dan terbuka untuk berdiskusi. Kehadirannya bikin tim terasa lebih hidup dan semangat.',
+      'ENFP adalah pribadi yang penuh semangat, kreatif, dan ekspresif. Mereka suka mengeksplorasi ide baru, berinteraksi dengan orang lain, dan membangun hubungan yang positif di sekitarnya. \n\n Dalam kerja kelompok, ENFP biasanya jadi penyemangat dan penghubung antar anggota. Mereka pandai memahami emosi orang lain dan terbuka untuk berdiskusi. Kehadirannya bikin tim terasa lebih hidup dan semangat.',
   },
   ENFJ: {
     title: 'The Protagonist',
     description:
-      'ENFJ adalah pemimpin natural yang inspiratif dan penuh empati. Mereka memiliki kemampuan untuk memotivasi dan mempengaruhi orang lain dengan cara yang positif.\n\nDalam kerja kelompok, ENFJ sering menjadi koordinator yang memastikan semua anggota terlibat dan merasa dihargai. Mereka pandai melihat potensi dalam diri orang lain.',
+      'ENFJ adalah sosok yang hangat, karismatik, dan suka mendukung orang lain berkembang. Mereka percaya bahwa kerja sama dan empati adalah kunci kesuksesan tim. Bisa dibilang, mereka punya aura pemimpin yang bersahabat.\n\nDalam kerja kelompok, ENFJ cenderung aktif mengambil peran sebagai pengarah yang membangun. Mereka pintar membaca suasana hati tim dan tahu kapan harus mendorong atau mendengarkan.',
   },
   INFP: {
     title: 'The Mediator',
     description:
-      'INFP adalah pribadi yang idealis, kreatif, dan memiliki nilai-nilai yang kuat. Mereka sering menjadi peacemaker dalam konflik dan sangat menghargai autentisitas.\n\nDalam kerja kelompok, INFP memberikan perspektif unik dan membantu menjaga harmoni tim. Mereka bekerja dengan penuh dedikasi ketika percaya pada misi tim.',
+      'INFP itu idealis, sensitif, dan penuh imajinasi. Mereka punya dunia batin yang kaya dan sangat peduli dengan hal-hal yang menurut mereka benar. Kadang mereka lebih fokus pada perasaan daripada logika — tapi itu kekuatan mereka.\n\nSaat bekerja dalam kelompok, INFP cenderung menjadi pendengar yang baik dan mendorong keharmonisan. Mereka mungkin nggak suka konflik, tapi akan bersuara saat ada hal yang bertentangan dengan nilai mereka.',
   },
   INFJ: {
     title: 'The Advocate',
     description:
-      'INFJ adalah pribadi yang visioner, intuitif, dan memiliki pemahaman mendalam tentang orang lain. Mereka sering memiliki ide-ide inovatif untuk memecahkan masalah.\n\nDalam kerja kelompok, INFJ menjadi strategic thinker yang membantu tim melihat gambaran besar. Mereka pandai memahami dinamika kelompok dan memberikan solusi kreatif.',
+      'INFJ dikenal bijaksana dan punya empati tinggi. Mereka sering memikirkan kesejahteraan jangka panjang, baik untuk diri sendiri maupun orang lain. Punya nilai yang kuat, INFJ suka mendukung hal-hal yang bermakna.\n\nDi kelompok, mereka sering jadi penghubung emosional antar anggota. INFJ mungkin terlihat pendiam, tapi sekali bicara — penuh makna. Mereka lebih suka mendukung dari balik layar, tapi kontribusinya terasa dalam.',
   },
   ENTJ: {
     title: 'The Commander',
     description:
-      'ENTJ adalah pemimpin natural yang tegas, strategis, dan berorientasi pada hasil. Mereka memiliki kemampuan untuk mengorganisir dan mengarahkan tim menuju tujuan.\n\nDalam kerja kelompok, ENTJ sering menjadi project leader yang memastikan tim tetap fokus dan produktif. Mereka pandai dalam perencanaan dan pengambilan keputusan.',
+      'ENTJ adalah pemimpin alami yang tegas, visioner, dan suka mengambil inisiatif. Mereka percaya diri dalam mengatur rencana, menyusun strategi, dan mengarahkan tim menuju tujuan bersama.\n\nSaat kerja kelompok, ENTJ biasanya cepat membaca situasi dan langsung ambil peran sebagai pengarah. Mereka bisa terdengar dominan, tapi tujuan utamanya adalah memastikan semua berjalan efisien dan produktif.',
   },
   ENTP: {
     title: 'The Debater',
     description:
-      'ENTP adalah pribadi yang inovatif, argumentatif, dan suka tantangan intelektual. Mereka memiliki kemampuan untuk melihat berbagai kemungkinan dan solusi kreatif.\n\nDalam kerja kelompok, ENTP menjadi brainstormer yang menghadirkan ide-ide segar dan perspektif berbeda. Mereka pandai dalam problem-solving dan adaptasi.',
+      'ENTP penuh semangat, cepat berpikir, dan selalu punya ide seru. Mereka suka berdiskusi, menantang argumen, dan nggak takut mengutarakan pendapat. Bagi mereka, debat bukan konflik — tapi ajang eksplorasi pemikiran.\n\nDalam tim, ENTP membawa energi dinamis dan sering jadi pendorong inovasi. Walau kadang sulit fokus pada satu hal terlalu lama, ide-ide mereka bisa jadi pemicu kemajuan kalau dikombinasikan dengan eksekutor yang tepat.',
   },
   INTJ: {
     title: 'The Architect',
     description:
-      'INTJ adalah strategic thinker yang independen, analitis, dan memiliki visi jangka panjang. Mereka pandai dalam merancang sistem dan solusi yang efisien.\n\nDalam kerja kelompok, INTJ menjadi planner yang membantu tim mengembangkan strategi jangka panjang. Mereka memberikan analisis mendalam dan pemikiran sistematis.',
+      'INTJ dikenal sebagai pemikir strategis yang selalu punya rencana matang. Mereka suka tantangan kompleks dan cenderung bekerja lebih baik secara independen. Fokus, logis, dan punya visi jangka panjang, mereka sering menjadi sumber solusi dalam tim.\n\nDalam kerja kelompok, INTJ biasanya berperan sebagai perencana atau analis. Meskipun kadang terlihat serius atau terlalu idealis, mereka sebenarnya sangat peduli dengan hasil dan efisiensi. Butuh ruang untuk berpikir? Mereka ahlinya.',
   },
   INTP: {
     title: 'The Thinker',
     description:
-      'INTP adalah pribadi yang analitis, logis, dan suka mengeksplorasi teori. Mereka memiliki kemampuan untuk memahami sistem kompleks dan menemukan solusi inovatif.\n\nDalam kerja kelompok, INTP menjadi problem solver yang memberikan analisis objektif dan solusi teknis. Mereka pandai dalam research dan troubleshooting.',
+      'INTP adalah si pemikir bebas dan penuh rasa ingin tahu. Mereka suka mengeksplorasi ide-ide unik dan bisa menghabiskan waktu berjam-jam untuk memahami suatu konsep. Logis, kritis, dan suka membongkar cara kerja sesuatu.\n\nDalam tim, INTP sering muncul dengan sudut pandang baru yang nggak terpikirkan orang lain. Walau kadang terlihat di "dunia sendiri", mereka tetap berkontribusi besar lewat ide-ide cerdas dan pendekatan yang kreatif.',
   },
   ESFP: {
     title: 'The Entertainer',
     description:
-      'ESFP adalah pribadi yang energik, spontan, dan suka berinteraksi dengan orang lain. Mereka memiliki kemampuan untuk menciptakan suasana yang menyenangkan dan positif.\n\nDalam kerja kelompok, ESFP menjadi motivator yang menjaga semangat tim tetap tinggi. Mereka pandai dalam adaptasi dan membangun hubungan interpersonal.',
+      'ESFP adalah si pembawa keceriaan. Mereka suka berinteraksi, tampil, dan membuat orang lain tersenyum. Hidup bagi mereka adalah panggung — dan mereka ingin semua orang menikmati pertunjukannya.\n\nDalam kelompok, ESFP sering jadi pencair suasana. Mereka penuh semangat dan perhatian, walau kadang bisa kurang fokus pada hal teknis. Tapi kalau kamu butuh semangat, mereka selalu siap nyalain mood.',
   },
   ESTP: {
     title: 'The Entrepreneur',
     description:
-      'ESTP adalah pribadi yang action-oriented, pragmatis, dan suka tantangan. Mereka memiliki kemampuan untuk mengambil keputusan cepat dan beradaptasi dengan situasi baru.\n\nDalam kerja kelompok, ESTP menjadi executor yang memastikan rencana dijalankan dengan efektif. Mereka pandai dalam crisis management dan quick decisions.',
+      'ESTP itu energik, spontan, dan suka aksi. Mereka cenderung "terjun duluan, mikir belakangan" tapi sering berhasil karena instingnya tajam. Mereka senang jadi pusat perhatian dan nggak takut ambil risiko.\n\nDalam tim, ESTP bikin suasana jadi hidup. Mereka jago improvisasi dan bisa mengambil keputusan cepat dalam tekanan. Cocok jadi eksekutor yang fleksibel dan tahan banting.',
   },
   ISFP: {
     title: 'The Adventurer',
     description:
-      'ISFP adalah pribadi yang artistik, fleksibel, dan menghargai kebebasan. Mereka memiliki kemampuan untuk memberikan perspektif kreatif dan solusi out-of-the-box.\n\nDalam kerja kelompok, ISFP menjadi creative contributor yang memberikan ide-ide unik. Mereka bekerja dengan baik dalam lingkungan yang mendukung dan tidak hierarkis.',
+      'ISFP itu artistik, sensitif, dan menghargai kebebasan. Mereka suka eksplorasi hal baru, tapi cenderung melakukannya secara pribadi tanpa banyak bicara. Gaya mereka tenang, tapi penuh warna.\n\nDalam kerja kelompok, ISFP biasanya jadi pencetus ide-ide unik yang nggak biasa. Mereka mungkin nggak suka spotlight, tapi hasil kerja mereka sering mencerminkan keindahan dan kepekaan tinggi.',
   },
   ISTP: {
     title: 'The Virtuoso',
     description:
-      'ISTP adalah pribadi yang praktis, independent, dan hands-on. Mereka memiliki kemampuan untuk memahami cara kerja sistem dan menemukan solusi praktis.\n\nDalam kerja kelompok, ISTP menjadi technical expert yang membantu implementasi solusi. Mereka pandai dalam troubleshooting dan optimization.',
+      'ISTP adalah pribadi yang tenang, logis, dan jago praktik. Mereka suka mengutak-atik, bereksperimen, dan belajar lewat pengalaman langsung. Jarang banyak teori, tapi langsung bisa paham begitu nyoba.\n\nDalam kelompok, ISTP sering ambil peran sebagai eksekutor diam-diam. Mereka nggak banyak bicara, tapi hasil kerjanya nyata. Butuh orang yang cepat dan praktis? ISTP solusinya.',
   },
   ESFJ: {
     title: 'The Consul',
@@ -76,17 +76,17 @@ const PERSONALITY_DESCRIPTIONS = {
   ESTJ: {
     title: 'The Executive',
     description:
-      'ESTJ adalah pribadi yang organized, efficient, dan berorientasi pada hasil. Mereka memiliki kemampuan untuk mengelola proyek dan memastikan deadline terpenuhi.\n\nDalam kerja kelompok, ESTJ menjadi project manager yang memastikan tim bekerja dengan struktur yang jelas. Mereka pandai dalam planning dan resource management.',
+      'ESTJ adalah tipe yang tegas, suka keteraturan, dan cenderung jadi pemimpin secara alami. Mereka punya kemampuan mengatur strategi dan eksekusi dengan efektif, serta nggak ragu ambil keputusan.\n\nDalam kelompok, ESTJ sering jadi koordinator atau ketua yang memastikan semua berjalan lancar. Mereka mungkin terkesan kaku, tapi itu karena mereka ingin hasil terbaik dan nggak mau buang waktu.',
   },
   ISFJ: {
     title: 'The Protector',
     description:
-      'ISFJ adalah pribadi yang reliable, supportive, dan detail-oriented. Mereka memiliki kemampuan untuk memberikan dukungan konsisten dan memperhatikan kebutuhan anggota tim.\n\nDalam kerja kelompok, ISFJ menjadi support system yang memastikan semua detail terperhatikan. Mereka pandai dalam documentation dan quality assurance.',
+      'ISFJ adalah orang yang perhatian, setia, dan sangat peduli pada kesejahteraan orang lain. Mereka cenderung pendiam namun sangat bertanggung jawab, pekerja keras, dan menghargai tradisi.\n\nDalam kelompok, mereka sering membantu secara diam-diam tanpa mengharapkan pujian. Mereka akan memastikan semua berjalan baik, bahkan jika harus mengorbankan kenyamanannya sendiri demi kebaikan bersama.',
   },
   ISTJ: {
     title: 'The Logistician',
     description:
-      'ISTJ adalah pribadi yang methodical, responsible, dan dapat diandalkan. Mereka memiliki kemampuan untuk mengelola tugas dengan sistematis dan memastikan kualitas hasil.\n\nDalam kerja kelompok, ISTJ menjadi backbone yang memastikan semua proses berjalan sesuai standar. Mereka pandai dalam planning dan quality control.',
+      'ISTJ itu teliti, disiplin, dan sangat bertanggung jawab. Mereka suka hal-hal yang jelas, terstruktur, dan nggak neko-neko. Kalau ada yang bisa diandalkan untuk memastikan semuanya berjalan sesuai rencana — itu ISTJ.\n\nDi kelompok, ISTJ biasanya jadi penegak sistem dan pengingat deadline. Walaupun pendiam, mereka sangat serius soal tanggung jawab. Mereka mungkin nggak banyak bicara, tapi selalu tepat waktu dan efisien.',
   },
 };
 
