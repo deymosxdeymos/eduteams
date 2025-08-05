@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, afterEach, describe, expect, mock, test } from 'bun:test';
+import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import React from 'react';
 import PersonalityQuestion from '../../../../src/components/onboarding/kepribadian/personality-question';
 
@@ -39,7 +39,13 @@ mock.module('framer-motion', () => ({
       } = props;
       return (
         <div
-          onClick={onClick}
+          onClick={(e) => {
+            if (onClick) onClick(e);
+            // Simulate animation completion immediately in tests
+            if (onAnimationComplete) {
+              setTimeout(onAnimationComplete, 0);
+            }
+          }}
           onAnimationEnd={onAnimationComplete}
           data-testid={props['data-testid'] || 'motion-div'}
           {...restProps}
@@ -48,6 +54,16 @@ mock.module('framer-motion', () => ({
         </div>
       );
     },
+    span: ({ children, onClick, onAnimationComplete, ...props }: any) => (
+      <span
+        onClick={onClick}
+        onAnimationEnd={onAnimationComplete}
+        data-testid={props['data-testid'] || 'motion-span'}
+        {...props}
+      >
+        {children}
+      </span>
+    ),
   },
 }));
 
@@ -60,6 +76,10 @@ describe('PersonalityQuestion', () => {
 
   beforeEach(() => {
     mockOnAnswerAction.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   describe('Rendering', () => {
