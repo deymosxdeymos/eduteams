@@ -1,6 +1,6 @@
 'use client';
 
-import { Mars, Pencil, Venus, User } from 'lucide-react';
+import { Mars, Pencil, User, Venus } from 'lucide-react';
 import Image from 'next/image';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
@@ -12,12 +12,14 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
   const colorScheme = getMBTIColorScheme(user.mbtiType);
-  
+
   // Create gradient based on MBTI category colors
   const gradientClass = `bg-gradient-to-r ${colorScheme.gradientFrom} ${colorScheme.gradientTo}`;
 
   return (
-    <div className={`flex ${gradientClass} rounded-2xl items-center justify-between p-4`}>
+    <div
+      className={`flex ${gradientClass} rounded-2xl items-center justify-between p-4`}
+    >
       <div className='flex items-center gap-4'>
         {user.mbtiType ? (
           <Image
