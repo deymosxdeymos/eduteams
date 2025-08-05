@@ -91,7 +91,7 @@ export default function PersonalityQuestion({
                 >
                   <div className='w-16 h-16 bg-white flex items-center justify-center'>
                     <Image
-                      src={`/mbti/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
+                      src={`/mbti-test/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
                       width={48}
                       height={48}
                       alt={item.label}
