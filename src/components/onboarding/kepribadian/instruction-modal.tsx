@@ -95,7 +95,7 @@ export default function InstructionModal({
                     >
                       <div className='bg-white flex items-center justify-center w-16 h-16'>
                         <Image
-                          src={`/mbti/${item.icon}.svg`}
+                          src={`/mbti-test/${item.icon}.svg`}
                           width={48}
                           height={48}
                           alt={item.label}
