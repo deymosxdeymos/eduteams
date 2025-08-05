@@ -180,6 +180,11 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
         hasSeenWelcomeSplash: true,
         onboardingStep: true,
         onboardingData: true,
+        mbtiType: true,
+        ei: true,
+        sn: true,
+        tf: true,
+        pj: true,
       },
     });
 

@@ -1,4 +1,5 @@
 import type {
+  MBTIType,
   Course as PrismaCourse,
   CourseEnrollment as PrismaCourseEnrollment,
   User as PrismaUser,
@@ -11,6 +12,11 @@ export interface ExtendedUser extends PrismaUser {
   nimNpm: string | null;
   isOnboarded: boolean;
   onboardingStep: string | null;
+  mbtiType: MBTIType | null;
+  ei: number | null;
+  sn: number | null;
+  tf: number | null;
+  pj: number | null;
 }
 
 export interface AuthSession {
