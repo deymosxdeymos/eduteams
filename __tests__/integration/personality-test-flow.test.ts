@@ -2,13 +2,6 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mock auth - MUST be before imports
 const mockGetSession = mock();
-mock.module('@/lib/auth', () => ({
-  auth: {
-    api: {
-      getSession: mockGetSession,
-    },
-  },
-}));
 mock.module('../../src/lib/auth', () => ({
   auth: {
     api: {

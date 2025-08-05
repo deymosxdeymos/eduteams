@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type React from 'react';
-import PersonalityTestClient from 'src/components/onboarding/kepribadian/personality-test-client';
-import type { MBTIQuestion } from '../../../src/lib/mbti-questions'; // path is correct
+import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import React from 'react';
+import PersonalityTestClient from '../../src/components/onboarding/kepribadian/personality-test-client';
+import type { MBTIQuestion } from '../../src/lib/mbti-questions';
 
 // Mock dependencies
 const mockRouter = {
@@ -20,12 +20,12 @@ mock.module('next/navigation', () => ({
   useRouter: () => mockRouter,
 }));
 
-mock.module('../../../src/lib/actions/personality', () => ({
+mock.module('../../src/lib/actions/personality', () => ({
   submitPersonalityTest: mockSubmitPersonalityTest,
 }));
 
 // Mock the subcomponents
-mock.module('../../../src/components/logo', () => ({
+mock.module('../../src/components/logo', () => ({
   default: ({ color }: { color: string }) => (
     <div data-testid='logo' style={{ color }}>
       Logo
@@ -34,7 +34,7 @@ mock.module('../../../src/components/logo', () => ({
 }));
 
 mock.module(
-  '../../../src/components/onboarding/kepribadian/instruction-modal',
+  '../../src/components/onboarding/kepribadian/instruction-modal',
   () => ({
     default: ({
       isOpen,
@@ -54,7 +54,7 @@ mock.module(
 );
 
 mock.module(
-  '../../../src/components/onboarding/kepribadian/personality-question',
+  '../../src/components/onboarding/kepribadian/personality-question',
   () => ({
     default: ({
       question,
@@ -93,7 +93,7 @@ mock.module(
 );
 
 // Mock UI components
-mock.module('../../../src/components/ui/button', () => ({
+mock.module('../../src/components/ui/button', () => ({
   Button: ({
     children,
     onClick,
@@ -116,7 +116,7 @@ mock.module('../../../src/components/ui/button', () => ({
   ),
 }));
 
-mock.module('../../../src/components/ui/progress', () => ({
+mock.module('../../src/components/ui/progress', () => ({
   Progress: ({ value, className }: { value: number; className?: string }) => (
     <div data-testid='progress-bar' className={className}>
       <div style={{ width: `${value}%` }} />
@@ -199,6 +199,7 @@ describe('PersonalityTestClient', () => {
   ];
 
   beforeEach(() => {
+    cleanup(); // Clean up DOM between tests
     mockRouter.push.mockReset();
     mockSubmitPersonalityTest.mockReset();
     mockSubmitPersonalityTest.mockResolvedValue(undefined);
@@ -489,9 +490,10 @@ describe('PersonalityTestClient', () => {
     });
 
     test('should handle submission errors gracefully', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const consoleErrorSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleErrorSpy;
+      
       mockSubmitPersonalityTest.mockRejectedValue(
         new Error('Submission failed')
       );
@@ -527,7 +529,7 @@ describe('PersonalityTestClient', () => {
         expect.any(Error)
       );
 
-      consoleErrorSpy.mockRestore();
+      console.error = originalConsoleError;
     });
   });
 
@@ -544,7 +546,7 @@ describe('PersonalityTestClient', () => {
 
     test('should focus on first error when validation fails', () => {
       // Mock scrollIntoView
-      const mockScrollIntoView = jest.fn();
+      const mockScrollIntoView = mock();
       Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
         value: mockScrollIntoView,
         writable: true,

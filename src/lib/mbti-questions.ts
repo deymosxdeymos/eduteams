@@ -450,6 +450,11 @@ export class MBTIQuestionsManager {
 
         return questions;
       } catch (error) {
+        // If it's a validation error, don't retry - throw immediately
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+
         attempts++;
         this.metrics.database.errors++;
 
@@ -680,6 +685,11 @@ export class MBTIQuestionsManager {
 
       return questions;
     } catch (error) {
+      // If it's a validation error, don't use fallback - throw immediately
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+
       console.error('Database fallback triggered:', error);
 
       if (this.config.fallback.enabled) {
