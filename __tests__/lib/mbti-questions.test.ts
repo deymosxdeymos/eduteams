@@ -144,7 +144,19 @@ describe('MBTIQuestionsManager', () => {
         select: { id: true, name: true, description: true },
       });
 
-      expect(questions).toEqual(mockQuestions);
+      expect(questions).toHaveLength(mockQuestions.length);
+      questions.forEach((question, index) => {
+        expect(question).toMatchObject({
+          id: mockQuestions[index].id,
+          text: mockQuestions[index].text,
+          dimension: mockQuestions[index].dimension,
+          order: mockQuestions[index].order,
+          reversed: mockQuestions[index].reversed,
+          validated: true,
+        });
+        expect(question.validatedAt).toBeTypeOf('number');
+        expect(question.validatedAt).toBeGreaterThan(0);
+      });
     });
 
     it('should return cached questions on subsequent calls', async () => {
@@ -197,7 +209,20 @@ describe('MBTIQuestionsManager', () => {
 
       const questions = await manager.getMBTIQuestions();
       expect(mockPrisma.skill.findMany).not.toHaveBeenCalled();
-      expect(questions).toEqual(mockQuestions);
+      
+      expect(questions).toHaveLength(mockQuestions.length);
+      questions.forEach((question, index) => {
+        expect(question).toMatchObject({
+          id: mockQuestions[index].id,
+          text: mockQuestions[index].text,
+          dimension: mockQuestions[index].dimension,
+          order: mockQuestions[index].order,
+          reversed: mockQuestions[index].reversed,
+          validated: true,
+        });
+        expect(question.validatedAt).toBeTypeOf('number');
+        expect(question.validatedAt).toBeGreaterThan(0);
+      });
     });
 
     it.skip('should cache questions in Redis', async () => {

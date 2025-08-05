@@ -1,4 +1,5 @@
 import { Window } from 'happy-dom';
+import '@testing-library/jest-dom';
 
 // Create a global window instance
 const happyDomWindow = new Window();
