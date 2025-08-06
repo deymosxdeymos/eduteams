@@ -411,6 +411,7 @@ export class MBTIQuestionsManager {
     let attempts = 0;
 
     while (attempts < this.config.database.maxRetries) {
+      attempts++;
       try {
         this.metrics.database.queries++;
         this.metrics.database.lastQuery = Date.now();
@@ -455,7 +456,6 @@ export class MBTIQuestionsManager {
           throw error;
         }
 
-        attempts++;
         this.metrics.database.errors++;
 
         if (attempts >= this.config.database.maxRetries) {
