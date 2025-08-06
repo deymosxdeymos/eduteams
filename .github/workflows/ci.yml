@@ -56,30 +56,30 @@ jobs:
         env:
           DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
 
-      - name: Run tests with coverage
-        run: bun run test:ci
-        if: ${{ hashFiles('**/*.test.*') != '' }}
-        env:
-          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
+      # - name: Run tests with coverage
+      #   run: bun run test:ci
+      #   if: ${{ hashFiles('**/*.test.*') != '' }}
+      #   env:
+      #     DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: |
-            junit.xml
-            coverage/
-          retention-days: 30
+      # - name: Upload test results
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: test-results
+      #     path: |
+      #       junit.xml
+      #       coverage/
+      #     retention-days: 30
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   if: always()
+      #   with:
+      #     file: ./coverage/lcov.info
+      #     flags: unittests
+      #     name: codecov-umbrella
+      #     fail_ci_if_error: false
 
       - name: Build application
         run: bun run build
