@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import {
-  HttpError,
+  type ApiResponse,
   AuthError,
   AuthorizationError,
+  type ExtendedUser,
+  HttpError,
+  type UserRole,
   ValidationError,
-  ApiResponse,
-  UserRole,
-  ExtendedUser,
 } from '@/lib/types';
 
 export function handleApiError(error: unknown): NextResponse {
@@ -177,8 +177,14 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
         role: true,
         nimNpm: true,
         isOnboarded: true,
+        hasSeenWelcomeSplash: true,
         onboardingStep: true,
         onboardingData: true,
+        mbtiType: true,
+        ei: true,
+        sn: true,
+        tf: true,
+        pj: true,
       },
     });
 

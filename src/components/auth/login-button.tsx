@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { authClient } from '@/lib/auth-client';
 import LetterSwapForward from '@/components/ui/letter-swap-forward';
+import { authClient } from '@/lib/auth-client';
 
 export function LoginButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,7 +12,7 @@ export function LoginButton() {
     try {
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/onboarding/role',
+        callbackURL: '/onboarding/resume',
       });
     } catch (error) {
       console.error('Error signing in:', error);
@@ -21,6 +21,7 @@ export function LoginButton() {
   };
   return (
     <button
+      type='button'
       onClick={signIn}
       disabled={isLoading}
       className='relative text-center text-3xl font-semibold w-56 rounded-full bg-white p-4 text-blue-800 transition-all duration-300 ease-out shadow-md hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95 active:translate-y-0 active:shadow-sm active:duration-75 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0'

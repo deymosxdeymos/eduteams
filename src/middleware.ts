@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for static assets and API routes
+  // Skip middleware for static assets, API routes, and Next.js internals
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/') ||
@@ -14,32 +14,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get session token from cookies for lightweight check
+  // Check if session token exists (lightweight check without database)
   const sessionToken = request.cookies.get('better-auth.session_token')?.value;
-  const isAuthenticated = !!sessionToken;
+  const hasSessionToken = !!sessionToken;
 
-  // Public routes that don't require authentication
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  // If user is on homepage and authenticated, redirect to resume to determine next step
-  if (pathname === '/' && isAuthenticated) {
+  // Redirect authenticated users from homepage to onboarding/resume
+  if (pathname === '/' && hasSessionToken) {
     return NextResponse.redirect(new URL('/onboarding/resume', request.url));
   }
 
-  // Auth routes (redirect to onboarding if already logged in)
+  // Handle auth pages (login/register)
   if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
-    if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/onboarding/resume', request.url));
+    if (hasSessionToken) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
   }
 
-  // Protected routes - require authentication
-  if (!isPublicRoute && !isAuthenticated) {
+  // Protect non-public routes
+  if (!isPublicRoute && !hasSessionToken) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // Let server components handle full session validation and onboarding logic
   return NextResponse.next();
 }
 
