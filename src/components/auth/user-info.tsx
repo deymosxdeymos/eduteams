@@ -1,5 +1,5 @@
-import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 import { LogoutButton } from './logout-button';
 
 export async function UserDisplay() {

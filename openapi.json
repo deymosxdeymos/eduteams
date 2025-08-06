@@ -1,0 +1,614 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Edu2com",
+    "description": "Tool to form teams for a set of tasks.",
+    "version": "0.5.0"
+  },
+  "servers": [{ "url": "/eduteams/edu2com" }],
+  "paths": {
+    "/v1/help": {
+      "get": {
+        "summary": "Help",
+        "description": "Return information of the API.",
+        "operationId": "help_v1_help_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Info" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/teamFormation": {
+      "post": {
+        "summary": "Team Formation",
+        "description": "Form the teams.",
+        "operationId": "team_formation_v1_teamFormation_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Edu2comParameters" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Edu2comTeams" }
+              }
+            }
+          },
+          "422": { "description": "The experiment is not valid." },
+          "400": {
+            "description": "Cannot form the teams with the provided data."
+          }
+        }
+      }
+    },
+    "/v1/backgroundTeamFormation": {
+      "post": {
+        "summary": "Background Team Formation",
+        "description": "Form the teams in background.",
+        "operationId": "background_team_formation_v1_backgroundTeamFormation_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackgroundEdu2comParameters"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": { "description": "The experiment is not valid." },
+          "400": {
+            "description": "Cannot form the teams with the provided data."
+          }
+        }
+      }
+    },
+    "/v1/teamQuality": {
+      "post": {
+        "summary": "Team Quality",
+        "description": "Calculate the quality of a team.",
+        "operationId": "team_quality_v1_teamQuality_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TeamQualityParameters" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TeamQuality" }
+              }
+            }
+          },
+          "422": { "description": "The teams is not valid." },
+          "400": {
+            "description": "Cannot evaluate the quality of the team with the provided data."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BackgroundEdu2comParameters": {
+        "title": "BackgroundEdu2comParameters",
+        "required": ["people", "tasks", "replyPostUrl"],
+        "type": "object",
+        "properties": {
+          "people": {
+            "title": "The people to deal on the different teams.",
+            "minItems": 2,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Person" }
+          },
+          "tasks": {
+            "title": "The tasks to be assigned.",
+            "minItems": 1,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskToDo" }
+          },
+          "initRandom": {
+            "title": "This is true if has to initialize by random.",
+            "type": "boolean",
+            "example": "false"
+          },
+          "alpha": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "beta": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "gamma": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "delta": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "similarities": {
+            "title": "The similarities between skills.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SkillSimilarity" }
+          },
+          "replyPostUrl": {
+            "title": "The URL to post the formed team",
+            "maxLength": 2083,
+            "minLength": 1,
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "Edu2comParameters": {
+        "title": "Edu2comParameters",
+        "required": ["people", "tasks"],
+        "type": "object",
+        "properties": {
+          "people": {
+            "title": "The people to deal on the different teams.",
+            "minItems": 2,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Person" }
+          },
+          "tasks": {
+            "title": "The tasks to be assigned.",
+            "minItems": 1,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskToDo" }
+          },
+          "initRandom": {
+            "title": "This is true if has to initialize by random.",
+            "type": "boolean",
+            "example": "false"
+          },
+          "alpha": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "beta": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "gamma": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "delta": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "similarities": {
+            "title": "The similarities between skills.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SkillSimilarity" }
+          }
+        }
+      },
+      "Edu2comPersonOnTeam": {
+        "title": "Edu2comPersonOnTeam",
+        "required": ["id", "skillIds"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "The identifier of the person that form part of the team.",
+            "type": "string",
+            "example": "1"
+          },
+          "skillIds": {
+            "title": "The identifier of the skill the person is reponsible.",
+            "type": "array",
+            "items": { "type": "string" },
+            "example": "[\"1\",\"0\"]"
+          }
+        }
+      },
+      "Edu2comTeam": {
+        "title": "Edu2comTeam",
+        "required": ["taskId", "people", "quality"],
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "title": "The identifier of the task to do by the team.",
+            "type": "string",
+            "example": "1"
+          },
+          "people": {
+            "title": "The identifier of the people that form the team to do the task.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Edu2comPersonOnTeam" }
+          },
+          "quality": {
+            "title": "The quality of the created team.",
+            "type": "number",
+            "example": "1"
+          }
+        }
+      },
+      "Edu2comTeams": {
+        "title": "Edu2comTeams",
+        "required": ["teams"],
+        "type": "object",
+        "properties": {
+          "teams": {
+            "title": "The formed teams.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Edu2comTeam" }
+          }
+        }
+      },
+      "Gender": {
+        "title": "Gender",
+        "enum": ["FEMALE", "MALE"],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "Info": {
+        "title": "Info",
+        "required": ["name", "version"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "The name of the service.",
+            "type": "string",
+            "example": "Edu2com"
+          },
+          "version": {
+            "title": "The version of the api.",
+            "type": "string",
+            "example": "1.0.0"
+          }
+        }
+      },
+      "Person": {
+        "title": "Person",
+        "required": ["id", "personality"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "The identifier of the person.",
+            "type": "string",
+            "example": "1"
+          },
+          "gender": {
+            "title": "The gender of the person.",
+            "allOf": [{ "$ref": "#/components/schemas/Gender" }],
+            "example": "FEMALE"
+          },
+          "personality": {
+            "title": "The personality of the person.",
+            "allOf": [{ "$ref": "#/components/schemas/PersonPersonality" }]
+          },
+          "skills": {
+            "title": "The skills of the person.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonSkill" }
+          },
+          "preferences": {
+            "title": "The preferences to work together with other person.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonPreference" }
+          }
+        }
+      },
+      "PersonPersonality": {
+        "title": "PersonPersonality",
+        "required": ["ei", "sn", "tf", "pj"],
+        "type": "object",
+        "properties": {
+          "ei": {
+            "title": "The Extraversion/Introversion dimension of the personality.",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "type": "number",
+            "example": "1"
+          },
+          "sn": {
+            "title": "The Sensing/iNtuition dimension of the personality.",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "type": "number",
+            "example": "-1"
+          },
+          "tf": {
+            "title": "The Thinking/Feeling dimension of the personality.",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "type": "number",
+            "example": "0"
+          },
+          "pj": {
+            "title": "The Perception/Judging dimension of the personality.",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "type": "number",
+            "example": "1"
+          }
+        }
+      },
+      "PersonPreference": {
+        "title": "PersonPreference",
+        "required": ["personId", "preference"],
+        "type": "object",
+        "properties": {
+          "personId": {
+            "title": "The identifier of the person that define the preference to work together.",
+            "type": "string",
+            "example": "1"
+          },
+          "preference": {
+            "title": "The preference to do a task with the specified person.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.5"
+          }
+        }
+      },
+      "PersonSkill": {
+        "title": "PersonSkill",
+        "required": ["id", "level"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "The identifier of the skill.",
+            "type": "string",
+            "example": "1"
+          },
+          "level": {
+            "title": "The level that the user has on the skill.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.25"
+          }
+        }
+      },
+      "SkillSimilarity": {
+        "title": "SkillSimilarity",
+        "required": ["sourceId", "targetId", "similarity"],
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "title": "The source skill of the similarity.",
+            "type": "string",
+            "example": "0"
+          },
+          "targetId": {
+            "title": "The target skill of the similarity.",
+            "type": "string",
+            "example": "1"
+          },
+          "similarity": {
+            "title": "The similarity between the two skills.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.5"
+          }
+        }
+      },
+      "TaskToDo": {
+        "title": "TaskToDo",
+        "required": ["id", "skills", "teamSize"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "The identifier of the task.",
+            "type": "string",
+            "example": "1"
+          },
+          "skills": {
+            "title": "The necessary skills to do the task.",
+            "minItems": 1,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskToDoSkill" }
+          },
+          "teamSize": {
+            "title": "The number os students to be assigned to this task.",
+            "minimum": 2.0,
+            "type": "integer"
+          },
+          "preferences": {
+            "title": "The preferences to do this task by the people.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskToDoPreference" }
+          }
+        }
+      },
+      "TaskToDoPreference": {
+        "title": "TaskToDoPreference",
+        "required": ["personId", "preference"],
+        "type": "object",
+        "properties": {
+          "personId": {
+            "title": "The identifier of the person that define the preference.",
+            "type": "string",
+            "example": "1"
+          },
+          "preference": {
+            "title": "The preference to do this task by a person.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.5"
+          }
+        }
+      },
+      "TaskToDoSkill": {
+        "title": "TaskToDoSkill",
+        "required": ["id", "level", "importance"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "The identifier of the skill.",
+            "type": "string",
+            "example": "1"
+          },
+          "level": {
+            "title": "The skill level necessary to do the task.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.25"
+          },
+          "importance": {
+            "title": "The importance of the skill to do the task.",
+            "minimum": 1.0,
+            "type": "number",
+            "example": "1"
+          }
+        }
+      },
+      "TeamMember": {
+        "title": "TeamMember",
+        "required": ["id", "personality"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "The identifier of the team member.",
+            "type": "string",
+            "example": "1"
+          },
+          "gender": {
+            "title": "The gender of the person.",
+            "allOf": [{ "$ref": "#/components/schemas/Gender" }],
+            "example": "FEMALE"
+          },
+          "personality": {
+            "title": "The personality of the person.",
+            "allOf": [{ "$ref": "#/components/schemas/PersonPersonality" }]
+          },
+          "skills": {
+            "title": "The skills of the person.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonSkill" }
+          },
+          "preferences": {
+            "title": "The preferences to work together with other team members.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonPreference" }
+          },
+          "taskPreference": {
+            "title": "The preference to do the task by this team member.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.75"
+          }
+        }
+      },
+      "TeamQuality": {
+        "title": "TeamQuality",
+        "type": "object",
+        "properties": {
+          "quality": {
+            "title": "The quality of the team ",
+            "type": "number",
+            "example": "0.92"
+          }
+        }
+      },
+      "TeamQualityParameters": {
+        "title": "TeamQualityParameters",
+        "required": ["taskSkills", "team"],
+        "type": "object",
+        "properties": {
+          "taskSkills": {
+            "title": "The necessary skills to do the task.",
+            "minItems": 1,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskToDoSkill" }
+          },
+          "team": {
+            "title": "The people that form the team to calculate the quality.",
+            "minItems": 2,
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TeamMember" }
+          },
+          "alpha": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "beta": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "gamma": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "delta": {
+            "title": "The alpha parameter for the edu2com.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "example": "0.3"
+          },
+          "similarities": {
+            "title": "The similarities between skills.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SkillSimilarity" }
+          }
+        }
+      }
+    }
+  }
+}

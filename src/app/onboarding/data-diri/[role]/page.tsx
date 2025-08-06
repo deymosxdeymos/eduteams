@@ -1,65 +1,68 @@
-'use client';
-
-import Logo from '@/components/logo';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import Logo from '@/components/logo';
+import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
-import DataDiriForm from '@/components/onboarding/data-diri/data-diri-form';
-import { useRouter, useParams } from 'next/navigation';
-import { useState } from 'react';
+import { getDataDiri } from '@/lib/actions/data-diri';
 
-export default function DataDiriPage() {
-  const router = useRouter();
-  const params = useParams();
-  const role = params.role as 'dosen' | 'mahasiswa';
-  const [isSubmitting, setIsSubmitting] = useState(false);
+import prisma from '@/lib/prisma';
+import { protectOnboardingPage } from '@/lib/server-auth';
 
-  const handleSubmit = async (formData: {
-    namaLengkap: string;
-    nim?: string;
-    npm?: string;
-    jenisKelamin: string;
-  }) => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/user/data-diri', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          role,
-        }),
-      });
+interface DataDiriPageProps {
+  params: Promise<{
+    role: 'dosen' | 'mahasiswa';
+  }>;
+}
 
-      if (response.ok) {
-        // Save progress
-        await fetch('/api/user/onboarding-progress', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ step: 'data-diri' }),
-        });
+export default async function DataDiriPage({ params }: DataDiriPageProps) {
+  const { role } = await params;
 
-        // Navigate based on role
-        if (role === 'mahasiswa') {
-          router.push('/onboarding/kepribadian');
-        } else {
-          router.push('/dashboard');
-        }
-      }
-    } catch (error) {
-      console.error('Error submitting data-diri:', error);
-    } finally {
-      setIsSubmitting(false);
+  // Validate role parameter
+  if (!['dosen', 'mahasiswa'].includes(role)) {
+    redirect('/onboarding/role');
+  }
+
+  // Protect the onboarding page
+  const user = await protectOnboardingPage();
+
+  // For dosen, check if they have verified their token
+  if (role === 'dosen') {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        onboardingStep: true,
+      },
+    });
+
+    // If dosen hasn't verified token yet, redirect to token verification
+    if (!currentUser?.onboardingStep || currentUser.onboardingStep === 'role') {
+      redirect('/onboarding/token-verifikasi');
     }
+  }
+
+  let initialData: {
+    namaLengkap: string;
+    nimNpm: string;
+    jenisKelamin: string;
+    role: string;
   };
+  try {
+    initialData = await getDataDiri();
+  } catch {
+    // If we can't fetch data, start with empty form
+    initialData = {
+      namaLengkap: '',
+      nimNpm: '',
+      jenisKelamin: '',
+      role: '',
+    };
+  }
 
   return (
-    <main className='bg-white min-h-screen'>
-      <Logo color='black' />
+    <main className='bg-white min-h-screen p-12'>
+      <Logo color='black' className='justify-center' />
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
@@ -73,25 +76,34 @@ export default function DataDiriPage() {
         />
       </div>
       <div className='flex items-start justify-center py-14 px-8'>
-        <DataDiriForm role={role} onSubmitAction={handleSubmit} />
+        <DataDiriFormClient role={role} initialData={initialData} />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
-        <Button
-          variant='ghost'
-          size='icon'
-          className='rounded-full w-14 h-14 border border-black'
-          onClick={() => router.push('/onboarding/role')}
+        <Link
+          href={
+            role === 'dosen'
+              ? '/onboarding/token-verifikasi'
+              : '/onboarding/role'
+          }
         >
-          <ArrowLeft strokeWidth={3} className='font-bold text-black text-lg' />
-        </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='rounded-full w-14 h-14 border border-black'
+          >
+            <ArrowLeft
+              strokeWidth={3}
+              className='font-bold text-black text-lg'
+            />
+          </Button>
+        </Link>
         <Button
           variant='onboarding'
           size='long'
           form='data-diri-form'
           type='submit'
-          disabled={isSubmitting}
         >
-          {isSubmitting ? 'Saving...' : 'Lanjut'}
+          Lanjut
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

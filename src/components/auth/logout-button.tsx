@@ -20,6 +20,7 @@ export function LogoutButton() {
 
   return (
     <button
+      type='button'
       onClick={signOut}
       disabled={isLoading}
       className='mt-3 w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50'

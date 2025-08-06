@@ -1,28 +1,24 @@
-import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/api-utils';
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 
-export async function POST(request: Request) {
-  try {
-    const user = await getCurrentUser();
+const onboardingProgressSchema = z.object({
+  step: z.enum(['role', 'data-diri', 'kepribadian']),
+});
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const POST = withAuth(
+  withValidation(
+    (data: unknown) => onboardingProgressSchema.parse(data),
+    async (_request: NextRequest, { user, validatedData }) => {
+      const { step } = validatedData;
+
+      await prisma.user.update({
+        where: { id: user?.id },
+        data: { onboardingStep: step },
+      });
+
+      return createApiResponse({ success: true });
     }
-
-    const { step } = await request.json();
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { onboardingStep: step },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error updating onboarding progress:', error);
-    return NextResponse.json(
-      { error: 'Failed to update progress' },
-      { status: 500 }
-    );
-  }
-}
+  )
+);

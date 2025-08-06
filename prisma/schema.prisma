@@ -9,21 +9,49 @@ datasource db {
 }
 
 model User {
-  id             String    @id
-  name           String
-  email          String    @unique
-  emailVerified  Boolean
-  image          String?
-  createdAt      DateTime
-  updatedAt      DateTime
-  isOnboarded    Boolean   @default(false)
-  nimNpm         String?
-  role           String?
-  onboardingData Json?
-  onboardingStep String?
-  accounts       Account[]
-  sessions       Session[]
+  id                String                 @id
+  name              String
+  email             String                 @unique
+  emailVerified     Boolean
+  image             String?
+  createdAt         DateTime
+  updatedAt         DateTime
+  isOnboarded       Boolean                @default(false)
+  hasSeenWelcomeSplash Boolean             @default(false)
+  nimNpm            String?
+  role              String?
+  onboardingData    Json?
+  onboardingStep    String?
+  ei                Float?
+  gender            Gender?
+  pj                Float?
+  sn                Float?
+  tf                Float?
+  mbtiType          MBTIType?
+  personalityData   Json?
+  accounts          Account[]
+  personPreferences PersonPreference[]
+  preferredBy       PersonPreference[]     @relation("PreferredPerson")
+  personSkills      PersonSkill[]
+  sessions          Session[]
+  taskPreferences   TaskPreference[]
+  ownedTeamRequests TeamFormationRequest[] @relation("TeamRequestOwner")
+  teamMemberships   TeamMember[]
+  courses           Course[]
+  courseEnrollments CourseEnrollment[]
+  dosenTokenUsages  DosenTokenUsage[]
 
+  @@index([email])
+  @@index([role])
+  @@index([isOnboarded])
+  @@index([onboardingStep])
+  @@index([onboardingData], type: Gin)
+  @@index([mbtiType])
+  @@index([ei])
+  @@index([sn])
+  @@index([tf])
+  @@index([pj])
+  @@index([personalityData], type: Gin)
   @@map("user")
 }
 
@@ -69,4 +97,275 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model Skill {
+  id              String            @id @default(uuid())
+  name            String            @unique
+  description     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  personSkills    PersonSkill[]
+  sourceRelations SkillSimilarity[] @relation("SourceSkill")
+  targetRelations SkillSimilarity[] @relation("TargetSkill")
+  taskSkills      TaskSkill[]
+
+  @@index([name])
+  @@map("skills")
+}
+
+model PersonSkill {
+  id        String   @id @default(uuid())
+  personId  String
+  skillId   String
+  level     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  person    User     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, skillId])
+  @@index([personId])
+  @@index([skillId])
+  @@map("person_skills")
+}
+
+model PersonPreference {
+  id                String   @id @default(uuid())
+  personId          String
+  preferredPersonId String
+  preference        Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  person            User     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  preferredPerson   User     @relation("PreferredPerson", fields: [preferredPersonId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, preferredPersonId])
+  @@index([personId])
+  @@index([preferredPersonId])
+  @@map("person_preferences")
+}
+
+model SkillSimilarity {
+  id          String   @id @default(uuid())
+  sourceId    String
+  targetId    String
+  similarity  Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sourceSkill Skill    @relation("SourceSkill", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetSkill Skill    @relation("TargetSkill", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId])
+  @@index([sourceId])
+  @@index([targetId])
+  @@map("skill_similarities")
+}
+
+model Task {
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  teamSize    Int
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  preferences TaskPreference[]
+  skills      TaskSkill[]
+  teams       Team[]
+
+  @@index([teamSize])
+  @@map("tasks")
+}
+
+model TaskSkill {
+  id         String   @id @default(uuid())
+  taskId     String
+  skillId    String
+  level      Float
+  importance Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, skillId])
+  @@index([taskId])
+  @@index([skillId])
+  @@map("task_skills")
+}
+
+model TaskPreference {
+  id         String   @id @default(uuid())
+  taskId     String
+  personId   String
+  preference Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  person     User     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, personId])
+  @@index([taskId])
+  @@index([personId])
+  @@map("task_preferences")
+}
+
+model TeamFormationRequest {
+  id           String              @id @default(uuid())
+  ownerId      String
+  status       TeamFormationStatus @default(PENDING)
+  alpha        Float?
+  beta         Float?
+  gamma        Float?
+  delta        Float?
+  initRandom   Boolean             @default(false)
+  requestData  Json?
+  responseData Json?
+  errorMessage String?
+  replyPostUrl String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  completedAt  DateTime?
+  owner        User                @relation("TeamRequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  teams        Team[]
+
+  @@index([status, createdAt])
+  @@index([ownerId])
+  @@index([requestData], type: Gin)
+  @@index([responseData], type: Gin)
+  @@map("team_formation_requests")
+}
+
+model Team {
+  id                     String               @id @default(uuid())
+  teamFormationRequestId String
+  taskId                 String?
+  name                   String?
+  quality                Float?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  members                TeamMember[]
+  task                   Task?                @relation(fields: [taskId], references: [id])
+  teamFormationRequest   TeamFormationRequest @relation(fields: [teamFormationRequestId], references: [id], onDelete: Cascade)
+
+  @@index([teamFormationRequestId])
+  @@index([taskId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id               String   @id @default(uuid())
+  teamId           String
+  userId           String
+  assignedSkillIds String[]
+  createdAt        DateTime @default(now())
+  team             Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([assignedSkillIds], type: Gin)
+  @@map("team_members")
+}
+
+model Course {
+  id                   String             @id @default(uuid())
+  namaMataKuliah       String
+  kelas                String
+  tahunAwalPeriode     Int
+  tahunAkhirPeriode    Int
+  periode              String
+  dosenId              String
+  shareToken           String?            @unique @default(cuid())
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  dosen                User               @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+  enrollments          CourseEnrollment[]
+
+  @@index([dosenId])
+  @@index([tahunAwalPeriode, tahunAkhirPeriode])
+  @@index([periode])
+  @@index([shareToken])
+  @@map("courses")
+}
+
+model CourseEnrollment {
+  id         String   @id @default(uuid())
+  courseId   String
+  studentId  String
+  enrolledAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, studentId])
+  @@index([courseId])
+  @@index([studentId])
+  @@map("course_enrollments")
+}
+
+model DosenToken {
+  id          String            @id @default(uuid())
+  token       String            @unique
+  description String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  usages      DosenTokenUsage[]
+
+  @@index([token])
+  @@map("dosen_tokens")
+}
+
+model DosenTokenUsage {
+  id        String      @id @default(uuid())
+  tokenId   String
+  userId    String
+  usedAt    DateTime    @default(now())
+  createdAt DateTime    @default(now())
+  token     DosenToken  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tokenId, userId])
+  @@index([tokenId])
+  @@index([userId])
+  @@map("dosen_token_usage")
+}
+
+enum Gender {
+  FEMALE
+  MALE
+}
+
+enum TeamFormationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RoleName {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum MBTIType {
+  ENFJ
+  ENFP
+  ENTJ
+  ENTP
+  ESFJ
+  ESFP
+  ESTJ
+  ESTP
+  INFJ
+  INFP
+  INTJ
+  INTP
+  ISFJ
+  ISFP
+  ISTJ
+  ISTP
 }

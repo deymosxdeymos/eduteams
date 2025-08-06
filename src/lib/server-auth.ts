@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/api-utils';
 import { getRedirectPath, permissions } from '@/lib/authorization';
-import { ExtendedUser } from '@/lib/types';
+import type { ExtendedUser } from '@/lib/types';
 
 export async function requireAuth(): Promise<ExtendedUser> {
   const user = await getCurrentUser();
