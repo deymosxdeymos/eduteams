@@ -34,13 +34,16 @@ export function ProfileContent({ user }: ProfileContentProps) {
         <PersonalityDescription user={user} />
       </div>
       <Button
+        asChild
         variant='outline'
         className='rounded-full self-start border-2 border-black w-[19rem] h-[3rem]'
       >
-        <Smile strokeWidth={3} />
-        <p className='text-md text-stone-900 font-semibold'>
-          Lihat Persebaran MBTI
-        </p>
+        <a href='/dashboard/profile/mbti'>
+          <Smile strokeWidth={3} />
+          <p className='text-md text-stone-900 font-semibold'>
+            Lihat Persebaran MBTI
+          </p>
+        </a>
       </Button>
     </div>
   );

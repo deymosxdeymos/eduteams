@@ -680,6 +680,13 @@ export class MBTIQuestionsManager {
     try {
       questions = await this.getFromDatabase();
 
+      // If database returned zero questions, avoid long-lived caching.
+      // Cache in memory briefly and skip Redis so fresh seeds appear without restart.
+      if (questions.length === 0) {
+        this.setInMemory(cacheKey, questions, 30); // 30s short TTL
+        return questions;
+      }
+
       this.setInMemory(cacheKey, questions);
       await this.setInRedis(cacheKey, questions);
 
