@@ -1,7 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import type { MBTIType } from '@/generated/prisma';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
-import { calculatePersonalityScores } from '@/lib/personality';
+import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
 
 const completeOnboardingSchema = z.object({
@@ -30,6 +31,7 @@ export const POST = withAuth(
         sn?: number;
         tf?: number;
         pj?: number;
+        mbtiType?: MBTIType;
       } = { isOnboarded: true };
 
       // If user is mahasiswa and provided answers, calculate personality scores
@@ -40,10 +42,12 @@ export const POST = withAuth(
         }
 
         const scores = calculatePersonalityScores(numericAnswers);
+        const mbtiType = getMBTIType(scores) as MBTIType;
         updateData.ei = scores.ei;
         updateData.sn = scores.sn;
         updateData.tf = scores.tf;
         updateData.pj = scores.pj;
+        updateData.mbtiType = mbtiType;
       }
 
       // Mark user as fully onboarded and save personality data if applicable

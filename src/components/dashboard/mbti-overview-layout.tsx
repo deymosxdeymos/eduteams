@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Sparkle, X } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
 import type { MBTIType } from '@/lib/validation/personality';
@@ -12,6 +12,8 @@ import Sidebar from './sidebar';
 
 interface MBTIOverviewLayoutProps {
   user: ExtendedUser;
+  isModal?: boolean;
+  onRequestClose?: () => void;
 }
 
 const PERSONALITY_DESCRIPTIONS = {
@@ -97,8 +99,18 @@ const PERSONALITY_DESCRIPTIONS = {
   },
 };
 
-export function MBTIOverviewLayout({ user }: MBTIOverviewLayoutProps) {
-  const [selectedMBTI, setSelectedMBTI] = useState<MBTIType | null>(null);
+export function MBTIOverviewLayout({
+  user,
+  isModal = false,
+  onRequestClose,
+}: MBTIOverviewLayoutProps) {
+  const initialSelected = useMemo<MBTIType | null>(
+    () => user.mbtiType ?? null,
+    [user.mbtiType]
+  );
+  const [selectedMBTI, setSelectedMBTI] = useState<MBTIType | null>(
+    initialSelected
+  );
 
   const handleMBTIClick = (mbtiType: MBTIType) => {
     setSelectedMBTI(selectedMBTI === mbtiType ? null : mbtiType);
@@ -112,23 +124,33 @@ export function MBTIOverviewLayout({ user }: MBTIOverviewLayoutProps) {
   };
 
   return (
-    <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
-      <div className='mb-8'>
-        <Nav user={user} />
-      </div>
-      <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar />
-        <div className='px-8 pb-0 min-h-0'>
-          <div className='bg-white rounded-3xl h-full flex flex-col overflow-hidden p-8 gap-4'>
+    <main
+      className={`${isModal ? '' : 'bg-accent px-10 py-8 h-screen'} flex flex-col overflow-hidden`}
+    >
+      {!isModal && (
+        <div className='mb-8'>
+          <Nav user={user} />
+        </div>
+      )}
+      <div
+        className={`${isModal ? '' : 'grid grid-cols-[auto_1fr] flex-1 min-h-0'}`}
+      >
+        {!isModal && <Sidebar />}
+        <div className={`${isModal ? '' : 'px-8 pb-0 min-h-0'}`}>
+          <div
+            className={`bg-white rounded-3xl ${isModal ? 'h-[80vh] xl:h-[80vh]' : 'h-full'} flex flex-col overflow-hidden p-8 gap-4`}
+          >
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-4'>
-                <button
-                  onClick={() => window.history.back()}
-                  className='flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors duration-200'
-                  aria-label='Go back'
-                >
-                  <ArrowLeft className='w-6 h-6' />
-                </button>
+                {!isModal && (
+                  <button
+                    onClick={() => window.history.back()}
+                    className='flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors duration-200'
+                    aria-label='Go back'
+                  >
+                    <ArrowLeft className='w-6 h-6' />
+                  </button>
+                )}
                 <p className='text-xl text-stone-900 font-semibold'>
                   Persebaran MBTI
                 </p>
@@ -136,7 +158,11 @@ export function MBTIOverviewLayout({ user }: MBTIOverviewLayoutProps) {
               <Button
                 variant='ghost'
                 className='rounded-full'
-                onClick={() => setSelectedMBTI(null)}
+                onClick={() => {
+                  setSelectedMBTI(user.mbtiType ?? null);
+                  onRequestClose?.();
+                }}
+                aria-label='Close'
               >
                 <X className='w-6 h-6' />
               </Button>
@@ -582,39 +608,8 @@ export function MBTIOverviewLayout({ user }: MBTIOverviewLayoutProps) {
                     </div>
                   </>
                 ) : (
-                  <div className='flex flex-col items-center justify-center h-full gap-6 text-center px-8'>
-                    <div className='bg-gradient-to-br from-stone-100 to-stone-200 rounded-full p-8'>
-                      <Sparkle className='w-16 h-16 text-stone-400' />
-                    </div>
-                    <div className='space-y-2'>
-                      <h2 className='text-2xl font-bold text-stone-900'>
-                        Pilih Tipe MBTI
-                      </h2>
-                      <p className='text-stone-600 text-lg max-w-md'>
-                        Klik pada salah satu tipe kepribadian MBTI di sebelah
-                        kiri untuk melihat deskripsi lengkap dan
-                        karakteristiknya.
-                      </p>
-                    </div>
-                    <div className='grid grid-cols-2 gap-3 text-sm text-stone-500'>
-                      <div className='flex items-center gap-2'>
-                        <div className='w-3 h-3 bg-violet-500 rounded'></div>
-                        <span>Analysts</span>
-                      </div>
-                      <div className='flex items-center gap-2'>
-                        <div className='w-3 h-3 bg-emerald-500 rounded'></div>
-                        <span>Diplomats</span>
-                      </div>
-                      <div className='flex items-center gap-2'>
-                        <div className='w-3 h-3 bg-sky-500 rounded'></div>
-                        <span>Sentinels</span>
-                      </div>
-                      <div className='flex items-center gap-2'>
-                        <div className='w-3 h-3 bg-amber-500 rounded'></div>
-                        <span>Explorers</span>
-                      </div>
-                    </div>
-                  </div>
+                  // Auto-select user's MBTI when available; fallback shows nothing extra
+                  <div className='flex-1' />
                 )}
               </div>
             </div>

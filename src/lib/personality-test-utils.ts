@@ -109,14 +109,15 @@ export function scrollToFirstError(unansweredQuestions: string[]): void {
 }
 
 export function convertAnswersForSubmission(
-  questions: MBTIQuestion[],
+  _questions: MBTIQuestion[],
   answers: Record<string, number>
 ): Record<string, number> {
+  // Keep answers keyed by question ID to avoid order-based mistakes
   const convertedAnswers: Record<string, number> = {};
-  questions.forEach((question, index) => {
-    if (answers[question.id]) {
-      convertedAnswers[(index + 1).toString()] = answers[question.id];
+  for (const [qid, value] of Object.entries(answers)) {
+    if (typeof value === 'number') {
+      convertedAnswers[qid] = value;
     }
-  });
+  }
   return convertedAnswers;
 }

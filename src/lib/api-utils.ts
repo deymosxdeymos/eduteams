@@ -85,7 +85,8 @@ export function withAuth(handler: AuthenticatedHandler) {
     try {
       const session = await auth.api.getSession({
         headers: await headers(),
-      });
+        cookies: await (await import('next/headers')).cookies(),
+      } as any);
 
       if (!session?.user) {
         throw new AuthError('Authentication required');
@@ -153,11 +154,17 @@ export function withValidation<T>(
   };
 }
 
+import { cookies } from 'next/headers';
+
 export async function getCurrentUser(): Promise<ExtendedUser | null> {
   try {
+    // Prefer reading from cookies() in server actions to ensure session is detected
+    const cookieStore = await cookies();
+
     const session = await auth.api.getSession({
       headers: await headers(),
-    });
+      cookies: cookieStore,
+    } as any);
 
     if (!session?.user) {
       return null;
