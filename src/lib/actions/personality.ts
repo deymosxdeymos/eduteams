@@ -5,7 +5,11 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import type { MBTIType } from '@/generated/prisma';
 import { getCurrentUser } from '@/lib/api-utils';
-import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
+import { getMBTIQuestions } from '@/lib/mbti-questions';
+import {
+  calculatePersonalityScoresFromQuestions,
+  getMBTIType,
+} from '@/lib/personality';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
 
@@ -34,12 +38,8 @@ export async function submitPersonalityTest(
 
     const { answers } = parsedData;
 
-    const numericAnswers: Record<number, number> = {};
-    for (const [key, value] of Object.entries(answers)) {
-      numericAnswers[parseInt(key)] = value;
-    }
-
-    const scores = calculatePersonalityScores(numericAnswers);
+    const questions = await getMBTIQuestions();
+    const scores = calculatePersonalityScoresFromQuestions(answers, questions);
     const mbtiType = getMBTIType(scores);
 
     await prisma.user.update({

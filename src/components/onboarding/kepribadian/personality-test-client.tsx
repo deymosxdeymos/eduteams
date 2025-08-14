@@ -92,20 +92,16 @@ export default function PersonalityTestClient({
 
     dispatch({ type: 'SET_SUBMITTING', payload: true });
 
-    try {
-      const numericAnswers = convertAnswersForSubmission(
-        questions,
-        state.answers
-      );
+    const numericAnswers = convertAnswersForSubmission(
+      questions,
+      state.answers
+    );
 
-      const formData = new FormData();
-      formData.append('answers', JSON.stringify(numericAnswers));
+    const formData = new FormData();
+    formData.append('answers', JSON.stringify(numericAnswers));
 
-      await submitPersonalityTest(formData);
-    } catch (error) {
-      console.error('Error completing kepribadian:', error);
-      dispatch({ type: 'SET_SUBMITTING', payload: false });
-    }
+    // Do not catch here; allow server action redirect to propagate
+    await submitPersonalityTest(formData);
   };
 
   return (

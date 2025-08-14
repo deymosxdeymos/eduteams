@@ -127,3 +127,42 @@ export function getMBTIType(scores: PersonalityScores): string {
 export function clearPersonalityCache(): void {
   scoresCache.clear();
 }
+
+export function calculatePersonalityScoresFromQuestions(
+  answersById: Record<string, number>,
+  questions: Array<{ id: string; dimension: string; reversed?: boolean }>
+): PersonalityScores {
+  const totals: Record<
+    'ei' | 'sn' | 'tf' | 'pj',
+    { sum: number; count: number }
+  > = {
+    ei: { sum: 0, count: 0 },
+    sn: { sum: 0, count: 0 },
+    tf: { sum: 0, count: 0 },
+    pj: { sum: 0, count: 0 },
+  };
+
+  for (const q of questions) {
+    const dim = q.dimension.toLowerCase();
+    if (!(dim === 'ei' || dim === 'sn' || dim === 'tf' || dim === 'pj'))
+      continue;
+    const raw = answersById[q.id];
+    if (raw === undefined) continue;
+    const answer = q.reversed ? 6 - raw : raw; // 1..5 Likert
+    const normalized = (answer - 3) / 2; // -> [-1,1]
+    totals[dim].sum += normalized;
+    totals[dim].count += 1;
+  }
+
+  const mk = (sum: number, count: number) =>
+    count > 0 ? Math.max(-1, Math.min(1, sum / count)) : 0;
+
+  const scores: PersonalityScores = {
+    ei: mk(totals.ei.sum, totals.ei.count),
+    sn: mk(totals.sn.sum, totals.sn.count),
+    tf: mk(totals.tf.sum, totals.tf.count),
+    pj: mk(totals.pj.sum, totals.pj.count),
+  };
+
+  return scores;
+}

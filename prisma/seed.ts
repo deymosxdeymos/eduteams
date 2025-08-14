@@ -4,8 +4,9 @@ import { randomUUID } from 'crypto';
 
 type MBTIQuestionData = {
   text: string;
-  dimension: string;
+  dimension: 'ei' | 'sn' | 'tf' | 'pj';
   order: number;
+  reversed?: boolean;
 };
 
 const withTimestamps = <T extends object>(data: T) => ({
@@ -15,106 +16,34 @@ const withTimestamps = <T extends object>(data: T) => ({
 });
 
 const mbtiQuestions: MBTIQuestionData[] = [
-  {
-    text: 'You think judges should be merciful.',
-    dimension: 'tf',
-    order: 0,
-  },
-  {
-    text: 'You prefer open-ended activities.',
-    dimension: 'pj',
-    order: 1,
-  },
-  {
-    text: 'You prefer novel over traditional.',
-    dimension: 'sn',
-    order: 2,
-  },
-  {
-    text: 'You prefer groups to individuals.',
-    dimension: 'ei',
-    order: 3,
-  },
-  {
-    text: 'You tend to be tolerant.',
-    dimension: 'tf',
-    order: 4,
-  },
-  {
-    text: 'You work better under pressure.',
-    dimension: 'pj',
-    order: 5,
-  },
-  {
-    text: 'You are methodical.',
-    dimension: 'pj',
-    order: 6,
-  },
-  {
-    text: 'You prefer theoretical subjects.',
-    dimension: 'sn',
-    order: 7,
-  },
-  {
-    text: 'You are sociable.',
-    dimension: 'ei',
-    order: 8,
-  },
-  {
-    text: 'You prefer being curious.',
-    dimension: 'sn',
-    order: 9,
-  },
-  {
-    text: 'You are expressive.',
-    dimension: 'ei',
-    order: 10,
-  },
-  {
-    text: 'You tend to be diplomatic.',
-    dimension: 'tf',
-    order: 11,
-  },
-  {
-    text: 'You prefer abstract over specific.',
-    dimension: 'sn',
-    order: 12,
-  },
-  {
-    text: 'You are talkative.',
-    dimension: 'ei',
-    order: 13,
-  },
-  {
-    text: 'You learn better by listening.',
-    dimension: 'ei',
-    order: 14,
-  },
-  {
-    text: 'You prefer conceptual tasks.',
-    dimension: 'sn',
-    order: 15,
-  },
-  {
-    text: 'You rely on empathy when deciding.',
-    dimension: 'tf',
-    order: 16,
-  },
-  {
-    text: 'You prefer investigating over speculating.',
-    dimension: 'sn',
-    order: 17,
-  },
-  {
-    text: 'You are systematic in your routines.',
-    dimension: 'pj',
-    order: 18,
-  },
-  {
-    text: 'You prefer routine over variety.',
-    dimension: 'pj',
-    order: 19,
-  },
+  // EI 1-6
+  { text: 'You prefer groups to individuals.', dimension: 'ei', order: 1 },
+  { text: 'You are sociable.', dimension: 'ei', order: 2 },
+  { text: 'You are expressive.', dimension: 'ei', order: 3 },
+  { text: 'You learn better by listening.', dimension: 'ei', order: 4, reversed: true },
+  { text: 'You are talkative.', dimension: 'ei', order: 5 },
+  { text: 'You enjoy meeting new people.', dimension: 'ei', order: 6 },
+  // SN 7-12
+  { text: 'You prefer theoretical subjects.', dimension: 'sn', order: 7 },
+  { text: 'You prefer novel over traditional.', dimension: 'sn', order: 8 },
+  { text: 'You prefer being curious.', dimension: 'sn', order: 9, reversed: true },
+  { text: 'You prefer abstract over specific.', dimension: 'sn', order: 10 },
+  { text: 'You notice patterns more than details.', dimension: 'sn', order: 11, reversed: true },
+  { text: 'You prefer conceptual tasks.', dimension: 'sn', order: 12 },
+  // TF 13-18
+  { text: 'You think judges should be merciful.', dimension: 'tf', order: 13 },
+  { text: 'You tend to be diplomatic.', dimension: 'tf', order: 14, reversed: true },
+  { text: 'You rely on empathy when deciding.', dimension: 'tf', order: 15, reversed: true },
+  { text: 'You prioritize fairness over harmony.', dimension: 'tf', order: 16 },
+  { text: 'You value logic over emotions.', dimension: 'tf', order: 17, reversed: true },
+  { text: 'You consider others’ feelings when judging.', dimension: 'tf', order: 18 },
+  // PJ 19-24
+  { text: 'You are systematic in your routines.', dimension: 'pj', order: 19 },
+  { text: 'You prefer routine over variety.', dimension: 'pj', order: 20, reversed: true },
+  { text: 'You work better under pressure.', dimension: 'pj', order: 21 },
+  { text: 'You are methodical.', dimension: 'pj', order: 22, reversed: true },
+  { text: 'You prefer open-ended activities.', dimension: 'pj', order: 23, reversed: true },
+  { text: 'You like to plan ahead.', dimension: 'pj', order: 24 },
 ];
 
 async function seedMBTIQuestions() {
@@ -134,7 +63,7 @@ async function seedMBTIQuestions() {
           data: withTimestamps({
             id: randomUUID(),
             name: `MBTI Question ${questionData.order}`,
-            description: `${questionData.text} (${questionData.dimension.toUpperCase()} dimension)`,
+            description: `${questionData.text} (${questionData.dimension.toUpperCase()} dimension${questionData.reversed ? ', reversed' : ''})`,
           }),
           select: {
             id: true,
