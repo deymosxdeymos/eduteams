@@ -8,12 +8,22 @@ interface StudentClassPageLayoutProps {
   classId: string;
   user: ExtendedUser;
   course: Course;
+  studentsData?: Student[];
+}
+
+interface Student {
+  id: string;
+  name: string;
+  nim: string;
+  email: string;
+  mbtiType?: string | null;
 }
 
 export function StudentClassPageLayout({
   classId,
   user,
   course,
+  studentsData = [],
 }: StudentClassPageLayoutProps) {
   return (
     <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
@@ -24,7 +34,11 @@ export function StudentClassPageLayout({
         <Sidebar />
         <div className='px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'>
           <StudentClassAssignments classId={classId} />
-          <StudentList classId={classId} />
+          <StudentList
+            classId={classId}
+            initialData={studentsData}
+            currentUserId={user.id}
+          />
         </div>
       </div>
     </main>

@@ -1,9 +1,10 @@
 'use client';
 
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserRound } from 'lucide-react';
 import Image from 'next/image';
-import { useTransition } from 'react';
+import { useId, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import {
@@ -56,6 +57,8 @@ export default function DataDiriFormClient({
   role,
   initialData,
 }: DataDiriFormClientProps) {
+  const formId = 'data-diri-form';
+  const genderLabelId = useId();
   const [isPending, startTransition] = useTransition();
   const formSchema = createFormSchema(role);
   type FormData = z.infer<typeof formSchema>;
@@ -96,7 +99,7 @@ export default function DataDiriFormClient({
   return (
     <Form {...form}>
       <form
-        id='data-diri-form'
+        id={formId}
         onSubmit={form.handleSubmit(handleSubmit)}
         className='space-y-8 w-full max-w-2xl'
       >
@@ -174,7 +177,7 @@ export default function DataDiriFormClient({
           render={({ field }) => (
             <FormItem>
               <FormLabel
-                id='gender-label'
+                id={genderLabelId}
                 className='text-black text-xl font-normal'
               >
                 Jenis Kelamin

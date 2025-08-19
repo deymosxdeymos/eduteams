@@ -325,10 +325,10 @@ describe('Personality Feature Integration Tests', () => {
     it('should calculate correct MBTI type for extreme scores', () => {
       // Test all extreme combinations
       const extremeTests = [
-        { scores: { ei: 1, sn: 1, tf: 1, pj: 1 }, expectedType: 'INFP' },
-        { scores: { ei: -1, sn: -1, tf: -1, pj: -1 }, expectedType: 'ESTJ' },
-        { scores: { ei: 1, sn: -1, tf: 1, pj: -1 }, expectedType: 'ISFJ' },
-        { scores: { ei: -1, sn: 1, tf: -1, pj: 1 }, expectedType: 'ENTP' },
+        { scores: { ei: 1, sn: 1, tf: 1, pj: 1 }, expectedType: 'ENFP' },
+        { scores: { ei: -1, sn: -1, tf: -1, pj: -1 }, expectedType: 'ISTJ' },
+        { scores: { ei: 1, sn: -1, tf: 1, pj: -1 }, expectedType: 'ESFJ' },
+        { scores: { ei: -1, sn: 1, tf: -1, pj: 1 }, expectedType: 'INTP' },
       ];
 
       extremeTests.forEach(({ scores, expectedType }) => {

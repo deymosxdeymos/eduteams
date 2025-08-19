@@ -125,7 +125,7 @@ export function calculateMBTIFromScores(scores: PersonalityScores): MBTIType {
   const { ei, sn, tf, pj } = scores;
 
   const dimensions = [
-    ei < 0 ? 'E' : 'I',
+    ei < 0 ? 'I' : 'E',
     sn < 0 ? 'S' : 'N',
     tf < 0 ? 'T' : 'F',
     pj < 0 ? 'J' : 'P',

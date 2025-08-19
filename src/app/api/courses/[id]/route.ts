@@ -11,6 +11,9 @@ import {
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
+// Cache for 10 minutes since course data doesn't change frequently
+export const revalidate = 600;
+
 type CourseWithDosen = {
   id: string;
   namaMataKuliah: string;

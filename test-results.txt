@@ -1,0 +1,842 @@
+bun test v1.2.20 (6ad208bc)
+
+__tests__/middleware.test.ts:
+(pass) Middleware > Static Asset Handling > should skip middleware for _next paths
+(pass) Middleware > Static Asset Handling > should skip middleware for API routes [1.00ms]
+(pass) Middleware > Static Asset Handling > should skip middleware for static assets
+(pass) Middleware > Static Asset Handling > should skip middleware for files with extensions
+(pass) Middleware > Static Asset Handling > should skip middleware for favicon
+(pass) Middleware > Authentication Detection > should redirect authenticated users from homepage to resume
+(pass) Middleware > Authentication Detection > should detect unauthenticated users
+(pass) Middleware > Homepage Redirect Logic > should redirect authenticated users from homepage to resume
+(pass) Middleware > Homepage Redirect Logic > should allow unauthenticated users to stay on homepage
+(pass) Middleware > Auth Routes Handling > should redirect authenticated users from login to dashboard
+(pass) Middleware > Auth Routes Handling > should redirect authenticated users from register to dashboard
+(pass) Middleware > Auth Routes Handling > should allow unauthenticated users to access login
+(pass) Middleware > Auth Routes Handling > should allow unauthenticated users to access register [1.00ms]
+(pass) Middleware > Protected Routes > should redirect unauthenticated users from dashboard to homepage
+(pass) Middleware > Protected Routes > should redirect unauthenticated users from onboarding to homepage
+(pass) Middleware > Protected Routes > should allow authenticated users to access dashboard
+(pass) Middleware > Protected Routes > should allow authenticated users to access onboarding
+(pass) Middleware > Public Routes > should allow access to homepage for both authenticated and unauthenticated users
+(pass) Middleware > Edge Cases > should handle missing session token cookie [1.00ms]
+(pass) Middleware > Edge Cases > should handle empty session token
+(pass) Middleware > Edge Cases > should handle malformed URLs gracefully
+(pass) Middleware > Edge Cases > should handle deep nested onboarding paths
+(pass) Middleware > Edge Cases > should handle resume page correctly [1.00ms]
+(pass) Middleware > Route Matching > should process paths that match the matcher pattern
+(pass) Middleware > Route Matching > should skip paths that do not match the matcher pattern
+
+__tests__/api/onboarding-progress.test.ts:
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:55:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:43:57)
+
+53 |       );
+54 | 
+55 |       const response = await POST(request);
+56 |       const data = await response.json();
+57 | 
+58 |       expect(response.status).toBe(401);
+                                   ^
+error: expect(received).toBe(expected)
+
+Expected: 401
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:58:31)
+(fail) POST /api/user/onboarding-progress > Authentication > should return 401 for unauthenticated users [7.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:85:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:63:60)
+
+83 |       );
+84 | 
+85 |       const response = await POST(request);
+86 |       const data = await response.json();
+87 | 
+88 |       expect(response.status).toBe(200);
+                                   ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:88:31)
+(fail) POST /api/user/onboarding-progress > Authentication > should process request for authenticated users [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:126:32)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:114:13)
+
+124 |         );
+125 | 
+126 |         const response = await POST(request);
+127 |         const data = await response.json();
+128 | 
+129 |         expect(response.status).toBe(200);
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:129:33)
+(fail) POST /api/user/onboarding-progress > Step Validation > should accept valid step value: role
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:126:32)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:114:13)
+
+124 |         );
+125 | 
+126 |         const response = await POST(request);
+127 |         const data = await response.json();
+128 | 
+129 |         expect(response.status).toBe(200);
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:129:33)
+(fail) POST /api/user/onboarding-progress > Step Validation > should accept valid step value: data-diri
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:126:32)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:114:13)
+
+124 |         );
+125 | 
+126 |         const response = await POST(request);
+127 |         const data = await response.json();
+128 | 
+129 |         expect(response.status).toBe(200);
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:129:33)
+(fail) POST /api/user/onboarding-progress > Step Validation > should accept valid step value: kepribadian
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:148:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:138:58)
+
+146 |       );
+147 | 
+148 |       const response = await POST(request);
+149 |       const data = await response.json();
+150 | 
+151 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:151:31)
+(fail) POST /api/user/onboarding-progress > Step Validation > should handle invalid step values gracefully
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:169:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:159:54)
+
+167 |       );
+168 | 
+169 |       const response = await POST(request);
+170 |       const data = await response.json();
+171 | 
+172 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:172:31)
+(fail) POST /api/user/onboarding-progress > Step Validation > should handle null/undefined step values
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:209:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:195:54)
+
+208 | 
+209 |       const response = await POST(request);
+210 |       const data = await response.json();
+211 | 
+212 |       expect(response.status).toBe(500);
+213 |       expect(data.error).toBe('Failed to update progress');
+                               ^
+error: expect(received).toBe(expected)
+
+Expected: "Failed to update progress"
+Received: "`headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context"
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:213:26)
+(fail) POST /api/user/onboarding-progress > Error Handling > should handle database errors gracefully [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:226:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:216:53)
+
+225 | 
+226 |       const response = await POST(request);
+227 |       const data = await response.json();
+228 | 
+229 |       expect(response.status).toBe(500);
+230 |       expect(data.error).toBe('Failed to update progress');
+                               ^
+error: expect(received).toBe(expected)
+
+Expected: "Failed to update progress"
+Received: "`headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context"
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:230:26)
+(fail) POST /api/user/onboarding-progress > Error Handling > should handle malformed JSON gracefully [1.00ms]
+(skip) POST /api/user/onboarding-progress > Error Handling > should handle rate limiting
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:252:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:238:49)
+
+251 | 
+252 |       const response = await POST(request);
+253 |       const data = await response.json();
+254 | 
+255 |       expect(response.status).toBe(500);
+256 |       expect(data.error).toBe('Failed to update progress');
+                               ^
+error: expect(received).toBe(expected)
+
+Expected: "Failed to update progress"
+Received: "`headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context"
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:256:26)
+(fail) POST /api/user/onboarding-progress > Error Handling > should handle getCurrentUser errors
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:285:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:275:46)
+
+283 |       );
+284 | 
+285 |       const response = await POST(request);
+286 |       const data = await response.json();
+287 | 
+288 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:288:31)
+(fail) POST /api/user/onboarding-progress > Edge Cases > should handle empty request body [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:314:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:296:51)
+
+312 |       );
+313 | 
+314 |       const response = await POST(request);
+315 |       const data = await response.json();
+316 | 
+317 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:317:31)
+(fail) POST /api/user/onboarding-progress > Edge Cases > should handle already onboarded users
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:347:9)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:325:46)
+
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:348:9)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:325:46)
+
+351 |       const [data1, data2] = await Promise.all([
+352 |         response1.json(),
+353 |         response2.json(),
+354 |       ]);
+355 | 
+356 |       expect(response1.status).toBe(200);
+                                     ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-progress.test.ts:356:32)
+AssertionError: expected 6 assertions, but test ended with 1 assertions
+(fail) POST /api/user/onboarding-progress > Edge Cases > should handle concurrent updates [1.00ms]
+
+__tests__/api/onboarding-status.test.ts:
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:35:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:32:55)
+
+33 |       mockGetCurrentUser.mockResolvedValue(null);
+34 | 
+35 |       const response = await GET();
+36 |       const data = await response.json();
+37 | 
+38 |       expect(response.status).toBe(401);
+                                   ^
+error: expect(received).toBe(expected)
+
+Expected: 401
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:38:31)
+(fail) GET /api/user/onboarding-status > Authentication > should return 401 for unauthenticated users [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:55:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:43:57)
+
+53 |       mockGetCurrentUser.mockResolvedValue(mockUser);
+54 | 
+55 |       const response = await GET();
+56 |       const data = await response.json();
+57 | 
+58 |       expect(data.redirectUrl).toBe('/onboarding/role');
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: "/onboarding/role"
+Received: undefined
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:58:32)
+(fail) GET /api/user/onboarding-status > Authentication > should handle missing role for data-diri step
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:68:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:63:47)
+
+67 | 
+68 |       const response = await GET();
+69 |       const data = await response.json();
+70 | 
+71 |       expect(response.status).toBe(500);
+72 |       expect(data.error).toBe('Internal server error');
+                              ^
+error: expect(received).toBe(expected)
+
+Expected: "Internal server error"
+Received: "`headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context"
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:72:26)
+(fail) GET /api/user/onboarding-status > Error Handling > should handle getCurrentUser errors
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at headers (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/headers.js:93:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:92:24)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:89:17)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:80:30)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:75:54)
+
+79 | 
+80 |       const response = await GET();
+81 |       const data = await response.json();
+82 | 
+83 |       expect(response.status).toBe(500);
+84 |       expect(data.error).toBe('Internal server error');
+                              ^
+error: expect(received).toBe(expected)
+
+Expected: "Internal server error"
+Received: "`headers` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context"
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/onboarding-status.test.ts:84:26)
+(fail) GET /api/user/onboarding-status > Error Handling > should handle unexpected errors gracefully [1.00ms]
+
+__tests__/api/personality.test.ts:
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+45 |       });
+46 | 
+47 |       const response = await POST(request);
+48 |       const data = await response.json();
+49 | 
+50 |       expect(response.status).toBe(401);
+                                   ^
+error: expect(received).toBe(expected)
+
+Expected: 401
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:50:31)
+(fail) POST /api/user/personality > Authentication > should return 401 for unauthenticated users [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+86 |       });
+87 | 
+88 |       const response = await POST(request);
+89 |       const data = await response.json();
+90 | 
+91 |       expect(response.status).toBe(200);
+                                   ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:91:31)
+(fail) POST /api/user/personality > Authentication > should process request for authenticated users [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+112 |       });
+113 | 
+114 |       const response = await POST(request);
+115 |       const data = await response.json();
+116 | 
+117 |       expect(response.status).toBe(400);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 400
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:117:31)
+(fail) POST /api/user/personality > Input Validation > should reject invalid answer values [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+128 |       });
+129 | 
+130 |       const response = await POST(request);
+131 |       const data = await response.json();
+132 | 
+133 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:133:31)
+(fail) POST /api/user/personality > Input Validation > should accept valid answer format
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+142 |       });
+143 | 
+144 |       const response = await POST(request);
+145 |       const data = await response.json();
+146 | 
+147 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:147:31)
+(fail) POST /api/user/personality > Input Validation > should handle empty answers object [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+168 |       });
+169 | 
+170 |       const response = await POST(request);
+171 |       const data = await response.json();
+172 | 
+173 |       expect(response.status).toBe(400);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 400
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:173:31)
+(fail) POST /api/user/personality > Error Handling > should handle database errors gracefully [1.00ms]
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+182 |       });
+183 | 
+184 |       const response = await POST(request);
+185 |       const data = await response.json();
+186 | 
+187 |       expect(response.status).toBe(400);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 400
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:187:31)
+(fail) POST /api/user/personality > Error Handling > should handle malformed JSON
+API Error: 76 |             const _exhaustiveCheck = workUnitStore;
+77 |             return _exhaustiveCheck;
+78 |     }
+79 | }
+80 | function throwForMissingRequestStore(callingExpression) {
+81 |     throw Object.defineProperty(new Error(`\`${callingExpression}\` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context`), "__NEXT_ERROR_CODE", {
+                                     ^
+error: `cookies` was called outside a request scope. Read more: https://nextjs.org/docs/messages/next-dynamic-api-wrong-context
+      at throwForMissingRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:81:33)
+      at getExpectedRequestStore (/home/deymos/Developer/eduteams/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js:48:9)
+      at cookies (/home/deymos/Developer/eduteams/node_modules/next/dist/server/request/cookies.js:95:60)
+      at <anonymous> (/home/deymos/Developer/eduteams/src/lib/api-utils.ts:93:55)
+
+225 |       });
+226 | 
+227 |       const response = await POST(request);
+228 |       const data = await response.json();
+229 | 
+230 |       expect(response.status).toBe(200);
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 500
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/api/personality.test.ts:230:31)
+(fail) POST /api/user/personality > Score Calculation > should calculate and save correct personality scores
+
+__tests__/components/personality-test-client.test.tsx:
+(pass) PersonalityTestClient > Initial Render > should render with instruction modal open [52.00ms]
+(pass) PersonalityTestClient > Initial Render > should display first page of questions after closing modal [26.00ms]
+(pass) PersonalityTestClient > Initial Render > should display correct progress and page info [18.00ms]
+(pass) PersonalityTestClient > Question Interaction > should handle answer selection [21.00ms]
+(pass) PersonalityTestClient > Question Interaction > should clear validation errors when answering [19.00ms]
+(pass) PersonalityTestClient > Question Interaction > should allow changing answers [17.00ms]
+(pass) PersonalityTestClient > Navigation > should not advance to next page if validation fails [18.00ms]
+(pass) PersonalityTestClient > Navigation > should advance to next page when all questions answered [39.00ms]
+(pass) PersonalityTestClient > Navigation > should go back to previous page [44.00ms]
+(pass) PersonalityTestClient > Navigation > should navigate to previous route when on first page [13.00ms]
+(pass) PersonalityTestClient > Form Submission > should show "Selesai" button on last page [39.00ms]
+(pass) PersonalityTestClient > Form Submission > should validate all questions before submitting [35.00ms]
+463 |       // Check the submitted data structure
+464 |       const submittedData = mockSubmitPersonalityTest.mock.calls[0][0];
+465 |       const answersJson = submittedData.get('answers');
+466 |       const answers = JSON.parse(answersJson);
+467 | 
+468 |       expect(answers).toEqual({
+                            ^
+error: expect(received).toEqual(expected)
+
+  {
+-   "1": 3,
+-   "2": 4,
+-   "3": 2,
+-   "4": 5,
+-   "5": 1,
+-   "6": 2,
+-   "7": 3,
+-   "8": 4,
++   "q1": 3,
++   "q2": 4,
++   "q3": 2,
++   "q4": 5,
++   "q5": 1,
++   "q6": 2,
++   "q7": 3,
++   "q8": 4,
+  }
+
+- Expected  - 8
++ Received  + 8
+
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/components/personality-test-client.test.tsx:468:23)
+(fail) PersonalityTestClient > Form Submission > should submit when all questions answered [37.00ms]
+(pass) PersonalityTestClient > Form Submission > should show loading state during submission [26.00ms]
+513 |       const consoleErrorSpy = mock(() => {});
+514 |       const originalConsoleError = console.error;
+515 |       console.error = consoleErrorSpy;
+516 | 
+517 |       mockSubmitPersonalityTest.mockRejectedValue(
+518 |         new Error('Submission failed')
+              ^
+error: Submission failed
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/components/personality-test-client.test.tsx:518:9)
+      at <anonymous> (/home/deymos/Developer/eduteams/__tests__/components/personality-test-client.test.tsx:512:56)
+(fail) PersonalityTestClient > Form Submission > should handle submission errors gracefully [30.00ms]
+(pass) PersonalityTestClient > Accessibility and UX > should have proper ARIA attributes [8.00ms]
+(pass) PersonalityTestClient > Accessibility and UX > should show validation errors when trying to advance without answers [10.00ms]
+(pass) PersonalityTestClient > Edge Cases > should handle empty questions array [4.00ms]
+(pass) PersonalityTestClient > Edge Cases > should handle single question [6.00ms]
+(pass) PersonalityTestClient > Edge Cases > should preserve state across page navigation [32.00ms]

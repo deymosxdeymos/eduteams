@@ -19,7 +19,7 @@ const DIMENSION_RANGES = [
 ] as const;
 
 const MBTI_LETTERS = [
-  ['E', 'I'] as const,
+  ['I', 'E'] as const,
   ['S', 'N'] as const,
   ['T', 'F'] as const,
   ['J', 'P'] as const,
