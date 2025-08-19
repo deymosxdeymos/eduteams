@@ -34,7 +34,6 @@
     "src/generated/prisma",
     "__tests__/**/*",
     "**/*.test.ts",
-    "**/*.test.tsx",
-    "types/bun-test.d.ts"
+    "**/*.test.tsx"
   ]
 }

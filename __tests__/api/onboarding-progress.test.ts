@@ -1,39 +1,56 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
-// Mock NextResponse - MUST be before imports
+// Create mock functions first
+const mockGetCurrentUser = mock();
+const mockPrismaUpdate = mock();
+
+// Mock NextResponse - MUST be before imports  
 mock.module('next/server', () => ({
   NextResponse: {
-    json: mock((data: any, options?: any) => {
-      return {
-        json: async () => data,
-        status: options?.status || 200,
-        headers: new Headers(),
-      };
+    json: (data: any, options?: any) => ({
+      json: async () => data,
+      status: options?.status || 200,
+      headers: new Headers(),
     }),
   },
 }));
 
 // Mock dependencies
 mock.module('@/lib/api-utils', () => ({
-  getCurrentUser: mock(),
+  getCurrentUser: mockGetCurrentUser,
+  createApiResponse: (data: any) => ({
+    json: async () => ({ success: true, data }),
+    status: 200,
+    headers: new Headers(),
+  }),
+  handleApiError: (error: any) => ({
+    json: async () => ({ success: false, error: error.message }),
+    status: error.status || 500,
+    headers: new Headers(),
+  }),
 }));
 
 mock.module('@/lib/prisma', () => ({
   default: {
     user: {
-      update: mock(),
+      update: mockPrismaUpdate,
     },
   },
 }));
 
+// Mock types
+mock.module('@/lib/types', () => ({
+  HttpError: class HttpError extends Error {
+    constructor(public status: number, message: string, public code?: string) {
+      super(message);
+      this.name = 'HttpError';
+    }
+  },
+}));
+
 import { POST } from '@/app/api/user/onboarding-progress/route';
-import { getCurrentUser } from '@/lib/api-utils';
-import prisma from '@/lib/prisma';
 
 describe('POST /api/user/onboarding-progress', () => {
-  const mockGetCurrentUser = getCurrentUser as any;
-  const mockPrismaUpdate = prisma.user.update as any;
-
   beforeEach(() => {
     mockGetCurrentUser.mockReset();
     mockPrismaUpdate.mockReset();

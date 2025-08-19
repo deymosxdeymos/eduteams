@@ -38,7 +38,7 @@ export const POST = withAuth(
       if (currentUser.role === 'mahasiswa' && answers) {
         const numericAnswers: Record<number, number> = {};
         for (const [key, value] of Object.entries(answers)) {
-          numericAnswers[parseInt(key)] = value;
+          numericAnswers[parseInt(key, 10)] = value;
         }
 
         const scores = calculatePersonalityScores(numericAnswers);

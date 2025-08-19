@@ -4,13 +4,18 @@ import { ArrowLeft, Plus, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
-import type { Course } from '@/lib/types';
 import { EmptyAssignmentState } from './empty-assignment-state';
 import { ShareClassModal } from './share-class-modal';
 
 interface ClassAssignmentsProps {
   classId: string;
   dosenId?: string;
+  courseData?: {
+    id: string;
+    namaMataKuliah: string;
+    kelas: string;
+    shareToken?: string | null;
+  };
 }
 
 const fetcher = async (url: string) => {
@@ -19,11 +24,19 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-export function ClassAssignments({ classId }: ClassAssignmentsProps) {
+export function ClassAssignments({
+  classId,
+  courseData,
+}: ClassAssignmentsProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const { data: classData, error } = useSWR(`/api/courses/${classId}`, fetcher);
 
-  const course: Course = classData?.data;
+  // Use courseData if provided, otherwise fetch via SWR
+  const { data: classData, error } = useSWR(
+    courseData ? null : `/api/courses/${classId}`,
+    fetcher
+  );
+
+  const course = courseData || classData?.data;
 
   if (error) {
     console.error('Failed to load class:', error);
