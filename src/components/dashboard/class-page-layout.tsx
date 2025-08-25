@@ -1,4 +1,5 @@
 import type { Course, ExtendedUser } from '@/lib/types';
+import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { ClassAssignments } from './class-assignments';
 import Nav from './nav';
 import Sidebar from './sidebar';
@@ -17,6 +18,7 @@ interface ClassPageLayoutProps {
   dosenId: string;
   user: ExtendedUser;
   course: Course;
+  initialAssignments?: AssignmentResponse[];
   studentsData?: StudentData[];
 }
 
@@ -25,6 +27,7 @@ export function ClassPageLayout({
   dosenId,
   user,
   course,
+  initialAssignments,
   studentsData,
 }: ClassPageLayoutProps) {
   return (
@@ -39,11 +42,14 @@ export function ClassPageLayout({
             classId={classId}
             dosenId={dosenId}
             courseData={course}
+            initialAssignments={initialAssignments}
+            studentCount={studentsData?.length ?? 0}
           />
           <StudentList
             classId={classId}
             initialData={studentsData}
             currentUserId={user.id}
+            canManage={user.role === 'dosen' && user.id === dosenId}
           />
         </div>
       </div>

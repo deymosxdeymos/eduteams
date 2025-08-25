@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import Logo from '@/components/logo';
+import { Button } from '@/components/ui/button';
 
 export default function JoinClassError({
   error,
@@ -41,7 +41,9 @@ export default function JoinClassError({
             </Button>
 
             <Button
-              onClick={() => (window.location.href = '/dashboard')}
+              onClick={() => {
+                window.location.href = '/dashboard';
+              }}
               variant='outline'
               className='w-full'
               size='lg'

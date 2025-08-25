@@ -14,10 +14,10 @@ export async function POST(request: NextRequest) {
       throw new HttpError(401, 'Unauthorized');
     }
 
-    let body;
+    let body: { step?: string };
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return handleApiError(new HttpError(500, 'Failed to update progress'));
     }
 
