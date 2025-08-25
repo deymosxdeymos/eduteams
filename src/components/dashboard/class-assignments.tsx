@@ -3,6 +3,7 @@
 import { ArrowLeft, Calendar, Plus, Search, Share2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
@@ -49,6 +50,7 @@ export function ClassAssignments({
   initialAssignments,
   studentCount = 0,
 }: ClassAssignmentsProps) {
+  const router = useRouter();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCreateAssignmentModalOpen, setIsCreateAssignmentModalOpen] =
     useState(false);
@@ -166,7 +168,20 @@ export function ClassAssignments({
                 {filteredAssignments.map(a => (
                   <div
                     key={a.id}
-                    className='border rounded-2xl p-4 bg-white shadow-sm'
+                    className='border rounded-2xl p-4 bg-white shadow-sm cursor-pointer'
+                    role='button'
+                    tabIndex={0}
+                    onClick={() =>
+                      router.push(`/dashboard/class/${classId}/assignments/${a.id}`)
+                    }
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(
+                          `/dashboard/class/${classId}/assignments/${a.id}`
+                        );
+                      }
+                    }}
                   >
                     <div className='flex items-start justify-between gap-3'>
                       {(() => {

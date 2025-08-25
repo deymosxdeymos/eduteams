@@ -13,6 +13,7 @@ import Sidebar from './sidebar';
 interface MBTIOverviewLayoutProps {
   user: ExtendedUser;
   isModal?: boolean;
+  isCompact?: boolean;
   onRequestClose?: () => void;
 }
 
@@ -102,6 +103,7 @@ const PERSONALITY_DESCRIPTIONS = {
 export function MBTIOverviewLayout({
   user,
   isModal = false,
+  isCompact = false,
   onRequestClose,
 }: MBTIOverviewLayoutProps) {
   const initialSelected = useMemo<MBTIType | null>(
@@ -138,7 +140,7 @@ export function MBTIOverviewLayout({
         {!isModal && <Sidebar />}
         <div className={`${isModal ? '' : 'px-8 pb-0 min-h-0'}`}>
           <div
-            className={`bg-white rounded-3xl ${isModal ? 'h-[80vh] xl:h-[80vh]' : 'h-full'} flex flex-col overflow-hidden p-8 gap-4`}
+            className={`bg-white rounded-3xl ${isModal ? 'h-full' : 'h-full'} flex flex-col overflow-hidden ${isCompact ? 'p-6 gap-1' : 'p-4 gap-2'}`}
           >
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-4'>
@@ -167,31 +169,33 @@ export function MBTIOverviewLayout({
                 <X className='w-6 h-6' />
               </Button>
             </div>
-            <div className='flex gap-x-8 h-full'>
+            <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-4'} h-full`}>
               {/* mbti list stuff */}
-              <div className='flex flex-col gap-y-12 flex-shrink-0'>
+              <div className={`flex flex-col gap-y-6 flex-shrink-0`}>
                 {/* purple */}
-                <div className='flex gap-x-6'>
+                <div className={`flex gap-x-3`}>
                   <div
                     onClick={() => handleMBTIClick('INTJ')}
                     onKeyDown={e => handleKeyDown(e, 'INTJ')}
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INTJ'}
-                    className={`bg-violet-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
                       selectedMBTI === 'INTJ'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-violet-600 text-3xl font-bold z-10 relative '>
+                    <p
+                      className={`text-violet-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       INTJ
                     </p>
                     <Image
                       src='/mbti-list/INTJ.svg'
                       alt='INTJ'
-                      width={100}
-                      height={100}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -201,20 +205,22 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INTP'}
-                    className={`bg-violet-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
                       selectedMBTI === 'INTP'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-violet-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-violet-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       INTP
                     </p>
                     <Image
                       src='/mbti-list/INTP.svg'
                       alt='INTP'
-                      width={120}
-                      height={120}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -224,20 +230,22 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENTJ'}
-                    className={`bg-violet-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
                       selectedMBTI === 'ENTJ'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-violet-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-violet-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ENTJ
                     </p>
                     <Image
                       src='/mbti-list/ENTJ.svg'
                       alt='ENTJ'
-                      width={120}
-                      height={120}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -247,46 +255,50 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENTP'}
-                    className={`bg-violet-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
                       selectedMBTI === 'ENTP'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-violet-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-violet-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ENTP
                     </p>
                     <Image
                       src='/mbti-list/ENTP.svg'
                       alt='ENTP'
-                      width={120}
-                      height={120}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                 </div>
                 {/* green */}
-                <div className='flex gap-x-6'>
+                <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-3'}`}>
                   <div
                     onClick={() => handleMBTIClick('INFJ')}
                     onKeyDown={e => handleKeyDown(e, 'INFJ')}
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INFJ'}
-                    className={`bg-emerald-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-emerald-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
                       selectedMBTI === 'INFJ'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-emerald-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-green-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       INFJ
                     </p>
                     <Image
                       src='/mbti-list/INFJ.svg'
                       alt='INFJ'
-                      width={110}
-                      height={110}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -296,20 +308,22 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INFP'}
-                    className={`bg-emerald-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-emerald-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
                       selectedMBTI === 'INFP'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-emerald-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-green-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       INFP
                     </p>
                     <Image
                       src='/mbti-list/INFP.svg'
                       alt='INFP'
-                      width={120}
-                      height={120}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -319,20 +333,22 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENFJ'}
-                    className={`bg-emerald-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-emerald-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
                       selectedMBTI === 'ENFJ'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-emerald-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-green-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ENFJ
                     </p>
                     <Image
                       src='/mbti-list/ENFJ.svg'
                       alt='ENFJ'
-                      width={120}
-                      height={120}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -342,46 +358,50 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENFP'}
-                    className={`bg-emerald-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-emerald-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
                       selectedMBTI === 'ENFP'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-emerald-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-green-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ENFP
                     </p>
                     <Image
                       src='/mbti-list/ENFP.svg'
                       alt='ENFP'
-                      width={120}
-                      height={120}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                 </div>
                 {/* blue */}
-                <div className='flex gap-x-6'>
+                <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-3'}`}>
                   <div
                     onClick={() => handleMBTIClick('ISTJ')}
                     onKeyDown={e => handleKeyDown(e, 'ISTJ')}
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISTJ'}
-                    className={`bg-sky-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-sky-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
                       selectedMBTI === 'ISTJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-sky-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-blue-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ISTJ
                     </p>
                     <Image
                       src='/mbti-list/ISTJ.svg'
                       alt='ISTJ'
-                      width={110}
-                      height={110}
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
                       className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
@@ -391,21 +411,23 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISFJ'}
-                    className={`bg-sky-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-sky-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
                       selectedMBTI === 'ISFJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-sky-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-blue-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ISFJ
                     </p>
                     <Image
                       src='/mbti-list/ISFJ.svg'
                       alt='ISFJ'
-                      width={120}
-                      height={120}
-                      className='absolute -right-0 -bottom-1 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                   <div
@@ -414,21 +436,23 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESTJ'}
-                    className={`bg-sky-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-sky-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
                       selectedMBTI === 'ESTJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-sky-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-blue-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ESTJ
                     </p>
                     <Image
                       src='/mbti-list/ESTJ.svg'
                       alt='ESTJ'
-                      width={110}
-                      height={110}
-                      className='absolute -right-0 -bottom-0 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                   <div
@@ -437,47 +461,51 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESFJ'}
-                    className={`bg-sky-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-sky-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
                       selectedMBTI === 'ESFJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-sky-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-blue-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ESFJ
                     </p>
                     <Image
                       src='/mbti-list/ESFJ.svg'
                       alt='ESFJ'
-                      width={110}
-                      height={110}
-                      className='absolute -right-0 -bottom-0 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                 </div>
                 {/* amber */}
-                <div className='flex gap-x-6'>
+                <div className='flex gap-x-2'>
                   <div
                     onClick={() => handleMBTIClick('ISTP')}
                     onKeyDown={e => handleKeyDown(e, 'ISTP')}
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISTP'}
-                    className={`bg-amber-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-amber-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
                       selectedMBTI === 'ISTP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-amber-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-orange-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ISTP
                     </p>
                     <Image
                       src='/mbti-list/ISTP.svg'
                       alt='ISTP'
-                      width={110}
-                      height={110}
-                      className='absolute -right-0 -bottom-0 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                   <div
@@ -486,21 +514,23 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISFP'}
-                    className={`bg-amber-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-amber-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
                       selectedMBTI === 'ISFP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-amber-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-orange-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ISFP
                     </p>
                     <Image
                       src='/mbti-list/ISFP.svg'
                       alt='ISFP'
-                      width={110}
-                      height={110}
-                      className='absolute -right-0 -bottom-0 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                   <div
@@ -509,21 +539,23 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESTP'}
-                    className={`bg-amber-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-amber-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
                       selectedMBTI === 'ESTP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-amber-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-orange-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ESTP
                     </p>
                     <Image
                       src='/mbti-list/ESTP.svg'
                       alt='ESTP'
-                      width={110}
-                      height={110}
-                      className='absolute -right-0 -bottom-0 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                   <div
@@ -532,21 +564,23 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESFP'}
-                    className={`bg-amber-100 pt-3 pl-2 rounded-xl text-start relative overflow-hidden w-30 h-30 cursor-pointer transition-all duration-200 hover:border-3 hover:border-amber-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
                       selectedMBTI === 'ESFP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
                     }`}
                   >
-                    <p className='text-amber-600 text-3xl font-bold z-10 relative'>
+                    <p
+                      className={`text-orange-600 ${isCompact ? 'text-2xl' : 'text-3xl'} font-bold z-10 relative`}
+                    >
                       ESFP
                     </p>
                     <Image
                       src='/mbti-list/ESFP.svg'
                       alt='ESFP'
-                      width={110}
-                      height={110}
-                      className='absolute -right-0 -bottom-0 z-0'
+                      width={isCompact ? 90 : 100}
+                      height={isCompact ? 90 : 100}
+                      className='absolute -right-1 -bottom-1 z-0'
                     />
                   </div>
                 </div>

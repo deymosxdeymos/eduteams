@@ -15,6 +15,7 @@ import {
 import type { ExtendedUser } from '@/lib/types';
 import { Badge } from '../ui/badge';
 import { MBTIOverviewLayout } from './mbti-overview-layout';
+import { StudentProfileContent } from './student-profile-content';
 
 interface Student {
   id: string;
@@ -22,6 +23,10 @@ interface Student {
   nim: string;
   email: string;
   mbtiType?: string | null;
+  ei?: number | null;
+  sn?: number | null;
+  tf?: number | null;
+  pj?: number | null;
 }
 
 interface StudentListProps {
@@ -52,6 +57,9 @@ export function StudentList({
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isMbtiOpen, setIsMbtiOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<'profile' | 'mbti'>(
+    'profile'
+  );
 
   // For dosen (canManage), fetch to keep up-to-date. For mahasiswa, use initialData if provided
   const shouldFetch = canManage || !initialData || initialData.length === 0;
@@ -81,6 +89,15 @@ export function StudentList({
   if (error) {
     console.error('Failed to load students:', error);
   }
+
+  // If modal is open and fresh data arrives, sync selected student
+  useEffect(() => {
+    if (!isMbtiOpen || !selectedStudent) return;
+    const updated = students.find(s => s.id === selectedStudent.id);
+    if (updated) {
+      setSelectedStudent(prev => (prev ? { ...prev, ...updated } : updated));
+    }
+  }, [students, isMbtiOpen, selectedStudent?.id]);
 
   // Close menus when clicking outside
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -182,12 +199,14 @@ export function StudentList({
                   tabIndex={0}
                   onClick={() => {
                     setSelectedStudent(student);
+                    setModalContent('profile');
                     setIsMbtiOpen(true);
                   }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       setSelectedStudent(student);
+                      setModalContent('profile');
                       setIsMbtiOpen(true);
                     }
                   }}
@@ -255,56 +274,66 @@ export function StudentList({
         open={isMbtiOpen}
         onOpenChange={open => {
           setIsMbtiOpen(open);
-          if (!open) setSelectedStudent(null);
+          if (!open) {
+            setSelectedStudent(null);
+            setModalContent('profile');
+          }
         }}
       >
         <DialogContent
-          className='w-[95vw] max-w-[1400px] rounded-3xl p-0 border-0 max-h-[90vh]'
+          className='w-[85vw] max-w-[1200px] rounded-3xl p-0 border-0 gap-0 items-start'
           showCloseButton={false}
         >
-          <DialogTitle className='sr-only'>Persebaran MBTI</DialogTitle>
-          {selectedStudent && (
-            <div className='relative'>
-              <MBTIOverviewLayout
-                user={
-                  {
-                    id: selectedStudent.id,
-                    name: selectedStudent.name,
-                    email: selectedStudent.email,
-                    role: null,
-                    nimNpm: selectedStudent.nim,
-                    isOnboarded: true,
-                    onboardingStep: null,
-                    mbtiType: (selectedStudent.mbtiType ||
-                      null) as ExtendedUser['mbtiType'],
-                    ei: null,
-                    sn: null,
-                    tf: null,
-                    pj: null,
-                    createdAt: new Date(0),
-                    updatedAt: new Date(0),
-                    image: null,
-                    emailVerified: false,
-                  } as unknown as ExtendedUser
-                }
-                isModal
-                onRequestClose={() => setIsMbtiOpen(false)}
-              />
-              {canManage && (
-                <div className='absolute top-4 right-4 z-10 flex gap-2'>
-                  <Button
-                    variant='destructive'
-                    className='rounded-full'
-                    onClick={() =>
-                      selectedStudent && setConfirmStudentId(selectedStudent.id)
-                    }
-                  >
-                    Keluarkan Mahasiswa
-                  </Button>
+          <DialogTitle className='sr-only'>
+            {modalContent === 'profile'
+              ? 'Profil Mahasiswa'
+              : 'Persebaran MBTI'}
+          </DialogTitle>
+          {selectedStudent &&
+            (() => {
+              const studentUser: ExtendedUser = {
+                id: selectedStudent.id,
+                name: selectedStudent.name,
+                email: selectedStudent.email,
+                role: null,
+                nimNpm: selectedStudent.nim,
+                isOnboarded: true,
+                onboardingStep: null,
+                mbtiType: (selectedStudent.mbtiType ||
+                  null) as ExtendedUser['mbtiType'],
+                ei: selectedStudent.ei,
+                sn: selectedStudent.sn,
+                tf: selectedStudent.tf,
+                pj: selectedStudent.pj,
+                createdAt: new Date(0),
+                updatedAt: new Date(0),
+                image: null,
+                emailVerified: false,
+                gender: null,
+              } as unknown as ExtendedUser;
+
+              return modalContent === 'profile' ? (
+                <StudentProfileContent
+                  student={studentUser}
+                  canManage={canManage}
+                  onRemoveStudent={() =>
+                    selectedStudent && setConfirmStudentId(selectedStudent.id)
+                  }
+                  onClose={() => setIsMbtiOpen(false)}
+                  onShowMBTI={() => setModalContent('mbti')}
+                  isModal
+                />
+              ) : (
+                <div className='overflow-hidden'>
+                  <MBTIOverviewLayout
+                    user={studentUser}
+                    isModal
+                    isCompact
+                    onRequestClose={() => setModalContent('profile')}
+                  />
                 </div>
-              )}
-            </div>
-          )}
+              );
+            })()}
         </DialogContent>
       </Dialog>
 

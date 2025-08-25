@@ -9,7 +9,9 @@ export interface AnswerRecord {
   [questionId: string]: number;
 }
 
-const REVERSED_QUESTIONS = new Set([4, 9, 11, 14, 15, 17, 20, 22, 24]);
+// Keep this list in sync with prisma/seed.ts and mbti-questions.ts static fallback
+// EI: 4, SN: 9,11, TF: 14,15,17, PJ: 20,22,23
+const REVERSED_QUESTIONS = new Set([4, 9, 11, 14, 15, 17, 20, 22, 23]);
 
 const DIMENSION_RANGES = [
   { key: 'ei' as const, start: 1, end: 6 },

@@ -36,6 +36,10 @@ type StudentData = {
   nim: string;
   email: string;
   mbtiType?: string | null;
+  ei?: number | null;
+  sn?: number | null;
+  tf?: number | null;
+  pj?: number | null;
   enrolledAt: Date;
 };
 
@@ -80,6 +84,10 @@ async function getCourseDataForMahasiswa(id: string, userId: string) {
                   email: true,
                   nimNpm: true,
                   mbtiType: true,
+                  ei: true,
+                  sn: true,
+                  tf: true,
+                  pj: true,
                 },
               },
             },
@@ -98,6 +106,10 @@ async function getCourseDataForMahasiswa(id: string, userId: string) {
     nim: enroll.student.nimNpm || 'N/A',
     email: enroll.student.email || 'N/A',
     mbtiType: enroll.student.mbtiType,
+    ei: enroll.student.ei,
+    sn: enroll.student.sn,
+    tf: enroll.student.tf,
+    pj: enroll.student.pj,
     enrolledAt: enroll.enrolledAt,
   }));
 
@@ -121,6 +133,10 @@ async function getStudentsData(courseId: string): Promise<StudentData[]> {
           email: true,
           nimNpm: true,
           mbtiType: true,
+          ei: true,
+          sn: true,
+          tf: true,
+          pj: true,
         },
       },
     },
@@ -133,6 +149,10 @@ async function getStudentsData(courseId: string): Promise<StudentData[]> {
     nim: enrollment.student.nimNpm || 'N/A',
     email: enrollment.student.email || 'N/A',
     mbtiType: enrollment.student.mbtiType,
+    ei: enrollment.student.ei,
+    sn: enrollment.student.sn,
+    tf: enrollment.student.tf,
+    pj: enrollment.student.pj,
     enrolledAt: enrollment.enrolledAt,
   }));
 }

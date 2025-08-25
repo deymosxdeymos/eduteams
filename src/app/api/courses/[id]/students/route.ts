@@ -71,6 +71,10 @@ export async function GET(
             email: true,
             nimNpm: true,
             mbtiType: true,
+            ei: true,
+            sn: true,
+            tf: true,
+            pj: true,
           },
         },
       },
@@ -87,6 +91,10 @@ export async function GET(
       nim: enrollment.student.nimNpm || 'N/A',
       email: enrollment.student.email || 'N/A',
       mbtiType: enrollment.student.mbtiType,
+      ei: enrollment.student.ei,
+      sn: enrollment.student.sn,
+      tf: enrollment.student.tf,
+      pj: enrollment.student.pj,
       enrolledAt: enrollment.enrolledAt,
     }));
 
