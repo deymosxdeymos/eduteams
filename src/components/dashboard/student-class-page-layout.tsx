@@ -17,6 +17,10 @@ interface Student {
   nim: string;
   email: string;
   mbtiType?: string | null;
+  ei?: number | null;
+  sn?: number | null;
+  tf?: number | null;
+  pj?: number | null;
 }
 
 export function StudentClassPageLayout({

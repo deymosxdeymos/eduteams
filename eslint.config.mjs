@@ -12,7 +12,14 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
-    ignores: ['src/generated/prisma/**/*'],
+    ignores: [
+      'src/generated/prisma/**/*',
+      '__tests__/**/*',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+    ],
   },
   {
     rules: {
