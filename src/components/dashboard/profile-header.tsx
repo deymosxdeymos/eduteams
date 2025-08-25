@@ -37,7 +37,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
           <div className='flex flex-col items-start'>
             <h1 className='text-2xl text-white font-bold'>{user.name}</h1>
             <p className='text-base text-slate-200 font-medium'>
-              NIM: {user.nimNpm}
+              {user.role === 'dosen' ? 'NPM' : 'NIM'}: {user.nimNpm}
             </p>
           </div>
           {user.gender === 'FEMALE' ? (
