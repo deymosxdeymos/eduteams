@@ -1,6 +1,6 @@
 // Note: Avoid calling next/headers in test context.
 // Import lazily inside functions or provide safe fallbacks.
-import { headers, cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
@@ -90,7 +90,7 @@ type AuthenticatedHandler = (
 export function withAuth(handler: AuthenticatedHandler) {
   return async (request: NextRequest): Promise<NextResponse> => {
     try {
-      let session;
+      let session: Awaited<ReturnType<typeof auth.api.getSession>>;
 
       // In test environments, headers() and cookies() throw "wrong context" errors
       // So we need to handle this case gracefully
@@ -172,7 +172,7 @@ export function withValidation<T>(
 
 export async function getCurrentUser(): Promise<ExtendedUser | null> {
   try {
-    let session;
+    let session: Awaited<ReturnType<typeof auth.api.getSession>>;
 
     // In test environments, headers() and cookies() throw "wrong context" errors
     // So we need to handle this case gracefully
@@ -206,6 +206,7 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
         updatedAt: true,
         role: true,
         nimNpm: true,
+        gender: true,
         isOnboarded: true,
         hasSeenWelcomeSplash: true,
         onboardingStep: true,

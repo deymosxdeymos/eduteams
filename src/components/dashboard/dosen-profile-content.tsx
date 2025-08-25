@@ -29,12 +29,10 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
   const isMale = jenisKelamin === 'laki-laki';
   const isFemale = jenisKelamin === 'perempuan';
 
-  // Auto-select current gender on mount/hydration if available
+  // Auto-select current gender on mount/hydration based on user.gender
   useEffect(() => {
-    if (!jenisKelamin && initialJenisKelamin) {
-      setJenisKelamin(initialJenisKelamin);
-    }
-  }, [initialJenisKelamin, jenisKelamin]);
+    setJenisKelamin(initialJenisKelamin);
+  }, [initialJenisKelamin]);
 
   const onSave = () => {
     setMessage(null);
@@ -113,12 +111,12 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
               aria-checked={isMale}
               onClick={() => setJenisKelamin('laki-laki')}
               onKeyDown={e => e.key === 'Enter' && setJenisKelamin('laki-laki')}
-              className={`bg-blue-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
+              className={`bg-blue-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 border ${
                 isMale
-                  ? 'ring-4 ring-blue-300 scale-105'
+                  ? 'ring-4 ring-blue-300 scale-105 border-2 border-blue-400'
                   : isFemale
-                    ? 'grayscale opacity-50'
-                    : 'hover:bg-blue-200'
+                    ? 'grayscale opacity-50 border-neutral-200'
+                    : 'hover:bg-blue-200 border-transparent'
               }`}
             >
               <Image
@@ -139,12 +137,12 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
               aria-checked={isFemale}
               onClick={() => setJenisKelamin('perempuan')}
               onKeyDown={e => e.key === 'Enter' && setJenisKelamin('perempuan')}
-              className={`bg-pink-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
+              className={`bg-pink-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 border ${
                 isFemale
-                  ? 'ring-4 ring-pink-300 scale-105'
+                  ? 'ring-4 ring-pink-300 scale-105 border-2 border-pink-400'
                   : isMale
-                    ? 'grayscale opacity-50'
-                    : 'hover:bg-pink-200'
+                    ? 'grayscale opacity-50 border-neutral-200'
+                    : 'hover:bg-pink-200 border-transparent'
               }`}
             >
               <Image
