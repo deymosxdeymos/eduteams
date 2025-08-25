@@ -67,7 +67,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
     <div className='bg-white rounded-3xl h-full flex flex-col overflow-hidden p-4 gap-4'>
       <div className='flex items-center gap-3'>
         <Button
-          variant='outline'
+          variant='ghost'
           size='icon'
           className='rounded-full'
           aria-label='Kembali'
@@ -75,10 +75,13 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
         >
           <ArrowLeft className='w-5 h-5' />
         </Button>
-        <h1 className='text-2xl font-bold text-gray-900'>Profil</h1>
+        <h1 className='text-xl font-medium text-gray-900'>Profil</h1>
       </div>
 
       <div className='flex flex-col gap-6 p-2'>
+        <p className='text-neutral-800 text-sm font-normal'>
+          Untuk mengubah data diri Anda, harap isi kolom-kolom berikut.
+        </p>
         <div className='flex flex-col gap-2'>
           <label
             htmlFor={nameInputId}
@@ -164,7 +167,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
         <Button
           variant='onboarding'
           onClick={onSave}
-          className='rounded-full w-[19rem] h-[3rem]'
+          className='rounded-full w-[36rem] h-[3rem]'
           disabled={isPending || !namaLengkap || !jenisKelamin}
         >
           {isPending ? 'Menyimpan...' : 'Simpan perubahan'}

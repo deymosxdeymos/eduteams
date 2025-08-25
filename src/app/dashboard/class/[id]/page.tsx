@@ -10,6 +10,7 @@ import {
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 import type { ExtendedUser } from '@/lib/types';
+import type { AssignmentResponse } from '@/lib/validation/assignments';
 
 type CourseResult = {
   id: string;
@@ -136,6 +137,44 @@ async function getStudentsData(courseId: string): Promise<StudentData[]> {
   }));
 }
 
+async function getInitialAssignments(
+  courseId: string,
+  user: ExtendedUser
+): Promise<AssignmentResponse[]> {
+  const isDosen = canAccessDosenFeatures(user);
+  const isMahasiswa = canAccessMahasiswaFeatures(user);
+
+  if (!isDosen && !isMahasiswa) return [];
+
+  const rows = await prisma.assignment.findMany({
+    where: { courseId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      courseId: true,
+      title: true,
+      description: true,
+      startAt: true,
+      createdAt: true,
+      status: true,
+      _count: { select: { submissions: true } },
+    },
+  });
+
+  return rows.map(r => ({
+    id: r.id,
+    courseId: r.courseId,
+    title: r.title,
+    description: r.description ?? undefined,
+    startAt: r.startAt,
+    createdAt: r.createdAt,
+    status: r.status,
+    skills: [],
+    topics: [],
+    submissionsCount: r._count.submissions,
+  }));
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -178,12 +217,14 @@ export default async function ClassPage({ params }: ClassPageProps) {
   // Optimized data fetching based on user role
   let course: CourseResult | null = null;
   let studentsData: StudentData[] = [];
+  let initialAssignments: AssignmentResponse[] = [];
 
   if (isDosen) {
     // For dosen: fetch both course and students in parallel
-    [course, studentsData] = await Promise.all([
+    [course, studentsData, initialAssignments] = await Promise.all([
       getCourseData(id, user),
       getStudentsData(id),
+      getInitialAssignments(id, user),
     ]);
   } else if (isMahasiswa) {
     // For mahasiswa: single optimized query gets both course and students
@@ -204,6 +245,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
           dosenId={user.id}
           user={user}
           course={course}
+          initialAssignments={initialAssignments}
           studentsData={studentsData}
         />
       )}

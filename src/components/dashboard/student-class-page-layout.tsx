@@ -38,6 +38,7 @@ export function StudentClassPageLayout({
             classId={classId}
             initialData={studentsData}
             currentUserId={user.id}
+            canManage={false}
           />
         </div>
       </div>

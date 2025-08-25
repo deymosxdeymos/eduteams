@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Logo from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import Logo from '@/components/logo';
 import type { ExtendedUser } from '@/lib/types';
 
 interface JoinClassClientProps {
