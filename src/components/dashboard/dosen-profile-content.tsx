@@ -3,7 +3,7 @@
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useId, useMemo, useState, useTransition } from 'react';
+import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
 import type { ExtendedUser } from '@/lib/types';
@@ -28,6 +28,13 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
   const [error, setError] = useState<string | null>(null);
   const isMale = jenisKelamin === 'laki-laki';
   const isFemale = jenisKelamin === 'perempuan';
+
+  // Auto-select current gender on mount/hydration if available
+  useEffect(() => {
+    if (!jenisKelamin && initialJenisKelamin) {
+      setJenisKelamin(initialJenisKelamin);
+    }
+  }, [initialJenisKelamin, jenisKelamin]);
 
   const onSave = () => {
     setMessage(null);
