@@ -213,7 +213,7 @@ export function StudentList({
                 >
                   {student.mbtiType ? (
                     <Image
-                      src={`/mbti-logo/${student.mbtiType}.svg`}
+                      src={`/mbti-logo-normalized/${student.mbtiType}.svg`}
                       alt={student.mbtiType}
                       width={40}
                       height={40}

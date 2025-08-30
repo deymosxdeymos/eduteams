@@ -1,0 +1,486 @@
+'use client';
+
+import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
+import Image from 'next/image';
+import { useId, useMemo } from 'react';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Button } from '@/components/ui/button';
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+
+// ——————————————————————————————————————————————————————————————————————————
+// MBTI Chart helpers
+// ——————————————————————————————————————————————————————————————————————————
+
+type MbtiType =
+  | 'INTJ'
+  | 'INTP'
+  | 'ENTJ'
+  | 'ENTP'
+  | 'INFJ'
+  | 'INFP'
+  | 'ENFJ'
+  | 'ENFP'
+  | 'ISTJ'
+  | 'ISFJ'
+  | 'ESTJ'
+  | 'ESFJ'
+  | 'ISTP'
+  | 'ISFP'
+  | 'ESTP'
+  | 'ESFP';
+
+type ChartRow = { kategori: MbtiType; jumlah: number; fill: string };
+
+// Group mapping just to keep gradient intent clear and editable in one place.
+const MBTI_GROUP: Record<
+  MbtiType,
+  'analyst' | 'diplomat' | 'sentinel' | 'explorer'
+> = {
+  INTJ: 'analyst',
+  INTP: 'analyst',
+  ENTJ: 'analyst',
+  ENTP: 'analyst',
+  INFJ: 'diplomat',
+  INFP: 'diplomat',
+  ENFJ: 'diplomat',
+  ENFP: 'diplomat',
+  ISTJ: 'sentinel',
+  ISFJ: 'sentinel',
+  ESTJ: 'sentinel',
+  ESFJ: 'sentinel',
+  ISTP: 'explorer',
+  ISFP: 'explorer',
+  ESTP: 'explorer',
+  ESFP: 'explorer',
+};
+
+function useGradientIds() {
+  const green = useId();
+  const purple = useId();
+  const blue = useId();
+  const amber = useId();
+
+  const urlFor = (type: MbtiType) => {
+    const group = MBTI_GROUP[type];
+    if (group === 'analyst') return `url(#${purple})`;
+    if (group === 'diplomat') return `url(#${green})`;
+    if (group === 'sentinel') return `url(#${blue})`;
+    return `url(#${amber})`;
+  };
+
+  return { ids: { green, purple, blue, amber }, urlFor };
+}
+
+// Sample data for MBTI personality distribution - would come from API based on assignmentId
+const useChartData = (assignmentId: string, urlFor: (t: MbtiType) => string) =>
+  useMemo<ChartRow[]>(() => {
+    // assignmentId is currently unused; reserved for future API call
+    void assignmentId;
+    return [
+      { kategori: 'INTJ', jumlah: 12, fill: urlFor('INTJ') },
+      { kategori: 'INTP', jumlah: 12, fill: urlFor('INTP') },
+      { kategori: 'ENTJ', jumlah: 12, fill: urlFor('ENTJ') },
+      { kategori: 'ENTP', jumlah: 12, fill: urlFor('ENTP') },
+      { kategori: 'INFJ', jumlah: 12, fill: urlFor('INFJ') },
+      { kategori: 'INFP', jumlah: 12, fill: urlFor('INFP') },
+      { kategori: 'ENFJ', jumlah: 12, fill: urlFor('ENFJ') },
+      { kategori: 'ENFP', jumlah: 12, fill: urlFor('ENFP') },
+      { kategori: 'ISTJ', jumlah: 12, fill: urlFor('ISTJ') },
+      { kategori: 'ISFJ', jumlah: 12, fill: urlFor('ISFJ') },
+      { kategori: 'ESTJ', jumlah: 12, fill: urlFor('ESTJ') },
+      { kategori: 'ESFJ', jumlah: 12, fill: urlFor('ESFJ') },
+      { kategori: 'ISTP', jumlah: 12, fill: urlFor('ISTP') },
+      { kategori: 'ISFP', jumlah: 12, fill: urlFor('ISFP') },
+      { kategori: 'ESTP', jumlah: 12, fill: urlFor('ESTP') },
+      { kategori: 'ESFP', jumlah: 12, fill: urlFor('ESFP') },
+    ];
+  }, [assignmentId, urlFor]);
+
+const chartConfig = {
+  jumlah: {
+    label: 'Jumlah Mahasiswa',
+  },
+  intj: {
+    label: 'INTJ - The Architect',
+    color: '#9B8AFB',
+  },
+  intp: {
+    label: 'INTP - The Thinker',
+    color: '#9B8AFB',
+  },
+  entj: {
+    label: 'ENTJ - The Commander',
+    color: '#9B8AFB',
+  },
+  entp: {
+    label: 'ENTP - The Debater',
+    color: '#9B8AFB',
+  },
+  infj: {
+    label: 'INFJ - The Advocate',
+    color: '#6CE9A6',
+  },
+  infp: {
+    label: 'INFP - The Mediator',
+    color: '#6CE9A6',
+  },
+  enfj: {
+    label: 'ENFJ - The Protagonist',
+    color: '#6CE9A6',
+  },
+  enfp: {
+    label: 'ENFP - The Campaigner',
+    color: '#6CE9A6',
+  },
+  istj: {
+    label: 'ISTJ - The Logistician',
+    color: '#7CD4FD',
+  },
+  isfj: {
+    label: 'ISFJ - The Protector',
+    color: '#7CD4FD',
+  },
+  estj: {
+    label: 'ESTJ - The Executive',
+    color: '#7CD4FD',
+  },
+  esfj: {
+    label: 'ESFJ - The Consul',
+    color: '#7CD4FD',
+  },
+  istp: {
+    label: 'ISTP - The Virtuoso',
+    color: '#FEC84B',
+  },
+  isfp: {
+    label: 'ISFP - The Adventurer',
+    color: '#FEC84B',
+  },
+  estp: {
+    label: 'ESTP - The Entrepreneur',
+    color: '#FEC84B',
+  },
+  esfp: {
+    label: 'ESFP - The Entertainer',
+    color: '#FEC84B',
+  },
+} satisfies ChartConfig;
+
+// ——————————————————————————————————————————————————————————————————————————
+// Mascot layout controls (simple, centralized, consistent)
+// ——————————————————————————————————————————————————————————————————————————
+
+// Global baseline
+const MASCOT_DEFAULT = { size: 42, offsetX: 0, offsetY: 0 } as const; // px
+
+// Per-type last-mile tweaks (only touch when needed)
+// Example: to lower ENFP by 2px: ENFP: { offsetY: 2 }
+const MASCOT_TWEAKS: Partial<
+  Record<MbtiType, { size?: number; offsetX?: number; offsetY?: number }>
+> = {
+  // Keep defaults uniform; add per-type entries if you see visual outliers
+  ESTP: { size: 52, offsetX: -2, offsetY: 1 },
+  INTP: { offsetX: -3 },
+  ENTJ: { offsetX: 1 },
+  INFJ: { offsetX: 2 },
+  ESFJ: { size: 48 },
+  INFP: { size: 38, offsetY: 1 },
+  ENFJ: { size: 48, offsetX: -4, offsetY: 2 },
+  ENFP: { offsetX: -2, offsetY: 2 },
+};
+
+function getMascotLayout(type: MbtiType) {
+  const t = MASCOT_TWEAKS[type] ?? {};
+  const size = t.size ?? MASCOT_DEFAULT.size;
+  return {
+    width: size,
+    height: size,
+    offsetX: (t.offsetX ?? 0) + MASCOT_DEFAULT.offsetX,
+    offsetY: (t.offsetY ?? 0) + MASCOT_DEFAULT.offsetY,
+  };
+}
+
+function getMascotXY({
+  barX,
+  barY,
+  barW,
+  iconW,
+  iconH,
+  offsetX,
+  offsetY,
+}: {
+  barX: number;
+  barY: number;
+  barW: number;
+  iconW: number;
+  iconH: number;
+  offsetX: number;
+  offsetY: number;
+}) {
+  const centerX = barX + barW / 2;
+  const overlap = Math.floor(iconH * 0.3); // slightly overlaps into bar head
+  const x = centerX - iconW / 2 + offsetX;
+  const y = Math.max(4, barY - iconH + overlap) + offsetY;
+  return { x, y };
+}
+
+const MASCOT_SRC_BASE = '/mbti-logo-normalized';
+
+type RechartsBarShapeInput = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  payload?: { kategori?: MbtiType; fill?: string };
+};
+
+type BarShapeProps = RechartsBarShapeInput & {
+  faceShadowId: string;
+};
+
+function MbtiBarShape({
+  x,
+  y,
+  width,
+  height,
+  payload,
+  faceShadowId,
+}: BarShapeProps) {
+  const rw = width ?? 0;
+  const rh = height ?? 0;
+  const rx = 6;
+  const type = (payload?.kategori ?? 'INTJ') as MbtiType;
+  const {
+    width: iconW,
+    height: iconH,
+    offsetX,
+    offsetY,
+  } = getMascotLayout(type);
+  const { x: iconX, y: iconY } = getMascotXY({
+    barX: x ?? 0,
+    barY: y ?? 0,
+    barW: rw,
+    iconW,
+    iconH,
+    offsetX,
+    offsetY,
+  });
+  const fill = payload?.fill ?? '#999';
+
+  return (
+    <g>
+      <rect x={x} y={y} width={rw} height={rh} rx={rx} fill={fill} />
+      <svg
+        x={iconX}
+        y={iconY}
+        width={iconW}
+        height={iconH}
+        viewBox='0 0 100 100'
+        preserveAspectRatio='xMidYMid meet'
+        aria-label={type}
+        filter={`url(#${faceShadowId})`}
+      >
+        <image
+          href={`${MASCOT_SRC_BASE}/${type}.svg`}
+          x='0'
+          y='0'
+          width='100'
+          height='100'
+          preserveAspectRatio='xMidYMin meet'
+        />
+      </svg>
+    </g>
+  );
+}
+
+interface AssignmentContentProps {
+  assignmentId: string;
+  classId: string;
+  canManage: boolean;
+}
+
+export function AssignmentContent({
+  assignmentId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  classId: _classId,
+  canManage,
+}: AssignmentContentProps) {
+  const { ids: gradientIds, urlFor } = useGradientIds();
+  const faceShadowId = useId();
+  const chartData = useChartData(assignmentId, urlFor);
+
+  return (
+    <div className='flex-1 p-8'>
+      <div className='h-full flex-col items-center space-y-4 text-gray-500'>
+        <div className='flex items-center gap-4'>
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => window.history.back()}
+            className='rounded-full'
+          >
+            <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />
+          </Button>
+          {canManage && (
+            <Button variant='onboarding' className='rounded-full p-6 w-[11rem]'>
+              <Plus strokeWidth={3} className='w-4 h-4 text-white' />
+              <span className='font-semibold text-sm'>Buat Kelompok</span>
+            </Button>
+          )}
+          <Button
+            variant='outline'
+            className='rounded-full border border-black p-6 w-[15rem]'
+          >
+            <ChartLineIcon className='w-4 h-4 text-black' />
+            <span className='text-black font-semibold text-sm'>
+              Lihat Jawaban Mahasiswa{' '}
+            </span>
+          </Button>
+        </div>
+        <div className='flex flex-col justify-start border shadow-xs rounded-md p-6'>
+          <div className='mb-4'>
+            <span className='text-neutral-600 font-light text-lg block'>
+              Grafik Persebaran
+            </span>
+            <h1 className='text-neutral-800 font-bold text-2xl'>
+              Personality Mahasiswa
+            </h1>
+          </div>
+          <div className='overflow-x-auto'>
+            <ChartContainer
+              config={chartConfig}
+              className='h-[320px] w-full max-w-[900px] mb-4 justify-start'
+            >
+              <BarChart
+                data={chartData}
+                margin={{ bottom: 30, left: 0, right: 10, top: 26 }}
+                barCategoryGap={12}
+              >
+                <defs>
+                  <filter
+                    id={faceShadowId}
+                    x='-20%'
+                    y='-20%'
+                    width='140%'
+                    height='140%'
+                  >
+                    <feDropShadow
+                      dx='0'
+                      dy='1'
+                      stdDeviation='1.2'
+                      floodOpacity='0.35'
+                    />
+                  </filter>
+                  <linearGradient
+                    id={gradientIds.green}
+                    x1='0'
+                    y1='0'
+                    x2='0'
+                    y2='1'
+                  >
+                    <stop offset='0%' stopColor='#6CE9A6' />
+                    <stop offset='100%' stopColor='#3BCC7E' />
+                  </linearGradient>
+                  <linearGradient
+                    id={gradientIds.purple}
+                    x1='0'
+                    y1='0'
+                    x2='0'
+                    y2='1'
+                  >
+                    <stop offset='0%' stopColor='#9B8AFB' />
+                    <stop offset='100%' stopColor='#7A64FA' />
+                  </linearGradient>
+                  <linearGradient
+                    id={gradientIds.blue}
+                    x1='0'
+                    y1='0'
+                    x2='0'
+                    y2='1'
+                  >
+                    <stop offset='0%' stopColor='#7CD4FD' />
+                    <stop offset='100%' stopColor='#38B8F4' />
+                  </linearGradient>
+                  <linearGradient
+                    id={gradientIds.amber}
+                    x1='0'
+                    y1='0'
+                    x2='0'
+                    y2='1'
+                  >
+                    <stop offset='0%' stopColor='#FEC84B' />
+                    <stop offset='100%' stopColor='#D7A32A' />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey='kategori'
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={value => value.slice(0, 10)}
+                  label={{
+                    value: 'Tipe Personality',
+                    position: 'insideBottom',
+                    offset: -10,
+                    style: { textAnchor: 'middle' },
+                  }}
+                />
+                <YAxis tickLine={false} axisLine={false} width={32} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      className='w-[220px]'
+                      nameKey='jumlah'
+                      labelFormatter={value => `Kategori: ${value}`}
+                      formatter={(
+                        val,
+                        _name: string | number,
+                        item: { payload?: { kategori?: string } }
+                      ) => {
+                        const key = item?.payload?.kategori;
+                        return (
+                          <div className='flex items-center gap-2'>
+                            {key ? (
+                              <Image
+                                src={`${MASCOT_SRC_BASE}/${key}.svg`}
+                                alt={String(key)}
+                                width={24}
+                                height={24}
+                              />
+                            ) : null}
+                            <span className='text-foreground font-mono font-medium tabular-nums'>
+                              {Number(val).toLocaleString()}
+                            </span>
+                          </div>
+                        );
+                      }}
+                    />
+                  }
+                />
+                <Bar
+                  dataKey='jumlah'
+                  shape={(props: RechartsBarShapeInput) => (
+                    <MbtiBarShape
+                      x={props.x}
+                      y={props.y}
+                      width={props.width}
+                      height={props.height}
+                      payload={props.payload}
+                      faceShadowId={faceShadowId}
+                    />
+                  )}
+                />
+              </BarChart>
+            </ChartContainer>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

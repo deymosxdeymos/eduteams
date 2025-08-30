@@ -30,7 +30,7 @@ export function ProfileHeader({
         {!hideImage &&
           (user.mbtiType ? (
             <Image
-              src={`/mbti-logo/${user.mbtiType}.svg`}
+              src={`/mbti-logo-normalized/${user.mbtiType}.svg`}
               alt={`${user.mbtiType} Logo`}
               width={50}
               height={50}

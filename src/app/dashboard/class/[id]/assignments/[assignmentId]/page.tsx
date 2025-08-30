@@ -1,9 +1,13 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { AssignmentContent } from '@/components/dashboard/assignment-content';
 import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from '@/lib/authorization';
+import {
+  canAccessDosenFeatures,
+  canAccessMahasiswaFeatures,
+} from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 import type { Course, ExtendedUser } from '@/lib/types';
@@ -32,7 +36,21 @@ export async function generateMetadata({
 async function getCourseAndStudents(
   courseId: string,
   user: ExtendedUser
-): Promise<{ course: Course | null; students: Array<{ id: string; name: string; nim: string; email: string; mbtiType?: string | null; ei?: number | null; sn?: number | null; tf?: number | null; pj?: number | null; enrolledAt: Date }>; }> {
+): Promise<{
+  course: Course | null;
+  students: Array<{
+    id: string;
+    name: string;
+    nim: string;
+    email: string;
+    mbtiType?: string | null;
+    ei?: number | null;
+    sn?: number | null;
+    tf?: number | null;
+    pj?: number | null;
+    enrolledAt: Date;
+  }>;
+}> {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
@@ -156,7 +174,11 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
           students={students}
           canManage={user.role === 'dosen' && user.id === course.dosenId}
         >
-          {/* TODO: Assignment content will be implemented later */}
+          <AssignmentContent
+            assignmentId={assignmentId}
+            classId={id}
+            canManage={user.role === 'dosen' && user.id === course.dosenId}
+          />
         </AssignmentLayout>
       </Suspense>
     </DashboardClient>
