@@ -1,9 +1,9 @@
 'use client';
 
 import { ArrowLeft, Calendar, Plus, Search, Share2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
@@ -172,7 +172,9 @@ export function ClassAssignments({
                     role='button'
                     tabIndex={0}
                     onClick={() =>
-                      router.push(`/dashboard/class/${classId}/assignments/${a.id}`)
+                      router.push(
+                        `/dashboard/class/${classId}/assignments/${a.id}`
+                      )
                     }
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {

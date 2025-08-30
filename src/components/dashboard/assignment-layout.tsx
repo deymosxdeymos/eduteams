@@ -1,4 +1,4 @@
-import type { ExtendedUser, Course } from '@/lib/types';
+import type { Course, ExtendedUser } from '@/lib/types';
 import Nav from './nav';
 import Sidebar from './sidebar';
 import { StudentList } from './student-list';
@@ -28,6 +28,7 @@ export function AssignmentLayout({
   user,
   course,
   classId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   assignmentId: _assignmentId,
   students,
   canManage,
