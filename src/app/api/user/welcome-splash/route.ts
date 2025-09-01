@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { createApiResponse, withAuth } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 export const POST = withAuth(async (_request: NextRequest, { user }) => {
   await prisma.user.update({

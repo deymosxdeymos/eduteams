@@ -2,17 +2,14 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createErrorResponse, handleApiError, withAuth } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
 // POST /api/assignments/[id]/submissions
-export const POST = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const POST = withAuth<{ id: string }>(
+  async (_request: NextRequest, { user, params }) => {
     try {
-      const url = new URL(request.url);
-      const segments = url.pathname.split('/');
-      const assignmentId = segments[segments.indexOf('assignments') + 1];
+      const { id: assignmentId } = await params;
 
       // Load assignment and ensure user is enrolled in course
       const assignment = await prisma.assignment.findUnique({
@@ -51,12 +48,10 @@ export const POST = withAuth(
 );
 
 // DELETE /api/assignments/[id]/submissions
-export const DELETE = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const DELETE = withAuth<{ id: string }>(
+  async (_request: NextRequest, { user, params }) => {
     try {
-      const url = new URL(request.url);
-      const segments = url.pathname.split('/');
-      const assignmentId = segments[segments.indexOf('assignments') + 1];
+      const { id: assignmentId } = await params;
 
       const assignment = await prisma.assignment.findUnique({
         where: { id: assignmentId },

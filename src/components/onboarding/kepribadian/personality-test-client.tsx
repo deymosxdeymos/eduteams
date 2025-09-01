@@ -99,9 +99,22 @@ export default function PersonalityTestClient({
 
     const formData = new FormData();
     formData.append('answers', JSON.stringify(numericAnswers));
+    try {
+      await submitPersonalityTest(formData);
+    } catch (err) {
+      // Allow Next.js redirects to propagate
+      if (err && typeof err === 'object') {
+        const digest = (err as { digest?: unknown }).digest;
+        if (typeof digest === 'string' && digest.includes('NEXT_REDIRECT')) {
+          throw err;
+        }
+      }
 
-    // Do not catch here; allow server action redirect to propagate
-    await submitPersonalityTest(formData);
+      // Log and reset submitting state on regular errors
+      console.error('Error completing kepribadian:', err);
+    } finally {
+      dispatch({ type: 'SET_SUBMITTING', payload: false });
+    }
   };
 
   return (

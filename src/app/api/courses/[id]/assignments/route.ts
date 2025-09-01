@@ -11,19 +11,16 @@ import {
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
 import { AssignmentCreateSchema } from '@/lib/validation/assignments';
 
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 // GET /api/courses/[id]/assignments
-export const GET = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const GET = withAuth<{ id: string }>(
+  async (_request: NextRequest, { user, params }) => {
     try {
-      const url = new URL(request.url);
-      const segments = url.pathname.split('/');
-      const courseId = segments[segments.indexOf('courses') + 1];
+      const { id: courseId } = await params;
 
       const isDosen = canAccessDosenFeatures(user);
       const isMahasiswa = canAccessMahasiswaFeatures(user);
@@ -87,12 +84,10 @@ export const GET = withAuth(
 );
 
 // POST /api/courses/[id]/assignments
-export const POST = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const POST = withAuth<{ id: string }>(
+  async (request: NextRequest, { user, params }) => {
     try {
-      const url = new URL(request.url);
-      const segments = url.pathname.split('/');
-      const courseId = segments[segments.indexOf('courses') + 1];
+      const { id: courseId } = await params;
 
       // Only dosen can create assignments for their course
       const isDosen = canAccessDosenFeatures(user);

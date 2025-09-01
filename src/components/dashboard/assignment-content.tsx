@@ -7,10 +7,10 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Pie as RePie,
+  PieChart as RePieChart,
   XAxis,
   YAxis,
-  PieChart as RePieChart,
-  Pie as RePie,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import {

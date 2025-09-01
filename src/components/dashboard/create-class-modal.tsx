@@ -33,7 +33,7 @@ import type { Course } from '@/lib/types';
 import {
   type CourseCreateInput,
   courseCreateSchema,
-} from '@/lib/validations/course';
+} from '@/lib/validation/course';
 
 interface CreateClassModalProps {
   onClassCreated?: (course: Course) => void;

@@ -68,12 +68,17 @@ mock.module('../../../../src/components/ui/button', () => ({
   ),
 }));
 
+// Define variables at file scope for all tests
+const mockOnCloseAction = mock(() => {});
+const defaultProps = {
+  isOpen: true,
+  onCloseAction: mockOnCloseAction,
+};
+
+// Define boldTexts variable for the test that uses it
+let boldTexts: any[] = [];
+
 describe('InstructionModal', () => {
-  const mockOnCloseAction = mock();
-  const defaultProps = {
-    isOpen: true,
-    onCloseAction: mockOnCloseAction,
-  };
 
   beforeEach(() => {
     mockOnCloseAction.mockReset();
@@ -352,11 +357,11 @@ describe('InstructionModal', () => {
     render(<InstructionModal {...defaultProps} />);
 
     const expectedSources = [
-      '/mbti/sangat-tidak-setuju.svg',
-      '/mbti/tidak-setuju.svg',
-      '/mbti/netral.svg',
-      '/mbti/setuju.svg',
-      '/mbti/sangat-setuju.svg',
+      '/mbti-test/Strongly-Disagree.svg',
+      '/mbti-test/Disagree.svg',
+      '/mbti-test/Neutral.svg',
+      '/mbti-test/Agree.svg',
+      '/mbti-test/Strongly-Agree.svg',
     ];
 
     expectedSources.forEach(src => {
@@ -428,8 +433,7 @@ describe('Layout and Styling', () => {
 
 describe('Props Validation', () => {
   test('handles undefined onCloseAction gracefully', () => {
-    const consoleErrorSpy = mock();
-
+    // Test that clicking with undefined onCloseAction doesn't throw
     render(<InstructionModal isOpen={true} onCloseAction={undefined as any} />);
 
     const button = screen.getByText('Mulai Sekarang');
@@ -437,8 +441,6 @@ describe('Props Validation', () => {
     expect(() => {
       fireEvent.click(button);
     }).not.toThrow();
-
-    consoleErrorSpy.mockRestore();
   });
 
   test('handles boolean isOpen prop correctly', () => {
@@ -634,8 +636,7 @@ describe('Error Handling', () => {
   });
 
   test('handles invalid prop types gracefully', () => {
-    const consoleErrorSpy = mock();
-
+    // Test that invalid prop types don't cause crashes
     expect(() => {
       render(
         <InstructionModal
@@ -644,7 +645,5 @@ describe('Error Handling', () => {
         />
       );
     }).not.toThrow();
-
-    consoleErrorSpy.mockRestore();
   });
 });

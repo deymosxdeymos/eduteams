@@ -1,15 +1,22 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import type { NextRequest } from 'next/server';
+import {
+  createApiResponse,
+  createErrorResponse,
+  withAuth,
+} from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
+
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 async function getStudentClasses(
   _request: NextRequest,
   { user }: { user: ExtendedUser }
 ) {
   if (!canAccessMahasiswaFeatures(user)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    return createErrorResponse('Access denied', 403);
   }
 
   try {
@@ -18,15 +25,22 @@ async function getStudentClasses(
       where: {
         studentId: user.id,
       },
-      include: {
+      select: {
+        enrolledAt: true,
         course: {
-          include: {
+          select: {
+            id: true,
+            namaMataKuliah: true,
+            kelas: true,
+            tahunAwalPeriode: true,
+            tahunAkhirPeriode: true,
+            periode: true,
             dosen: {
               select: {
                 name: true,
               },
             },
-            enrollments: true, // Include all enrollments to count students
+            _count: { select: { enrollments: true } },
           },
         },
       },
@@ -46,19 +60,12 @@ async function getStudentClasses(
       periode: enrollment.course.periode,
       dosen: enrollment.course.dosen,
       enrolledAt: enrollment.enrolledAt,
-      studentCount: enrollment.course.enrollments.length, // Add student count
+      studentCount: enrollment.course._count.enrollments,
     }));
 
-    return NextResponse.json({
-      success: true,
-      data: courses,
-    });
-  } catch (error) {
-    console.error('Error fetching student classes:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch classes' },
-      { status: 500 }
-    );
+    return createApiResponse(courses);
+  } catch (_error) {
+    return createErrorResponse('Failed to fetch classes', 500);
   }
 }
 

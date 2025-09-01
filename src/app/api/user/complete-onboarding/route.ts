@@ -4,6 +4,8 @@ import type { MBTIType } from '@/generated/prisma';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 const completeOnboardingSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)).optional(),

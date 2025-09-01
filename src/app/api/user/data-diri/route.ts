@@ -2,6 +2,8 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 const dataDiriSchema = z.object({
   namaLengkap: z.string().min(1, 'Nama lengkap is required'),

@@ -97,7 +97,7 @@ export function StudentList({
     if (updated) {
       setSelectedStudent(prev => (prev ? { ...prev, ...updated } : updated));
     }
-  }, [students, isMbtiOpen, selectedStudent?.id]);
+  }, [students, isMbtiOpen, selectedStudent]);
 
   // Close menus when clicking outside
   const containerRef = useRef<HTMLDivElement | null>(null);

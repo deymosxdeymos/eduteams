@@ -9,6 +9,8 @@ import { HttpError } from '@/lib/types';
 
 // Cache for 10 minutes since student lists don't change frequently
 export const revalidate = 600;
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 export async function GET(
   _request: NextRequest,

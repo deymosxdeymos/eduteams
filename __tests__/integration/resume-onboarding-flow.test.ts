@@ -549,7 +549,7 @@ describe('Resume Onboarding Integration Flow', () => {
       const statusData1 = await statusResponse1.json();
 
       expect(statusData1.isOnboarded).toBe(false);
-      expect(statusData1.redirectUrl).toBe('/dashboard');
+      expect(statusData1.redirectUrl).toBe('/dashboard?firstVisit=true');
 
       // Mark user as onboarded
       mockUser = { ...mockUser, isOnboarded: true };
