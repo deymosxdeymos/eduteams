@@ -98,7 +98,7 @@ describe('submitPersonalityTest Server Action', () => {
         ValidationError
       );
       await expect(submitPersonalityTest(formData)).rejects.toThrow(
-        'Answers are required'
+        'Validation failed'
       );
     });
 
@@ -184,13 +184,8 @@ describe('submitPersonalityTest Server Action', () => {
 
       await expect(submitPersonalityTest(formData)).rejects.toThrow('REDIRECT');
 
-      expect(mockPrismaUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            isOnboarded: true,
-          }),
-        })
-      );
+      const call = mockPrismaUpdate.mock.calls[0][0];
+      expect(call.data.isOnboarded).toBe(true);
     });
   });
 

@@ -14,11 +14,11 @@ export default function InstructionModal({
   onCloseAction,
 }: InstructionModalProps) {
   const likertScale = [
-    { icon: 'sangat-tidak-setuju', label: 'Sangat Tidak\nSetuju' },
-    { icon: 'tidak-setuju', label: 'Tidak Setuju' },
-    { icon: 'netral', label: 'Netral' },
-    { icon: 'setuju', label: 'Setuju' },
-    { icon: 'sangat-setuju', label: 'Sangat Setuju' },
+    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju' },
+    { icon: 'Disagree', label: 'Tidak Setuju' },
+    { icon: 'Neutral', label: 'Netral' },
+    { icon: 'Agree', label: 'Setuju' },
+    { icon: 'Strongly-Agree', label: 'Sangat Setuju' },
   ];
 
   return (

@@ -163,6 +163,78 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   const { course, students } = await getCourseAndStudents(id, user);
   if (!course) notFound();
 
+  const isMahasiswa = user.role === 'mahasiswa';
+  const isDosen = user.role === 'dosen' && user.id === course.dosenId;
+
+  // For mahasiswa, check if they need to take the quiz first
+  if (isMahasiswa) {
+    const submission = await prisma.assignmentSubmission.findUnique({
+      where: {
+        assignmentId_studentId: { assignmentId, studentId: user.id },
+      },
+    });
+
+    if (!submission) {
+      // Redirect to quiz if not submitted
+      return (
+        <DashboardClient
+          user={user}
+          shouldShowSplash={false}
+          isFirstVisit={false}
+        >
+          <div className='flex items-center justify-center min-h-screen'>
+            <div className='text-center'>
+              <h1 className='text-2xl font-bold mb-4'>Quiz Diperlukan</h1>
+              <p className='text-gray-600 mb-4'>
+                Anda perlu mengisi quiz terlebih dahulu sebelum dapat melihat
+                detail tugas.
+              </p>
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    setTimeout(() => {
+                      window.location.href = '/dashboard/class/${id}/assignments/${assignmentId}/quiz';
+                    }, 2000);
+                  `,
+                }}
+              />
+            </div>
+          </div>
+        </DashboardClient>
+      );
+    } else {
+      // If submitted, redirect to task page
+      return (
+        <DashboardClient
+          user={user}
+          shouldShowSplash={false}
+          isFirstVisit={false}
+        >
+          <div className='flex items-center justify-center min-h-screen'>
+            <div className='text-center'>
+              <h1 className='text-2xl font-bold mb-4'>
+                Mengalihkan ke Halaman Tugas
+              </h1>
+              <p className='text-gray-600 mb-4'>
+                Anda akan diarahkan ke halaman tugas...
+              </p>
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    setTimeout(() => {
+                      window.location.href = '/dashboard/class/${id}/assignments/${assignmentId}/task';
+                    }, 1000);
+                  `,
+                }}
+              />
+            </div>
+          </div>
+        </DashboardClient>
+      );
+    }
+  }
+
+  // For dosen, show the regular assignment page
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
       <Suspense fallback={<div>Loading...</div>}>
@@ -172,12 +244,12 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
           classId={id}
           assignmentId={assignmentId}
           students={students}
-          canManage={user.role === 'dosen' && user.id === course.dosenId}
+          canManage={isDosen}
         >
           <AssignmentContent
             assignmentId={assignmentId}
             classId={id}
-            canManage={user.role === 'dosen' && user.id === course.dosenId}
+            canManage={isDosen}
           />
         </AssignmentLayout>
       </Suspense>

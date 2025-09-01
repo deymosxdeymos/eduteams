@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import NodeCache from 'node-cache';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 
 export interface MBTIQuestion {
@@ -233,7 +234,7 @@ export class MBTIQuestionsManager {
       // Warm cache in background without blocking initialization
       setImmediate(() => this.warmCache());
     } catch (error) {
-      console.error('Failed to initialize MBTI Questions Manager:', error);
+      logger.error('Failed to initialize MBTI Questions Manager:', error);
       this.isInitialized = true;
     }
   }
@@ -244,7 +245,7 @@ export class MBTIQuestionsManager {
     try {
       await this.redis.ping();
     } catch (error) {
-      console.warn('Redis connection test failed:', error);
+      logger.warn('Redis connection test failed:', error);
       this.redis = null;
     }
   }
@@ -275,16 +276,16 @@ export class MBTIQuestionsManager {
         ex: this.config.redis.ttl,
       });
     } catch (error) {
-      console.error('Failed to persist metrics:', error);
+      logger.error('Failed to persist metrics:', error);
     }
   }
 
   private async warmCache(): Promise<void> {
     try {
       await this.getMBTIQuestions();
-      console.log('Cache warmed successfully');
+      logger.info('Cache warmed successfully');
     } catch (error) {
-      console.error('Failed to warm cache:', error);
+      logger.error('Failed to warm cache:', error);
     }
   }
 
@@ -355,7 +356,7 @@ export class MBTIQuestionsManager {
       return null;
     } catch (error) {
       this.metrics.cache.errors++;
-      console.error('Redis get error:', error);
+      logger.error('Redis get error:', error);
       return null;
     }
   }
@@ -373,7 +374,7 @@ export class MBTIQuestionsManager {
       });
     } catch (error) {
       this.metrics.cache.errors++;
-      console.error('Redis set error:', error);
+      logger.error('Redis set error:', error);
     }
   }
 
@@ -390,7 +391,7 @@ export class MBTIQuestionsManager {
       return null;
     } catch (error) {
       this.metrics.cache.errors++;
-      console.error('Memory cache get error:', error);
+      logger.error('Memory cache get error:', error);
       return null;
     }
   }
@@ -402,7 +403,7 @@ export class MBTIQuestionsManager {
       this.memoryCache.set(key, value, ttl || this.config.memory.ttl);
     } catch (error) {
       this.metrics.cache.errors++;
-      console.error('Memory cache set error:', error);
+      logger.error('Memory cache set error:', error);
     }
   }
 
@@ -725,7 +726,7 @@ export class MBTIQuestionsManager {
         throw error;
       }
 
-      console.error('Database fallback triggered:', error);
+      logger.error('Database fallback triggered:', error);
 
       if (this.config.fallback.enabled) {
         questions = await this.getFallbackData();
@@ -797,7 +798,7 @@ export class MBTIQuestionsManager {
           await this.redis.del(...keys);
         }
       } catch (error) {
-        console.error('Failed to invalidate Redis cache:', error);
+        logger.error('Failed to invalidate Redis cache:', error);
       }
     }
 

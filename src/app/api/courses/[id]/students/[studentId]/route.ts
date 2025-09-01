@@ -7,23 +7,20 @@ import {
   withAuth,
 } from '@/lib/api-utils';
 import { canAccessDosenFeatures } from '@/lib/authorization';
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
 
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 // DELETE /api/courses/[id]/students/[studentId]
-export const DELETE = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const DELETE = withAuth<{ id: string; studentId: string }>(
+  async (_request: NextRequest, { user, params }) => {
     try {
       if (!canAccessDosenFeatures(user))
         return createErrorResponse('Access denied', 403);
 
-      const url = new URL(request.url);
-      const segments = url.pathname.split('/');
-      const courseId = segments[segments.indexOf('courses') + 1];
-      const studentId = segments[segments.indexOf('students') + 1];
+      const { id: courseId, studentId } = await params;
 
       if (!courseId || !studentId)
         return createErrorResponse('Invalid path', 400);
@@ -45,8 +42,8 @@ export const DELETE = withAuth(
       });
 
       // Revalidate caches for dosen courses view and student's classes view
-      revalidateTag(`courses-${user.id}`);
-      revalidateTag(`student-classes-${studentId}`);
+      revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
+      revalidateTag(CACHE_TAGS.studentClasses(studentId));
 
       return createApiResponse(
         { removed: true },

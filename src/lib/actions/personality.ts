@@ -3,13 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+
 import type { MBTIType } from '@/generated/prisma';
+
 import { getCurrentUser } from '@/lib/api-utils';
-import { getMBTIQuestions } from '@/lib/mbti-questions';
-import {
-  calculatePersonalityScoresFromQuestions,
-  getMBTIType,
-} from '@/lib/personality';
+import { logger } from '@/lib/logger';
+import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
 
@@ -19,10 +18,11 @@ const personalitySubmissionSchema = z.object({
 
 export async function submitPersonalityTest(
   formData: FormData,
-  getCurrentUserImpl = getCurrentUser
+  getCurrentUserImpl?: typeof getCurrentUser
 ) {
   try {
-    const user = await getCurrentUserImpl();
+    const resolveUser = getCurrentUserImpl ?? getCurrentUser;
+    const user = await resolveUser();
     if (!user) {
       throw new AuthError('Authentication required');
     }
@@ -38,8 +38,8 @@ export async function submitPersonalityTest(
 
     const { answers } = parsedData;
 
-    const questions = await getMBTIQuestions();
-    const scores = calculatePersonalityScoresFromQuestions(answers, questions);
+    // answers are numeric-keyed (as strings). Use numeric-based scorer
+    const scores = calculatePersonalityScores(answers);
     const mbtiType = getMBTIType(scores);
 
     await prisma.user.update({
@@ -55,7 +55,7 @@ export async function submitPersonalityTest(
     });
 
     revalidatePath('/dashboard');
-    redirect('/dashboard?firstVisit=true');
+    redirect('/dashboard');
   } catch (error) {
     if (error instanceof AuthError || error instanceof ValidationError) {
       throw error;
@@ -72,7 +72,7 @@ export async function submitPersonalityTest(
       throw error;
     }
 
-    console.error('Error submitting personality test:', error);
+    logger.error('Error submitting personality test:', error);
     throw new Error('Failed to submit personality test');
   }
 }

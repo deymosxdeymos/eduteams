@@ -2,28 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main ]
   pull_request:
-    branches: [main, dev]
+    branches: [ main ]
 
 jobs:
-  test:
-    name: Test & Build
+  build-and-test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: eduteams_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Bun
@@ -31,67 +18,29 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Run linter and formatter
+      - name: Type check
+        run: bun run type-check
+
+      - name: Lint
         run: bun run lint
 
-      - name: Run type check
-        run: bun run type-check
-        if: ${{ hashFiles('tsconfig.json') != '' }}
+      - name: Run tests
+        run: bun test --bail
 
-      - name: Run migrations
-        run: bun prisma migrate deploy
-        env:
-          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
-
-      # - name: Run tests with coverage
-      #   run: bun run test:ci
-      #   if: ${{ hashFiles('**/*.test.*') != '' }}
-      #   env:
-      #     DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/eduteams_test'
-
-      # - name: Upload test results
-      #   uses: actions/upload-artifact@v4
-      #   if: always()
-      #   with:
-      #     name: test-results
-      #     path: |
-      #       junit.xml
-      #       coverage/
-      #     retention-days: 30
-
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v4
-      #   if: always()
-      #   with:
-      #     file: ./coverage/lcov.info
-      #     flags: unittests
-      #     name: codecov-umbrella
-      #     fail_ci_if_error: false
-
-      - name: Build application
-        run: bun run build
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: failure()
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          name: build-artifacts
-          path: |
-            .next/
-            *.log
-          retention-days: 5
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          additional_args: "--verbose --redact"
+

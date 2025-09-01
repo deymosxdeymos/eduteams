@@ -5,18 +5,20 @@ import {
   createErrorResponse,
   withAuth,
 } from '@/lib/api-utils';
+import { isSameOrigin } from '@/lib/csrf';
 import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
+import { limit, tooManyRequests } from '@/lib/rate-limit';
 
-export const GET = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
+
+export const GET = withAuth<{ id: string }>(
+  async (_request: NextRequest, { user, params }) => {
     if (user?.role !== 'dosen') {
       return createErrorResponse('Only dosen can access share tokens', 403);
     }
 
-    const url = new URL(request.url);
-    const pathSegments = url.pathname.split('/');
-    const courseId = pathSegments[pathSegments.length - 2];
+    const { id: courseId } = await params;
 
     const course = await prisma.course.findFirst({
       where: {
@@ -57,15 +59,27 @@ export const GET = withAuth(
   }
 );
 
-export const POST = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const POST = withAuth<{ id: string }>(
+  async (request: NextRequest, { user, params }) => {
     if (user?.role !== 'dosen') {
       return createErrorResponse('Only dosen can regenerate share tokens', 403);
     }
 
-    const url = new URL(request.url);
-    const pathSegments = url.pathname.split('/');
-    const courseId = pathSegments[pathSegments.length - 2];
+    // Basic CSRF protection for browser-initiated POSTs
+    if (!isSameOrigin(request)) {
+      return createErrorResponse('Invalid origin', 403);
+    }
+
+    // Rate limit per user + endpoint
+    const rl = await limit(request, `regenerate-share-token:${user.id}`);
+    if (!rl.success) {
+      return tooManyRequests(
+        {},
+        rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {}
+      );
+    }
+
+    const { id: courseId } = await params;
 
     const course = await prisma.course.findFirst({
       where: {

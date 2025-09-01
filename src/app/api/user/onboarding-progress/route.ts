@@ -6,6 +6,8 @@ import {
 } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 import { HttpError } from '@/lib/types';
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {

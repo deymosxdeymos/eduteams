@@ -1,4 +1,5 @@
 import type { Course, ExtendedUser } from '@/lib/types';
+import type { AssignmentClient } from '@/lib/validation/assignments';
 import Nav from './nav';
 import Sidebar from './sidebar';
 import { StudentClassAssignments } from './student-class-assignments';
@@ -9,6 +10,7 @@ interface StudentClassPageLayoutProps {
   user: ExtendedUser;
   course: Course;
   studentsData?: Student[];
+  initialAssignments?: AssignmentClient[];
 }
 
 interface Student {
@@ -28,6 +30,7 @@ export function StudentClassPageLayout({
   user,
   course,
   studentsData = [],
+  initialAssignments,
 }: StudentClassPageLayoutProps) {
   return (
     <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
@@ -37,7 +40,10 @@ export function StudentClassPageLayout({
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
         <Sidebar />
         <div className='px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'>
-          <StudentClassAssignments classId={classId} />
+          <StudentClassAssignments
+            classId={classId}
+            initialAssignments={initialAssignments}
+          />
           <StudentList
             classId={classId}
             initialData={studentsData}

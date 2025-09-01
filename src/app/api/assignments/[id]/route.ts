@@ -2,18 +2,15 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createErrorResponse, handleApiError, withAuth } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
 import { AssignmentUpdateSchema } from '@/lib/validation/assignments';
 
 export const runtime = 'nodejs';
 
 // PATCH /api/assignments/[id]
-export const PATCH = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const PATCH = withAuth<{ id: string }>(
+  async (request: NextRequest, { user, params }) => {
     try {
-      const url = new URL(request.url);
-      const segments = url.pathname.split('/');
-      const assignmentId = segments[segments.indexOf('assignments') + 1];
+      const { id: assignmentId } = await params;
 
       // load assignment with course
       const assignment = await prisma.assignment.findUnique({

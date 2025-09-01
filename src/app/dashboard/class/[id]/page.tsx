@@ -251,6 +251,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
     const result = await getCourseDataForMahasiswa(id, user.id);
     course = result.course;
     studentsData = result.students;
+    initialAssignments = await getInitialAssignments(id, user);
   }
 
   if (!course) {
@@ -275,6 +276,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
           user={user}
           course={course}
           studentsData={studentsData} // Pass server-side data
+          initialAssignments={initialAssignments}
         />
       )}
     </DashboardClient>

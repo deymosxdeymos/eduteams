@@ -4,7 +4,8 @@ async function testPrismaConnection() {
   console.log('🔍 Testing Prisma connection...');
 
   console.log('Environment variables:');
-  console.log('  DATABASE_URL:', process.env.DATABASE_URL);
+  const dbUrlSet = Boolean(process.env.DATABASE_URL);
+  console.log('  DATABASE_URL set:', dbUrlSet);
   console.log('  NODE_ENV:', process.env.NODE_ENV);
 
   try {
