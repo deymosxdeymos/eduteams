@@ -19,14 +19,29 @@ export default function Content() {
   const { data, error, mutate } = useSWR('/api/courses', fetcher);
   const [searchValue, setSearchValue] = useState('');
 
-  const courses: CourseWithEnrollments[] = data?.data || [];
+  // The API returns a list with studentCount; in some code paths we may also
+  // have an enrollments array. Support both to avoid showing 0 by mistake.
+  type DosenCourseListItem = Pick<
+    CourseWithEnrollments,
+    'id' | 'namaMataKuliah' | 'kelas' | 'tahunAwalPeriode' | 'tahunAkhirPeriode'
+  > & {
+    studentCount?: number;
+    enrollments?: unknown[];
+  };
+
+  const courses = (data?.data as DosenCourseListItem[]) || [];
 
   // Convert Course data to Class format expected by ClassGrid
   const classes: Class[] = courses.map(course => ({
     id: course.id,
     title: course.namaMataKuliah,
     academicYear: `T.A ${course.tahunAwalPeriode}/${course.tahunAkhirPeriode}`,
-    studentCount: course.enrollments?.length || 0, // Use actual enrollment count
+    studentCount:
+      typeof course.studentCount === 'number'
+        ? course.studentCount
+        : Array.isArray(course.enrollments)
+          ? course.enrollments.length
+          : 0,
     classCode: course.kelas,
   }));
 
