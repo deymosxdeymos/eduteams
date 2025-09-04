@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import type { MBTIType } from '@/generated/prisma';
+import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 import { createApiResponse } from '@/lib/api-utils';
 import { auth } from '@/lib/auth';
 import { getMBTIQuestions } from '@/lib/mbti-questions';
@@ -72,6 +72,11 @@ export async function POST(request: NextRequest) {
           tf: scores.tf,
           pj: scores.pj,
           ...(includeMBTI ? { mbtiType: mbtiType as MBTIType } : {}),
+          personalityData: {
+            answers,
+            scores,
+            metadata: { completedAt: new Date().toISOString() },
+          } as unknown as PrismaNS.InputJsonValue,
         },
       });
     } catch (e: unknown) {

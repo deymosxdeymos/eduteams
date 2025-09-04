@@ -21,6 +21,9 @@ interface AssignmentLayoutProps {
     enrolledAt: Date;
   }>;
   canManage: boolean;
+  hideStudentList?: boolean;
+  assignmentTitle?: string;
+  answersCrumb?: string | boolean;
   children?: React.ReactNode;
 }
 
@@ -32,25 +35,41 @@ export function AssignmentLayout({
   assignmentId: _assignmentId,
   students,
   canManage,
+  hideStudentList = false,
+  assignmentTitle,
+  answersCrumb,
   children,
 }: AssignmentLayoutProps) {
   return (
     <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
       <div className='mb-8'>
-        <Nav user={user} className={course} />
+        <Nav
+          user={user}
+          className={course}
+          assignmentTitle={assignmentTitle}
+          answersCrumb={answersCrumb}
+        />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
         <Sidebar />
-        <div className='px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'>
+        <div
+          className={
+            hideStudentList
+              ? 'px-8 pb-0 min-h-0 grid grid-cols-[1fr]'
+              : 'px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'
+          }
+        >
           <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
             {children}
           </div>
-          <StudentList
-            classId={classId}
-            initialData={students}
-            currentUserId={user.id}
-            canManage={canManage}
-          />
+          {!hideStudentList && (
+            <StudentList
+              classId={classId}
+              initialData={students}
+              currentUserId={user.id}
+              canManage={canManage}
+            />
+          )}
         </div>
       </div>
     </main>

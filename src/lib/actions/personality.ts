@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-
-import type { MBTIType } from '@/generated/prisma';
+import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 
 import { getCurrentUser } from '@/lib/api-utils';
 import { logger } from '@/lib/logger';
@@ -51,6 +50,14 @@ export async function submitPersonalityTest(
         pj: scores.pj,
         mbtiType: mbtiType as MBTIType,
         isOnboarded: true,
+        personalityData: {
+          // overwrite with latest submission snapshot
+          answers,
+          scores,
+          metadata: {
+            completedAt: new Date().toISOString(),
+          },
+        } as unknown as PrismaNS.InputJsonValue,
       },
     });
 

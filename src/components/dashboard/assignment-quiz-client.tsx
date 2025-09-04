@@ -1,11 +1,11 @@
 'use client';
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useReducer, useRef } from 'react';
+import { useReducer, useRef, useState } from 'react';
+import PreferenceTestInstructionModal from '@/components/dashboard/preference-test-instruction-modal';
+import SkillTestInstructionModal from '@/components/dashboard/skill-test-instruction-modal';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import SkillsQuiz from './skills-quiz';
 import TopicsQuiz from './topics-quiz';
 
@@ -103,10 +103,10 @@ export function AssignmentQuizClient({
   const router = useRouter();
   const [state, dispatch] = useReducer(quizReducer, initialQuizState);
   const formRef = useRef<HTMLFormElement>(null);
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(true);
+  const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
 
-  const totalSteps = 2;
-  const currentStepIndex = state.currentStep === 'skills' ? 0 : 1;
-  const progress = ((currentStepIndex + 1) / totalSteps) * 100;
+  // No step header/progress UI
 
   const validateCurrentStep = () => {
     const errors = new Set<string>();
@@ -143,6 +143,7 @@ export function AssignmentQuizClient({
 
     if (state.currentStep === 'skills') {
       dispatch({ type: 'NEXT_STEP' });
+      setIsPreferenceModalOpen(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       await handleComplete();
@@ -164,6 +165,18 @@ export function AssignmentQuizClient({
     dispatch({ type: 'SET_SUBMITTING', payload: true });
 
     try {
+      // Normalize to 0..1 like summerschool but better shape
+      const toNorm = (v: number) => Math.max(0, Math.min(1, (v - 1) / 4));
+      const skills = assignment.skills
+        .map((name, idx) => ({ name, level: toNorm(state.skillsAnswers[idx]) }))
+        .filter(s => Number.isFinite(s.level));
+      const topics = assignment.topics
+        .map((name, idx) => ({
+          name,
+          preference: toNorm(state.topicsAnswers[idx]),
+        }))
+        .filter(t => Number.isFinite(t.preference));
+
       const response = await fetch(
         `/api/courses/${classId}/assignments/${assignmentId}/submit`,
         {
@@ -171,10 +184,7 @@ export function AssignmentQuizClient({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            skillsAnswers: state.skillsAnswers,
-            topicsAnswers: state.topicsAnswers,
-          }),
+          body: JSON.stringify({ skills, topics }),
         }
       );
 
@@ -182,7 +192,7 @@ export function AssignmentQuizClient({
         throw new Error('Failed to submit quiz');
       }
 
-      // Redirect to task page
+      // Redirect to assignment page (CTA will guide to task)
       router.push(`/dashboard/class/${classId}/assignments/${assignmentId}`);
     } catch (error) {
       console.error('Error submitting quiz:', error);
@@ -202,16 +212,19 @@ export function AssignmentQuizClient({
 
   return (
     <main className='bg-white min-h-screen px-12 py-14'>
+      <SkillTestInstructionModal
+        isOpen={isSkillModalOpen && state.currentStep === 'skills'}
+        onCloseAction={() => setIsSkillModalOpen(false)}
+      />
+      <PreferenceTestInstructionModal
+        isOpen={isPreferenceModalOpen && state.currentStep === 'topics'}
+        onCloseAction={() => setIsPreferenceModalOpen(false)}
+      />
       <div className='flex items-center justify-center space-x-2 pt-20'>
-        <Image
-          src='/emoji/monocle.svg'
-          width={80}
-          height={80}
-          alt='rocket'
-          className='w-20 h-20'
-        />
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          🚀 Tes Keahlian
+          {state.currentStep === 'skills'
+            ? '🚀 Tes Keahlian'
+            : '📚 Preferensi Topik'}
         </h1>
       </div>
 
@@ -224,22 +237,6 @@ export function AssignmentQuizClient({
       </div>
 
       <form ref={formRef} className='px-8 max-w-4xl mx-auto pt-8'>
-        <div className='mb-8'>
-          <div className='flex items-center justify-between gap-4'>
-            <span className='text-md font-medium text-black'>
-              {state.currentStep === 'skills'
-                ? 'Tes Keahlian'
-                : 'Preferensi Topik'}{' '}
-              - Halaman {currentStepIndex + 1} dari {totalSteps}
-            </span>
-            <Progress
-              value={progress}
-              className='h-3 flex-1 bg-gray-200'
-              indicatorClassName='bg-green-400'
-            />
-          </div>
-        </div>
-
         <div className='space-y-8'>
           {state.currentStep === 'skills' ? (
             <SkillsQuiz

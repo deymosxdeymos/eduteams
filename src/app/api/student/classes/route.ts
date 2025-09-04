@@ -64,7 +64,7 @@ async function getStudentClasses(
     }));
 
     return createApiResponse(courses);
-  } catch (_error) {
+  } catch {
     return createErrorResponse('Failed to fetch classes', 500);
   }
 }
