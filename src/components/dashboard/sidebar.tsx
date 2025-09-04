@@ -28,10 +28,15 @@ export default function Sidebar() {
 
   // Helper function to determine if a route is active
   const isActive = (path: string) => {
+    // Home (dashboard) should be active for all dashboard routes except profile
     if (path === '/dashboard') {
-      return pathname === '/dashboard';
+      return (
+        !!pathname &&
+        pathname.startsWith('/dashboard') &&
+        !pathname.startsWith('/dashboard/profile')
+      );
     }
-    return pathname.startsWith(path);
+    return !!pathname && pathname.startsWith(path);
   };
 
   return (

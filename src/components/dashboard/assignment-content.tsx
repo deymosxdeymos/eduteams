@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useId, useMemo } from 'react';
 import {
   Bar,
@@ -310,14 +311,17 @@ interface AssignmentContentProps {
   assignmentId: string;
   classId: string;
   canManage: boolean;
+  isStudent?: boolean;
+  hasSubmitted?: boolean;
 }
 
 export function AssignmentContent({
   assignmentId,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  classId: _classId,
+  classId,
   canManage,
+  isStudent = false,
 }: AssignmentContentProps) {
+  const router = useRouter();
   const { ids: gradientIds, urlFor } = useGradientIds();
   const faceShadowId = useId();
   const chartData = useChartData(assignmentId, urlFor);
@@ -340,364 +344,405 @@ export function AssignmentContent({
               <span className='font-semibold text-sm'>Buat Kelompok</span>
             </Button>
           )}
-          <Button
-            variant='outline'
-            className='rounded-full border border-black p-6 w-[15rem]'
-          >
-            <ChartLineIcon className='w-4 h-4 text-black' />
-            <span className='text-black font-semibold text-sm'>
-              Lihat Jawaban Mahasiswa{' '}
-            </span>
-          </Button>
-        </div>
-
-        <div className='flex flex-col justify-start border shadow-sm rounded-xl p-4 flex-shrink-0'>
-          <div className='mb-2'>
-            <span className='text-neutral-500 font-light text-base block'>
-              Grafik Persebaran
-            </span>
-            <h1 className='text-neutral-800 font-medium text-xl'>
-              Personality Mahasiswa
-            </h1>
-          </div>
-          <div className='overflow-x-auto'>
-            <ChartContainer
-              config={chartConfig}
-              className='h-[180px] w-full max-w-[900px] mb-3 justify-start'
+          {!isStudent && (
+            <Button
+              variant='outline'
+              className='rounded-full border border-black p-6 w-[15rem]'
             >
-              <BarChart
-                data={chartData}
-                margin={{ bottom: 20, left: 0, right: 8, top: 16 }}
-                barCategoryGap={8}
-              >
-                <defs>
-                  <filter
-                    id={faceShadowId}
-                    x='-20%'
-                    y='-20%'
-                    width='140%'
-                    height='140%'
+              <ChartLineIcon className='w-4 h-4 text-black' />
+              <span className='text-black font-semibold text-sm'>
+                Lihat Jawaban Mahasiswa
+              </span>
+            </Button>
+          )}
+          {isStudent && (
+            <Button
+              variant='outline'
+              className='rounded-full border border-black p-6 w-[14rem]'
+              onClick={() =>
+                router.push(
+                  `/dashboard/class/${classId}/assignments/${assignmentId}/quiz`
+                )
+              }
+            >
+              <ChartLineIcon className='w-4 h-4 text-black' />
+              <span className='text-black font-semibold text-sm'>
+                Lihat Jawaban Saya
+              </span>
+            </Button>
+          )}
+        </div>
+        {isStudent ? (
+          <div className='flex-1 flex items-center justify-center'>
+            <div className='flex flex-col items-center text-center max-w-xl'>
+              <Image
+                src='/waiting-form.svg'
+                alt='Menunggu pembagian kelompok'
+                width={120}
+                height={120}
+                className='mb-6'
+                priority
+              />
+              <h1 className='text-2xl font-bold text-gray-800 mb-2'>
+                Menunggu pembagian kelompok!
+              </h1>
+              <p className='text-gray-600'>
+                Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya,
+                dosen sedang memproses pembagian kelompok.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className='flex flex-col justify-start border shadow-sm rounded-xl p-4 flex-shrink-0'>
+              <div className='mb-2'>
+                <span className='text-neutral-500 font-light text-base block'>
+                  Grafik Persebaran
+                </span>
+                <h1 className='text-neutral-800 font-medium text-xl'>
+                  Personality Mahasiswa
+                </h1>
+              </div>
+              <div className='overflow-x-auto'>
+                <ChartContainer
+                  config={chartConfig}
+                  className='h-[180px] w-full max-w-[900px] mb-3 justify-start'
+                >
+                  <BarChart
+                    data={chartData}
+                    margin={{ bottom: 20, left: 0, right: 8, top: 16 }}
+                    barCategoryGap={8}
                   >
-                    <feDropShadow
-                      dx='0'
-                      dy='1'
-                      stdDeviation='1.2'
-                      floodOpacity='0.35'
-                    />
-                  </filter>
-                  <linearGradient
-                    id={gradientIds.green}
-                    x1='0'
-                    y1='0'
-                    x2='0'
-                    y2='1'
-                  >
-                    <stop offset='0%' stopColor='#6CE9A6' />
-                    <stop offset='100%' stopColor='#3BCC7E' />
-                  </linearGradient>
-                  <linearGradient
-                    id={gradientIds.purple}
-                    x1='0'
-                    y1='0'
-                    x2='0'
-                    y2='1'
-                  >
-                    <stop offset='0%' stopColor='#9B8AFB' />
-                    <stop offset='100%' stopColor='#7A64FA' />
-                  </linearGradient>
-                  <linearGradient
-                    id={gradientIds.blue}
-                    x1='0'
-                    y1='0'
-                    x2='0'
-                    y2='1'
-                  >
-                    <stop offset='0%' stopColor='#7CD4FD' />
-                    <stop offset='100%' stopColor='#38B8F4' />
-                  </linearGradient>
-                  <linearGradient
-                    id={gradientIds.amber}
-                    x1='0'
-                    y1='0'
-                    x2='0'
-                    y2='1'
-                  >
-                    <stop offset='0%' stopColor='#FEC84B' />
-                    <stop offset='100%' stopColor='#D7A32A' />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey='kategori'
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={value => value.slice(0, 10)}
-                  label={{
-                    value: 'Tipe Personality',
-                    position: 'insideBottom',
-                    offset: -10,
-                    style: { textAnchor: 'middle' },
-                  }}
-                />
-                <YAxis tickLine={false} axisLine={false} width={28} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      className='w-[220px]'
-                      nameKey='jumlah'
-                      labelFormatter={value => `Kategori: ${value}`}
-                      formatter={(
-                        val,
-                        _name: string | number,
-                        item: { payload?: { kategori?: string } }
-                      ) => {
-                        const key = item?.payload?.kategori;
-                        return (
-                          <div className='flex items-center gap-2'>
-                            {key ? (
-                              <Image
-                                src={`${MASCOT_SRC_BASE}/${key}.svg`}
-                                alt={String(key)}
-                                width={24}
-                                height={24}
-                              />
-                            ) : null}
-                            <span className='text-foreground font-mono font-medium tabular-nums'>
-                              {Number(val).toLocaleString()}
-                            </span>
-                          </div>
-                        );
+                    <defs>
+                      <filter
+                        id={faceShadowId}
+                        x='-20%'
+                        y='-20%'
+                        width='140%'
+                        height='140%'
+                      >
+                        <feDropShadow
+                          dx='0'
+                          dy='1'
+                          stdDeviation='1.2'
+                          floodOpacity='0.35'
+                        />
+                      </filter>
+                      <linearGradient
+                        id={gradientIds.green}
+                        x1='0'
+                        y1='0'
+                        x2='0'
+                        y2='1'
+                      >
+                        <stop offset='0%' stopColor='#6CE9A6' />
+                        <stop offset='100%' stopColor='#3BCC7E' />
+                      </linearGradient>
+                      <linearGradient
+                        id={gradientIds.purple}
+                        x1='0'
+                        y1='0'
+                        x2='0'
+                        y2='1'
+                      >
+                        <stop offset='0%' stopColor='#9B8AFB' />
+                        <stop offset='100%' stopColor='#7A64FA' />
+                      </linearGradient>
+                      <linearGradient
+                        id={gradientIds.blue}
+                        x1='0'
+                        y1='0'
+                        x2='0'
+                        y2='1'
+                      >
+                        <stop offset='0%' stopColor='#7CD4FD' />
+                        <stop offset='100%' stopColor='#38B8F4' />
+                      </linearGradient>
+                      <linearGradient
+                        id={gradientIds.amber}
+                        x1='0'
+                        y1='0'
+                        x2='0'
+                        y2='1'
+                      >
+                        <stop offset='0%' stopColor='#FEC84B' />
+                        <stop offset='100%' stopColor='#D7A32A' />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey='kategori'
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                      tickFormatter={value => value.slice(0, 10)}
+                      label={{
+                        value: 'Tipe Personality',
+                        position: 'insideBottom',
+                        offset: -10,
+                        style: { textAnchor: 'middle' },
                       }}
                     />
-                  }
-                />
-                <Bar
-                  dataKey='jumlah'
-                  shape={(props: RechartsBarShapeInput) => (
-                    <MbtiBarShape
-                      x={props.x}
-                      y={props.y}
-                      width={props.width}
-                      height={props.height}
-                      payload={props.payload}
-                      faceShadowId={faceShadowId}
-                    />
-                  )}
-                />
-              </BarChart>
-            </ChartContainer>
-          </div>
-        </div>
-
-        <div className='flex gap-x-4 flex-1 min-h-0'>
-          <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
-            <div className='flex-shrink-0 mb-3'>
-              <span className='text-neutral-500 font-light text-base block'>
-                Grafik Rata-Rata
-              </span>
-              <h1 className='text-neutral-800 font-medium text-xl'>
-                Keahlian Mahasiswa
-              </h1>
-            </div>
-            <div className='flex flex-col gap-3 flex-1 justify-center'>
-              {(
-                [
-                  { label: 'UI/UX', value: 68 },
-                  { label: 'Frontend', value: 82 },
-                  { label: 'Backend', value: 28 },
-                  { label: 'QA', value: 76 },
-                  { label: 'Project\u00A0Manager', value: 72 },
-                ] as { label: string; value: number }[]
-              ).map((s, i) => (
-                <div className='flex items-center gap-3 w-full' key={i}>
-                  <div
-                    className='text-neutral-700 text-sm flex-shrink-0'
-                    style={{ width: '80px', whiteSpace: 'pre-wrap' }}
-                  >
-                    {s.label.replace(/\s+/g, '\n')}
-                  </div>
-                  <div className='flex-1 h-3 rounded-full bg-neutral-200'>
-                    <div
-                      className='h-3 rounded-full bg-[#235ADF]'
-                      style={{ width: `${s.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-              <div className='flex items-center gap-3 w-full text-neutral-400 text-xs mt-1'>
-                <div style={{ width: '80px' }}></div>
-                <div className='flex-1 flex justify-between'>
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
-            <div className='flex-shrink-0 mb-3'>
-              <span className='text-neutral-500 font-light text-base block'>
-                Grafik Rata-Rata
-              </span>
-              <h1 className='text-neutral-800 font-medium text-xl'>
-                Preferensi Tugas
-              </h1>
-            </div>
-            <div className='flex flex-col flex-1 justify-center'>
-              <div className='flex-1 flex items-center justify-center'>
-                <ChartContainer
-                  config={{
-                    kesehatan: { label: 'Kesehatan', color: '#4F46E5' },
-                    politik: { label: 'Politik', color: '#6366F1' },
-                    makanan: { label: 'Makanan', color: '#A5B4FC' },
-                    lingkungan: { label: 'Lingkungan', color: '#C7D2FE' },
-                  }}
-                  className='w-full aspect-square max-h-[200px]'
-                >
-                  <RePieChart>
+                    <YAxis tickLine={false} axisLine={false} width={28} />
                     <ChartTooltip
-                      content={<ChartTooltipContent hideIndicator />}
+                      content={
+                        <ChartTooltipContent
+                          className='w-[220px]'
+                          nameKey='jumlah'
+                          labelFormatter={value => `Kategori: ${value}`}
+                          formatter={(
+                            val,
+                            _name: string | number,
+                            item: { payload?: { kategori?: string } }
+                          ) => {
+                            const key = item?.payload?.kategori;
+                            return (
+                              <div className='flex items-center gap-2'>
+                                {key ? (
+                                  <Image
+                                    src={`${MASCOT_SRC_BASE}/${key}.svg`}
+                                    alt={String(key)}
+                                    width={24}
+                                    height={24}
+                                  />
+                                ) : null}
+                                <span className='text-foreground font-mono font-medium tabular-nums'>
+                                  {Number(val).toLocaleString()}
+                                </span>
+                              </div>
+                            );
+                          }}
+                        />
+                      }
                     />
-                    <RePie
-                      dataKey='value'
-                      nameKey='name'
-                      data={[
-                        {
-                          name: 'kesehatan',
-                          value: 32,
-                          fill: 'var(--color-kesehatan)',
-                        },
-                        {
-                          name: 'politik',
-                          value: 28,
-                          fill: 'var(--color-politik)',
-                        },
-                        {
-                          name: 'makanan',
-                          value: 20,
-                          fill: 'var(--color-makanan)',
-                        },
-                        {
-                          name: 'lingkungan',
-                          value: 20,
-                          fill: 'var(--color-lingkungan)',
-                        },
-                      ]}
-                      cx='50%'
-                      cy='50%'
-                      innerRadius={0}
-                      outerRadius='80%'
-                      paddingAngle={0}
-                      stroke='none'
-                      strokeWidth={0}
+                    <Bar
+                      dataKey='jumlah'
+                      shape={(props: RechartsBarShapeInput) => (
+                        <MbtiBarShape
+                          x={props.x}
+                          y={props.y}
+                          width={props.width}
+                          height={props.height}
+                          payload={props.payload}
+                          faceShadowId={faceShadowId}
+                        />
+                      )}
                     />
-                  </RePieChart>
+                  </BarChart>
                 </ChartContainer>
               </div>
+            </div>
 
-              <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm flex-shrink-0'>
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className='inline-block h-3 w-3 rounded-full'
-                    style={{ backgroundColor: '#4F46E5' }}
-                  />
-                  <span className='text-neutral-800'>Kesehatan</span>
+            <div className='flex gap-x-4 flex-1 min-h-0'>
+              <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
+                <div className='flex-shrink-0 mb-3'>
+                  <span className='text-neutral-500 font-light text-base block'>
+                    Grafik Rata-Rata
+                  </span>
+                  <h1 className='text-neutral-800 font-medium text-xl'>
+                    Keahlian Mahasiswa
+                  </h1>
                 </div>
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className='inline-block h-3 w-3 rounded-full'
-                    style={{ backgroundColor: '#6366F1' }}
-                  />
-                  <span className='text-neutral-800'>Politik</span>
+                <div className='flex flex-col gap-3 flex-1 justify-center'>
+                  {(
+                    [
+                      { label: 'UI/UX', value: 68 },
+                      { label: 'Frontend', value: 82 },
+                      { label: 'Backend', value: 28 },
+                      { label: 'QA', value: 76 },
+                      { label: 'Project\u00A0Manager', value: 72 },
+                    ] as { label: string; value: number }[]
+                  ).map((s, i) => (
+                    <div className='flex items-center gap-3 w-full' key={i}>
+                      <div
+                        className='text-neutral-700 text-sm flex-shrink-0'
+                        style={{ width: '80px', whiteSpace: 'pre-wrap' }}
+                      >
+                        {s.label.replace(/\s+/g, '\n')}
+                      </div>
+                      <div className='flex-1 h-3 rounded-full bg-neutral-200'>
+                        <div
+                          className='h-3 rounded-full bg-[#235ADF]'
+                          style={{ width: `${s.value}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <div className='flex items-center gap-3 w-full text-neutral-400 text-xs mt-1'>
+                    <div style={{ width: '80px' }}></div>
+                    <div className='flex-1 flex justify-between'>
+                      <span>0%</span>
+                      <span>50%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
                 </div>
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className='inline-block h-3 w-3 rounded-full'
-                    style={{ backgroundColor: '#A5B4FC' }}
-                  />
-                  <span className='text-neutral-800'>Makanan</span>
+              </div>
+
+              <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
+                <div className='flex-shrink-0 mb-3'>
+                  <span className='text-neutral-500 font-light text-base block'>
+                    Grafik Rata-Rata
+                  </span>
+                  <h1 className='text-neutral-800 font-medium text-xl'>
+                    Preferensi Tugas
+                  </h1>
                 </div>
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className='inline-block h-3 w-3 rounded-full'
-                    style={{ backgroundColor: '#C7D2FE' }}
-                  />
-                  <span className='text-neutral-800'>Lingkungan</span>
+                <div className='flex flex-col flex-1 justify-center'>
+                  <div className='flex-1 flex items-center justify-center'>
+                    <ChartContainer
+                      config={{
+                        kesehatan: { label: 'Kesehatan', color: '#4F46E5' },
+                        politik: { label: 'Politik', color: '#6366F1' },
+                        makanan: { label: 'Makanan', color: '#A5B4FC' },
+                        lingkungan: { label: 'Lingkungan', color: '#C7D2FE' },
+                      }}
+                      className='w-full aspect-square max-h-[200px]'
+                    >
+                      <RePieChart>
+                        <ChartTooltip
+                          content={<ChartTooltipContent hideIndicator />}
+                        />
+                        <RePie
+                          dataKey='value'
+                          nameKey='name'
+                          data={[
+                            {
+                              name: 'kesehatan',
+                              value: 32,
+                              fill: 'var(--color-kesehatan)',
+                            },
+                            {
+                              name: 'politik',
+                              value: 28,
+                              fill: 'var(--color-politik)',
+                            },
+                            {
+                              name: 'makanan',
+                              value: 20,
+                              fill: 'var(--color-makanan)',
+                            },
+                            {
+                              name: 'lingkungan',
+                              value: 20,
+                              fill: 'var(--color-lingkungan)',
+                            },
+                          ]}
+                          cx='50%'
+                          cy='50%'
+                          innerRadius={0}
+                          outerRadius='80%'
+                          paddingAngle={0}
+                          stroke='none'
+                          strokeWidth={0}
+                        />
+                      </RePieChart>
+                    </ChartContainer>
+                  </div>
+
+                  <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm flex-shrink-0'>
+                    <div className='flex items-center gap-1.5'>
+                      <span
+                        className='inline-block h-3 w-3 rounded-full'
+                        style={{ backgroundColor: '#4F46E5' }}
+                      />
+                      <span className='text-neutral-800'>Kesehatan</span>
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                      <span
+                        className='inline-block h-3 w-3 rounded-full'
+                        style={{ backgroundColor: '#6366F1' }}
+                      />
+                      <span className='text-neutral-800'>Politik</span>
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                      <span
+                        className='inline-block h-3 w-3 rounded-full'
+                        style={{ backgroundColor: '#A5B4FC' }}
+                      />
+                      <span className='text-neutral-800'>Makanan</span>
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                      <span
+                        className='inline-block h-3 w-3 rounded-full'
+                        style={{ backgroundColor: '#C7D2FE' }}
+                      />
+                      <span className='text-neutral-800'>Lingkungan</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
+                <div className='flex-shrink-0 mb-3'>
+                  <span className='text-neutral-500 font-light text-base block'>
+                    Grafik Rata-Rata
+                  </span>
+                  <h1 className='text-neutral-800 font-medium text-xl'>
+                    Gender Mahasiswa
+                  </h1>
+                </div>
+                <div className='flex flex-col flex-1 justify-center'>
+                  <div className='flex-1 flex items-center justify-center'>
+                    <ChartContainer
+                      config={{
+                        laki: { label: 'Laki-laki', color: '#3B82F6' },
+                        perempuan: { label: 'Perempuan', color: '#EC4899' },
+                      }}
+                      className='w-full aspect-square max-h-[200px]'
+                    >
+                      <RePieChart>
+                        <ChartTooltip
+                          content={<ChartTooltipContent hideIndicator />}
+                        />
+                        <RePie
+                          dataKey='value'
+                          nameKey='name'
+                          data={[
+                            {
+                              name: 'laki',
+                              value: 65,
+                              fill: 'var(--color-laki)',
+                            },
+                            {
+                              name: 'perempuan',
+                              value: 35,
+                              fill: 'var(--color-perempuan)',
+                            },
+                          ]}
+                          cx='50%'
+                          cy='50%'
+                          innerRadius='40%'
+                          outerRadius='80%'
+                          paddingAngle={0}
+                          stroke='none'
+                          strokeWidth={0}
+                        />
+                      </RePieChart>
+                    </ChartContainer>
+                  </div>
+
+                  <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm flex-shrink-0 justify-center'>
+                    <div className='flex items-center gap-1.5'>
+                      <span
+                        className='inline-block h-3 w-3 rounded-full'
+                        style={{ backgroundColor: '#3B82F6' }}
+                      />
+                      <span className='text-neutral-800'>Laki-laki</span>
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                      <span
+                        className='inline-block h-3 w-3 rounded-full'
+                        style={{ backgroundColor: '#EC4899' }}
+                      />
+                      <span className='text-neutral-800'>Perempuan</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
-            <div className='flex-shrink-0 mb-3'>
-              <span className='text-neutral-500 font-light text-base block'>
-                Grafik Rata-Rata
-              </span>
-              <h1 className='text-neutral-800 font-medium text-xl'>
-                Gender Mahasiswa
-              </h1>
-            </div>
-            <div className='flex flex-col flex-1 justify-center'>
-              <div className='flex-1 flex items-center justify-center'>
-                <ChartContainer
-                  config={{
-                    laki: { label: 'Laki-laki', color: '#3B82F6' },
-                    perempuan: { label: 'Perempuan', color: '#EC4899' },
-                  }}
-                  className='w-full aspect-square max-h-[200px]'
-                >
-                  <RePieChart>
-                    <ChartTooltip
-                      content={<ChartTooltipContent hideIndicator />}
-                    />
-                    <RePie
-                      dataKey='value'
-                      nameKey='name'
-                      data={[
-                        {
-                          name: 'laki',
-                          value: 65,
-                          fill: 'var(--color-laki)',
-                        },
-                        {
-                          name: 'perempuan',
-                          value: 35,
-                          fill: 'var(--color-perempuan)',
-                        },
-                      ]}
-                      cx='50%'
-                      cy='50%'
-                      innerRadius='40%'
-                      outerRadius='80%'
-                      paddingAngle={0}
-                      stroke='none'
-                      strokeWidth={0}
-                    />
-                  </RePieChart>
-                </ChartContainer>
-              </div>
-
-              <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm flex-shrink-0 justify-center'>
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className='inline-block h-3 w-3 rounded-full'
-                    style={{ backgroundColor: '#3B82F6' }}
-                  />
-                  <span className='text-neutral-800'>Laki-laki</span>
-                </div>
-                <div className='flex items-center gap-1.5'>
-                  <span
-                    className='inline-block h-3 w-3 rounded-full'
-                    style={{ backgroundColor: '#EC4899' }}
-                  />
-                  <span className='text-neutral-800'>Perempuan</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

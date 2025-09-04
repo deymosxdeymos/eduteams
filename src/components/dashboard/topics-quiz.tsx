@@ -44,7 +44,11 @@ export default function TopicsQuiz({
             >
               <div className='text-center mb-6'>
                 <p className='text-md font-normal text-black'>
-                  Seberapa Tertarik Anda dengan topik <strong>{topic}</strong>?
+                  Seberapa Tertarik Anda dengan topik{' '}
+                  <strong>
+                    #{topicIndex + 1}: {topic}
+                  </strong>
+                  ?
                 </p>
               </div>
 

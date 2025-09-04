@@ -101,7 +101,7 @@ async function joinClass(
         dosen: course.dosen,
       },
     });
-  } catch (_error) {
+  } catch {
     return createErrorResponse('Failed to join class. Please try again.', 500);
   }
 }

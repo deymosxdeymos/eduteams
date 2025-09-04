@@ -9,39 +9,40 @@ datasource db {
 }
 
 model User {
-  id                String                 @id
-  name              String
-  email             String                 @unique
-  emailVerified     Boolean
-  image             String?
-  createdAt         DateTime
-  updatedAt         DateTime
-  isOnboarded       Boolean                @default(false)
-  hasSeenWelcomeSplash Boolean             @default(false)
-  nimNpm            String?
-  role              String?
-  onboardingData    Json?
-  onboardingStep    String?
-  ei                Float?
-  gender            Gender?
-  pj                Float?
-  sn                Float?
-  tf                Float?
-  mbtiType          MBTIType?
-  personalityData   Json?
-  accounts          Account[]
-  personPreferences PersonPreference[]
-  preferredBy       PersonPreference[]     @relation("PreferredPerson")
-  personSkills      PersonSkill[]
-  sessions          Session[]
-  taskPreferences   TaskPreference[]
-  ownedTeamRequests TeamFormationRequest[] @relation("TeamRequestOwner")
-  teamMemberships   TeamMember[]
-  courses           Course[]
-  courseEnrollments CourseEnrollment[]
-  dosenTokenUsages      DosenTokenUsage[]
-  createdAssignments    Assignment[]          @relation("AssignmentCreator")
-  assignmentSubmissions AssignmentSubmission[] @relation("AssignmentSubmissionStudent")
+  id                        String                      @id
+  name                      String
+  email                     String                      @unique
+  emailVerified             Boolean
+  image                     String?
+  createdAt                 DateTime
+  updatedAt                 DateTime
+  isOnboarded               Boolean                     @default(false)
+  hasSeenWelcomeSplash      Boolean                     @default(false)
+  nimNpm                    String?
+  role                      String?
+  onboardingData            Json?
+  onboardingStep            String?
+  ei                        Float?
+  gender                    Gender?
+  pj                        Float?
+  sn                        Float?
+  tf                        Float?
+  mbtiType                  MBTIType?
+  personalityData           Json?
+  accounts                  Account[]
+  personPreferences         PersonPreference[]
+  preferredBy               PersonPreference[]          @relation("PreferredPerson")
+  personSkills              PersonSkill[]
+  sessions                  Session[]
+  taskPreferences           TaskPreference[]
+  ownedTeamRequests         TeamFormationRequest[]      @relation("TeamRequestOwner")
+  teamMemberships           TeamMember[]
+  courses                   Course[]
+  courseEnrollments         CourseEnrollment[]
+  dosenTokenUsages          DosenTokenUsage[]
+  createdAssignments        Assignment[]                @relation("AssignmentCreator")
+  assignmentSubmissions     AssignmentSubmission[]      @relation("AssignmentSubmissionStudent")
+  AssignmentTopicPreference AssignmentTopicPreference[]
 
   @@index([email])
   @@index([role])
@@ -272,19 +273,19 @@ model TeamMember {
 }
 
 model Course {
-  id                   String             @id @default(uuid())
-  namaMataKuliah       String
-  kelas                String
-  tahunAwalPeriode     Int
-  tahunAkhirPeriode    Int
-  periode              String
-  dosenId              String
-  shareToken           String?            @unique @default(cuid())
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  dosen                User               @relation(fields: [dosenId], references: [id], onDelete: Cascade)
-  enrollments          CourseEnrollment[]
-  assignments          Assignment[]
+  id                String             @id @default(uuid())
+  namaMataKuliah    String
+  kelas             String
+  tahunAwalPeriode  Int
+  tahunAkhirPeriode Int
+  periode           String
+  dosenId           String
+  shareToken        String?            @unique @default(cuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  dosen             User               @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+  enrollments       CourseEnrollment[]
+  assignments       Assignment[]
 
   @@index([dosenId])
   @@index([tahunAwalPeriode, tahunAkhirPeriode])
@@ -322,13 +323,13 @@ model DosenToken {
 }
 
 model DosenTokenUsage {
-  id        String      @id @default(uuid())
+  id        String     @id @default(uuid())
   tokenId   String
   userId    String
-  usedAt    DateTime    @default(now())
-  createdAt DateTime    @default(now())
-  token     DosenToken  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usedAt    DateTime   @default(now())
+  createdAt DateTime   @default(now())
+  token     DosenToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([tokenId, userId])
   @@index([tokenId])
@@ -380,18 +381,19 @@ enum AssignmentStatus {
 }
 
 model Assignment {
-  id          String            @id @default(uuid())
-  courseId    String
-  createdById String
-  title       String
-  description String?
-  startAt     DateTime          @default(now())
-  status      AssignmentStatus  @default(BELUM_ISI)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  course      Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdBy   User              @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  submissions AssignmentSubmission[]
+  id              String                 @id @default(uuid())
+  courseId        String
+  createdById     String
+  title           String
+  description     String?
+  startAt         DateTime               @default(now())
+  status          AssignmentStatus       @default(BELUM_ISI)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  course          Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdBy       User                   @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  submissions     AssignmentSubmission[]
+  AssignmentTopic AssignmentTopic[]
 
   @@index([courseId])
   @@index([status])
@@ -400,15 +402,46 @@ model Assignment {
 }
 
 model AssignmentSubmission {
-  id            String     @id @default(uuid())
-  assignmentId  String
-  studentId     String
-  createdAt     DateTime   @default(now())
-  assignment    Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student       User       @relation("AssignmentSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  id           String     @id @default(uuid())
+  assignmentId String
+  studentId    String
+  createdAt    DateTime   @default(now())
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student      User       @relation("AssignmentSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, studentId])
   @@index([assignmentId])
   @@index([studentId])
   @@map("assignment_submissions")
+}
+
+// Normalize assignment-specific topics and preferences without polluting global Task/TaskPreference
+model AssignmentTopic {
+  id           String                      @id @default(uuid())
+  assignmentId String
+  name         String
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+  assignment   Assignment                  @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  preferences  AssignmentTopicPreference[]
+
+  @@unique([assignmentId, name])
+  @@index([assignmentId])
+  @@map("assignment_topics")
+}
+
+model AssignmentTopicPreference {
+  id                String          @id @default(uuid())
+  assignmentTopicId String
+  personId          String
+  preference        Float
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  topic             AssignmentTopic @relation(fields: [assignmentTopicId], references: [id], onDelete: Cascade)
+  person            User            @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentTopicId, personId])
+  @@index([assignmentTopicId])
+  @@index([personId])
+  @@map("assignment_topic_preferences")
 }

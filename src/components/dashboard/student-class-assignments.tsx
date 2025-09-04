@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Calendar, Search } from 'lucide-react';
+import { ArrowLeft, Calendar, RotateCcw, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -51,7 +51,7 @@ export function StudentClassAssignments({
   }
 
   // Fetch assignments
-  const { data: assignmentsData } = useSWR(
+  const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     course ? `/api/courses/${classId}/assignments` : null,
     fetcher,
     {
@@ -124,17 +124,29 @@ export function StudentClassAssignments({
                     className='border rounded-2xl p-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow'
                     role='button'
                     tabIndex={0}
-                    onClick={() =>
-                      router.push(
-                        `/dashboard/class/${classId}/assignments/${a.id}`
-                      )
-                    }
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+                    onClick={() => {
+                      if (a.submittedByMe) {
                         router.push(
                           `/dashboard/class/${classId}/assignments/${a.id}`
                         );
+                      } else {
+                        router.push(
+                          `/dashboard/class/${classId}/assignments/${a.id}/quiz`
+                        );
+                      }
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (a.submittedByMe) {
+                          router.push(
+                            `/dashboard/class/${classId}/assignments/${a.id}`
+                          );
+                        } else {
+                          router.push(
+                            `/dashboard/class/${classId}/assignments/${a.id}/quiz`
+                          );
+                        }
                       }
                     }}
                   >
@@ -156,9 +168,49 @@ export function StudentClassAssignments({
                           color = 'bg-amber-50 text-orange-900';
                         }
                         return (
-                          <Badge className={`rounded-full ${color} border`}>
-                            {text}
-                          </Badge>
+                          <div className='flex items-center gap-3'>
+                            <Badge className={`rounded-full ${color} border`}>
+                              {text}
+                            </Badge>
+                            {process.env.NODE_ENV !== 'production' && (
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='h-7 px-2 rounded-full border border-red-600 text-red-700'
+                                onClick={async ev => {
+                                  ev.stopPropagation();
+                                  try {
+                                    if (
+                                      !confirm(
+                                        'Reset status kuisioner untuk tugas ini?'
+                                      )
+                                    )
+                                      return;
+                                    const res = await fetch(
+                                      `/api/courses/${classId}/assignments/submissions?assignmentId=${a.id}`,
+                                      { method: 'DELETE' }
+                                    );
+                                    if (!res.ok) {
+                                      console.error(
+                                        'Reset failed',
+                                        await res.text()
+                                      );
+                                      alert('Gagal reset kuisioner.');
+                                      return;
+                                    }
+                                    await mutateAssignments();
+                                  } catch (err) {
+                                    console.error('Reset error', err);
+                                    alert('Terjadi kesalahan saat reset.');
+                                  }
+                                }}
+                                title='Dev-only reset'
+                              >
+                                <RotateCcw className='w-3.5 h-3.5 mr-1' />
+                                Reset
+                              </Button>
+                            )}
+                          </div>
                         );
                       })()}
                     </div>

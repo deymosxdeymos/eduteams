@@ -85,7 +85,7 @@ async function leaveClass(
     return createApiResponse({
       message: `Successfully left ${enrollment.course.namaMataKuliah} - ${enrollment.course.kelas}`,
     });
-  } catch (_error) {
+  } catch {
     return createErrorResponse('Failed to leave class. Please try again.', 500);
   }
 }

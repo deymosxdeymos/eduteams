@@ -4,23 +4,21 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
-interface InstructionModalProps {
+interface SkillTestInstructionModalProps {
   isOpen: boolean;
   onCloseAction: () => void;
-  title?: string;
 }
 
-export default function InstructionModal({
+export default function SkillTestInstructionModal({
   isOpen,
   onCloseAction,
-  title = 'Instruksi Pengerjaan Tes Kepribadian',
-}: InstructionModalProps) {
+}: SkillTestInstructionModalProps) {
   const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju' },
-    { icon: 'Disagree', label: 'Tidak Setuju' },
-    { icon: 'Neutral', label: 'Netral' },
-    { icon: 'Agree', label: 'Setuju' },
-    { icon: 'Strongly-Agree', label: 'Sangat Setuju' },
+    { icon: 'Novice', label: 'Pemula' },
+    { icon: 'Advanced-Beginner', label: 'Pemula\nLanjut' },
+    { icon: 'Competent', label: 'Kompeten' },
+    { icon: 'Proficient', label: 'Mahir' },
+    { icon: 'Expert', label: 'Jago\nBanget' },
   ];
 
   return (
@@ -37,18 +35,15 @@ export default function InstructionModal({
             initial={{ y: -200, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -200, opacity: 0 }}
-            transition={{
-              duration: 0.5,
-              ease: [0.16, 1, 0.3, 1], // easeOutExpo
-            }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className='relative'
           >
             <Image
-              src='/mascot-yellow.svg'
+              src='/mbti-type/ISTJ.svg'
               width={120}
               height={120}
-              alt='mascot'
-              className='absolute -top-20 left-1/2 transform -translate-x-1/2 z-10 w-auto h-auto'
+              alt='ISTJ'
+              className='absolute -top-20 left-1/2 transform -translate-x-1/2 z-10'
             />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -57,31 +52,27 @@ export default function InstructionModal({
               transition={{
                 duration: 0.3,
                 delay: 0.1,
-                ease: [0.25, 0.1, 0.25, 1], // easeOutQuart
+                ease: [0.25, 0.1, 0.25, 1],
               }}
               className='bg-white rounded-4xl max-w-4xl w-full pt-12 px-12 pb-12 shadow-2xl'
             >
               <div className='text-center mb-8'>
-                <h1 className='text-3xl font-bold text-black mb-6'>{title}</h1>
-
+                <h1 className='text-3xl font-bold text-black mb-6'>
+                  Instruksi Pengerjaan Tes Keahlian
+                </h1>
                 <div className='text-left space-y-4 text-black leading-relaxed font-medium text-xl'>
                   <p>
-                    1. Pilihlah jawaban{' '}
-                    <span className='font-bold'>yang paling sesuai</span> hingga{' '}
-                    <span className='font-bold'>yang tidak sesuai</span> dengan
-                    kondisimu saat ini.
+                    1. Pilih jawaban yang paling sesuai dengan kondisi dan
+                    pengalamanmu saat ini, mulai dari yang paling sesuai hingga
+                    yang tidak sesuai.
                   </p>
                   <p>
-                    2. Temukan posisi senyaman mungkin dan pastikan tidak ada
-                    kegiatan lain yang sedang kamu lakukan saat menjawab tes.
+                    2. Jawablah setiap pertanyaan dengan jujur. Setiap soal
+                    hanya bisa dijawab satu kali, jadi pastikan kamu memilih
+                    jawaban dengan hati-hati.
                   </p>
                   <p>
-                    3. Jawablah setiap pertanyaan dengan jujur. Setiap soal
-                    dalam tes ini hanya bisa satu kali, jadi kerjakanlah dengan
-                    teliti.
-                  </p>
-                  <p>
-                    4. Sesuaikan jawaban kamu dengan parameter jawaban berikut:
+                    3. Sesuaikan jawaban kamu dengan parameter jawaban berikut:
                   </p>
                 </div>
               </div>
@@ -95,21 +86,24 @@ export default function InstructionModal({
                     >
                       <div className='bg-white flex items-center justify-center w-16 h-16'>
                         <Image
-                          src={`/mbti-test/${item.icon}.svg`}
+                          src={`/quiz/skills/${item.icon}.svg`}
                           width={48}
                           height={48}
                           alt={item.label}
                           className='object-contain'
-                        />{' '}
+                        />
                       </div>
-                      <p className='text-sm text-black text-center max-w-24 leading-tight whitespace-pre-line font-medium'>
-                        {item.label}
-                      </p>
+                      <div className='text-center'>
+                        <p className='text-xs text-black max-w-20 leading-tight whitespace-pre-line font-medium'>
+                          {item.label}
+                        </p>
+                      </div>
                     </div>
                   ))}
                   <div className='absolute top-8 left-12 right-12 h-1 bg-gray-300 z-0'></div>
                 </div>
               </div>
+
               <div className='flex justify-center'>
                 <Button
                   variant='onboarding'

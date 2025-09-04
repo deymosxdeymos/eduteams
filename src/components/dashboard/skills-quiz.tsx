@@ -73,12 +73,8 @@ export default function SkillsQuiz({
                 </p>
               </div>
 
-              <div className='flex items-center justify-between relative px-8 max-w-4xl mx-auto'>
-                <div className='text-center text-md text-red-400 font-light'>
-                  Pemula
-                </div>
-
-                <div className='flex items-start justify-between relative flex-1 mx-8'>
+              <div className='flex items-center justify-between relative px-12 max-w-5xl mx-auto'>
+                <div className='flex items-start justify-between relative flex-1 mx-12'>
                   {likertScale.map(item => (
                     <motion.div
                       key={item.value}
@@ -96,7 +92,7 @@ export default function SkillsQuiz({
                         ease: 'easeOut',
                       }}
                     >
-                      <div className='w-16 h-16 bg-white flex items-center justify-center'>
+                      <div className='w-20 h-20 bg-white flex items-center justify-center'>
                         <Image
                           src={`/quiz/skills/${item.icon}.svg`}
                           width={48}
@@ -109,18 +105,11 @@ export default function SkillsQuiz({
                         <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
                           {item.label}
                         </div>
-                        <div className='text-xs text-gray-500 mt-1 max-w-20 leading-tight'>
-                          {item.description}
-                        </div>
                       </div>
                     </motion.div>
                   ))}
 
                   <div className='absolute top-8 left-0 right-0 h-1 bg-gray-300 z-[1]' />
-                </div>
-
-                <div className='text-md text-green-400 font-light'>
-                  Jago Banget
                 </div>
               </div>
 
