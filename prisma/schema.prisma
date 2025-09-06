@@ -445,3 +445,18 @@ model AssignmentTopicPreference {
   @@index([personId])
   @@map("assignment_topic_preferences")
 }
+
+// Dedicated storage for MBTI/Personality questions
+model PersonalityQuestion {
+  id         String   @id @default(uuid())
+  text       String
+  dimension  String   // 'ei' | 'sn' | 'tf' | 'pj'
+  order      Int
+  reversed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([order])
+  @@index([dimension])
+  @@map("personality_questions")
+}

@@ -10,6 +10,7 @@ import {
 } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
+import { getAssignmentStats } from '@/lib/stats/assignment';
 import type { Course, ExtendedUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -182,6 +183,9 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   });
   const assignmentTitle = assignment?.title ?? 'Tugas';
 
+  // Stats for graphs (server-side). Start with zeros until teams are formed.
+  const stats = await getAssignmentStats(assignmentId, id);
+
   // For dosen, show the regular assignment page
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
@@ -201,6 +205,7 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
             canManage={isDosen}
             isStudent={isMahasiswa}
             hasSubmitted={hasSubmitted}
+            stats={stats}
           />
         </AssignmentLayout>
       </Suspense>

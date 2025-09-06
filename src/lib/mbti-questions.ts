@@ -417,34 +417,82 @@ export class MBTIQuestionsManager {
         this.metrics.database.queries++;
         this.metrics.database.lastQuery = Date.now();
 
-        const skills = (await Promise.race([
-          prisma.skill.findMany({
-            where: {
-              name: {
-                startsWith: 'MBTI Question',
-              },
-            },
-            orderBy: {
-              name: 'asc',
-            },
-            select: {
-              id: true,
-              name: true,
-              description: true,
-            },
-          }),
-          new Promise((_, reject) =>
-            setTimeout(
-              () => reject(new Error('Database timeout')),
-              this.config.database.timeout
-            )
-          ),
-        ])) as { id: string; name: string; description: string | null }[];
+        // Prefer new dedicated table if available
+        const pqClient = (prisma as unknown as Record<string, any>)[
+          'personalityQuestion'
+        ];
 
-        const questions = skills
-          .map(skill => this.parseQuestionData(skill))
-          .map(question => this.validateQuestion(question))
-          .sort((a, b) => a.order - b.order);
+        let questions: MBTIQuestion[] | null = null;
+
+        if (pqClient && typeof pqClient.findMany === 'function') {
+          const rows = (await Promise.race([
+            pqClient.findMany({
+              orderBy: { order: 'asc' },
+              select: {
+                id: true,
+                text: true,
+                dimension: true,
+                order: true,
+                reversed: true,
+              },
+            }),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error('Database timeout')),
+                this.config.database.timeout
+              )
+            ),
+          ])) as Array<{
+            id: string;
+            text: string;
+            dimension: string;
+            order: number;
+            reversed: boolean;
+          }>;
+
+          questions = rows
+            .map(row => ({
+              id: row.id,
+              text: row.text,
+              dimension: row.dimension.toLowerCase(),
+              order: row.order,
+              reversed: row.reversed,
+            }))
+            .map(q => this.validateQuestion(q))
+            .sort((a, b) => a.order - b.order);
+        }
+
+        // Backward-compat fallback: read from Skill rows named "MBTI Question <n>"
+        if (!questions || questions.length === 0) {
+          const skills = (await Promise.race([
+            prisma.skill.findMany({
+              where: {
+                name: {
+                  startsWith: 'MBTI Question',
+                },
+              },
+              orderBy: {
+                name: 'asc',
+              },
+              select: {
+                id: true,
+                name: true,
+                description: true,
+              },
+            }),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error('Database timeout')),
+                this.config.database.timeout
+              )
+            ),
+          ])) as { id: string; name: string; description: string | null }[];
+
+          questions = skills
+            .map(skill => this.parseQuestionData(skill))
+            .map(question => this.validateQuestion(question))
+            .sort((a, b) => a.order - b.order);
+        }
 
         const responseTime = Date.now() - startTime;
         this.metrics.database.avgResponseTime =

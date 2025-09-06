@@ -50,31 +50,39 @@ async function seedMBTIQuestions() {
   console.log('🌱 Starting MBTI questions seeding...');
 
   try {
-    await prisma.$transaction(async tx => {
-      // Clear existing MBTI questions first
-      await tx.skill.deleteMany({
-        where: { name: { startsWith: 'MBTI' } },
-      });
-      console.log('✅ Cleared existing MBTI questions');
+    // Verify the new model exists on the client (ensure you ran prisma generate after schema change)
+    const hasPQ = Boolean(
+      (prisma as unknown as Record<string, any>).personalityQuestion
+    );
+    if (!hasPQ) {
+      console.error(
+        '❌ prisma.personalityQuestion is undefined. Run `bun prisma generate` (and migrate) to update the client.'
+      );
+      throw new Error('Prisma client not generated for PersonalityQuestion');
+    }
 
-      // Create MBTI skills for the questions
-      const skillCreationPromises = mbtiQuestions.map(questionData =>
-        tx.skill.create({
+    await prisma.$transaction(async tx => {
+      // Clear existing MBTI questions from the dedicated table
+      await (tx as unknown as Record<string, any>).personalityQuestion?.deleteMany?.({});
+
+      console.log('✅ Cleared existing MBTI questions (personality_questions)');
+
+      // Seed into PersonalityQuestion table (not Skills)
+      const creations = mbtiQuestions.map(q =>
+        (tx as unknown as Record<string, any>).personalityQuestion.create({
           data: withTimestamps({
             id: randomUUID(),
-            name: `MBTI Question ${questionData.order}`,
-            description: `${questionData.text} (${questionData.dimension.toUpperCase()} dimension${questionData.reversed ? ', reversed' : ''})`,
+            text: q.text,
+            dimension: q.dimension,
+            order: q.order,
+            reversed: q.reversed ?? false,
           }),
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
+          select: { id: true, text: true, order: true },
         })
       );
 
-      const mbtiSkills = await Promise.all(skillCreationPromises);
-      console.log(`✅ Created ${mbtiSkills.length} MBTI question skills`);
+      const created = await Promise.all(creations);
+      console.log(`✅ Created ${created.length} MBTI questions`);
     });
 
     // Invalidate and refresh MBTI questions cache so UI picks up immediately
@@ -87,9 +95,9 @@ async function seedMBTIQuestions() {
 
     console.log('🎉 MBTI questions seeding completed successfully!');
     console.log('\n📊 Seeding Summary:');
-    console.log(`   • ${mbtiQuestions.length} MBTI question skills created`);
+    console.log(`   • ${mbtiQuestions.length} MBTI questions created`);
     console.log(
-      '\n💡 You can now use these MBTI questions in your personality test!'
+      '\n💡 Questions are now stored in personality_questions, not skills.'
     );
   } catch (error) {
     console.error('❌ Error seeding MBTI questions:', error);

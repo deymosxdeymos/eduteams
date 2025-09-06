@@ -40,6 +40,8 @@ export const AssignmentUpdateSchema = z.object({
   description: z.string().optional(),
   startAt: z.coerce.date().optional(),
   status: AssignmentStatusSchema.optional(),
+  skills: z.array(z.string().min(1)).optional(),
+  topics: z.array(z.string().min(1)).optional(),
 });
 
 export type AssignmentUpdate = z.infer<typeof AssignmentUpdateSchema>;
