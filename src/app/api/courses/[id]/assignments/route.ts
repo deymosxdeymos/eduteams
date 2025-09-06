@@ -101,12 +101,30 @@ export const POST = withAuth<{ id: string }>(
       const raw = await request.json();
       const data = AssignmentCreateSchema.parse(raw);
 
+      // Persist skills/topics inside description JSON so downstream stats/UI can read them.
+      const cleanedSkills = (data.skills || [])
+        .map(s => s.trim())
+        .filter(Boolean);
+      const cleanedTopics = (data.topics || [])
+        .map(t => t.trim())
+        .filter(Boolean);
+      const descJson: Record<string, unknown> = {};
+      if (data.description && data.description.trim().length > 0) {
+        descJson.text = data.description.trim();
+      }
+      if (cleanedSkills.length > 0) descJson.skills = cleanedSkills;
+      if (cleanedTopics.length > 0) descJson.topics = cleanedTopics;
+      const descriptionToStore =
+        Object.keys(descJson).length > 0
+          ? JSON.stringify(descJson)
+          : data.description;
+
       const created = await prisma.assignment.create({
         data: {
           courseId,
           createdById: user.id,
           title: data.title,
-          description: data.description,
+          description: descriptionToStore,
           startAt: data.startAt ?? new Date(),
           status: 'BELUM_ISI',
         },
@@ -126,8 +144,8 @@ export const POST = withAuth<{ id: string }>(
           data: {
             ...created,
             description: created.description ?? undefined,
-            skills: [],
-            topics: [],
+            skills: cleanedSkills,
+            topics: cleanedTopics,
             submissionsCount: 0,
           },
         },

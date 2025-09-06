@@ -18,6 +18,7 @@ export const PATCH = withAuth<{ id: string }>(
         select: {
           id: true,
           courseId: true,
+          description: true,
           course: { select: { dosenId: true } },
         },
       });
@@ -27,11 +28,40 @@ export const PATCH = withAuth<{ id: string }>(
       }
 
       const body = await request.json();
-      const data = AssignmentUpdateSchema.parse(body);
+      const input = AssignmentUpdateSchema.parse(body);
+
+      // Build update data, merging skills/topics into description JSON
+      const updateData: Record<string, unknown> = {};
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.status !== undefined) updateData.status = input.status;
+      if (input.startAt !== undefined) updateData.startAt = input.startAt;
+
+      const cleanedSkills = (input.skills || [])
+        .map(s => s.trim())
+        .filter(Boolean);
+      const cleanedTopics = (input.topics || [])
+        .map(t => t.trim())
+        .filter(Boolean);
+
+      // Merge with existing description JSON if present
+      let descJson: Record<string, unknown> = {};
+      try {
+        if (assignment.description) {
+          const parsed = JSON.parse(assignment.description);
+          if (parsed && typeof parsed === 'object')
+            descJson = parsed as Record<string, unknown>;
+        }
+      } catch {}
+      if (input.description !== undefined) descJson.text = input.description;
+      if (input.skills !== undefined) descJson.skills = cleanedSkills;
+      if (input.topics !== undefined) descJson.topics = cleanedTopics;
+      if (Object.keys(descJson).length > 0) {
+        updateData.description = JSON.stringify(descJson);
+      }
 
       const updated = await prisma.assignment.update({
         where: { id: assignmentId },
-        data,
+        data: updateData,
         select: {
           id: true,
           courseId: true,
@@ -54,8 +84,22 @@ export const PATCH = withAuth<{ id: string }>(
           startAt: updated.startAt,
           createdAt: updated.createdAt,
           status: updated.status,
-          skills: [],
-          topics: [],
+          // surface skills/topics from description JSON if present
+          ...((): { skills: string[]; topics: string[] } => {
+            try {
+              if (!updated.description) return { skills: [], topics: [] };
+              const parsed = JSON.parse(updated.description);
+              const skills = Array.isArray(parsed?.skills)
+                ? (parsed.skills as string[])
+                : [];
+              const topics = Array.isArray(parsed?.topics)
+                ? (parsed.topics as string[])
+                : [];
+              return { skills, topics };
+            } catch {
+              return { skills: [], topics: [] };
+            }
+          })(),
           submissionsCount: updated._count.submissions,
         },
       });

@@ -20,6 +20,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import type { AssignmentStats } from '@/lib/stats/assignment';
 
 // ——————————————————————————————————————————————————————————————————————————
 // MBTI Chart helpers
@@ -85,30 +86,19 @@ function useGradientIds() {
   return { ids: { green, purple, blue, amber }, urlFor };
 }
 
-// Sample data for MBTI personality distribution - would come from API based on assignmentId
-const useChartData = (assignmentId: string, urlFor: (t: MbtiType) => string) =>
-  useMemo<ChartRow[]>(() => {
-    // assignmentId is currently unused; reserved for future API call
-    void assignmentId;
-    return [
-      { kategori: 'INTJ', jumlah: 12, fill: urlFor('INTJ') },
-      { kategori: 'INTP', jumlah: 12, fill: urlFor('INTP') },
-      { kategori: 'ENTJ', jumlah: 12, fill: urlFor('ENTJ') },
-      { kategori: 'ENTP', jumlah: 12, fill: urlFor('ENTP') },
-      { kategori: 'INFJ', jumlah: 12, fill: urlFor('INFJ') },
-      { kategori: 'INFP', jumlah: 12, fill: urlFor('INFP') },
-      { kategori: 'ENFJ', jumlah: 12, fill: urlFor('ENFJ') },
-      { kategori: 'ENFP', jumlah: 12, fill: urlFor('ENFP') },
-      { kategori: 'ISTJ', jumlah: 12, fill: urlFor('ISTJ') },
-      { kategori: 'ISFJ', jumlah: 12, fill: urlFor('ISFJ') },
-      { kategori: 'ESTJ', jumlah: 12, fill: urlFor('ESTJ') },
-      { kategori: 'ESFJ', jumlah: 12, fill: urlFor('ESFJ') },
-      { kategori: 'ISTP', jumlah: 12, fill: urlFor('ISTP') },
-      { kategori: 'ISFP', jumlah: 12, fill: urlFor('ISFP') },
-      { kategori: 'ESTP', jumlah: 12, fill: urlFor('ESTP') },
-      { kategori: 'ESFP', jumlah: 12, fill: urlFor('ESFP') },
-    ];
-  }, [assignmentId, urlFor]);
+// Build MBTI chart rows from stats
+function useMbtiChartData(
+  stats: AssignmentStats,
+  urlFor: (t: MbtiType) => string
+) {
+  return useMemo<ChartRow[]>(() => {
+    return stats.mbti.map(row => ({
+      kategori: row.kategori as MbtiType,
+      jumlah: stats.teamsFormed ? row.jumlah : 0,
+      fill: urlFor(row.kategori as MbtiType),
+    }));
+  }, [stats, urlFor]);
+}
 
 const chartConfig = {
   jumlah: {
@@ -313,6 +303,7 @@ interface AssignmentContentProps {
   canManage: boolean;
   isStudent?: boolean;
   hasSubmitted?: boolean;
+  stats: AssignmentStats;
 }
 
 export function AssignmentContent({
@@ -320,11 +311,60 @@ export function AssignmentContent({
   classId,
   canManage,
   isStudent = false,
+  stats,
 }: AssignmentContentProps) {
   const router = useRouter();
   const { ids: gradientIds, urlFor } = useGradientIds();
   const faceShadowId = useId();
-  const chartData = useChartData(assignmentId, urlFor);
+  const chartData = useMbtiChartData(stats, urlFor);
+
+  // Dynamic topics and gender chart setup
+  const topicConfig = useMemo(() => {
+    // generate a small palette
+    const colors = [
+      '#4F46E5',
+      '#6366F1',
+      '#A5B4FC',
+      '#C7D2FE',
+      '#818CF8',
+      '#60A5FA',
+    ];
+    const entries = stats.topicPreferences.map((t, i) => {
+      const key = slugify(t.name);
+      return [
+        key,
+        { label: t.name, color: colors[i % colors.length] } as const,
+      ];
+    });
+    return Object.fromEntries(entries);
+  }, [stats.topicPreferences]);
+
+  const topicData = useMemo(() => {
+    const n = stats.topicPreferences.length || 1;
+    const placeholder = Math.round(100 / n);
+    return stats.topicPreferences.map(t => ({
+      name: slugify(t.name),
+      value: stats.teamsFormed ? t.value : placeholder,
+      fill: `var(--color-${slugify(t.name)})`,
+    }));
+  }, [stats]);
+
+  const genderConfig = useMemo(
+    () => ({
+      laki: { label: 'Laki-laki', color: '#3B82F6' },
+      perempuan: { label: 'Perempuan', color: '#EC4899' },
+    }),
+    []
+  );
+
+  const genderData = useMemo(() => {
+    const placeholder = 50;
+    return stats.gender.map(g => ({
+      name: g.name,
+      value: stats.teamsFormed ? g.value : placeholder,
+      fill: `var(--color-${g.name})`,
+    }));
+  }, [stats]);
 
   return (
     <div className='flex-1 p-8 min-h-0'>
@@ -544,26 +584,20 @@ export function AssignmentContent({
                   </h1>
                 </div>
                 <div className='flex flex-col gap-3 flex-1 justify-center'>
-                  {(
-                    [
-                      { label: 'UI/UX', value: 68 },
-                      { label: 'Frontend', value: 82 },
-                      { label: 'Backend', value: 28 },
-                      { label: 'QA', value: 76 },
-                      { label: 'Project\u00A0Manager', value: 72 },
-                    ] as { label: string; value: number }[]
-                  ).map((s, i) => (
-                    <div className='flex items-center gap-3 w-full' key={i}>
+                  {(stats.skills.length > 0 ? stats.skills : []).map((s, i) => (
+                    <div className='flex items-center gap-8 w-full' key={i}>
                       <div
                         className='text-neutral-700 text-sm flex-shrink-0'
                         style={{ width: '80px', whiteSpace: 'pre-wrap' }}
                       >
-                        {s.label.replace(/\s+/g, '\n')}
+                        {(s.label || '').replace(/\s+/g, '\n')}
                       </div>
                       <div className='flex-1 h-3 rounded-full bg-neutral-200'>
                         <div
                           className='h-3 rounded-full bg-[#235ADF]'
-                          style={{ width: `${s.value}%` }}
+                          style={{
+                            width: `${stats.teamsFormed ? s.value : 0}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -591,12 +625,7 @@ export function AssignmentContent({
                 <div className='flex flex-col flex-1 justify-center'>
                   <div className='flex-1 flex items-center justify-center'>
                     <ChartContainer
-                      config={{
-                        kesehatan: { label: 'Kesehatan', color: '#4F46E5' },
-                        politik: { label: 'Politik', color: '#6366F1' },
-                        makanan: { label: 'Makanan', color: '#A5B4FC' },
-                        lingkungan: { label: 'Lingkungan', color: '#C7D2FE' },
-                      }}
+                      config={topicConfig}
                       className='w-full aspect-square max-h-[200px]'
                     >
                       <RePieChart>
@@ -606,28 +635,7 @@ export function AssignmentContent({
                         <RePie
                           dataKey='value'
                           nameKey='name'
-                          data={[
-                            {
-                              name: 'kesehatan',
-                              value: 32,
-                              fill: 'var(--color-kesehatan)',
-                            },
-                            {
-                              name: 'politik',
-                              value: 28,
-                              fill: 'var(--color-politik)',
-                            },
-                            {
-                              name: 'makanan',
-                              value: 20,
-                              fill: 'var(--color-makanan)',
-                            },
-                            {
-                              name: 'lingkungan',
-                              value: 20,
-                              fill: 'var(--color-lingkungan)',
-                            },
-                          ]}
+                          data={topicData}
                           cx='50%'
                           cy='50%'
                           innerRadius={0}
@@ -639,36 +647,32 @@ export function AssignmentContent({
                       </RePieChart>
                     </ChartContainer>
                   </div>
-
                   <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm flex-shrink-0'>
-                    <div className='flex items-center gap-1.5'>
-                      <span
-                        className='inline-block h-3 w-3 rounded-full'
-                        style={{ backgroundColor: '#4F46E5' }}
-                      />
-                      <span className='text-neutral-800'>Kesehatan</span>
-                    </div>
-                    <div className='flex items-center gap-1.5'>
-                      <span
-                        className='inline-block h-3 w-3 rounded-full'
-                        style={{ backgroundColor: '#6366F1' }}
-                      />
-                      <span className='text-neutral-800'>Politik</span>
-                    </div>
-                    <div className='flex items-center gap-1.5'>
-                      <span
-                        className='inline-block h-3 w-3 rounded-full'
-                        style={{ backgroundColor: '#A5B4FC' }}
-                      />
-                      <span className='text-neutral-800'>Makanan</span>
-                    </div>
-                    <div className='flex items-center gap-1.5'>
-                      <span
-                        className='inline-block h-3 w-3 rounded-full'
-                        style={{ backgroundColor: '#C7D2FE' }}
-                      />
-                      <span className='text-neutral-800'>Lingkungan</span>
-                    </div>
+                    {stats.topicPreferences.map((t, i) => {
+                      const key = slugify(t.name);
+                      const colors = [
+                        '#4F46E5',
+                        '#6366F1',
+                        '#A5B4FC',
+                        '#C7D2FE',
+                        '#818CF8',
+                        '#60A5FA',
+                      ];
+                      return (
+                        <div
+                          key={`${key}-${i}`}
+                          className='flex items-center gap-1.5'
+                        >
+                          <span
+                            className='inline-block h-3 w-3 rounded-full'
+                            style={{
+                              backgroundColor: colors[i % colors.length],
+                            }}
+                          />
+                          <span className='text-neutral-800'>{t.name}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -685,10 +689,7 @@ export function AssignmentContent({
                 <div className='flex flex-col flex-1 justify-center'>
                   <div className='flex-1 flex items-center justify-center'>
                     <ChartContainer
-                      config={{
-                        laki: { label: 'Laki-laki', color: '#3B82F6' },
-                        perempuan: { label: 'Perempuan', color: '#EC4899' },
-                      }}
+                      config={genderConfig}
                       className='w-full aspect-square max-h-[200px]'
                     >
                       <RePieChart>
@@ -698,18 +699,7 @@ export function AssignmentContent({
                         <RePie
                           dataKey='value'
                           nameKey='name'
-                          data={[
-                            {
-                              name: 'laki',
-                              value: 65,
-                              fill: 'var(--color-laki)',
-                            },
-                            {
-                              name: 'perempuan',
-                              value: 35,
-                              fill: 'var(--color-perempuan)',
-                            },
-                          ]}
+                          data={genderData}
                           cx='50%'
                           cy='50%'
                           innerRadius='40%'
@@ -721,7 +711,6 @@ export function AssignmentContent({
                       </RePieChart>
                     </ChartContainer>
                   </div>
-
                   <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm flex-shrink-0 justify-center'>
                     <div className='flex items-center gap-1.5'>
                       <span
@@ -746,4 +735,12 @@ export function AssignmentContent({
       </div>
     </div>
   );
+}
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .slice(0, 30);
 }
