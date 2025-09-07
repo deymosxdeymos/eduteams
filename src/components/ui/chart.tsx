@@ -280,6 +280,29 @@ function ChartLegendContent({
         const key = `${nameKey || item.dataKey || 'value'}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
+        // Safely derive a color for the legend bullet without using `any`.
+        let colorFromItem: string | undefined;
+        let colorFromPayloadFill: string | undefined;
+        const rawItem: unknown = item;
+        if (typeof rawItem === 'object' && rawItem) {
+          if ('color' in rawItem) {
+            const c = (rawItem as { color?: unknown }).color;
+            if (typeof c === 'string') colorFromItem = c;
+          }
+          if ('payload' in rawItem) {
+            const p = (rawItem as { payload?: unknown }).payload;
+            if (typeof p === 'object' && p && 'fill' in p) {
+              const f = (p as { fill?: unknown }).fill;
+              if (typeof f === 'string') colorFromPayloadFill = f;
+            }
+          }
+        }
+
+        const configColor = (itemConfig as { color?: string } | undefined)
+          ?.color;
+        const indicatorColor =
+          colorFromItem || colorFromPayloadFill || configColor;
+
         return (
           <div
             key={item.value}
@@ -291,9 +314,9 @@ function ChartLegendContent({
               <itemConfig.icon />
             ) : (
               <div
-                className='h-2 w-2 shrink-0 rounded-[2px]'
+                className='h-2.5 w-2.5 shrink-0 rounded-full'
                 style={{
-                  backgroundColor: item.color,
+                  backgroundColor: indicatorColor,
                 }}
               />
             )}
