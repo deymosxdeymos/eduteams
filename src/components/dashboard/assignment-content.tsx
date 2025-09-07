@@ -10,8 +10,6 @@ interface AssignmentContentProps {
   isStudent?: boolean;
   hasSubmitted?: boolean;
   stats: AssignmentStats;
-  submittedCount?: number;
-  totalStudents?: number;
 }
 
 export function AssignmentContent({
@@ -20,8 +18,6 @@ export function AssignmentContent({
   canManage,
   isStudent = false,
   stats,
-  submittedCount,
-  totalStudents,
 }: AssignmentContentProps) {
   return (
     <div className='flex-1 p-8 min-h-0'>
@@ -54,22 +50,7 @@ export function AssignmentContent({
             </div>
           </div>
         ) : (
-          <>
-            {typeof submittedCount === 'number' && typeof totalStudents === 'number' && (
-              <div>
-                {submittedCount < totalStudents ? (
-                  <div className='inline-block rounded-full px-3 py-1 bg-amber-50 text-orange-900 border'>
-                    {`${submittedCount} dari ${totalStudents} mahasiswa telah mengisi kuesioner`}
-                  </div>
-                ) : (
-                  <div className='inline-block rounded-full px-3 py-1 bg-sky-50 text-sky-900 border'>
-                    Grup siap untuk dibagi
-                  </div>
-                )}
-              </div>
-            )}
-            <AssignmentCharts stats={stats} isStudent={isStudent} />
-          </>
+          <AssignmentCharts stats={stats} isStudent={isStudent} />
         )}
       </div>
     </div>

@@ -42,6 +42,10 @@ export function AssignmentLayout({
   submittedStudentIds,
   children,
 }: AssignmentLayoutProps) {
+  // Calculate submission stats for display in student list
+  const submittedCount = submittedStudentIds ? submittedStudentIds.length : 0;
+  const totalStudents = students.length;
+
   return (
     <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
       <div className='mb-8'>
@@ -71,6 +75,8 @@ export function AssignmentLayout({
               currentUserId={user.id}
               canManage={canManage}
               submittedStudentIds={submittedStudentIds}
+              submittedCount={submittedCount}
+              totalStudents={totalStudents}
             />
           )}
         </div>

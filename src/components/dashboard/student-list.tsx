@@ -35,6 +35,8 @@ interface StudentListProps {
   currentUserId?: string;
   canManage?: boolean; // true for dosen in their own class; false for mahasiswa
   submittedStudentIds?: string[]; // students who have filled both quizzes for this assignment
+  submittedCount?: number; // number of students who have submitted
+  totalStudents?: number; // total number of students in class
 }
 
 const fetcher = async (url: string) => {
@@ -49,6 +51,8 @@ export function StudentList({
   currentUserId,
   canManage = false,
   submittedStudentIds,
+  submittedCount,
+  totalStudents,
 }: StudentListProps) {
   const [searchValue, setSearchValue] = useState('');
   const [openMenuStudentId, setOpenMenuStudentId] = useState<string | null>(
@@ -149,15 +153,33 @@ export function StudentList({
       className='bg-white rounded-3xl rounded-l-none h-full flex flex-col overflow-hidden'
     >
       <div className='p-6 pb-4'>
-        <div className='flex items-center gap-x-2 mb-4'>
+        <div className='flex flex-col gap-y-2 mb-4'>
           <h3 className='text-lg font-semibold text-gray-800'>
             Daftar Mahasiswa
           </h3>
-          <Badge className='bg-sky-50 px-2 rounded-full'>
-            <span className='text-sm text-sky-900 font-medium'>
-              {students.length} Mahasiswa
-            </span>
-          </Badge>
+          {canManage &&
+          typeof submittedCount === 'number' &&
+          typeof totalStudents === 'number' ? (
+            submittedCount < totalStudents ? (
+              <Badge className='bg-amber-50 px-3 rounded-full'>
+                <span className='text-sm text-orange-900 font-medium'>
+                  {`${submittedCount} dari ${totalStudents} mahasiswa telah mengisi kuesioner`}
+                </span>
+              </Badge>
+            ) : (
+              <Badge className='bg-sky-50 px-3 rounded-full'>
+                <span className='text-sm text-sky-900 font-medium'>
+                  Grup siap untuk dibagi
+                </span>
+              </Badge>
+            )
+          ) : (
+            <Badge className='bg-sky-50 px-2 rounded-full'>
+              <span className='text-sm text-sky-900 font-medium'>
+                {students.length} Mahasiswa
+              </span>
+            </Badge>
+          )}
         </div>
 
         <div className='relative'>
