@@ -206,6 +206,7 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
           assignmentId={assignmentId}
           students={students}
           canManage={isDosen}
+          hideStudentList={stats.teamsFormed}
           assignmentTitle={assignmentTitle}
           submittedStudentIds={Array.from(submittedStudentIds) as string[]}
         >

@@ -65,7 +65,13 @@ export function AssignmentLayout({
               : 'px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'
           }
         >
-          <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
+          <div
+            className={
+              hideStudentList
+                ? 'bg-white rounded-3xl h-full flex flex-col overflow-hidden'
+                : 'bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'
+            }
+          >
             {children}
           </div>
           {!hideStudentList && (
