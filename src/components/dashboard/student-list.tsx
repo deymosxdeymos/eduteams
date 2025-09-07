@@ -34,6 +34,7 @@ interface StudentListProps {
   initialData?: Student[];
   currentUserId?: string;
   canManage?: boolean; // true for dosen in their own class; false for mahasiswa
+  submittedStudentIds?: string[]; // students who have filled both quizzes for this assignment
 }
 
 const fetcher = async (url: string) => {
@@ -47,6 +48,7 @@ export function StudentList({
   initialData,
   currentUserId,
   canManage = false,
+  submittedStudentIds,
 }: StudentListProps) {
   const [searchValue, setSearchValue] = useState('');
   const [openMenuStudentId, setOpenMenuStudentId] = useState<string | null>(
@@ -187,13 +189,18 @@ export function StudentList({
           <div className='space-y-3'>
             {filteredStudents.map(student => {
               const isCurrentUser = currentUserId === student.id;
+              const hasSubmitted = submittedStudentIds
+                ? submittedStudentIds.includes(student.id)
+                : true; // default true when context not provided
               return (
                 <div
                   key={student.id}
                   className={`flex items-center gap-3 p-3 border rounded-2xl transition-colors cursor-pointer ${
                     isCurrentUser
                       ? 'bg-emerald-50 border-emerald-500 hover:bg-emerald-100'
-                      : 'border-gray-200 hover:bg-gray-50'
+                      : hasSubmitted
+                        ? 'border-gray-200 hover:bg-gray-50'
+                        : 'bg-red-50 border-red-400 hover:bg-red-100'
                   }`}
                   role='button'
                   tabIndex={0}
