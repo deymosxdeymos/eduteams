@@ -2,14 +2,30 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 // Global singleton to avoid re-instantiation in serverless
-const redis = Redis.fromEnv();
+let redis: Redis | null = null;
+let limiter: Ratelimit | null = null;
 
-export const limiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.fixedWindow(60, '1 m'), // 60 requests per minute
-  analytics: true,
-  prefix: 'eduteams:rl',
-});
+// Only initialize Redis if environment variables are available
+if (
+  process.env.UPSTASH_REDIS_REST_URL &&
+  process.env.UPSTASH_REDIS_REST_TOKEN
+) {
+  try {
+    redis = Redis.fromEnv();
+    limiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.fixedWindow(60, '1 m'), // 60 requests per minute
+      analytics: true,
+      prefix: 'eduteams:rl',
+    });
+  } catch (error) {
+    console.warn('Failed to initialize Redis rate limiter:', error);
+    redis = null;
+    limiter = null;
+  }
+} else {
+  console.warn('Redis environment variables not set, rate limiting disabled');
+}
 
 export type LimitResult = {
   success: boolean;
@@ -22,6 +38,15 @@ export async function limit(
   request: Request,
   key?: string
 ): Promise<LimitResult> {
+  // If Redis is not available, skip rate limiting
+  if (!limiter) {
+    return {
+      success: true,
+      remaining: 60, // Return a high number to indicate no limit
+      reset: Date.now() + 60000, // 1 minute from now
+    };
+  }
+
   const ip =
     key ||
     // Forwarded headers commonly set by hosting providers / proxies

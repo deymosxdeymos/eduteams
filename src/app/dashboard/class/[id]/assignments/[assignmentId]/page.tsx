@@ -194,10 +194,6 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   const submittedStudentIds = new Set<string>(
     submittedForAssignment.map(s => s.studentId)
   );
-  const submittedCount = students.reduce(
-    (acc, s) => acc + (submittedStudentIds.has(s.id) ? 1 : 0),
-    0
-  );
 
   // For dosen, show the regular assignment page
   return (
@@ -220,8 +216,6 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
             isStudent={isMahasiswa}
             hasSubmitted={hasSubmitted}
             stats={stats}
-            submittedCount={submittedCount}
-            totalStudents={students.length}
           />
         </AssignmentLayout>
       </Suspense>
