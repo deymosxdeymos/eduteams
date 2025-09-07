@@ -289,58 +289,10 @@ export class MBTIQuestionsManager {
     }
   }
 
-  private validateQuestion(question: unknown): MBTIQuestionValidated {
-    if (!question || typeof question !== 'object') {
-      throw new ValidationError('Question must be an object', undefined, {
-        question,
-      });
-    }
-
-    const q = question as Record<string, unknown>;
-
-    if (!q.id || typeof q.id !== 'string') {
-      throw new ValidationError('Question must have a valid id', undefined, {
-        question,
-      });
-    }
-
-    if (!q.text || typeof q.text !== 'string') {
-      throw new ValidationError('Question must have valid text', undefined, {
-        question,
-      });
-    }
-
-    if (!q.dimension || typeof q.dimension !== 'string') {
-      throw new ValidationError(
-        'Question must have a valid dimension',
-        undefined,
-        { question }
-      );
-    }
-
-    if (typeof q.order !== 'number') {
-      throw new ValidationError('Question must have a valid order', undefined, {
-        question,
-      });
-    }
-
-    const validDimensions = ['ei', 'sn', 'tf', 'pj'];
-    if (!validDimensions.includes(q.dimension.toLowerCase())) {
-      throw new ValidationError('Invalid dimension', undefined, {
-        question,
-        validDimensions,
-      });
-    }
-
-    return {
-      id: q.id,
-      text: q.text,
-      dimension: q.dimension,
-      order: q.order,
-      reversed: q.reversed as boolean | undefined,
-      validated: true,
-      validatedAt: Date.now(),
-    };
+  private getStaticQuestions(): MBTIQuestion[] {
+    // Return empty array as fallback when database is unavailable
+    // In a real implementation, this could return hardcoded questions
+    return [];
   }
 
   private async getFromRedis<T>(key: string): Promise<T | null> {
@@ -408,7 +360,6 @@ export class MBTIQuestionsManager {
   }
 
   private async getFromDatabase(): Promise<MBTIQuestion[]> {
-    const startTime = Date.now();
     let attempts = 0;
 
     while (attempts < this.config.database.maxRetries) {
@@ -418,9 +369,25 @@ export class MBTIQuestionsManager {
         this.metrics.database.lastQuery = Date.now();
 
         // Prefer new dedicated table if available
-        const pqClient = (prisma as unknown as Record<string, any>)[
-          'personalityQuestion'
-        ];
+        const pqClient = (
+          prisma as unknown as Record<
+            string,
+            {
+              findMany?: (args: {
+                orderBy?: { order: 'asc' | 'desc' };
+                select?: Record<string, boolean>;
+              }) => Promise<
+                Array<{
+                  id: string;
+                  text: string;
+                  dimension: string;
+                  order: number;
+                  reversed: boolean;
+                }>
+              >;
+            }
+          >
+        ).personalityQuestion;
 
         let questions: MBTIQuestion[] | null = null;
 
@@ -450,273 +417,65 @@ export class MBTIQuestionsManager {
             reversed: boolean;
           }>;
 
-          questions = rows
-            .map(row => ({
-              id: row.id,
-              text: row.text,
-              dimension: row.dimension.toLowerCase(),
-              order: row.order,
-              reversed: row.reversed,
-            }))
-            .map(q => this.validateQuestion(q))
-            .sort((a, b) => a.order - b.order);
+          questions = rows.map(row => ({
+            id: row.id,
+            text: row.text,
+            dimension: row.dimension,
+            order: row.order,
+            reversed: row.reversed,
+          }));
         }
 
-        // Backward-compat fallback: read from Skill rows named "MBTI Question <n>"
-        if (!questions || questions.length === 0) {
-          const skills = (await Promise.race([
-            prisma.skill.findMany({
-              where: {
-                name: {
-                  startsWith: 'MBTI Question',
-                },
-              },
-              orderBy: {
-                name: 'asc',
-              },
-              select: {
-                id: true,
-                name: true,
-                description: true,
-              },
-            }),
-            new Promise((_, reject) =>
-              setTimeout(
-                () => reject(new Error('Database timeout')),
-                this.config.database.timeout
-              )
-            ),
-          ])) as { id: string; name: string; description: string | null }[];
-
-          questions = skills
-            .map(skill => this.parseQuestionData(skill))
-            .map(question => this.validateQuestion(question))
-            .sort((a, b) => a.order - b.order);
+        if (questions) {
+          return questions;
         }
 
-        const responseTime = Date.now() - startTime;
-        this.metrics.database.avgResponseTime =
-          (this.metrics.database.avgResponseTime + responseTime) / 2;
+        // Fallback to original table if dedicated table not available
+        const rows = (await Promise.race([
+          prisma.personalityQuestion.findMany({
+            orderBy: { order: 'asc' },
+            select: {
+              id: true,
+              text: true,
+              dimension: true,
+              order: true,
+              reversed: true,
+            },
+          }),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Database timeout')),
+              this.config.database.timeout
+            )
+          ),
+        ])) as Array<{
+          id: string;
+          text: string;
+          dimension: string;
+          order: number;
+          reversed: boolean;
+        }>;
 
-        return questions;
+        return rows.map(row => ({
+          id: row.id,
+          text: row.text,
+          dimension: row.dimension,
+          order: row.order,
+          reversed: row.reversed,
+        }));
       } catch (error) {
-        // If it's a validation error, don't retry - throw immediately
-        if (error instanceof ValidationError) {
+        this.metrics.database.errors++;
+        if (attempts >= this.config.database.maxRetries) {
           throw error;
         }
-
-        this.metrics.database.errors++;
-
-        if (attempts >= this.config.database.maxRetries) {
-          this.metrics.database.connectionFailures++;
-          throw new DatabaseError(
-            `Database query failed after ${attempts} attempts`,
-            error as Error,
-            { attempts, maxRetries: this.config.database.maxRetries }
-          );
-        }
-
+        // Wait before retry
         await new Promise(resolve =>
-          setTimeout(resolve, this.config.database.retryDelay * attempts)
+          setTimeout(resolve, this.config.database.retryDelay)
         );
       }
     }
 
-    throw new DatabaseError('Unexpected database error');
-  }
-
-  private parseQuestionData(skill: {
-    id: string;
-    name: string;
-    description: string | null;
-  }): MBTIQuestion {
-    const ORDER_REGEX = /MBTI Question (\d+)/;
-    const DIMENSION_REGEX = /^(.+?)\s+\(([^)]+)\s+dimension/;
-
-    const orderMatch = skill.name.match(ORDER_REGEX);
-    const order = orderMatch ? parseInt(orderMatch[1], 10) : 0;
-
-    if (!skill.description) {
-      throw new ValidationError(
-        `Missing description for question ${skill.id}`,
-        undefined,
-        { skill }
-      );
-    }
-
-    const dimensionMatch = skill.description.match(DIMENSION_REGEX);
-    if (!dimensionMatch) {
-      throw new ValidationError(
-        `Invalid description format for question ${skill.id}`,
-        undefined,
-        { skill }
-      );
-    }
-
-    const [, text, dimensionPart] = dimensionMatch;
-    const dimension = dimensionPart.toLowerCase();
-    const reversed = skill.description.includes('reversed');
-
-    return {
-      id: skill.id,
-      text: text.trim(),
-      dimension,
-      order,
-      reversed,
-    };
-  }
-
-  private getStaticQuestions(): MBTIQuestion[] {
-    // 24 questions, 6 per dimension, with some reversed for balance
-    return [
-      // EI (6)
-      {
-        id: 'static-1',
-        text: 'You prefer groups to individuals.',
-        dimension: 'ei',
-        order: 1,
-      },
-      { id: 'static-2', text: 'You are sociable.', dimension: 'ei', order: 2 },
-      {
-        id: 'static-3',
-        text: 'You are expressive.',
-        dimension: 'ei',
-        order: 3,
-      },
-      {
-        id: 'static-4',
-        text: 'You learn better by listening.',
-        dimension: 'ei',
-        order: 4,
-        reversed: true,
-      },
-      { id: 'static-5', text: 'You are talkative.', dimension: 'ei', order: 5 },
-      {
-        id: 'static-6',
-        text: 'You enjoy meeting new people.',
-        dimension: 'ei',
-        order: 6,
-      },
-      // SN (6)
-      {
-        id: 'static-7',
-        text: 'You prefer theoretical subjects.',
-        dimension: 'sn',
-        order: 7,
-      },
-      {
-        id: 'static-8',
-        text: 'You prefer novel over traditional.',
-        dimension: 'sn',
-        order: 8,
-      },
-      {
-        id: 'static-9',
-        text: 'You prefer being curious.',
-        dimension: 'sn',
-        order: 9,
-        reversed: true,
-      },
-      {
-        id: 'static-10',
-        text: 'You prefer abstract over specific.',
-        dimension: 'sn',
-        order: 10,
-      },
-      {
-        id: 'static-11',
-        text: 'You notice patterns more than details.',
-        dimension: 'sn',
-        order: 11,
-        reversed: true,
-      },
-      {
-        id: 'static-12',
-        text: 'You prefer conceptual tasks.',
-        dimension: 'sn',
-        order: 12,
-      },
-      // TF (6)
-      {
-        id: 'static-13',
-        text: 'You think judges should be merciful.',
-        dimension: 'tf',
-        order: 13,
-      },
-      {
-        id: 'static-14',
-        text: 'You tend to be diplomatic.',
-        dimension: 'tf',
-        order: 14,
-        reversed: true,
-      },
-      {
-        id: 'static-15',
-        text: 'You rely on empathy when deciding.',
-        dimension: 'tf',
-        order: 15,
-        reversed: true,
-      },
-      {
-        id: 'static-16',
-        text: 'You prioritize fairness over harmony.',
-        dimension: 'tf',
-        order: 16,
-      },
-      {
-        id: 'static-17',
-        text: 'You value logic over emotions.',
-        dimension: 'tf',
-        order: 17,
-        reversed: true,
-      },
-      {
-        id: 'static-18',
-        text: 'You consider others’ feelings when judging.',
-        dimension: 'tf',
-        order: 18,
-      },
-      // PJ (6)
-      {
-        id: 'static-19',
-        text: 'You are systematic in your routines.',
-        dimension: 'pj',
-        order: 19,
-      },
-      {
-        id: 'static-20',
-        text: 'You prefer routine over variety.',
-        dimension: 'pj',
-        order: 20,
-        reversed: true,
-      },
-      {
-        id: 'static-21',
-        text: 'You work better under pressure.',
-        dimension: 'pj',
-        order: 21,
-      },
-      {
-        id: 'static-22',
-        text: 'You are methodical.',
-        dimension: 'pj',
-        order: 22,
-        reversed: true,
-      },
-      {
-        id: 'static-23',
-        text: 'You prefer open-ended activities.',
-        dimension: 'pj',
-        order: 23,
-        reversed: true,
-      },
-      {
-        id: 'static-24',
-        text: 'You like to plan ahead.',
-        dimension: 'pj',
-        order: 24,
-      },
-    ];
+    throw new Error('Database query failed after all retries');
   }
 
   private async getFallbackData(): Promise<MBTIQuestion[]> {
