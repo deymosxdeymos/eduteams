@@ -352,7 +352,7 @@ export function AssignmentContent({
   const genderConfig = useMemo(
     () => ({
       laki: { label: 'Laki-laki', color: '#3B82F6' },
-      perempuan: { label: 'Perempuan', color: '#EC4899' },
+      perempuan: { label: 'Perempuan', color: '#E0C6FD' },
     }),
     []
   );
@@ -704,7 +704,7 @@ export function AssignmentContent({
                           cy='50%'
                           innerRadius='40%'
                           outerRadius='80%'
-                          paddingAngle={0}
+                          paddingAngle={2}
                           stroke='none'
                           strokeWidth={0}
                         />
@@ -722,7 +722,7 @@ export function AssignmentContent({
                     <div className='flex items-center gap-1.5'>
                       <span
                         className='inline-block h-3 w-3 rounded-full'
-                        style={{ backgroundColor: '#EC4899' }}
+                        style={{ backgroundColor: '#E0C6FD' }}
                       />
                       <span className='text-neutral-800'>Perempuan</span>
                     </div>
