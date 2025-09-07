@@ -24,6 +24,7 @@ interface AssignmentLayoutProps {
   hideStudentList?: boolean;
   assignmentTitle?: string;
   answersCrumb?: string | boolean;
+  submittedStudentIds?: string[];
   children?: React.ReactNode;
 }
 
@@ -38,6 +39,7 @@ export function AssignmentLayout({
   hideStudentList = false,
   assignmentTitle,
   answersCrumb,
+  submittedStudentIds,
   children,
 }: AssignmentLayoutProps) {
   return (
@@ -68,6 +70,7 @@ export function AssignmentLayout({
               initialData={students}
               currentUserId={user.id}
               canManage={canManage}
+              submittedStudentIds={submittedStudentIds}
             />
           )}
         </div>

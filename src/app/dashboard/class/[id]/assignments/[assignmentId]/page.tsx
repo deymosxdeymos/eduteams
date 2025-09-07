@@ -186,6 +186,19 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   // Stats for graphs (server-side). Start with zeros until teams are formed.
   const stats = await getAssignmentStats(assignmentId, id);
 
+  // Determine submissions for this assignment among enrolled students (for dosen UI)
+  const submittedForAssignment = await prisma.assignmentSubmission.findMany({
+    where: { assignmentId: assignmentId },
+    select: { studentId: true },
+  });
+  const submittedStudentIds = new Set<string>(
+    submittedForAssignment.map(s => s.studentId)
+  );
+  const submittedCount = students.reduce(
+    (acc, s) => acc + (submittedStudentIds.has(s.id) ? 1 : 0),
+    0
+  );
+
   // For dosen, show the regular assignment page
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
@@ -198,6 +211,7 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
           students={students}
           canManage={isDosen}
           assignmentTitle={assignmentTitle}
+          submittedStudentIds={Array.from(submittedStudentIds) as string[]}
         >
           <AssignmentContent
             assignmentId={assignmentId}
@@ -206,6 +220,8 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
             isStudent={isMahasiswa}
             hasSubmitted={hasSubmitted}
             stats={stats}
+            submittedCount={submittedCount}
+            totalStudents={students.length}
           />
         </AssignmentLayout>
       </Suspense>
