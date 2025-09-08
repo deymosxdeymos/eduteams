@@ -290,9 +290,182 @@ export class MBTIQuestionsManager {
   }
 
   private getStaticQuestions(): MBTIQuestion[] {
-    // Return empty array as fallback when database is unavailable
-    // In a real implementation, this could return hardcoded questions
-    return [];
+    // Static fallback set, mirrors prisma/seed.ts content and order
+    // This ensures the UI works even if DB is not seeded or temporarily unavailable
+    return [
+      // EI 1-6
+      {
+        id: 'static-1',
+        text: 'You prefer groups to individuals.',
+        dimension: 'ei',
+        order: 1,
+        reversed: false,
+      },
+      {
+        id: 'static-2',
+        text: 'You are sociable.',
+        dimension: 'ei',
+        order: 2,
+        reversed: false,
+      },
+      {
+        id: 'static-3',
+        text: 'You are expressive.',
+        dimension: 'ei',
+        order: 3,
+        reversed: false,
+      },
+      {
+        id: 'static-4',
+        text: 'You learn better by listening.',
+        dimension: 'ei',
+        order: 4,
+        reversed: true,
+      },
+      {
+        id: 'static-5',
+        text: 'You are talkative.',
+        dimension: 'ei',
+        order: 5,
+        reversed: false,
+      },
+      {
+        id: 'static-6',
+        text: 'You enjoy meeting new people.',
+        dimension: 'ei',
+        order: 6,
+        reversed: false,
+      },
+      // SN 7-12
+      {
+        id: 'static-7',
+        text: 'You prefer theoretical subjects.',
+        dimension: 'sn',
+        order: 7,
+        reversed: false,
+      },
+      {
+        id: 'static-8',
+        text: 'You prefer novel over traditional.',
+        dimension: 'sn',
+        order: 8,
+        reversed: false,
+      },
+      {
+        id: 'static-9',
+        text: 'You prefer being curious.',
+        dimension: 'sn',
+        order: 9,
+        reversed: true,
+      },
+      {
+        id: 'static-10',
+        text: 'You prefer abstract over specific.',
+        dimension: 'sn',
+        order: 10,
+        reversed: false,
+      },
+      {
+        id: 'static-11',
+        text: 'You notice patterns more than details.',
+        dimension: 'sn',
+        order: 11,
+        reversed: true,
+      },
+      {
+        id: 'static-12',
+        text: 'You prefer conceptual tasks.',
+        dimension: 'sn',
+        order: 12,
+        reversed: false,
+      },
+      // TF 13-18
+      {
+        id: 'static-13',
+        text: 'You think judges should be merciful.',
+        dimension: 'tf',
+        order: 13,
+        reversed: false,
+      },
+      {
+        id: 'static-14',
+        text: 'You tend to be diplomatic.',
+        dimension: 'tf',
+        order: 14,
+        reversed: true,
+      },
+      {
+        id: 'static-15',
+        text: 'You rely on empathy when deciding.',
+        dimension: 'tf',
+        order: 15,
+        reversed: true,
+      },
+      {
+        id: 'static-16',
+        text: 'You prioritize fairness over harmony.',
+        dimension: 'tf',
+        order: 16,
+        reversed: false,
+      },
+      {
+        id: 'static-17',
+        text: 'You value logic over emotions.',
+        dimension: 'tf',
+        order: 17,
+        reversed: true,
+      },
+      {
+        id: 'static-18',
+        text: 'You consider others’ feelings when judging.',
+        dimension: 'tf',
+        order: 18,
+        reversed: false,
+      },
+      // PJ 19-24
+      {
+        id: 'static-19',
+        text: 'You are systematic in your routines.',
+        dimension: 'pj',
+        order: 19,
+        reversed: false,
+      },
+      {
+        id: 'static-20',
+        text: 'You prefer routine over variety.',
+        dimension: 'pj',
+        order: 20,
+        reversed: true,
+      },
+      {
+        id: 'static-21',
+        text: 'You work better under pressure.',
+        dimension: 'pj',
+        order: 21,
+        reversed: false,
+      },
+      {
+        id: 'static-22',
+        text: 'You are methodical.',
+        dimension: 'pj',
+        order: 22,
+        reversed: true,
+      },
+      {
+        id: 'static-23',
+        text: 'You prefer open-ended activities.',
+        dimension: 'pj',
+        order: 23,
+        reversed: true,
+      },
+      {
+        id: 'static-24',
+        text: 'You like to plan ahead.',
+        dimension: 'pj',
+        order: 24,
+        reversed: false,
+      },
+    ];
   }
 
   private async getFromRedis<T>(key: string): Promise<T | null> {
@@ -516,11 +689,12 @@ export class MBTIQuestionsManager {
     try {
       questions = await this.getFromDatabase();
 
-      // If database returned zero questions, avoid long-lived caching.
-      // Cache in memory briefly and skip Redis so fresh seeds appear without restart.
+      // If database returned zero questions, provide a static fallback so UI keeps working.
+      // Use short in-memory TTL and skip Redis so fresh seeds are picked up quickly.
       if (questions.length === 0) {
-        this.setInMemory(cacheKey, questions, 30); // 30s short TTL
-        return questions;
+        const fallback = await this.getFallbackData();
+        this.setInMemory(cacheKey, fallback, 60);
+        return fallback;
       }
 
       this.setInMemory(cacheKey, questions);
