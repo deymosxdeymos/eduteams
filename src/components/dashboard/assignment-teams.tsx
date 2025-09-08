@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma';
 
 interface AssignmentTeamsProps {
   assignmentId: string;
+  isStudent?: boolean;
 }
 
-export async function AssignmentTeams({ assignmentId }: AssignmentTeamsProps) {
+export async function AssignmentTeams({ assignmentId, isStudent = false }: AssignmentTeamsProps) {
   // Load assignment to infer owner/time window
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
@@ -69,12 +70,19 @@ export async function AssignmentTeams({ assignmentId }: AssignmentTeamsProps) {
   const pad = (n: number) => n.toString().padStart(2, '0');
 
   return (
-    <div className='flex flex-col gap-4 pt-4 border-t border-gray-200'>
+    <div
+      className={
+        isStudent
+          ? 'flex flex-col gap-4'
+          : 'flex flex-col gap-4 pt-4 border-t border-gray-200'
+      }
+    >
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
         {latest.teams.map((team, idx) => {
           const topicName = topicNames.get(taskIdByIndex[idx] || '') || '-';
           const qualityPct =
             team.quality != null ? Math.round(team.quality * 100) : null;
+          const hasTopic = topicName && topicName !== '-';
           return (
             <div
               key={team.id}
@@ -84,12 +92,20 @@ export async function AssignmentTeams({ assignmentId }: AssignmentTeamsProps) {
                 <h2 className='font-semibold text-lg text-gray-800'>
                   Kelompok {pad(idx + 1)}
                 </h2>
-                <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
-                  <div className='rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-xs'>
-                    Kualitas Skor: {qualityPct != null ? `${qualityPct}%` : '-'}
+                {isStudent ? (
+                  hasTopic ? (
+                    <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
+                      Topik Tugas: {topicName}
+                    </div>
+                  ) : null
+                ) : (
+                  <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
+                    <div className='rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-xs'>
+                      Kualitas Skor: {qualityPct != null ? `${qualityPct}%` : '-'}
+                    </div>
+                    <div>Topik Tugas: {hasTopic ? topicName : '-'}</div>
                   </div>
-                  <div>Topik Tugas: {topicName}</div>
-                </div>
+                )}
               </div>
               <TeamMemberListClient
                 members={team.members.map(m => ({
@@ -102,6 +118,7 @@ export async function AssignmentTeams({ assignmentId }: AssignmentTeamsProps) {
                   },
                 }))}
                 courseId={assignment.course.id}
+                canManage={!isStudent}
               />
             </div>
           );
