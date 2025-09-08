@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
 function applySecurityHeaders(response: NextResponse) {
   const csp = [
@@ -47,8 +48,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check if session token exists (lightweight check without database)
-  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
-  const hasSessionToken = !!sessionToken;
+  const sessionCookie = getSessionCookie(request);
+  const hasSessionToken = !!sessionCookie;
 
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);
