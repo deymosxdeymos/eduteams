@@ -28,11 +28,13 @@ interface TeamMemberItem {
 interface TeamMemberListClientProps {
   members: TeamMemberItem[];
   courseId: string;
+  canManage?: boolean; // controls three-dots menu and removal
 }
 
 export function TeamMemberListClient({
   members,
   courseId,
+  canManage = true,
 }: TeamMemberListClientProps) {
   const [localMembers, setLocalMembers] = useState<TeamMemberItem[]>(members);
   const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null);
@@ -110,74 +112,80 @@ export function TeamMemberListClient({
               {member.user.name || 'Tanpa Nama'}
             </p>
           </div>
-          <div className='ml-auto relative'>
-            <button
-              aria-label='Opsi'
-              className='p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300'
-              onClick={e => {
-                e.stopPropagation();
-                setOpenMenuMemberId(prev =>
-                  prev === member.id ? null : member.id
-                );
-              }}
-            >
-              <MoreVertical className='w-5 h-5 text-gray-500' />
-            </button>
-            {openMenuMemberId === member.id && (
-              <div className='absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden'>
-                <button
-                  className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600'
-                  onClick={e => {
-                    e.stopPropagation();
-                    setConfirmMemberId(member.id);
-                    setOpenMenuMemberId(null);
-                    setRemoveError(null);
-                  }}
-                >
-                  Hapus mahasiswa
-                </button>
-              </div>
-            )}
-          </div>
+          {canManage && (
+            <div className='ml-auto relative'>
+              <button
+                aria-label='Opsi'
+                className='p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300'
+                onClick={e => {
+                  e.stopPropagation();
+                  setOpenMenuMemberId(prev =>
+                    prev === member.id ? null : member.id
+                  );
+                }}
+              >
+                <MoreVertical className='w-5 h-5 text-gray-500' />
+              </button>
+              {openMenuMemberId === member.id && (
+                <div className='absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden'>
+                  <button
+                    className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600'
+                    onClick={e => {
+                      e.stopPropagation();
+                      setConfirmMemberId(member.id);
+                      setOpenMenuMemberId(null);
+                      setRemoveError(null);
+                    }}
+                  >
+                    Hapus mahasiswa
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
 
-      <Dialog
-        open={!!confirmMemberId}
-        onOpenChange={open => !open && setConfirmMemberId(null)}
-      >
-        <DialogContent className='sm:max-w-xs'>
-          <DialogHeader>
-            <DialogTitle className='text-left'>Hapus Mahasiswa</DialogTitle>
-            {removeError && (
-              <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md text-left'>
-                {removeError}
-              </p>
-            )}
-          </DialogHeader>
-          <p className='text-sm text-muted-foreground text-left'>
-            Mahasiswa akan dihapus dari kelas ini. Lanjutkan?
-          </p>
-          <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
-            <Button
-              variant='destructive'
-              onClick={() => confirmMemberId && onRemoveMember(confirmMemberId)}
-              disabled={isRemoving}
-              className='w-full rounded-full'
-            >
-              {isRemoving ? 'Menghapus...' : 'Hapus'}
-            </Button>
-            <Button
-              variant='outline'
-              onClick={() => setConfirmMemberId(null)}
-              disabled={isRemoving}
-              className='w-full rounded-full'
-            >
-              Batal
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {canManage && (
+        <Dialog
+          open={!!confirmMemberId}
+          onOpenChange={open => !open && setConfirmMemberId(null)}
+        >
+          <DialogContent className='sm:max-w-xs'>
+            <DialogHeader>
+              <DialogTitle className='text-left'>Hapus Mahasiswa</DialogTitle>
+              {removeError && (
+                <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md text-left'>
+                  {removeError}
+                </p>
+              )}
+            </DialogHeader>
+            <p className='text-sm text-muted-foreground text-left'>
+              Mahasiswa akan dihapus dari kelas ini. Lanjutkan?
+            </p>
+            <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
+              <Button
+                variant='destructive'
+                onClick={() =>
+                  confirmMemberId && onRemoveMember(confirmMemberId)
+                }
+                disabled={isRemoving}
+                className='w-full rounded-full'
+              >
+                {isRemoving ? 'Menghapus...' : 'Hapus'}
+              </Button>
+              <Button
+                variant='outline'
+                onClick={() => setConfirmMemberId(null)}
+                disabled={isRemoving}
+                className='w-full rounded-full'
+              >
+                Batal
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
