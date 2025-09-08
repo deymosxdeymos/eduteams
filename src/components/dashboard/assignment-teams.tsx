@@ -1,5 +1,5 @@
-import prisma from '@/lib/prisma';
 import { TeamMemberListClient } from '@/components/dashboard/team-member-list-client';
+import prisma from '@/lib/prisma';
 
 interface AssignmentTeamsProps {
   assignmentId: string;

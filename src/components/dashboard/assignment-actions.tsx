@@ -25,6 +25,7 @@ interface AssignmentActionsProps {
   classId: string;
   canManage: boolean;
   isStudent?: boolean;
+  hasTeams?: boolean;
   topicCount?: number;
   enrollmentCount?: number;
 }
@@ -34,6 +35,7 @@ export function AssignmentActions({
   classId,
   canManage,
   isStudent = false,
+  hasTeams = false,
   topicCount,
   enrollmentCount,
 }: AssignmentActionsProps) {
@@ -46,6 +48,7 @@ export function AssignmentActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [resetting, setResetting] = useState(false);
 
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !submitting
@@ -81,6 +84,33 @@ export function AssignmentActions({
       setError('Terjadi kesalahan jaringan. Coba lagi.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (resetting) return;
+    const ok = window.confirm(
+      'Reset pembagian kelompok untuk tugas ini?\nIni tidak menghapus data preferensi. Anda dapat membentuk ulang setelah reset.'
+    );
+    if (!ok) return;
+    setResetting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch(`/api/assignments/${assignmentId}/reset-teams`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        setError(data?.error || 'Gagal mereset pembagian kelompok');
+        return;
+      }
+      setSuccess('Berhasil mereset. Anda dapat membentuk ulang.');
+      setTimeout(() => router.refresh(), 600);
+    } catch {
+      setError('Terjadi kesalahan jaringan saat reset.');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -203,6 +233,17 @@ export function AssignmentActions({
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {canManage && hasTeams && (
+        <Button
+          variant='outline'
+          className='rounded-full border border-red-600 text-red-600 p-6 w-[11rem]'
+          disabled={resetting}
+          onClick={handleReset}
+        >
+          {resetting ? 'Mereset...' : 'Reset Kelompok'}
+        </Button>
       )}
 
       {!isStudent && (

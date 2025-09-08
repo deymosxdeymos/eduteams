@@ -78,6 +78,7 @@ export async function AssignmentContent({
           classId={classId}
           canManage={canManage}
           isStudent={isStudent}
+          hasTeams={percentAssigned > 0}
           topicCount={topics.length}
           enrollmentCount={enrollments.length}
         />
