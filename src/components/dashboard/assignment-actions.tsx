@@ -250,6 +250,11 @@ export function AssignmentActions({
         <Button
           variant='outline'
           className='rounded-full border border-black p-6 w-[15rem]'
+          onClick={() =>
+            router.push(
+              `/dashboard/class/${classId}/assignments/${assignmentId}/answers`
+            )
+          }
         >
           <ChartLineIcon className='w-4 h-4 text-black' />
           <span className='text-black font-semibold text-sm'>
