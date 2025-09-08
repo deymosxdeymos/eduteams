@@ -35,9 +35,7 @@ export function TeamMemberListClient({
   courseId,
 }: TeamMemberListClientProps) {
   const [localMembers, setLocalMembers] = useState<TeamMemberItem[]>(members);
-  const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(
-    null,
-  );
+  const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null);
   const [confirmMemberId, setConfirmMemberId] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -65,7 +63,7 @@ export function TeamMemberListClient({
         `/api/courses/${courseId}/students/${member.user.id}`,
         {
           method: 'DELETE',
-        },
+        }
       );
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -75,9 +73,7 @@ export function TeamMemberListClient({
       setConfirmMemberId(null);
       setOpenMenuMemberId(null);
     } catch (err) {
-      setRemoveError(
-        err instanceof Error ? err.message : 'Terjadi kesalahan',
-      );
+      setRemoveError(err instanceof Error ? err.message : 'Terjadi kesalahan');
     } finally {
       setIsRemoving(false);
     }
@@ -120,7 +116,9 @@ export function TeamMemberListClient({
               className='p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300'
               onClick={e => {
                 e.stopPropagation();
-                setOpenMenuMemberId(prev => (prev === member.id ? null : member.id));
+                setOpenMenuMemberId(prev =>
+                  prev === member.id ? null : member.id
+                );
               }}
             >
               <MoreVertical className='w-5 h-5 text-gray-500' />

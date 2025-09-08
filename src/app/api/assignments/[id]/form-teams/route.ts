@@ -221,7 +221,10 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         preferences: prefsByTopic.get(t.id),
       }));
     } else if (topics.length > 0) {
-      // Best-effort: distribute topics round-robin into k buckets
+      // Best‑effort mapping when topic count ≠ group count.
+      // Strategy: distribute topics into k buckets; for each bucket, pick a representative
+      // topic (highest average preference) and use its AssignmentTopic.id as the task id
+      // so the UI can display a topic instead of '-'. Preferences are aggregated per bucket.
       const k = groupSizes.length;
       const buckets: string[][] = Array.from({ length: k }, () => []);
       for (let i = 0; i < topics.length; i++) {
@@ -229,11 +232,28 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         if (t) buckets[i % k].push(t.id);
       }
 
+      // Pre-compute average preference for each topic for representative selection
+      const topicAvgPref = new Map<string, number>();
+      for (const t of topics) {
+        const prefs = prefsByTopic.get(t.id) || [];
+        if (prefs.length === 0) {
+          topicAvgPref.set(t.id, 0);
+        } else {
+          const avg =
+            prefs.reduce((a, b) => a + b.preference, 0) / prefs.length;
+          topicAvgPref.set(t.id, Math.max(0, Math.min(1, avg)));
+        }
+      }
+
       const prefsByBucket: Array<
         Array<{ personId: string; preference: number }>
       > = [];
+      const representativeTopicId: string[] = [];
+
       for (let i = 0; i < k; i++) {
         const topicIds = buckets[i] ?? [];
+
+        // Aggregate preferences for the bucket
         const prefPerPerson = new Map<string, number[]>();
         for (const topicId of topicIds) {
           const prefs = prefsByTopic.get(topicId) || [];
@@ -249,10 +269,30 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
           merged.push({ personId, preference: Math.max(0, Math.min(1, avg)) });
         }
         prefsByBucket.push(merged);
+
+        // Choose representative topic for this bucket
+        if (topicIds.length > 0) {
+          let bestId = topicIds[0];
+          let bestScore = topicAvgPref.get(bestId) ?? 0;
+          for (let j = 1; j < topicIds.length; j++) {
+            const tid = topicIds[j];
+            const score = topicAvgPref.get(tid) ?? 0;
+            if (score > bestScore) {
+              bestId = tid;
+              bestScore = score;
+            }
+          }
+          representativeTopicId.push(bestId);
+        } else {
+          // If the bucket is empty (happens when topics < k), fall back to any topic
+          // to ensure a visible topic in UI. Use a stable round‑robin pick.
+          const fallback = topics[i % topics.length]?.id ?? topics[0]?.id;
+          representativeTopicId.push(fallback as string);
+        }
       }
 
       tasks = groupSizes.map((sz, i) => ({
-        id: `group-${i + 1}`,
+        id: representativeTopicId[i],
         skills: defaultTaskSkills,
         teamSize: sz,
         preferences: prefsByBucket[i]?.length ? prefsByBucket[i] : undefined,
