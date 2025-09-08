@@ -112,11 +112,14 @@ export function convertAnswersForSubmission(
   questions: MBTIQuestion[],
   answers: Record<string, number>
 ): Record<string, number> {
+  // Convert to numeric keys based on the questions array order (1-indexed)
   const convertedAnswers: Record<string, number> = {};
-  questions.forEach((question, index) => {
-    if (answers[question.id]) {
-      convertedAnswers[(index + 1).toString()] = answers[question.id];
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const value = answers[q.id];
+    if (typeof value === 'number') {
+      convertedAnswers[String(i + 1)] = value;
     }
-  });
+  }
   return convertedAnswers;
 }

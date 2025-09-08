@@ -1,5 +1,6 @@
 import { Window } from 'happy-dom';
-import '@testing-library/jest-dom';
+// Note: bun-test doesn't support @testing-library/jest-dom matchers
+// Using bun-test's native expect API instead
 
 // Create a global window instance
 const happyDomWindow = new Window();

@@ -1,4 +1,5 @@
 import type { ExtendedUser } from '@/lib/types';
+import { DosenProfileContent } from './dosen-profile-content';
 import Nav from './nav';
 import { ProfileContent } from './profile-content';
 import Sidebar from './sidebar';
@@ -16,7 +17,11 @@ export function ProfileLayout({ user }: ProfileLayoutProps) {
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
         <Sidebar />
         <div className='px-8 pb-0 min-h-0'>
-          <ProfileContent user={user} />
+          {user.role === 'dosen' ? (
+            <DosenProfileContent user={user} />
+          ) : (
+            <ProfileContent user={user} />
+          )}
         </div>
       </div>
     </main>

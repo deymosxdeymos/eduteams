@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,6 +18,7 @@ interface JoinClassModalProps {
 }
 
 export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
+  const inputId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [classToken, setClassToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -126,7 +127,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
               }
             >
               <InputRounded
-                id='token'
+                id={inputId}
                 value={classToken}
                 onChange={e => {
                   setClassToken(e.target.value);

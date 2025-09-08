@@ -7,6 +7,11 @@ import {
 import prisma from '@/lib/prisma';
 import { HttpError } from '@/lib/types';
 
+// Cache for 10 minutes since student lists don't change frequently
+export const revalidate = 600;
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -67,6 +72,11 @@ export async function GET(
             name: true,
             email: true,
             nimNpm: true,
+            mbtiType: true,
+            ei: true,
+            sn: true,
+            tf: true,
+            pj: true,
           },
         },
       },
@@ -82,6 +92,11 @@ export async function GET(
       name: enrollment.student.name || 'Unknown',
       nim: enrollment.student.nimNpm || 'N/A',
       email: enrollment.student.email || 'N/A',
+      mbtiType: enrollment.student.mbtiType,
+      ei: enrollment.student.ei,
+      sn: enrollment.student.sn,
+      tf: enrollment.student.tf,
+      pj: enrollment.student.pj,
       enrolledAt: enrollment.enrolledAt,
     }));
 

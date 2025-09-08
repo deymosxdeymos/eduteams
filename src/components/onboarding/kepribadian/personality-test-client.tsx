@@ -92,18 +92,27 @@ export default function PersonalityTestClient({
 
     dispatch({ type: 'SET_SUBMITTING', payload: true });
 
+    const numericAnswers = convertAnswersForSubmission(
+      questions,
+      state.answers
+    );
+
+    const formData = new FormData();
+    formData.append('answers', JSON.stringify(numericAnswers));
     try {
-      const numericAnswers = convertAnswersForSubmission(
-        questions,
-        state.answers
-      );
-
-      const formData = new FormData();
-      formData.append('answers', JSON.stringify(numericAnswers));
-
       await submitPersonalityTest(formData);
-    } catch (error) {
-      console.error('Error completing kepribadian:', error);
+    } catch (err) {
+      // Allow Next.js redirects to propagate
+      if (err && typeof err === 'object') {
+        const digest = (err as { digest?: unknown }).digest;
+        if (typeof digest === 'string' && digest.includes('NEXT_REDIRECT')) {
+          throw err;
+        }
+      }
+
+      // Log and reset submitting state on regular errors
+      console.error('Error completing kepribadian:', err);
+    } finally {
       dispatch({ type: 'SET_SUBMITTING', payload: false });
     }
   };

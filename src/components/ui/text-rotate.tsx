@@ -9,6 +9,7 @@ import {
 import type React from 'react';
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -69,7 +70,7 @@ export const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
     const [currentIndex, setCurrentIndex] = useState(0);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const next = () => {
+    const next = useCallback(() => {
       setCurrentIndex(prev => {
         const nextIndex = loop
           ? (prev + 1) % texts.length
@@ -77,7 +78,7 @@ export const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
         onNext?.(nextIndex);
         return nextIndex;
       });
-    };
+    }, [loop, texts.length, onNext]);
 
     const previous = () => {
       setCurrentIndex(prev => {

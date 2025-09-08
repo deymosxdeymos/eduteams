@@ -28,17 +28,11 @@ function MetricBar({
       ? 50
       : percentage;
 
-  console.log(`MetricBar ${leftLabel}/${rightLabel}:`, {
-    originalPercentage: percentage,
-    validPercentage,
-    isRightAligned,
-  });
-
   return (
     <div className='space-y-2'>
       <div className='flex justify-between items-center'>
         <span
-          className={`text-sm font-medium ${isRightAligned ? 'text-black' : colorScheme.primaryText}`}
+          className={`text-sm font-medium ${!isRightAligned ? colorScheme.primaryText : 'text-black'}`}
         >
           {leftLabel}
         </span>
@@ -93,31 +87,38 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
     snType: typeof user.sn,
   });
 
-  // Convert MBTI scores from -1 to 1 range to percentages (0-100)
-  // Handle null, undefined, and NaN values properly
-  const eiPercentage =
-    user.ei !== null && user.ei !== undefined && !Number.isNaN(user.ei)
-      ? Math.round(((user.ei + 1) / 2) * 100)
-      : 50;
-  const snPercentage =
-    user.sn !== null && user.sn !== undefined && !Number.isNaN(user.sn)
-      ? Math.round(((user.sn + 1) / 2) * 100)
-      : 50;
-  const tfPercentage =
-    user.tf !== null && user.tf !== undefined && !Number.isNaN(user.tf)
-      ? Math.round(((user.tf + 1) / 2) * 100)
-      : 50;
-  const pjPercentage =
-    user.pj !== null && user.pj !== undefined && !Number.isNaN(user.pj)
-      ? Math.round(((user.pj + 1) / 2) * 100)
-      : 50;
+  // Given a score in [-1, 1], compute dominant-side percentage & alignment.
+  const mkDominant = (
+    score: number | null | undefined,
+    isEIDimension: boolean = false
+  ) => {
+    if (score === null || score === undefined || Number.isNaN(score)) {
+      return { percentage: 50, isRightAligned: false, left: 50, right: 50 };
+    }
+    const right = Math.round(((score + 1) / 2) * 100);
+    const left = 100 - right;
 
-  console.log('Calculated percentages:', {
-    eiPercentage,
-    snPercentage,
-    tfPercentage,
-    pjPercentage,
-  });
+    if (isEIDimension) {
+      // EI dimension: negative = Introvert (right), positive = Extrovert (left)
+      if (score < 0) {
+        return { percentage: left, isRightAligned: true, left, right };
+      }
+      return { percentage: right, isRightAligned: false, left, right };
+    } else {
+      // SN, TF, PJ dimensions: negative = left side, positive = right side
+      if (score < 0) {
+        return { percentage: left, isRightAligned: false, left, right };
+      }
+      return { percentage: right, isRightAligned: true, left, right };
+    }
+  };
+
+  const ei = mkDominant(user.ei, true); // EI dimension has special logic
+  const sn = mkDominant(user.sn);
+  const tf = mkDominant(user.tf);
+  const pj = mkDominant(user.pj);
+
+  console.log('Metric dominant view:', { ei, sn, tf, pj });
 
   return (
     <div
@@ -127,29 +128,29 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
         <MetricBar
           leftLabel='Extrovert (E)'
           rightLabel='Introvert (I)'
-          percentage={eiPercentage}
-          isRightAligned={eiPercentage > 50}
+          percentage={ei.percentage}
+          isRightAligned={ei.isRightAligned}
           colorScheme={colorScheme}
         />
         <MetricBar
           leftLabel='Sensing (S)'
           rightLabel='Intuition (N)'
-          percentage={snPercentage}
-          isRightAligned={snPercentage > 50}
+          percentage={sn.percentage}
+          isRightAligned={sn.isRightAligned}
           colorScheme={colorScheme}
         />
         <MetricBar
           leftLabel='Thinking (T)'
           rightLabel='Feeling (F)'
-          percentage={tfPercentage}
-          isRightAligned={tfPercentage > 50}
+          percentage={tf.percentage}
+          isRightAligned={tf.isRightAligned}
           colorScheme={colorScheme}
         />
         <MetricBar
           leftLabel='Judging (J)'
           rightLabel='Perceiving (P)'
-          percentage={pjPercentage}
-          isRightAligned={pjPercentage > 50}
+          percentage={pj.percentage}
+          isRightAligned={pj.isRightAligned}
           colorScheme={colorScheme}
         />
       </div>

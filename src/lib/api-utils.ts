@@ -1,6 +1,9 @@
-import { headers } from 'next/headers';
+// Note: Avoid calling next/headers in test context.
+// Import lazily inside functions or provide safe fallbacks.
+import { cookies, headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 import {
   type ApiResponse,
@@ -12,8 +15,13 @@ import {
   ValidationError,
 } from '@/lib/types';
 
+interface AuthApiRequestContext {
+  headers: Awaited<ReturnType<typeof headers>>;
+  cookies: Awaited<ReturnType<typeof cookies>>;
+}
+
 export function handleApiError(error: unknown): NextResponse {
-  console.error('API Error:', error);
+  logger.error('API Error:', error);
 
   if (error instanceof HttpError) {
     return NextResponse.json(
@@ -75,56 +83,80 @@ export function createErrorResponse(
   );
 }
 
-type AuthenticatedHandler = (
-  request: NextRequest,
-  context: { user: ExtendedUser }
-) => Promise<NextResponse>;
+// Params can be either immediate T or Promise<T> if desired
+export type Params<T> = T | Promise<T>;
 
-export function withAuth(handler: AuthenticatedHandler) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+// DefaultRouteContext aligns with Next's ParamCheck expectations
+// Use Promise<any> to satisfy Next's generated types
+export type DefaultRouteContext<TParams = unknown> = {
+  // Next.js generated .next/types expects params to be Promise<any>
+  // We keep it as Promise<TParams> to satisfy that constraint at compile-time.
+  params: Promise<TParams>;
+};
+
+export function withAuth<
+  TParams = unknown,
+  TContext extends DefaultRouteContext<TParams> = DefaultRouteContext<TParams>,
+>(
+  handler: (
+    request: NextRequest,
+    context: TContext & { user: ExtendedUser }
+  ) => Promise<NextResponse>
+) {
+  return async (
+    request: NextRequest,
+    nextContext: TContext
+  ): Promise<NextResponse> => {
     try {
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
-
-      if (!session?.user) {
-        throw new AuthError('Authentication required');
+      const user = await getCurrentUser();
+      if (!user) {
+        return handleApiError(new AuthError());
       }
-
-      return await handler(request, { user: session.user as ExtendedUser });
+      const baseCtx = (nextContext ?? ({} as TContext)) as TContext;
+      return await handler(request, { ...baseCtx, user });
     } catch (error) {
-      return handleApiError(error);
+      if (error instanceof HttpError) return handleApiError(error);
+      return handleApiError(new HttpError(500, 'Internal server error'));
     }
   };
 }
 
-type RoleHandler = (
-  request: NextRequest,
-  context: { user: ExtendedUser }
-) => Promise<NextResponse>;
-
-export function withRole(
+export function withRole<
+  TParams = unknown,
+  TContext extends DefaultRouteContext<TParams> = DefaultRouteContext<TParams>,
+>(
   allowedRoles: UserRole | UserRole[],
-  handler: RoleHandler
+  handler: (
+    request: NextRequest,
+    context: TContext & { user: ExtendedUser }
+  ) => Promise<NextResponse>
 ) {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-
-  return withAuth(async (request, context) => {
+  return withAuth<TContext>(async (request, context) => {
     if (!context.user.role || !roles.includes(context.user.role)) {
       throw new AuthorizationError('Insufficient permissions');
     }
-
-    return await handler(request, context);
+    return await handler(
+      request,
+      context as unknown as TContext & { user: ExtendedUser }
+    );
   });
 }
 
-export function withOnboarded(handler: RoleHandler) {
-  return withAuth(async (request, context) => {
+export function withOnboarded<
+  TContext extends DefaultRouteContext = DefaultRouteContext,
+>(
+  handler: (
+    request: NextRequest,
+    context: TContext & { user: ExtendedUser }
+  ) => Promise<NextResponse>
+) {
+  return withAuth<TContext>(async (request, context) => {
     if (!context.user.isOnboarded) {
       throw new AuthorizationError('User must complete onboarding first');
     }
 
-    return await handler(request, context);
+    return await handler(request, context as TContext & { user: ExtendedUser });
   });
 }
 
@@ -155,9 +187,22 @@ export function withValidation<T>(
 
 export async function getCurrentUser(): Promise<ExtendedUser | null> {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    let session: Awaited<ReturnType<typeof auth.api.getSession>>;
+
+    // In test environments, headers() and cookies() throw "wrong context" errors
+    // So we need to handle this case gracefully
+    if (process.env.NODE_ENV === 'test') {
+      // In tests, auth.api.getSession should be mocked directly
+      session = await auth.api.getSession({} as AuthApiRequestContext);
+    } else {
+      // Prefer reading from cookies() in server actions to ensure session is detected
+      const cookieStore = await cookies();
+
+      session = await auth.api.getSession({
+        headers: await headers(),
+        cookies: cookieStore,
+      } as AuthApiRequestContext);
+    }
 
     if (!session?.user) {
       return null;
@@ -176,6 +221,7 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
         updatedAt: true,
         role: true,
         nimNpm: true,
+        gender: true,
         isOnboarded: true,
         hasSeenWelcomeSplash: true,
         onboardingStep: true,
@@ -190,7 +236,7 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
 
     return freshUser as ExtendedUser;
   } catch (error) {
-    console.error('Error getting current user:', error);
+    logger.error('Error getting current user:', error);
     return null;
   }
 }

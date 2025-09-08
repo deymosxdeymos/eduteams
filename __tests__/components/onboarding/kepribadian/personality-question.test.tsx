@@ -141,7 +141,7 @@ describe('PersonalityQuestion', () => {
       render(<PersonalityQuestion {...defaultProps} initialValue={3} />);
 
       const neutralImage = screen.getByAltText('Netral');
-      expect(neutralImage.getAttribute('src')).toContain('netral.svg');
+      expect(neutralImage.getAttribute('src')).toContain('Neutral.svg');
       expect(neutralImage.getAttribute('src')).not.toContain('-not-active');
     });
 
@@ -171,7 +171,7 @@ describe('PersonalityQuestion', () => {
       fireEvent.click(motionDivs[2]); // Click neutral option
 
       const neutralImage = screen.getByAltText('Netral');
-      expect(neutralImage.getAttribute('src')).toContain('netral.svg');
+      expect(neutralImage.getAttribute('src')).toContain('Neutral.svg');
       expect(neutralImage.getAttribute('src')).not.toContain('-not-active');
     });
 
@@ -180,14 +180,16 @@ describe('PersonalityQuestion', () => {
 
       const motionDivs = screen.getAllByTestId('motion-div');
 
-      // Select neutral first
+      // Select neutral first (index 2, value 3)
       fireEvent.click(motionDivs[2]);
       let neutralImage = screen.getByAltText('Netral');
+      expect(neutralImage.getAttribute('src')).toContain('Neutral.svg');
       expect(neutralImage.getAttribute('src')).not.toContain('-not-active');
 
-      // Change to agree
+      // Change to agree (index 3, value 4)
       fireEvent.click(motionDivs[3]);
       const agreeImage = screen.getByAltText('Setuju');
+      expect(agreeImage.getAttribute('src')).toContain('Agree.svg');
       expect(agreeImage.getAttribute('src')).not.toContain('-not-active');
 
       // Neutral should now be inactive
@@ -200,10 +202,11 @@ describe('PersonalityQuestion', () => {
 
       const motionDivs = screen.getAllByTestId('motion-div');
 
-      motionDivs.forEach((div, index) => {
-        fireEvent.click(div);
-        expect(mockOnAnswerAction).toHaveBeenCalledWith(index + 1);
-      });
+      // Only test the first 5 motion divs which are the Likert scale options
+      for (let i = 0; i < 5; i++) {
+        fireEvent.click(motionDivs[i]);
+        expect(mockOnAnswerAction).toHaveBeenCalledWith(i + 1);
+      }
 
       expect(mockOnAnswerAction).toHaveBeenCalledTimes(5);
     });
@@ -213,8 +216,8 @@ describe('PersonalityQuestion', () => {
     test('shows error styling when hasError is true', () => {
       render(<PersonalityQuestion {...defaultProps} hasError={true} />);
 
-      const questionContainer = screen.getByRole('group').firstChild;
-      expect(questionContainer).toHaveClass('border-red-700');
+      const questionContainer = screen.getByRole('group').firstChild as HTMLElement;
+      expect(questionContainer.className).toContain('border-red-700');
     });
 
     test('displays error message when hasError is true', () => {
@@ -439,11 +442,11 @@ describe('PersonalityQuestion', () => {
 
       // Select each option and verify image source
       const expectedSources = [
-        'sangat-tidak-setuju.svg',
-        'tidak-setuju.svg',
-        'netral.svg',
-        'setuju.svg',
-        'sangat-setuju.svg',
+        'Strongly-Disagree.svg',
+        'Disagree.svg',
+        'Neutral.svg',
+        'Agree.svg',
+        'Strongly-Agree.svg',
       ];
 
       expectedSources.forEach((expectedSrc, index) => {
@@ -582,8 +585,6 @@ describe('PersonalityQuestion', () => {
 
   describe('Error Handling', () => {
     test('gracefully handles missing onAnswerAction', () => {
-      const consoleErrorSpy = mock();
-
       render(
         <PersonalityQuestion
           question='Test'
@@ -597,8 +598,6 @@ describe('PersonalityQuestion', () => {
       expect(() => {
         fireEvent.click(motionDivs[0]);
       }).not.toThrow();
-
-      consoleErrorSpy.mockRestore();
     });
 
     test('handles invalid prop combinations gracefully', () => {

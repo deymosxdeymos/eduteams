@@ -1,8 +1,11 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
-import { calculatePersonalityScores } from '@/lib/personality';
+import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 const completeOnboardingSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)).optional(),
@@ -24,26 +27,27 @@ export const POST = withAuth(
         return createApiResponse(null, 'User not found', 404);
       }
 
-      const updateData: {
-        isOnboarded: boolean;
-        ei?: number;
-        sn?: number;
-        tf?: number;
-        pj?: number;
-      } = { isOnboarded: true };
+      const updateData: Record<string, unknown> = { isOnboarded: true };
 
       // If user is mahasiswa and provided answers, calculate personality scores
       if (currentUser.role === 'mahasiswa' && answers) {
         const numericAnswers: Record<number, number> = {};
         for (const [key, value] of Object.entries(answers)) {
-          numericAnswers[parseInt(key)] = value;
+          numericAnswers[parseInt(key, 10)] = value;
         }
 
         const scores = calculatePersonalityScores(numericAnswers);
+        const mbtiType = getMBTIType(scores) as MBTIType;
         updateData.ei = scores.ei;
         updateData.sn = scores.sn;
         updateData.tf = scores.tf;
         updateData.pj = scores.pj;
+        updateData.mbtiType = mbtiType;
+        updateData.personalityData = {
+          answers, // numeric-keyed strings "1".."24"
+          scores,
+          metadata: { completedAt: new Date().toISOString() },
+        } as unknown as PrismaNS.InputJsonValue;
       }
 
       // Mark user as fully onboarded and save personality data if applicable
