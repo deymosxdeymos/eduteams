@@ -245,6 +245,20 @@ export default async function AssignmentQuizPage({
           return '—';
       }
     };
+    const getLikertValue = (
+      answersById: Record<string, unknown>,
+      q: { id: string; order?: number },
+      i: number
+    ): number | undefined => {
+      const byId = (answersById as Record<string, unknown>)[q.id];
+      const byOrder = (answersById as Record<string, unknown>)[
+        String(q.order ?? i + 1)
+      ];
+      const raw = byId ?? byOrder;
+      return typeof raw === 'string'
+        ? Number.parseInt(raw, 10)
+        : (raw as number | undefined);
+    };
 
     // Personality QA: fetch questions + user answers
     const mbtiQuestions = await getMBTIQuestions();
@@ -377,12 +391,14 @@ export default async function AssignmentQuizPage({
                               <td className='px-4 py-3'>{q.text}</td>
                               <td className='px-4 py-3'>
                                 {toLikert(
-                                  (personalityAnswers[q.id] as
-                                    | number
-                                    | undefined) ??
-                                    (personalityAnswers[String(i + 1)] as
-                                      | number
-                                      | undefined)
+                                  getLikertValue(
+                                    personalityAnswers as Record<
+                                      string,
+                                      unknown
+                                    >,
+                                    q as { id: string; order?: number },
+                                    i
+                                  )
                                 )}
                               </td>
                             </tr>
