@@ -3,8 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import type { MBTIType } from '@/generated/prisma';
+import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
+
 import { getCurrentUser } from '@/lib/api-utils';
+import { logger } from '@/lib/logger';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
@@ -15,10 +17,11 @@ const personalitySubmissionSchema = z.object({
 
 export async function submitPersonalityTest(
   formData: FormData,
-  getCurrentUserImpl = getCurrentUser
+  getCurrentUserImpl?: typeof getCurrentUser
 ) {
   try {
-    const user = await getCurrentUserImpl();
+    const resolveUser = getCurrentUserImpl ?? getCurrentUser;
+    const user = await resolveUser();
     if (!user) {
       throw new AuthError('Authentication required');
     }
@@ -34,12 +37,8 @@ export async function submitPersonalityTest(
 
     const { answers } = parsedData;
 
-    const numericAnswers: Record<number, number> = {};
-    for (const [key, value] of Object.entries(answers)) {
-      numericAnswers[parseInt(key)] = value;
-    }
-
-    const scores = calculatePersonalityScores(numericAnswers);
+    // answers are numeric-keyed (as strings). Use numeric-based scorer
+    const scores = calculatePersonalityScores(answers);
     const mbtiType = getMBTIType(scores);
 
     await prisma.user.update({
@@ -51,11 +50,19 @@ export async function submitPersonalityTest(
         pj: scores.pj,
         mbtiType: mbtiType as MBTIType,
         isOnboarded: true,
+        personalityData: {
+          // overwrite with latest submission snapshot
+          answers,
+          scores,
+          metadata: {
+            completedAt: new Date().toISOString(),
+          },
+        } as unknown as PrismaNS.InputJsonValue,
       },
     });
 
     revalidatePath('/dashboard');
-    redirect('/dashboard?firstVisit=true');
+    redirect('/dashboard');
   } catch (error) {
     if (error instanceof AuthError || error instanceof ValidationError) {
       throw error;
@@ -72,7 +79,7 @@ export async function submitPersonalityTest(
       throw error;
     }
 
-    console.error('Error submitting personality test:', error);
+    logger.error('Error submitting personality test:', error);
     throw new Error('Failed to submit personality test');
   }
 }

@@ -1,15 +1,16 @@
 import { revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
+import { withRole } from '@/lib/api-utils';
 
-export async function POST(request: NextRequest) {
+// Restrict to admins to prevent arbitrary cache invalidation
+export const POST = withRole('admin', async (request: NextRequest) => {
   try {
     const { tag } = await request.json();
 
-    if (!tag) {
+    if (!tag || typeof tag !== 'string') {
       return NextResponse.json({ error: 'Tag is required' }, { status: 400 });
     }
 
-    console.log(`Manually revalidating cache for tag: ${tag}`);
     revalidateTag(tag);
 
     return NextResponse.json({
@@ -23,4 +24,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

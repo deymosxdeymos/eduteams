@@ -62,7 +62,7 @@ export const AnswerRecordSchema = z
   .refine(answers => {
     const questionIds = Object.keys(answers);
     return questionIds.every(id => {
-      const num = parseInt(id);
+      const num = parseInt(id, 10);
       return num >= 1 && num <= 24;
     });
   }, 'All question IDs must be between 1 and 24');

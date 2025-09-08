@@ -27,11 +27,11 @@ export default function PersonalityQuestion({
   const [isAnimating, setIsAnimating] = useState(false);
 
   const likertScale = [
-    { icon: 'sangat-tidak-setuju', label: 'Sangat Tidak\nSetuju', value: 1 },
-    { icon: 'tidak-setuju', label: 'Tidak Setuju', value: 2 },
-    { icon: 'netral', label: 'Netral', value: 3 },
-    { icon: 'setuju', label: 'Setuju', value: 4 },
-    { icon: 'sangat-setuju', label: 'Sangat Setuju', value: 5 },
+    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju', value: 1 },
+    { icon: 'Disagree', label: 'Tidak Setuju', value: 2 },
+    { icon: 'Neutral', label: 'Netral', value: 3 },
+    { icon: 'Agree', label: 'Setuju', value: 4 },
+    { icon: 'Strongly-Agree', label: 'Sangat Setuju', value: 5 },
   ];
 
   const handleSelection = (value: number) => {

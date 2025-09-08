@@ -60,6 +60,8 @@ declare module 'bun:test' {
     objectContaining(obj: any): any;
     assertions(count: number): void;
     any(constructor: any): any;
+    toHaveBeenNthCalledWith(nthCall: number, ...args: any[]): void;
+    toHaveBeenLastCalledWith(...args: any[]): void;
   };
 
   interface MockFunction {

@@ -1,25 +1,46 @@
 import { revalidateTag } from 'next/cache';
-import { type NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import type { NextRequest } from 'next/server';
+import {
+  createApiResponse,
+  createErrorResponse,
+  withAuth,
+} from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
+import { CACHE_TAGS } from '@/lib/cache-tags';
+import { isSameOrigin } from '@/lib/csrf';
 import prisma from '@/lib/prisma';
+import { limit, tooManyRequests } from '@/lib/rate-limit';
 import type { ExtendedUser } from '@/lib/types';
+
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 async function leaveClass(
   request: NextRequest,
   { user }: { user: ExtendedUser }
 ) {
   if (!canAccessMahasiswaFeatures(user)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    return createErrorResponse('Access denied', 403);
+  }
+
+  // Basic CSRF protection for browser-initiated POSTs
+  if (!isSameOrigin(request)) {
+    return createErrorResponse('Invalid origin', 403);
+  }
+
+  // Rate limit per user + endpoint
+  const rl = await limit(request, `leave-class:${user.id}`);
+  if (!rl.success) {
+    return tooManyRequests(
+      {},
+      rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {}
+    );
   }
 
   const { courseId } = await request.json();
 
   if (!courseId || typeof courseId !== 'string') {
-    return NextResponse.json(
-      { error: 'Course ID is required' },
-      { status: 400 }
-    );
+    return createErrorResponse('Course ID is required', 400);
   }
 
   try {
@@ -44,10 +65,7 @@ async function leaveClass(
     });
 
     if (!enrollment) {
-      return NextResponse.json(
-        { error: 'You are not enrolled in this class.' },
-        { status: 404 }
-      );
+      return createErrorResponse('You are not enrolled in this class.', 404);
     }
 
     // Delete the enrollment
@@ -61,19 +79,14 @@ async function leaveClass(
     });
 
     // Revalidate caches
-    revalidateTag(`courses-${enrollment.course.dosenId}`);
-    revalidateTag(`student-classes-${user.id}`);
+    revalidateTag(CACHE_TAGS.coursesByDosen(enrollment.course.dosenId));
+    revalidateTag(CACHE_TAGS.studentClasses(user.id));
 
-    return NextResponse.json({
-      success: true,
+    return createApiResponse({
       message: `Successfully left ${enrollment.course.namaMataKuliah} - ${enrollment.course.kelas}`,
     });
-  } catch (error) {
-    console.error('Error leaving class:', error);
-    return NextResponse.json(
-      { error: 'Failed to leave class. Please try again.' },
-      { status: 500 }
-    );
+  } catch {
+    return createErrorResponse('Failed to leave class. Please try again.', 500);
   }
 }
 

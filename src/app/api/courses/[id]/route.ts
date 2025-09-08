@@ -9,7 +9,11 @@ import {
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
+
+// Cache for 10 minutes since course data doesn't change frequently
+export const revalidate = 600;
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 type CourseWithDosen = {
   id: string;
@@ -29,8 +33,8 @@ type CourseWithDosen = {
   };
 };
 
-export const GET = withAuth(
-  async (request: NextRequest, { user }: { user: ExtendedUser }) => {
+export const GET = withAuth<{ id: string }>(
+  async (_request: NextRequest, { user, params }) => {
     const isDosen = canAccessDosenFeatures(user);
     const isMahasiswa = canAccessMahasiswaFeatures(user);
 
@@ -38,10 +42,7 @@ export const GET = withAuth(
       return createErrorResponse('Access denied', 403);
     }
 
-    // Extract params from the request URL
-    const url = new URL(request.url);
-    const pathSegments = url.pathname.split('/');
-    const id = pathSegments[pathSegments.length - 1];
+    const { id } = await params;
 
     let course: CourseWithDosen | null = null;
 

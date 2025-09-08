@@ -7,18 +7,20 @@ import { Button } from '@/components/ui/button';
 interface InstructionModalProps {
   isOpen: boolean;
   onCloseAction: () => void;
+  title?: string;
 }
 
 export default function InstructionModal({
   isOpen,
   onCloseAction,
+  title = 'Instruksi Pengerjaan Tes Kepribadian',
 }: InstructionModalProps) {
   const likertScale = [
-    { icon: 'sangat-tidak-setuju', label: 'Sangat Tidak\nSetuju' },
-    { icon: 'tidak-setuju', label: 'Tidak Setuju' },
-    { icon: 'netral', label: 'Netral' },
-    { icon: 'setuju', label: 'Setuju' },
-    { icon: 'sangat-setuju', label: 'Sangat Setuju' },
+    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju' },
+    { icon: 'Disagree', label: 'Tidak Setuju' },
+    { icon: 'Neutral', label: 'Netral' },
+    { icon: 'Agree', label: 'Setuju' },
+    { icon: 'Strongly-Agree', label: 'Sangat Setuju' },
   ];
 
   return (
@@ -60,9 +62,7 @@ export default function InstructionModal({
               className='bg-white rounded-4xl max-w-4xl w-full pt-12 px-12 pb-12 shadow-2xl'
             >
               <div className='text-center mb-8'>
-                <h1 className='text-3xl font-bold text-black mb-6'>
-                  Instruksi Pengerjaan Tes Kepribadian
-                </h1>
+                <h1 className='text-3xl font-bold text-black mb-6'>{title}</h1>
 
                 <div className='text-left space-y-4 text-black leading-relaxed font-medium text-xl'>
                   <p>

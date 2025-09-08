@@ -25,16 +25,13 @@ describe('Resume Page Logic', () => {
   });
 
   describe('Authentication Check', () => {
-    test('should redirect unauthenticated users to homepage', async () => {
+    test('should render session clear client for unauthenticated users with stale session', async () => {
       mockGetCurrentUser.mockResolvedValue(null);
 
-      try {
-        await ResumePage();
-      } catch (error) {
-        // Expected to throw redirect error
-      }
-
-      expect(mockRedirect).toHaveBeenCalledWith('/');
+      // Should return a JSX element (SessionClearClient) and not call redirect
+      const result = await ResumePage();
+      expect(result).toBeDefined();
+      expect(mockRedirect).not.toHaveBeenCalled();
     });
 
     test('should process authenticated users', async () => {
@@ -152,7 +149,7 @@ describe('Resume Page Logic', () => {
         );
       });
 
-      test('should redirect dosen to data-diri after role completion', async () => {
+      test('should redirect dosen to token verification after role completion', async () => {
         const mockUser = {
           id: 'user-123',
           name: 'Test User',
@@ -166,9 +163,7 @@ describe('Resume Page Logic', () => {
 
         await ResumePage();
 
-        expect(mockRedirect).toHaveBeenCalledWith(
-          '/onboarding/data-diri/dosen'
-        );
+        expect(mockRedirect).toHaveBeenCalledWith('/onboarding/token-verifikasi');
       });
     });
 
@@ -429,7 +424,7 @@ describe('Resume Page Logic', () => {
 
       const expectedRedirects = [
         '/onboarding/role',
-        '/onboarding/data-diri/dosen',
+        '/onboarding/token-verifikasi',
         '/dashboard',
       ];
 

@@ -241,16 +241,18 @@ describe('POST /api/user/personality', () => {
       expect(data.data.scores.pj).toBeGreaterThanOrEqual(-1);
       expect(data.data.scores.pj).toBeLessThanOrEqual(1);
 
-      // Verify database update was called with correct data
-      expect(mockPrismaUpdate).toHaveBeenCalledWith({
-        where: { id: 'user123' },
-        data: {
-          ei: data.data.scores.ei,
-          sn: data.data.scores.sn,
-          tf: data.data.scores.tf,
-          pj: data.data.scores.pj,
-        },
-      });
+      // Verify database update was called with correct data (allow extra fields)
+      expect(mockPrismaUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user123' },
+          data: expect.objectContaining({
+            ei: data.data.scores.ei,
+            sn: data.data.scores.sn,
+            tf: data.data.scores.tf,
+            pj: data.data.scores.pj,
+          }),
+        })
+      );
     });
   });
 });

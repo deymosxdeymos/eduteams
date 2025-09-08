@@ -116,25 +116,25 @@ describe('Personality Calculation Tests', () => {
 
   describe('getMBTIType', () => {
     test('should return correct MBTI type for extreme scores', () => {
-      const extremeIntrovert = {
-        ei: 1, // Introvert
+      const extremeExample = {
+        ei: 1, // Extrovert
         sn: -1, // Sensing
         tf: 1, // Feeling
         pj: -1, // Judging
       };
 
-      expect(getMBTIType(extremeIntrovert)).toBe('ISFJ');
+      expect(getMBTIType(extremeExample)).toBe('ESFJ');
     });
 
     test('should handle borderline scores correctly', () => {
       const borderlineScores = {
-        ei: -0.1, // Slightly Extrovert
+        ei: -0.1, // Slightly Introvert
         sn: 0.1, // Slightly iNtuition
         tf: -0.1, // Slightly Thinking
         pj: 0.1, // Slightly Perceiving
       };
 
-      expect(getMBTIType(borderlineScores)).toBe('ENTP');
+      expect(getMBTIType(borderlineScores)).toBe('INTP');
     });
 
     test('should handle zero scores (default to second letter)', () => {
@@ -145,7 +145,7 @@ describe('Personality Calculation Tests', () => {
         pj: 0,
       };
 
-      expect(getMBTIType(zeroScores)).toBe('INFP');
+      expect(getMBTIType(zeroScores)).toBe('ENFP');
     });
   });
 

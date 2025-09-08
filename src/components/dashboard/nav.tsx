@@ -7,9 +7,19 @@ import type { Course, ExtendedUser } from '@/lib/types';
 interface NavProps {
   user: ExtendedUser;
   className?: Course;
+  assignmentTitle?: string;
+  answersCrumb?: string | boolean;
 }
 
-export default function Nav({ user, className }: NavProps) {
+export default function Nav({
+  user,
+  className,
+  assignmentTitle,
+  answersCrumb,
+}: NavProps) {
+  const isClassCurrent = !!className && !assignmentTitle && !answersCrumb;
+  const isAssignmentCurrent = !!className && !!assignmentTitle && !answersCrumb;
+  const isAnswersCurrent = !!className && !!assignmentTitle && !!answersCrumb;
   return (
     <div className='flex flex-row justify-between items-center px-3'>
       <div className='flex gap-x-10'>
@@ -22,10 +32,43 @@ export default function Nav({ user, className }: NavProps) {
         <div className='leading-loose flex items-center'>
           {className ? (
             <div className='flex items-center gap-2'>
-              <ChevronRight strokeWidth={3} className='w-5 h-5 text-black' />
-              <h1 className='text-xl font-semibold tracking-tight'>
+              {/* Class crumb (no leading chevron) */}
+              <h1
+                className={`text-xl ${isClassCurrent ? 'font-bold' : 'font-medium'} tracking-tight`}
+              >
                 {className.namaMataKuliah}
+                {className.kelas ? ` - ${className.kelas}` : ''}
               </h1>
+              {/* Assignment crumb */}
+              {assignmentTitle ? (
+                <>
+                  <ChevronRight
+                    strokeWidth={3}
+                    className='w-5 h-5 text-black'
+                  />
+                  <h2
+                    className={`text-xl ${isAssignmentCurrent ? 'font-bold' : 'font-medium'} tracking-tight`}
+                  >
+                    {assignmentTitle}
+                  </h2>
+                </>
+              ) : null}
+              {/* Answers crumb */}
+              {assignmentTitle && answersCrumb ? (
+                <>
+                  <ChevronRight
+                    strokeWidth={3}
+                    className='w-5 h-5 text-black'
+                  />
+                  <h3
+                    className={`text-xl ${isAnswersCurrent ? 'font-bold' : 'font-medium'} tracking-tight`}
+                  >
+                    {typeof answersCrumb === 'string'
+                      ? answersCrumb
+                      : 'Jawaban Mahasiswa'}
+                  </h3>
+                </>
+              ) : null}
             </div>
           ) : (
             <div>

@@ -9,7 +9,10 @@ import prisma from '@/lib/prisma';
 import {
   type CourseCreateInput,
   courseCreateSchema,
-} from '@/lib/validations/course';
+} from '@/lib/validation/course';
+
+// Prisma requires Node.js runtime
+export const runtime = 'nodejs';
 
 export const POST = withAuth(
   withValidation(
@@ -50,9 +53,19 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
     return createErrorResponse('Only dosen can view courses', 403);
   }
 
-  const courses = await prisma.course.findMany({
+  const rows = await prisma.course.findMany({
     where: { dosenId: user?.id },
-    include: {
+    select: {
+      id: true,
+      namaMataKuliah: true,
+      kelas: true,
+      tahunAwalPeriode: true,
+      tahunAkhirPeriode: true,
+      periode: true,
+      dosenId: true,
+      shareToken: true,
+      createdAt: true,
+      updatedAt: true,
       dosen: {
         select: {
           id: true,
@@ -60,10 +73,25 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
           email: true,
         },
       },
-      enrollments: true, // Add enrollments to get student count
+      _count: { select: { enrollments: true } },
     },
     orderBy: { createdAt: 'desc' },
   });
+
+  const courses = rows.map(r => ({
+    id: r.id,
+    namaMataKuliah: r.namaMataKuliah,
+    kelas: r.kelas,
+    tahunAwalPeriode: r.tahunAwalPeriode,
+    tahunAkhirPeriode: r.tahunAkhirPeriode,
+    periode: r.periode,
+    dosenId: r.dosenId,
+    shareToken: r.shareToken,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    dosen: r.dosen,
+    studentCount: r._count.enrollments,
+  }));
 
   return createApiResponse(courses);
 });
