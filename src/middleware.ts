@@ -62,13 +62,8 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  // Redirect authenticated users from homepage to onboarding/resume
-  if (pathname === '/' && hasSessionToken) {
-    const res = NextResponse.redirect(
-      new URL('/onboarding/resume', request.url)
-    );
-    return applySecurityHeaders(res);
-  }
+  // Allow authenticated users to stay on homepage
+  // They can continue their session by clicking "masuk" button
 
   // Handle auth pages (login/register)
   if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
