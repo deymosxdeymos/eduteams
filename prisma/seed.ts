@@ -154,7 +154,8 @@ async function seedDosenTokens() {
 async function main() {
   try {
     await seedMBTIQuestions();
-    await seedDosenTokens();
+    // Dosen token seeding deprecated: replaced by institutional email domain verification
+    // await seedDosenTokens();
   } catch (error) {
     console.error('Seeding failed:', error);
     process.exit(1);
