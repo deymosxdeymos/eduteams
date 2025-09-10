@@ -12,33 +12,42 @@ export default function RoleSelect({
   selectedRole,
 }: RoleSelectProps) {
   return (
-    <div className='flex gap-x-16 items-center justify-center'>
-      <button
-        type='button'
-        className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-300 ${
-          selectedRole === 'dosen'
-            ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
-            : 'bg-accent hover:bg-accent/70 hover:ring-2 hover:ring-amber-200 hover:scale-102'
-        }`}
-        onClick={() => onRoleSelect('dosen')}
-        onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
-      >
-        {' '}
-        <Image
-          src={selectedRole === 'dosen' ? '/dosen.svg' : '/dosen-inactive.svg'}
-          width={240}
-          height={240}
-          alt='dosen'
-          className='mb-[-20px] w-auto h-auto'
-          priority
-        />
-        <h1
-          className='font-bold text-center text-amber-950 text-5xl
-		tracking-tighter leading-none uppercase'
+    <div className='flex gap-x-16 items-start justify-center'>
+      <div className='flex flex-col items-center'>
+        <button
+          type='button'
+          className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-300 ${
+            selectedRole === 'dosen'
+              ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
+              : 'bg-accent hover:bg-accent/70 hover:ring-2 hover:ring-amber-200 hover:scale-102'
+          }`}
+          onClick={() => onRoleSelect('dosen')}
+          onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
         >
-          Dosen
-        </h1>
-      </button>
+          {' '}
+          <Image
+            src={
+              selectedRole === 'dosen' ? '/dosen.svg' : '/dosen-inactive.svg'
+            }
+            width={240}
+            height={240}
+            alt='dosen'
+            className='mb-[-20px] w-auto h-auto'
+            priority
+          />
+          <h1
+            className='font-bold text-center text-amber-950 text-5xl
+			tracking-tighter leading-none uppercase'
+          >
+            Dosen
+          </h1>
+        </button>
+        {selectedRole === 'dosen' && (
+          <p className='mt-3 text-sm text-amber-800'>
+            Perlu email @if.itera.ac.id
+          </p>
+        )}
+      </div>
       <button
         type='button'
         className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-300 ${

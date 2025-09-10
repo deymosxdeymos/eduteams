@@ -1,10 +1,12 @@
 'use client';
 
 import { ArrowRight } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import RoleSelect from '@/components/onboarding/role/role-select';
 import { Button } from '@/components/ui/button';
 import { submitRole } from '@/lib/actions/role';
+import { authClient } from '@/lib/auth-client';
 
 interface RoleFormClientProps {
   initialRole?: 'dosen' | 'mahasiswa';
@@ -15,9 +17,23 @@ export default function RoleFormClient({ initialRole }: RoleFormClientProps) {
     'dosen' | 'mahasiswa' | undefined
   >(initialRole);
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const showDosenEmailErr = searchParams.get('err') === 'dosen_email';
 
   const handleRoleSelect = (role: 'dosen' | 'mahasiswa') => {
     setSelectedRole(role);
+  };
+
+  const switchAccount = async () => {
+    try {
+      await authClient.signOut();
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/onboarding/resume',
+      });
+    } catch {
+      // noop
+    }
   };
 
   const handleSubmit = async (formData: FormData) => {
@@ -34,7 +50,20 @@ export default function RoleFormClient({ initialRole }: RoleFormClientProps) {
 
   return (
     <form action={handleSubmit}>
-      <div className='flex items-center justify-center space-y-2 py-20'>
+      <div className='flex flex-col items-center justify-center space-y-6 py-20'>
+        {showDosenEmailErr && (
+          <div className='w-[700px] rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-6 py-4 text-center'>
+            <p className='text-lg font-medium'>
+              Role Dosen membutuhkan email @if.itera.ac.id. Silakan masuk dengan
+              email institusi.
+            </p>
+            <div className='mt-4'>
+              <Button type='button' variant='outline' onClick={switchAccount}>
+                Ganti akun
+              </Button>
+            </div>
+          </div>
+        )}
         <RoleSelect
           onRoleSelect={handleRoleSelect}
           selectedRole={selectedRole}
