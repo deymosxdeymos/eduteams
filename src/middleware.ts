@@ -48,8 +48,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check if session token exists (lightweight check without database)
-  const sessionCookie = getSessionCookie(request);
-  const hasSessionToken = !!sessionCookie;
+  const hasSessionToken = (() => {
+    try {
+      const tokenFromHeader = getSessionCookie(request.headers);
+      if (tokenFromHeader) return true;
+    } catch {
+      // ignore and fallback
+    }
+    const token = request.cookies.get('better-auth.session_token')?.value;
+    return Boolean(token);
+  })();
 
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);

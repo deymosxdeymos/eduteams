@@ -46,6 +46,7 @@ export default async function RolePage() {
 
       <RoleFormClient
         initialRole={currentUserData?.role as 'dosen' | 'mahasiswa' | undefined}
+        hasInstitutionalEmail={isInstitutionalEmail(currentUserData?.email)}
       />
     </main>
   );
