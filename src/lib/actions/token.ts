@@ -1,5 +1,10 @@
 'use server';
 
+/**
+ * Deprecated: Dosen token verification has been replaced by email domain verification.
+ * This file is kept temporarily for backward compatibility.
+ */
+
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -11,6 +16,7 @@ const tokenSchema = z.object({
   token: z.string().min(1, 'Token tidak boleh kosong'),
 });
 
+/** Deprecated: retained only for backward compatibility */
 export async function verifyDosenToken(
   formData: FormData,
   getCurrentUserImpl = getCurrentUser

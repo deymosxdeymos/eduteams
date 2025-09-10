@@ -6,8 +6,8 @@ import Logo from '@/components/logo';
 import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
 import { Button } from '@/components/ui/button';
 import { getDataDiri } from '@/lib/actions/data-diri';
+import { isInstitutionalEmail } from '@/lib/email';
 
-import prisma from '@/lib/prisma';
 import { protectOnboardingPage } from '@/lib/server-auth';
 
 interface DataDiriPageProps {
@@ -27,18 +27,10 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
   // Protect the onboarding page
   const user = await protectOnboardingPage();
 
-  // For dosen, check if they have verified their token
+  // For dosen, ensure institutional email domain
   if (role === 'dosen') {
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        onboardingStep: true,
-      },
-    });
-
-    // If dosen hasn't verified token yet, redirect to token verification
-    if (!currentUser?.onboardingStep || currentUser.onboardingStep === 'role') {
-      redirect('/onboarding/token-verifikasi');
+    if (!isInstitutionalEmail(user.email)) {
+      redirect('/onboarding/role?err=dosen_email');
     }
   }
 
@@ -79,13 +71,7 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
         <DataDiriFormClient role={role} initialData={initialData} />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
-        <Link
-          href={
-            role === 'dosen'
-              ? '/onboarding/token-verifikasi'
-              : '/onboarding/role'
-          }
-        >
+        <Link href='/onboarding/role'>
           <Button
             variant='ghost'
             size='icon'
