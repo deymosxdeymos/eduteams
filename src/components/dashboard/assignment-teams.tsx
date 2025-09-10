@@ -6,7 +6,10 @@ interface AssignmentTeamsProps {
   isStudent?: boolean;
 }
 
-export async function AssignmentTeams({ assignmentId, isStudent = false }: AssignmentTeamsProps) {
+export async function AssignmentTeams({
+  assignmentId,
+  isStudent = false,
+}: AssignmentTeamsProps) {
   // Load assignment to infer owner/time window
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
@@ -101,7 +104,8 @@ export async function AssignmentTeams({ assignmentId, isStudent = false }: Assig
                 ) : (
                   <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
                     <div className='rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-xs'>
-                      Kualitas Skor: {qualityPct != null ? `${qualityPct}%` : '-'}
+                      Kualitas Skor:{' '}
+                      {qualityPct != null ? `${qualityPct}%` : '-'}
                     </div>
                     <div>Topik Tugas: {hasTopic ? topicName : '-'}</div>
                   </div>
