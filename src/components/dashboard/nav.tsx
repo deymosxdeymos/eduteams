@@ -1,6 +1,12 @@
+'use client';
+
 import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import type { Course, ExtendedUser } from '@/lib/types';
 
@@ -17,6 +23,31 @@ export default function Nav({
   assignmentTitle,
   answersCrumb,
 }: NavProps) {
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+  const [locale, setLocale] = useState<Locale>('id');
+
+  useEffect(() => {
+    const loadMessages = async (l: Locale) => {
+      setLocale(l);
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+
+    // initial load
+    loadMessages(getClientLocaleFromCookie());
+
+    // subscribe to locale changes
+    const unsubscribe = onLocaleChange(newLocale => {
+      loadMessages(newLocale);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (!messages) {
+    return null; // or a loading state
+  }
   const isClassCurrent = !!className && !assignmentTitle && !answersCrumb;
   const isAssignmentCurrent = !!className && !!assignmentTitle && !answersCrumb;
   const isAnswersCurrent = !!className && !!assignmentTitle && !!answersCrumb;
@@ -65,7 +96,7 @@ export default function Nav({
                   >
                     {typeof answersCrumb === 'string'
                       ? answersCrumb
-                      : 'Jawaban Mahasiswa'}
+                      : messages.answersDefault}
                   </h3>
                 </>
               ) : null}
@@ -73,21 +104,18 @@ export default function Nav({
           ) : (
             <div>
               <h1 className='text-3xl font-semibold tracking-tight'>
-                Halo, {user.name}!
+                {messages.greeting.replace('{name}', user.name)}
               </h1>
               <p className='text-lg font-normal mt-2'>
                 {canAccessMahasiswaFeatures(user)
-                  ? 'Yuk, cek progres kelas dan siap-siap mulai bareng kelompokmu!'
-                  : 'Pantau aktivitas dan kelola kelas Anda dengan mudah melalui dashboard ini'}
+                  ? messages.mahasiswaSubtitle
+                  : messages.dosenSubtitle}
               </p>
             </div>
           )}
         </div>
       </div>
-      <Button variant='outline' size='sm' className='py-7 rounded-full gap-x-4'>
-        <h1 className='text-2xl text-stone-950 font-semibold'>ID</h1>
-        <Image src='/indo.svg' width={40} height={40} alt='indonesia' />
-      </Button>
+      <LanguageSwitcher current={locale} />
     </div>
   );
 }

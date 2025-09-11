@@ -22,10 +22,38 @@ import {
 
 interface PersonalityTestClientProps {
   questions: MBTIQuestion[];
+  dict: {
+    onboarding: {
+      kepribadian: {
+        title: string;
+        description: string;
+        pageOf: string;
+        sending: string;
+        selesai: string;
+        lanjut: string;
+        instructions: {
+          title: string;
+          step1: string;
+          step2: string;
+          step3: string;
+          step4: string;
+          likertScale: {
+            stronglyDisagree: string;
+            disagree: string;
+            neutral: string;
+            agree: string;
+            stronglyAgree: string;
+          };
+          startNow: string;
+        };
+      };
+    };
+  };
 }
 
 export default function PersonalityTestClient({
   questions,
+  dict,
 }: PersonalityTestClientProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -119,7 +147,11 @@ export default function PersonalityTestClient({
 
   return (
     <main className='bg-white min-h-screen px-12 py-14'>
-      <InstructionModal isOpen={isModalOpen} onCloseAction={handleCloseModal} />
+      <InstructionModal
+        isOpen={isModalOpen}
+        onCloseAction={handleCloseModal}
+        dict={dict}
+      />
 
       <Logo color='black' className='justify-center' />
 
@@ -132,15 +164,13 @@ export default function PersonalityTestClient({
           className='w-20 h-20'
         />
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          Tes Kepribadian
+          {dict.onboarding.kepribadian.title}
         </h1>
       </div>
 
       <div className='flex items-center justify-center p-6'>
         <p className='font-normal text-black text-xl tracking-tight'>
-          Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan
-          <br />
-          untuk membentuk tim belajar yang paling cocok buat kamu!
+          {dict.onboarding.kepribadian.description}
         </p>
       </div>
 
@@ -148,7 +178,9 @@ export default function PersonalityTestClient({
         <div className='mb-8'>
           <div className='flex items-center justify-between gap-4'>
             <span className='text-md font-medium text-black'>
-              Halaman {state.currentPage} dari {totalPages}
+              {dict.onboarding.kepribadian.pageOf
+                .replace('{current}', state.currentPage.toString())
+                .replace('{total}', totalPages.toString())}
             </span>
             <Progress
               value={progress}
@@ -189,10 +221,10 @@ export default function PersonalityTestClient({
           disabled={state.isSubmitting}
         >
           {state.isSubmitting
-            ? 'Mengirim...'
+            ? dict.onboarding.kepribadian.sending
             : state.currentPage === totalPages
-              ? 'Selesai'
-              : 'Lanjut'}
+              ? dict.onboarding.kepribadian.selesai
+              : dict.onboarding.kepribadian.lanjut}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

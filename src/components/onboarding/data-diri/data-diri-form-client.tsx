@@ -25,12 +25,44 @@ interface DataDiriFormClientProps {
     jenisKelamin: string;
     role: string;
   };
+  dict: {
+    onboarding: {
+      dataDiri: {
+        namaLengkap: string;
+        namaLengkapPlaceholder: string;
+        nim: string;
+        nimPlaceholder: string;
+        npm: string;
+        npmPlaceholder: string;
+        jenisKelamin: string;
+        lakiLaki: string;
+        perempuan: string;
+        continue: string;
+        saving: string;
+        validation: {
+          namaLengkapMin: string;
+          nimMin: string;
+          nimMax: string;
+          npmMin: string;
+          npmMax: string;
+          jenisKelaminRequired: string;
+        };
+      };
+    };
+  };
 }
 
-const createFormSchema = (role: 'dosen' | 'mahasiswa') => {
+const createFormSchema = (
+  role: 'dosen' | 'mahasiswa',
+  dict: DataDiriFormClientProps['dict']
+) => {
   const baseSchema = {
-    namaLengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
-    jenisKelamin: z.string().min(1, 'Pilih jenis kelamin'),
+    namaLengkap: z
+      .string()
+      .min(2, dict.onboarding.dataDiri.validation.namaLengkapMin),
+    jenisKelamin: z
+      .string()
+      .min(1, dict.onboarding.dataDiri.validation.jenisKelaminRequired),
   };
 
   if (role === 'mahasiswa') {
@@ -38,16 +70,16 @@ const createFormSchema = (role: 'dosen' | 'mahasiswa') => {
       ...baseSchema,
       nim: z
         .string()
-        .min(8, 'NIM minimal 8 karakter')
-        .max(15, 'NIM maksimal 15 karakter'),
+        .min(8, dict.onboarding.dataDiri.validation.nimMin)
+        .max(15, dict.onboarding.dataDiri.validation.nimMax),
     });
   } else {
     return z.object({
       ...baseSchema,
       npm: z
         .string()
-        .min(8, 'NPM minimal 8 karakter')
-        .max(15, 'NPM maksimal 15 karakter'),
+        .min(8, dict.onboarding.dataDiri.validation.npmMin)
+        .max(15, dict.onboarding.dataDiri.validation.npmMax),
     });
   }
 };
@@ -55,11 +87,12 @@ const createFormSchema = (role: 'dosen' | 'mahasiswa') => {
 export default function DataDiriFormClient({
   role,
   initialData,
+  dict,
 }: DataDiriFormClientProps) {
   const formId = 'data-diri-form';
   const genderLabelId = useId();
   const [isPending, startTransition] = useTransition();
-  const formSchema = createFormSchema(role);
+  const formSchema = createFormSchema(role, dict);
   type FormData = z.infer<typeof formSchema>;
 
   const form = useForm<FormData>({
@@ -113,14 +146,16 @@ export default function DataDiriFormClient({
                   htmlFor={fieldId}
                   className='text-black text-xl font-normal'
                 >
-                  Nama Lengkap
+                  {dict.onboarding.dataDiri.namaLengkap}
                 </FormLabel>
                 <FormControl>
                   <div className='relative'>
                     <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black' />
                     <InputRounded
                       id={fieldId}
-                      placeholder='Masukkan nama lengkap'
+                      placeholder={
+                        dict.onboarding.dataDiri.namaLengkapPlaceholder
+                      }
                       {...field}
                       className='pl-10'
                     />
@@ -144,8 +179,8 @@ export default function DataDiriFormClient({
                   className='text-black text-xl font-normal'
                 >
                   {role === 'mahasiswa'
-                    ? 'Nomor Induk Mahasiswa (NIM)'
-                    : 'Nomor Pokok Pegawai (NPM)'}
+                    ? dict.onboarding.dataDiri.nim
+                    : dict.onboarding.dataDiri.npm}
                 </FormLabel>
                 <FormControl>
                   <div className='relative'>
@@ -158,7 +193,11 @@ export default function DataDiriFormClient({
                     />
                     <InputRounded
                       id={fieldId}
-                      placeholder={`Masukkan ${role === 'mahasiswa' ? 'NIM' : 'NPM'}`}
+                      placeholder={
+                        role === 'mahasiswa'
+                          ? dict.onboarding.dataDiri.nimPlaceholder
+                          : dict.onboarding.dataDiri.npmPlaceholder
+                      }
                       {...field}
                       className='pl-10'
                     />
@@ -179,7 +218,7 @@ export default function DataDiriFormClient({
                 id={genderLabelId}
                 className='text-black text-xl font-normal'
               >
-                Jenis Kelamin
+                {dict.onboarding.dataDiri.jenisKelamin}
               </FormLabel>
               <FormControl>
                 <div
@@ -209,7 +248,7 @@ export default function DataDiriFormClient({
                       className='mb-[-10px] w-auto h-auto'
                     />
                     <p className='font-bold text-center text-blue-950 text-md tracking-tighter leading-none uppercase'>
-                      Laki-laki
+                      {dict.onboarding.dataDiri.lakiLaki}
                     </p>
                   </button>
 
@@ -235,7 +274,7 @@ export default function DataDiriFormClient({
                       className='mb-[-10px] w-auto h-auto'
                     />
                     <p className='font-bold text-center text-pink-950 text-md tracking-tighter leading-none uppercase'>
-                      Perempuan
+                      {dict.onboarding.dataDiri.perempuan}
                     </p>
                   </button>
                 </div>
@@ -251,7 +290,9 @@ export default function DataDiriFormClient({
           disabled={isPending}
           className='hidden'
         >
-          {isPending ? 'Saving...' : 'Lanjut'}
+          {isPending
+            ? dict.onboarding.dataDiri.saving
+            : dict.onboarding.dataDiri.continue}
         </button>
       </form>
     </Form>
