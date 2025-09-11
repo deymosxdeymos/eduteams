@@ -7,6 +7,9 @@ import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
 import type { ExtendedUser } from '@/lib/types';
+import { getDictionary } from '@/i18n/get-dictionary';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
 
 interface DosenProfileContentProps {
   user: ExtendedUser;
@@ -28,11 +31,23 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
   const [error, setError] = useState<string | null>(null);
   const isMale = jenisKelamin === 'laki-laki';
   const isFemale = jenisKelamin === 'perempuan';
+  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
 
   // Auto-select current gender on mount/hydration based on user.gender
   useEffect(() => {
     setJenisKelamin(initialJenisKelamin);
   }, [initialJenisKelamin]);
+
+  useEffect(() => {
+    const load = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+    load(getClientLocaleFromCookie());
+    const unsub = onLocaleChange(l => load(l));
+    return unsub;
+  }, []);
 
   const onSave = () => {
     setMessage(null);
@@ -52,13 +67,23 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
 
         const json = await res.json().catch(() => ({}));
         if (!res.ok || !json?.success) {
-          throw new Error(json?.error || 'Gagal menyimpan perubahan');
+          throw new Error(
+            json?.error ||
+              messages?.dashboard?.profile?.saveFailed ||
+              'Gagal menyimpan perubahan'
+          );
         }
-
-        setMessage('Perubahan berhasil disimpan');
+        setMessage(
+          messages?.dashboard?.profile?.saveSuccess ||
+            'Perubahan berhasil disimpan'
+        );
       } catch (e) {
         const err = e as Error;
-        setError(err.message || 'Terjadi kesalahan');
+        setError(
+          err.message ||
+            messages?.dashboard?.profile?.errorGeneric ||
+            'Terjadi kesalahan'
+        );
       }
     });
   };
@@ -70,29 +95,35 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           variant='ghost'
           size='icon'
           className='rounded-full'
-          aria-label='Kembali'
+          aria-label={messages?.dashboard?.profile?.back || 'Kembali'}
           onClick={() => router.back()}
         >
           <ArrowLeft className='w-5 h-5' />
         </Button>
-        <h1 className='text-xl font-medium text-gray-900'>Profil</h1>
+        <h1 className='text-xl font-medium text-gray-900'>
+          {messages?.dashboard?.profile?.title || 'Profil'}
+        </h1>
       </div>
 
       <div className='flex flex-col gap-6 p-2'>
         <p className='text-neutral-800 text-sm font-normal'>
-          Untuk mengubah data diri Anda, harap isi kolom-kolom berikut.
+          {messages?.dashboard?.profile?.instructions ||
+            'Untuk mengubah data diri Anda, harap isi kolom-kolom berikut.'}
         </p>
         <div className='flex flex-col gap-2'>
           <label
             htmlFor={nameInputId}
             className='text-black text-xl font-normal'
           >
-            Nama Lengkap
+            {messages?.dashboard?.profile?.fullName || 'Nama Lengkap'}
           </label>
           <div className='relative max-w-xl'>
             <InputRounded
               id={nameInputId}
-              placeholder='Masukkan nama lengkap'
+              placeholder={
+                messages?.dashboard?.profile?.fullNamePlaceholder ||
+                'Masukkan nama lengkap'
+              }
               value={namaLengkap}
               onChange={e => setNamaLengkap(e.target.value)}
             />
@@ -101,7 +132,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
 
         <div className='flex flex-col gap-2'>
           <span id={genderLabelId} className='text-black text-xl font-normal'>
-            Jenis Kelamin
+            {messages?.dashboard?.profile?.gender || 'Jenis Kelamin'}
           </span>
           <div
             className='flex gap-x-4 items-start'
@@ -126,11 +157,11 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
                 src='/laki.svg'
                 width={80}
                 height={80}
-                alt='laki-laki'
+                alt={messages?.dashboard?.profile?.male || 'Laki-laki'}
                 className='mb-[-10px] w-auto h-auto'
               />
               <p className='font-bold text-center text-blue-950 text-md tracking-tighter leading-none uppercase'>
-                Laki-laki
+                {messages?.dashboard?.profile?.male || 'Laki-laki'}
               </p>
             </button>
 
@@ -152,11 +183,11 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
                 src='/perempuan.svg'
                 width={80}
                 height={80}
-                alt='perempuan'
+                alt={messages?.dashboard?.profile?.female || 'Perempuan'}
                 className='mb-[-10px] w-auto h-auto'
               />
               <p className='font-bold text-center text-pink-950 text-md tracking-tighter leading-none uppercase'>
-                Perempuan
+                {messages?.dashboard?.profile?.female || 'Perempuan'}
               </p>
             </button>
           </div>
@@ -170,7 +201,9 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           className='rounded-full w-[36rem] h-[3rem]'
           disabled={isPending || !namaLengkap || !jenisKelamin}
         >
-          {isPending ? 'Menyimpan...' : 'Simpan perubahan'}
+          {isPending
+            ? messages?.dashboard?.profile?.saving || 'Menyimpan...'
+            : messages?.dashboard?.profile?.save || 'Simpan perubahan'}
         </Button>
         {message && <span className='text-green-600 text-sm'>{message}</span>}
         {error && <span className='text-red-600 text-sm'>{error}</span>}

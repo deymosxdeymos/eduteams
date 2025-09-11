@@ -12,6 +12,9 @@ import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { CreateAssignmentModal } from './create-assignment-modal';
 import { EmptyAssignmentState } from './empty-assignment-state';
 import { ShareClassModal } from './share-class-modal';
+import { getDictionary } from '@/i18n/get-dictionary';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
 
 interface ClassAssignmentsProps {
   classId: string;
@@ -55,6 +58,8 @@ export function ClassAssignments({
   const [isCreateAssignmentModalOpen, setIsCreateAssignmentModalOpen] =
     useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
 
   // Use courseData if provided, otherwise fetch via SWR
   const { data: classData, error } = useSWR(
@@ -105,6 +110,18 @@ export function ClassAssignments({
     return `${timeFormatter.format(d)}, ${dateFormatter.format(d)}`;
   };
 
+  // Load i18n messages and react to locale changes
+  useEffect(() => {
+    const load = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+    const current = getClientLocaleFromCookie();
+    load(current);
+    const unsub = onLocaleChange(l => load(l));
+    return unsub;
+  }, []);
+
   return (
     <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
       <div className='p-6'>
@@ -126,7 +143,10 @@ export function ClassAssignments({
             }}
           >
             <Plus strokeWidth={3} className='w-4 h-4 text-white' />
-            <span className='font-semibold text-sm'>Buat Tugas Baru</span>
+            <span className='font-semibold text-sm'>
+              {messages?.dashboard?.classAssignments?.createAssignment ||
+                'Buat Tugas Baru'}
+            </span>
           </Button>
 
           <Button
@@ -135,17 +155,26 @@ export function ClassAssignments({
             onClick={() => setIsShareModalOpen(true)}
           >
             <Share2 className='w-4 h-4' />
-            <span className='font-semibold text-sm'>Bagikan Kelas</span>
+            <span className='font-semibold text-sm'>
+              {messages?.dashboard?.classAssignments?.shareClass ||
+                'Bagikan Kelas'}
+            </span>
           </Button>
 
           {hasAssignments && (
             <div className='ml-auto w-80 relative'>
               <InputRounded
-                placeholder='Cari tugas?'
+                placeholder={
+                  messages?.dashboard?.classAssignments?.searchPlaceholder ||
+                  'Cari tugas?'
+                }
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className='pr-10'
-                aria-label='Cari tugas'
+                aria-label={
+                  messages?.dashboard?.classAssignments?.searchAria ||
+                  'Cari tugas'
+                }
               />
               <Search className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
             </div>
@@ -162,7 +191,12 @@ export function ClassAssignments({
                 {searchTerm.trim() !== '' &&
                 filteredAssignments.length === 0 ? (
                   <div className='text-sm text-neutral-500 px-1 py-2'>
-                    Tidak ada tugas yang cocok untuk &quot;{searchTerm}&quot;.
+                    {(() => {
+                      const tpl =
+                        messages?.dashboard?.classAssignments?.noMatches ||
+                        'Tidak ada tugas yang cocok untuk "{query}".';
+                      return tpl.replace('{query}', searchTerm);
+                    })()}
                   </div>
                 ) : null}
                 {filteredAssignments.map(a => (
@@ -190,16 +224,28 @@ export function ClassAssignments({
                         let text = '';
                         let color = '';
                         if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
-                          text = 'Pembagian grup berhasil dilakukan';
+                          text =
+                            messages?.dashboard?.classAssignments?.status
+                              ?.formed || 'Pembagian grup berhasil dilakukan';
                           color = 'bg-emerald-50 text-emerald-900';
                         } else if (a.status === 'MENUNGGU') {
-                          text = 'Menunggu pembagian grup';
+                          text =
+                            messages?.dashboard?.classAssignments?.status
+                              ?.waiting || 'Menunggu pembagian grup';
                           color = 'bg-sky-50 text-sky-900';
                         } else if (a.submissionsCount === 0) {
-                          text = 'Belum ada yang mengisi kuisioner';
+                          text =
+                            messages?.dashboard?.classAssignments?.status
+                              ?.noneFilled || 'Belum ada yang mengisi kuisioner';
                           color = 'bg-red-50 text-orange-900';
                         } else {
-                          text = `${a.submissionsCount} dari ${studentCount} mahasiswa telah mengisi kuisioner`;
+                          const tpl =
+                            messages?.dashboard?.classAssignments?.status
+                              ?.progress ||
+                            '{filled} dari {total} mahasiswa telah mengisi kuisioner';
+                          text = tpl
+                            .replace('{filled}', String(a.submissionsCount))
+                            .replace('{total}', String(studentCount));
                           color = 'bg-amber-50 text-orange-900';
                         }
                         return (

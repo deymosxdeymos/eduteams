@@ -7,6 +7,10 @@ import { MBTIDisplay } from './mbti-display';
 import { PersonalityDescription } from './personality-description';
 import { PersonalityMetrics } from './personality-metrics';
 import { ProfileHeader } from './profile-header';
+import { useEffect, useState } from 'react';
+import { getDictionary } from '@/i18n/get-dictionary';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
 
 interface StudentProfileContentProps {
   student: ExtendedUser;
@@ -25,6 +29,18 @@ export function StudentProfileContent({
   onShowMBTI,
   isModal = false,
 }: StudentProfileContentProps) {
+  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const load = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+    load(getClientLocaleFromCookie());
+    const unsub = onLocaleChange(l => load(l));
+    return unsub;
+  }, []);
   return (
     <div
       className={`bg-white ${
@@ -35,14 +51,15 @@ export function StudentProfileContent({
       {isModal && onClose && (
         <div className='flex justify-between items-center'>
           <div className='text-lg font-semibold text-stone-900'>
-            Profil {student.name ?? 'Mahasiswa'}
+            {(messages?.dashboard?.profile?.studentProfileTitle || 'Profil {name}')
+              .replace('{name}', student.name ?? 'Mahasiswa')}
           </div>
           <Button
             variant='ghost'
             size='icon'
             className='rounded-full'
             onClick={onClose}
-            aria-label='Tutup'
+            aria-label={messages?.dashboard?.profile?.close || 'Tutup'}
           >
             <X className='w-5 h-5' />
           </Button>
@@ -70,7 +87,8 @@ export function StudentProfileContent({
         >
           <Smile strokeWidth={3} />
           <span className='text-md text-stone-900 font-semibold'>
-            Lihat Persebaran MBTI
+            {messages?.dashboard?.profile?.viewMbtiDistribution ||
+              'Lihat Persebaran MBTI'}
           </span>
         </Button>
 
@@ -81,7 +99,10 @@ export function StudentProfileContent({
             className='rounded-full h-[3rem]'
           >
             <Trash2 strokeWidth={2} />
-            <span className='text-md font-semibold'>Keluarkan Mahasiswa</span>
+            <span className='text-md font-semibold'>
+              {messages?.dashboard?.profile?.removeStudent ||
+                'Keluarkan Mahasiswa'}
+            </span>
           </Button>
         )}
       </div>

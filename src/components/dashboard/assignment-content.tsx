@@ -5,6 +5,7 @@ import { AssignmentTeams } from '@/components/dashboard/assignment-teams';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
 import prisma from '@/lib/prisma';
 import type { AssignmentStats } from '@/lib/stats/assignment';
+import { getMessages } from '@/i18n/server';
 
 interface AssignmentContentProps {
   assignmentId: string;
@@ -70,6 +71,8 @@ export async function AssignmentContent({
     }
   }
 
+  const { messages } = await getMessages();
+
   return (
     <div className='flex-1 p-8 min-h-0'>
       <div className='h-full flex flex-col space-y-4 text-gray-500 overflow-y-auto'>
@@ -91,18 +94,22 @@ export async function AssignmentContent({
               <div className='flex flex-col items-center text-center max-w-xl'>
                 <Image
                   src='/waiting-form.svg'
-                  alt='Menunggu pembagian kelompok'
+                  alt={
+                    messages.dashboard.assignment.studentWaiting.alt ||
+                    'Menunggu pembagian kelompok'
+                  }
                   width={120}
                   height={120}
                   className='mb-6'
                   priority
                 />
                 <h1 className='text-2xl font-bold text-gray-800 mb-2'>
-                  Menunggu pembagian kelompok!
+                  {messages.dashboard.assignment.studentWaiting.title ||
+                    'Menunggu pembagian kelompok!'}
                 </h1>
                 <p className='text-gray-600'>
-                  Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya,
-                  dosen sedang memproses pembagian kelompok.
+                  {messages.dashboard.assignment.studentWaiting.description ||
+                    'Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya, dosen sedang memproses pembagian kelompok.'}
                 </p>
               </div>
             </div>
