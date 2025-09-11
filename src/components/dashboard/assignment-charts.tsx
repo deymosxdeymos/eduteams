@@ -61,8 +61,6 @@ interface AssignmentChartsProps {
 }
 
 export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
-  if (isStudent) return null;
-
   // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
   const [messages, setMessages] = useState<Record<string, any> | null>(null);
 
@@ -75,6 +73,8 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
     const unsub = onLocaleChange(l => load(l));
     return unsub;
   }, []);
+
+  if (isStudent) return null;
 
   return (
     <Suspense
