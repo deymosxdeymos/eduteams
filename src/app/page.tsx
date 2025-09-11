@@ -1,26 +1,34 @@
 import { Mail, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { LoginButton } from '@/components/auth/login-button';
-import { UserDisplay } from '@/components/auth/user-info';
+import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
 import Logo from '@/components/logo';
 import { SocialRow } from '@/components/ui/social-row';
 import { TextRotate } from '@/components/ui/text-rotate';
+import { getDictionary } from '@/i18n/get-dictionary';
+import { getLocale } from '@/i18n/server';
 
-export default function Home() {
+export default async function Home() {
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
   return (
     <main>
-      <UserDisplay />
       <section className='bg-blue-background min-h-screen flex flex-col pt-14'>
         {/* header */}
-        <Logo className='justify-center' />
+        <div className='relative flex items-center justify-center px-4'>
+          <Logo className='justify-center' />
+          <div className='absolute right-24'>
+            <LanguageSwitcher current={locale} />
+          </div>
+        </div>
 
         {/* hero content */}
         <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
           <div className='text-center'>
             <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
-              Dimana{' '}
+              {dict.homepage.hero.titlePrefix}{' '}
               <TextRotate
-                texts={['Keadilan', 'Kesetaraan', 'Kesempatan']}
+                texts={[...dict.homepage.hero.rotatingWords]}
                 className='text-amber-300'
                 splitBy='characters'
                 staggerDuration={0.03}
@@ -29,14 +37,12 @@ export default function Home() {
               />
             </h1>
             <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight'>
-              Menciptakan Keunggulan
+              {dict.homepage.hero.titleSuffix}
             </h1>
           </div>
 
           <p className='text-center text-white text-base sm:text-xl lg:text-2xl mt-6 sm:mt-10 max-w-4xl'>
-            Setiap hasil yang hebat dimulai dengan tim yang hebat. Selamat
-            <br className='hidden sm:block' /> datang di EquiTeam, mari kita
-            mulai sesuatu yang luar biasa.
+            {dict.homepage.hero.description}
           </p>
 
           {/* login button speech bubble */}
@@ -80,20 +86,11 @@ export default function Home() {
           <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
             <div className='flex items-center justify-center h-full'>
               <h1 className='text-lg sm:text-3xl lg:text-7xl font-extrabold text-blue-background leading-snug mb-2 sm:mb-4'>
-                EquiTeam <br /> itu apa sih?
+                EquiTeam <br /> {dict.homepage.about.title}
               </h1>
             </div>
             <div className='flex items-center justify-center text-black text-xl font normal h-full'>
-              <p>
-                EquiTeam bukan sekadar alat pembagi kelompok biasa. Kami adalah
-                sebuah platform pintar yang dirancang untuk mengakhiri drama
-                &quot;salah tim&quot;. <br />
-                <br />
-                Dengan bantuan kecerdasan buatan, kami memastikan setiap
-                kelompok memiliki kombinasi anggota yang pas, baik dari segi
-                keahlian maupun cara kerja, sehingga semua orang bisa nyaman
-                berkontribusi dan meraih hasil terbaik bersama.
-              </p>
+              <p>{dict.homepage.about.description}</p>
             </div>
           </div>
           <Image
@@ -109,18 +106,17 @@ export default function Home() {
       {/* grey area underneath */}
       <section className='bg-accent min-h-[200px] flex flex-col items-center justify-center p-10'>
         <h1 className='text-black text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4'>
-          Relate dengan permasalahan ini?
+          {dict.homepage.problems.title}
         </h1>
         <p className='text-gray-900 text-base sm:text-xl lg:text-2xl text-center px-4'>
-          Permasalahan-permasalahan ini pasti sering banget terjadi di
-          perkuliahan kalian
+          {dict.homepage.problems.description}
         </p>
         {/* 3 problem cards row */}
         <div className='w-full max-w-5xl mx-auto mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch'>
           {/* Card 1 */}
           <div className='bg-gradient-to-b from-white to-lime-100 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
             <h1 className='text-emerald-900 font-bold text-5xl mb-1'>
-              Partisipasi tim tidak merata
+              {dict.homepage.problems.problem1}
             </h1>
             <Image
               src='/landing/INFJ.svg'
@@ -133,7 +129,7 @@ export default function Home() {
           {/* Card 2 */}
           <div className='bg-gradient-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
             <h1 className='text-orange-900 font-bold text-5xl mb-1'>
-              Terdapat kelompok terbuang
+              {dict.homepage.problems.problem2}
             </h1>
             <Image
               src='/landing/ESTP.svg'
@@ -146,7 +142,7 @@ export default function Home() {
           {/* Card 3 */}
           <div className='bg-gradient-to-b from-white to-indigo-200 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
             <h1 className='text-violet-900 font-bold text-5xl mb-1'>
-              Keahlian <br /> di tim tidak seimbang
+              {dict.homepage.problems.problem3}
             </h1>
             <Image
               src='/landing/INTJ.svg'
@@ -158,26 +154,23 @@ export default function Home() {
           </div>
         </div>
         <div className='text-center italic justify-start text-gray-900 text-3xl font-medium mt-22'>
-          Dengan adanya EquiTeam,
-          <br />
-          hal-hal tersebut akan teratasi dengan lebih mudah
+          {dict.homepage.problems.solution}
         </div>
       </section>
 
       <section className='bg-white min-h-[200px] flex flex-col items-center justify-center px-10 py-18'>
         <h1 className='text-blue-background text-5xl font-extrabold mt-2'>
-          Solusi EquiTeam
+          {dict.homepage.solution.title}
         </h1>
         <p className='text-gray-900 text-base sm:text-xl lg:text-2xl text-center mt-4'>
-          Sistem cerdas yang membagi kelompok berdasarkan 4 aspek fundamental
-          untuk <br /> menciptakan tim yang seimbang dan produktif
+          {dict.homepage.solution.description}
         </p>
 
         {/* First row: 2 cards */}
         <div className='w-full max-w-6xl mx-auto mt-16 grid grid-cols-1 lg:grid-cols-2 gap-6'>
           <div className='bg-white rounded-3xl shadow-md p-6'>
             <h2 className='text-black font-bold text-2xl mb-4'>
-              Bagaimana EquiTeam bekerja?
+              {dict.homepage.solution.howItWorks.title}
             </h2>
             <div className='flex items-start gap-4 mb-4'>
               <div className='w-8 h-8 bg-blue-background rounded-full flex items-center justify-center'>
@@ -185,11 +178,10 @@ export default function Home() {
               </div>
               <div className='flex-1'>
                 <h3 className='text-gray-900 text-base font-semibold mb-1'>
-                  Input Data Mahasiswa
+                  {dict.homepage.solution.howItWorks.step1.title}
                 </h3>
                 <p className='text-gray-900 text-sm'>
-                  Sistem mengumpulkan data personality, skills, preferences, dan
-                  gender
+                  {dict.homepage.solution.howItWorks.step1.description}
                 </p>
               </div>
             </div>
@@ -199,11 +191,10 @@ export default function Home() {
               </div>
               <div className='flex-1'>
                 <h3 className='text-gray-900 text-base font-semibold mb-1'>
-                  Analisis AI
+                  {dict.homepage.solution.howItWorks.step2.title}
                 </h3>
                 <p className='text-gray-900 text-sm'>
-                  AI menganalisis kompatibilitas dan keseimbangan untuk
-                  pembentukan tim optimal
+                  {dict.homepage.solution.howItWorks.step2.description}
                 </p>
               </div>
             </div>
@@ -213,11 +204,10 @@ export default function Home() {
               </div>
               <div className='flex-1'>
                 <h3 className='text-gray-900 text-base font-semibold mb-1'>
-                  Pembentukan Tim
+                  {dict.homepage.solution.howItWorks.step3.title}
                 </h3>
                 <p className='text-gray-900 text-sm'>
-                  Sistem membentuk kelompok yang seimbang berdasarkan hasil
-                  analisis
+                  {dict.homepage.solution.howItWorks.step3.description}
                 </p>
               </div>
             </div>
@@ -225,39 +215,43 @@ export default function Home() {
 
           <div className='bg-indigo-800 rounded-3xl shadow-md p-6 border text-center'>
             <h2 className='text-white font-bold text-2xl leading-10'>
-              4 Aspek Utama
+              {dict.homepage.solution.aspects.title}
             </h2>
             <p className='text-white text-lg font-light leading-7'>
-              Yang dianalisis untuk pembagian kelompok optimal
+              {dict.homepage.solution.aspects.description}
             </p>
 
             <div className='grid grid-cols-2 gap-4 mt-6'>
               <div className='bg-white/10 rounded-xl p-4 text-center'>
                 <h3 className='text-emerald-400 font-bold text-2xl mb-2'>
-                  Personality
-                </h3>
-                <p className='text-white text-sm font-light'>Based on MBTI</p>
-              </div>
-              <div className='bg-white/10 rounded-xl p-4 text-center'>
-                <h3 className='text-amber-400 font-bold text-2xl mb-2'>
-                  Skills
+                  {dict.homepage.solution.aspects.personality.name}
                 </h3>
                 <p className='text-white text-sm font-light'>
-                  Technical & soft skills
+                  {dict.homepage.solution.aspects.personality.description}
                 </p>
               </div>
               <div className='bg-white/10 rounded-xl p-4 text-center'>
-                <h3 className='text-sky-400 font-bold text-2xl mb-2'>Gender</h3>
+                <h3 className='text-amber-400 font-bold text-2xl mb-2'>
+                  {dict.homepage.solution.aspects.skills.name}
+                </h3>
                 <p className='text-white text-sm font-light'>
-                  Balanced <br /> Representation
+                  {dict.homepage.solution.aspects.skills.description}
+                </p>
+              </div>
+              <div className='bg-white/10 rounded-xl p-4 text-center'>
+                <h3 className='text-sky-400 font-bold text-2xl mb-2'>
+                  {dict.homepage.solution.aspects.gender.name}
+                </h3>
+                <p className='text-white text-sm font-light'>
+                  {dict.homepage.solution.aspects.gender.description}
                 </p>
               </div>
               <div className='bg-white/10 rounded-xl p-4 text-center'>
                 <h3 className='text-indigo-400 font-bold text-2xl mb-2'>
-                  Preferences
+                  {dict.homepage.solution.aspects.preferences.name}
                 </h3>
                 <p className='text-white text-sm font-light'>
-                  Preferences for <br /> task topics
+                  {dict.homepage.solution.aspects.preferences.description}
                 </p>
               </div>
             </div>
@@ -277,11 +271,10 @@ export default function Home() {
               />
             </div>
             <h1 className='text-emerald-700 font-bold text-2xl mb-2 text-center whitespace-nowrap'>
-              Personality Matching
+              {dict.homepage.solution.features.personalityMatching.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
-              Kombinasi introvert-extrovert, thinking-feeling untuk dinamika
-              yang seimbang
+              {dict.homepage.solution.features.personalityMatching.description}
             </p>
           </div>
           <div className='flex flex-col items-center'>
@@ -295,11 +288,10 @@ export default function Home() {
               />
             </div>
             <h1 className='text-amber-700 font-bold text-2xl mb-2 text-center'>
-              Skill Balancing
+              {dict.homepage.solution.features.skillBalancing.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
-              Distribusi kemampuan yang merata agar setiap tim memiliki kekuatan
-              yang setara
+              {dict.homepage.solution.features.skillBalancing.description}
             </p>
           </div>
           <div className='flex flex-col items-center'>
@@ -313,10 +305,10 @@ export default function Home() {
               />
             </div>
             <h1 className='text-sky-700 font-bold text-2xl mb-2 text-center'>
-              Gender Balance
+              {dict.homepage.solution.features.genderBalance.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
-              Representasi yang adil untuk perspektif yang beragam dan inklusif
+              {dict.homepage.solution.features.genderBalance.description}
             </p>
           </div>
           <div className='flex flex-col items-center'>
@@ -330,21 +322,20 @@ export default function Home() {
               />
             </div>
             <h1 className='text-indigo-700 font-bold text-2xl mb-2 text-center'>
-              Task Preference
+              {dict.homepage.solution.features.taskPreference.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
-              Menyesuaikan ketertarikan mahasiswa terhadap topik tugas yang
-              tersedia
+              {dict.homepage.solution.features.taskPreference.description}
             </p>
           </div>
         </div>
       </section>
       <section className='bg-blue-background min-h-[200px] flex flex-col items-center justify-center px-10 py-18'>
         <h1 className='text-white text-5xl font-bold mt-2'>
-          Manfaat untuk Semua
+          {dict.homepage.benefits.title}
         </h1>
         <p className='text-white font-normal text-base sm:text-lg lg:text-xl text-center mt-4'>
-          EquiTeam memberikan value yang signifikan untuk berbagai stakeholder
+          {dict.homepage.benefits.description}
         </p>
         <div className='flex justify-center items-center gap-4 mt-18'>
           {/* card 1 */}
@@ -359,27 +350,27 @@ export default function Home() {
               />
             </div>
             <h1 className='text-emerald-400 text-2xl font-bold'>
-              Untuk Mahasiswa
+              {dict.homepage.benefits.forStudents.title}
             </h1>
             <ul className='text-emerald-400 text-base font-light mt-3 space-y-2 list-disc list-inside max-w-xs pr-8 mr-10'>
               <li>
                 <span className='text-white'>
-                  Pengalaman belajar yang lebih menyenangkan
+                  {dict.homepage.benefits.forStudents.benefit1}
                 </span>
               </li>
               <li>
                 <span className='text-white'>
-                  Kesempatan mengembangkan soft skills
+                  {dict.homepage.benefits.forStudents.benefit2}
                 </span>
               </li>
               <li>
                 <span className='text-white'>
-                  Networking dengan teman yang lebih komplementer
+                  {dict.homepage.benefits.forStudents.benefit3}
                 </span>
               </li>
               <li>
                 <span className='text-white'>
-                  Hasil project yang lebih berkualitas
+                  {dict.homepage.benefits.forStudents.benefit4}
                 </span>
               </li>
             </ul>
@@ -395,25 +386,29 @@ export default function Home() {
                 className='p-4'
               />
             </div>
-            <h1 className='text-amber-400 text-2xl font-bold'>Untuk Dosen</h1>
+            <h1 className='text-amber-400 text-2xl font-bold'>
+              {dict.homepage.benefits.forLecturers.title}
+            </h1>
             <ul className='text-amber-400 text-base font-light mt-3 space-y-2 list-disc list-inside max-w-xs pr-8 mr-10'>
               <li>
                 <span className='text-white'>
-                  Menghemat waktu pembagian kelompok
+                  {dict.homepage.benefits.forLecturers.benefit1}
                 </span>
               </li>
               <li>
                 <span className='text-white'>
-                  Mengurangi komplain dari mahasiswa
+                  {dict.homepage.benefits.forLecturers.benefit2}
                 </span>
               </li>
               <li>
                 <span className='text-white'>
-                  Hasil pembelajaran yang lebih optimal
+                  {dict.homepage.benefits.forLecturers.benefit3}
                 </span>
               </li>
               <li>
-                <span className='text-white'>Data analisis untuk evaluasi</span>
+                <span className='text-white'>
+                  {dict.homepage.benefits.forLecturers.benefit4}
+                </span>
               </li>
             </ul>
           </div>
@@ -422,48 +417,48 @@ export default function Home() {
       <section className='bg-white min-h-[200px] flex flex-col items-center justify-center px-10 py-18'>
         <div className='flex flex-col items-center justify-center gap-18 max-w-6xl text-center'>
           <h1 className='text-zinc-800 text-4xl font-semibold mt-2'>
-            Fokus pada Keadilan dan Keseimbangan
+            {dict.homepage.focus.title}
           </h1>
           <h1 className='text-zinc-800 text-7xl font-extrabold italic mt-2 tracking-tight leading-snug'>
-            <span className='text-blue-background'>EquiTeam</span> membuka
-            gerbang kesempatan yang{' '}
-            <span className='text-blue-background'>adil</span> 👍, kami
-            melepaskan potensi penuh setiap mahasiswa untuk meraih{' '}
-            <span className='text-blue-background'>kesuksesan</span> ⭐
+            <span className='text-blue-background'>EquiTeam</span>{' '}
+            {dict.homepage.focus.text}
           </h1>
           <p className='font-light tracking-tight text-zinc-800 text-3xl'>
-            Keadilan bukan lagi impian
+            {dict.homepage.focus.justice}
           </p>
         </div>
       </section>
       <footer className='bg-blue-background min-h-[1000px] flex flex-col items-start gap-32 p-48 pb-2 relative'>
         <h1 className='text-white text-9xl font-normal z-10'>
-          LET&apos;S KEEP IN TOUCH
+          {dict.homepage.footer.title}
         </h1>{' '}
         <div className='flex items-start justify-start gap-48 text-start z-10'>
           <h2 className='text-white text-3xl font-semibold mt-2 max-w-lg'>
-            Platform pintar yang mengakhiri drama “salah tim” di kampus. <br />
-            Bagi kelompok dengan adil, <br /> cepat, dan tanpa ribet.
+            {dict.homepage.footer.description}
           </h2>
           <div className='flex flex-col items-start justify-center gap-12 max-w-4xl text-start'>
-            <h2 className='text-white text-xl font-bold mt-2'>Alamat</h2>
+            <h2 className='text-white text-xl font-bold mt-2'>
+              {dict.homepage.footer.address.title}
+            </h2>
             <p className='text-white text-lg font-normal mt-2'>
-              Ruang D215, Gedung D, <br /> Kampus Itera
+              {dict.homepage.footer.address.text}
             </p>
           </div>
           <div className='flex flex-col items-start justify-start gap-12 max-w-4xl text-start'>
-            <h2 className='text-white text-xl font-bold mt-2'>Kontak</h2>
+            <h2 className='text-white text-xl font-bold mt-2'>
+              {dict.homepage.footer.contact.title}
+            </h2>
             <div className='flex flex-col items-start justify-start gap-6 mt-2'>
               <div className='flex items-center gap-2'>
                 <Phone className='w-6 h-6 text-white' />
                 <p className='text-white text-lg font-normal underline mt-2'>
-                  (0721) 8030188
+                  {dict.homepage.footer.contact.phone}
                 </p>
               </div>
               <div className='flex items-center gap-2'>
                 <Mail className='w-6 h-6 text-white' />
                 <p className='text-white text-lg font-normal underline'>
-                  informatika@itera.ac.id
+                  {dict.homepage.footer.contact.email}
                 </p>
               </div>
             </div>
@@ -473,7 +468,7 @@ export default function Home() {
           <Logo size='text-4xl' className='min-w-2xl' />
           <div className='flex flex-row items-center'>
             <p className='text-white text-lg font-normal min-w-sm mt-2'>
-              Copyright © 2025 EquiTeam <br /> Semua hak dilindungi.
+              {dict.homepage.footer.copyright}
             </p>
             {/* SocialRow: social icons row */}
             <SocialRow />

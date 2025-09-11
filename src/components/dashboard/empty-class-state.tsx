@@ -1,4 +1,10 @@
+'use client';
+
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 import type { Course } from '@/lib/types';
 import CreateClassModal from './create-class-modal';
 
@@ -7,6 +13,27 @@ interface EmptyClassStateProps {
 }
 
 export function EmptyClassState({ onClassCreated }: EmptyClassStateProps) {
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const loadMessages = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+
+    loadMessages(getClientLocaleFromCookie());
+
+    const unsubscribe = onLocaleChange(newLocale => {
+      loadMessages(newLocale);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (!messages) {
+    return null; // or a loading state
+  }
   return (
     <div className='flex flex-col items-center justify-center gap-y-4 mx-auto h-full'>
       <Image
@@ -17,10 +44,10 @@ export function EmptyClassState({ onClassCreated }: EmptyClassStateProps) {
       />
       <div className='text-center'>
         <h1 className='text-3xl font-semibold text-gray-800 tracking-tight pb-2'>
-          Anda belum membuat kelas
+          {messages.dashboard.emptyStates.dosen.title}
         </h1>
         <p className='text-gray-600 text-sm font-normal'>
-          Buat kelas untuk memulai pembagian kelompok
+          {messages.dashboard.emptyStates.dosen.description}
         </p>
       </div>
       <CreateClassModal onClassCreated={onClassCreated} />
