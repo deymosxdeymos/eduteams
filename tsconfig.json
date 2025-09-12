@@ -1,18 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ESNext",
+    "lib": ["ESNext", "dom", "dom.iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
     "plugins": [
       {
         "name": "next"
@@ -28,6 +31,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "scripts/**/*.ts",
+    "prisma/**/*.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [

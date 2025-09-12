@@ -1,44 +1,80 @@
 'use client';
 
+import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useId } from 'react';
 
 interface RoleSelectProps {
   onRoleSelect: (role: 'dosen' | 'mahasiswa') => void;
   selectedRole?: 'dosen' | 'mahasiswa';
+  showDosenInvalid?: boolean;
+  dict: {
+    onboarding: {
+      role: {
+        dosen: string;
+        mahasiswa: string;
+        institutionalEmailRequired: string;
+      };
+    };
+  };
 }
 
 export default function RoleSelect({
   onRoleSelect,
   selectedRole,
+  showDosenInvalid,
+  dict,
 }: RoleSelectProps) {
+  const id = useId();
+
   return (
-    <div className='flex gap-x-16 items-center justify-center'>
-      <button
-        type='button'
-        className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-300 ${
-          selectedRole === 'dosen'
-            ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
-            : 'bg-accent hover:bg-accent/70 hover:ring-2 hover:ring-amber-200 hover:scale-102'
-        }`}
-        onClick={() => onRoleSelect('dosen')}
-        onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
-      >
-        {' '}
-        <Image
-          src={selectedRole === 'dosen' ? '/dosen.svg' : '/dosen-inactive.svg'}
-          width={240}
-          height={240}
-          alt='dosen'
-          className='mb-[-20px] w-auto h-auto'
-          priority
-        />
-        <h1
-          className='font-bold text-center text-amber-950 text-5xl
-		tracking-tighter leading-none uppercase'
+    <div className='flex gap-x-16 items-start justify-center'>
+      <div className='flex flex-col items-center relative'>
+        <button
+          type='button'
+          aria-describedby={
+            showDosenInvalid ? `${id}-dosen-email-requirement` : undefined
+          }
+          className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-200 ${
+            selectedRole === 'dosen'
+              ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
+              : 'bg-accent hover:bg-accent/70 hover:ring-2 hover:ring-amber-200 hover:scale-102'
+          }`}
+          onClick={() => onRoleSelect('dosen')}
+          onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
         >
-          Dosen
-        </h1>
-      </button>
+          {' '}
+          <Image
+            src={
+              selectedRole === 'dosen' ? '/dosen.svg' : '/dosen-inactive.svg'
+            }
+            width={240}
+            height={240}
+            alt='dosen'
+            className='mb-[-20px] w-auto h-auto'
+            priority
+          />
+          <h1
+            className='font-bold text-center text-amber-950 text-5xl
+ 			tracking-tighter leading-none uppercase'
+          >
+            {dict.onboarding.role.dosen}
+          </h1>
+        </button>
+        {showDosenInvalid && (
+          <div
+            role='status'
+            aria-live='polite'
+            id={`${id}-dosen-email-requirement`}
+            className='absolute top-full mt-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 text-amber-800 px-3 py-1 text-xs shadow-sm'
+          >
+            <AlertCircle className='h-3.5 w-3.5' />
+            <span className='whitespace-nowrap'>
+              {dict.onboarding.role.institutionalEmailRequired}
+            </span>
+          </div>
+        )}
+      </div>
       <button
         type='button'
         className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-300 ${
@@ -62,7 +98,7 @@ export default function RoleSelect({
           className='mb-[-20px]'
         />
         <h1 className='font-bold text-center text-green-950 text-5xl tracking-tighter leading-none uppercase'>
-          Mahasiswa
+          {dict.onboarding.role.mahasiswa}
         </h1>
       </button>
     </div>

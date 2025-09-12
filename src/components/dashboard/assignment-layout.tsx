@@ -80,7 +80,7 @@ export function AssignmentLayout({
               initialData={students}
               currentUserId={user.id}
               canManage={canManage}
-              submittedStudentIds={submittedStudentIds}
+              submittedStudentIds={canManage ? submittedStudentIds : undefined}
               submittedCount={submittedCount}
               totalStudents={totalStudents}
             />

@@ -3,6 +3,7 @@ import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeams } from '@/components/dashboard/assignment-teams';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
+import { getMessages } from '@/i18n/server';
 import prisma from '@/lib/prisma';
 import type { AssignmentStats } from '@/lib/stats/assignment';
 
@@ -70,6 +71,8 @@ export async function AssignmentContent({
     }
   }
 
+  const { messages } = await getMessages();
+
   return (
     <div className='flex-1 p-8 min-h-0'>
       <div className='h-full flex flex-col space-y-4 text-gray-500 overflow-y-auto'>
@@ -84,25 +87,33 @@ export async function AssignmentContent({
         />
 
         {isStudent ? (
-          <div className='flex-1 flex items-center justify-center'>
-            <div className='flex flex-col items-center text-center max-w-xl'>
-              <Image
-                src='/waiting-form.svg'
-                alt='Menunggu pembagian kelompok'
-                width={120}
-                height={120}
-                className='mb-6'
-                priority
-              />
-              <h1 className='text-2xl font-bold text-gray-800 mb-2'>
-                Menunggu pembagian kelompok!
-              </h1>
-              <p className='text-gray-600'>
-                Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya,
-                dosen sedang memproses pembagian kelompok.
-              </p>
+          percentAssigned > 0 ? (
+            <AssignmentTeams assignmentId={assignmentId} isStudent />
+          ) : (
+            <div className='flex-1 flex items-center justify-center'>
+              <div className='flex flex-col items-center text-center max-w-xl'>
+                <Image
+                  src='/waiting-form.svg'
+                  alt={
+                    messages.dashboard.assignment.studentWaiting.alt ||
+                    'Menunggu pembagian kelompok'
+                  }
+                  width={120}
+                  height={120}
+                  className='mb-6'
+                  priority
+                />
+                <h1 className='text-2xl font-bold text-gray-800 mb-2'>
+                  {messages.dashboard.assignment.studentWaiting.title ||
+                    'Menunggu pembagian kelompok!'}
+                </h1>
+                <p className='text-gray-600'>
+                  {messages.dashboard.assignment.studentWaiting.description ||
+                    'Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya, dosen sedang memproses pembagian kelompok.'}
+                </p>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <>
             <ChartsToggle percentAssigned={percentAssigned}>

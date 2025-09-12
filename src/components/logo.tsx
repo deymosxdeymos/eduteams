@@ -15,9 +15,7 @@ export default function Logo({
   const spanTextClass = color === 'black' ? 'text-neutral-800' : 'text-white';
 
   return (
-    <header
-      className={`flex flex-row items-center w-full gap-8 ${className || ''}`}
-    >
+    <header className={`flex flex-row items-center gap-8 ${className || ''}`}>
       <Image
         src='/mascot-yellow-head.svg'
         width={50}

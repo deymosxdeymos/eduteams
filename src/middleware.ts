@@ -48,19 +48,36 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check if session token exists (lightweight check without database)
-  const sessionCookie = getSessionCookie(request);
-  const hasSessionToken = !!sessionCookie;
+  const hasSessionToken = (() => {
+    try {
+      const tokenFromHeader = getSessionCookie(request.headers);
+      if (tokenFromHeader) return true;
+    } catch {
+      // ignore and fallback
+    }
+    const token = request.cookies.get('better-auth.session_token')?.value;
+    return Boolean(token);
+  })();
+
+  // Ensure language cookie exists without redirecting
+  const hasLang = request.cookies.get('lang')?.value;
+  if (!hasLang) {
+    const accept = request.headers.get('accept-language')?.toLowerCase() || '';
+    const inferred = accept.startsWith('en') ? 'en' : 'id';
+    const response = NextResponse.next();
+    response.cookies.set('lang', inferred, {
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+    });
+    return applySecurityHeaders(response);
+  }
 
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  // Redirect authenticated users from homepage to onboarding/resume
-  if (pathname === '/' && hasSessionToken) {
-    const res = NextResponse.redirect(
-      new URL('/onboarding/resume', request.url)
-    );
-    return applySecurityHeaders(res);
-  }
+  // Allow authenticated users to stay on homepage
+  // They can continue their session by clicking "masuk" button
 
   // Handle auth pages (login/register)
   if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
