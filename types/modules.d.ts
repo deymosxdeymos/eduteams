@@ -10,9 +10,9 @@ declare module 'node-cache' {
 
   export default class NodeCache {
     constructor(options?: NodeCacheOptions);
-    
-    get<T = any>(key: string): T | undefined;
-    set<T = any>(key: string, value: T, ttl?: number): boolean;
+
+    get<T = unknown>(key: string): T | undefined;
+    set<T = unknown>(key: string, value: T, ttl?: number): boolean;
     del(key: string): number;
     flushAll(): void;
     close(): void;

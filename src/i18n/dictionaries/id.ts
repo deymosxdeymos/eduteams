@@ -292,8 +292,7 @@ export const messages = {
         valuePlaceholderStudents: 'mis. 4',
         noteTopicsMismatch:
           'Catatan: Jumlah topik ({topicCount}) tidak sama dengan jumlah kelompok ({groups}). Preferensi topik akan dipetakan secara best‑effort.',
-        errorCreateFailed:
-          'Gagal membentuk kelompok. Coba lagi sebentar lagi.',
+        errorCreateFailed: 'Gagal membentuk kelompok. Coba lagi sebentar lagi.',
         successCreate: 'Berhasil membentuk kelompok!',
         networkError: 'Terjadi kesalahan jaringan. Coba lagi.',
         submitCreating: 'Membuat...',

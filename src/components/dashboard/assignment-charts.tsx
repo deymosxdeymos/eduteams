@@ -2,10 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useState } from 'react';
-import type { AssignmentStats } from '@/lib/stats/assignment';
-import { getDictionary } from '@/i18n/get-dictionary';
 import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
 import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
+import type { AssignmentStats } from '@/lib/stats/assignment';
 
 const GenderPieChart = dynamic(
   () =>
