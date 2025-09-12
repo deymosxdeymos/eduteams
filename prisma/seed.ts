@@ -61,7 +61,7 @@ async function seedMBTIQuestions() {
       throw new Error('Prisma client not generated for PersonalityQuestion');
     }
 
-    await prisma.$transaction(async tx => {
+    await prisma.$transaction(async (tx: any) => {
       // Clear existing MBTI questions from the dedicated table
       await (tx as unknown as Record<string, any>).personalityQuestion?.deleteMany?.({});
 
@@ -109,7 +109,7 @@ async function seedDosenTokens() {
   console.log('🌱 Starting dosen token seeding...');
 
   try {
-    await prisma.$transaction(async tx => {
+    await prisma.$transaction(async (tx: any) => {
       // Clear existing dosen tokens and usage records
       try {
         await tx.dosenTokenUsage.deleteMany({});
@@ -165,7 +165,7 @@ async function main() {
 }
 
 // Run if called directly
-if (require.main === module) {
+if ((require as any).main === module) {
   main();
 }
 
