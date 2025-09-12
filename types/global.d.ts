@@ -1,4 +1,4 @@
-// Global type definitions for Node.js environment
+// Global type definitions for Bun environment
 declare global {
   namespace NodeJS {
     interface Timeout {
@@ -9,6 +9,7 @@ declare global {
 
   type Timeout = NodeJS.Timeout;
 
+  // Bun provides these globals natively
   var process: {
     env: Record<string, string | undefined>;
     exit(code?: number): never;
@@ -21,7 +22,7 @@ declare global {
     };
   };
 
-  var setImmediate: (callback: (...args: any[]) => void, ...args: any[]) => NodeJS.Timeout;
+  var setImmediate: (callback: (...args: any[]) => void, ...args: any[]) => Timeout;
   var require: (id: string) => any;
   var module: {
     exports: any;
