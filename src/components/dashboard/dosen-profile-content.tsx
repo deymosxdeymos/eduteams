@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
-import type { ExtendedUser } from '@/lib/types';
-import { getDictionary } from '@/i18n/get-dictionary';
 import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
 import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
+import type { ExtendedUser } from '@/lib/types';
 
 interface DosenProfileContentProps {
   user: ExtendedUser;
