@@ -113,23 +113,23 @@ export const messages = {
     },
     focus: {
       title: 'Focus on Justice and Balance',
-      text: 'EquiTeam opens the gate of fair opportunities 👍, we unleash the full potential of every student to achieve success ⭐',
+      text: 'opens the gate of <mark>fair</mark> opportunities 👍, we unleash the full potential of every student to achieve <mark>success</mark> ⭐',
       justice: 'Justice is no longer a dream',
     },
     footer: {
       title: "LET'S KEEP IN TOUCH",
       description:
-        'Smart platform that ends the "wrong team" drama on campus. Divide groups fairly, quickly, and without hassle.',
+        'Smart platform that ends the "wrong team" drama on campus.\nDivide groups fairly, quickly, and without hassle.',
       address: {
         title: 'Address',
-        text: 'Room D215, Building D, Itera Campus',
+        text: 'Room D215, Building D,\nItera Campus',
       },
       contact: {
         title: 'Contact',
         phone: '(0721) 8030188',
         email: 'informatika@itera.ac.id',
       },
-      copyright: 'Copyright © 2025 EquiTeam All rights reserved.',
+      copyright: 'Copyright © 2025 EquiTeam\nAll rights reserved.',
     },
   },
 
