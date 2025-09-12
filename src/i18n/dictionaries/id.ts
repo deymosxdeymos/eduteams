@@ -28,7 +28,7 @@ export const messages = {
       problem2: 'Terdapat kelompok terbuang',
       problem3: 'Keahlian di tim tidak seimbang',
       solution:
-        'Dengan adanya EquiTeam, hal-hal tersebut akan teratasi dengan lebih mudah',
+        'Dengan adanya EquiTeam,\nhal-hal tersebut akan teratasi dengan lebih mudah',
     },
     solution: {
       title: 'Solusi EquiTeam',
@@ -116,23 +116,23 @@ export const messages = {
     },
     focus: {
       title: 'Fokus pada Keadilan dan Keseimbangan',
-      text: 'EquiTeam membuka gerbang kesempatan yang adil 👍, kami melepaskan potensi penuh setiap mahasiswa untuk meraih kesuksesan ⭐',
+      text: 'membuka gerbang kesempatan yang <mark>adil</mark> 👍, kami melepaskan potensi penuh setiap mahasiswa untuk meraih <mark>kesuksesan</mark> ⭐',
       justice: 'Keadilan bukan lagi impian',
     },
     footer: {
       title: "LET'S KEEP IN TOUCH",
       description:
-        'Platform pintar yang mengakhiri drama "salah tim" di kampus. Bagi kelompok dengan adil, cepat, dan tanpa ribet.',
+        'Platform pintar yang mengakhiri drama "salah tim" di kampus.\nBagi kelompok dengan adil, cepat, dan tanpa ribet.',
       address: {
         title: 'Alamat',
-        text: 'Ruang D215, Gedung D, Kampus Itera',
+        text: 'Ruang D215, Gedung D,\nKampus Itera',
       },
       contact: {
         title: 'Kontak',
         phone: '(0721) 8030188',
         email: 'informatika@itera.ac.id',
       },
-      copyright: 'Copyright © 2025 EquiTeam Semua hak dilindungi.',
+      copyright: 'Copyright © 2025 EquiTeam\nSemua hak dilindungi.',
     },
   },
 
