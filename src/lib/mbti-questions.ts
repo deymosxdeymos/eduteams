@@ -166,7 +166,7 @@ export class MBTIQuestionsManager {
   private metrics: SystemMetrics;
   private fallbackData: FallbackData | null = null;
   private isInitialized = false;
-  private metricsInterval: NodeJS.Timeout | null = null;
+  private metricsInterval: Timeout | null = null;
 
   constructor(config: Partial<MBTISystemConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -256,7 +256,7 @@ export class MBTIQuestionsManager {
     this.metricsInterval = setInterval(() => {
       this.updateMemoryMetrics();
       this.persistMetrics();
-    }, this.config.monitoring.metricsInterval);
+    }, this.config.monitoring.metricsInterval) as unknown as Timeout;
   }
 
   private updateMemoryMetrics(): void {
@@ -296,42 +296,42 @@ export class MBTIQuestionsManager {
       // EI 1-6
       {
         id: 'static-1',
-        text: 'You prefer groups to individuals.',
+        text: 'Kamu lebih suka kelompok daripada individu.',
         dimension: 'ei',
         order: 1,
         reversed: false,
       },
       {
         id: 'static-2',
-        text: 'You are sociable.',
+        text: 'Kamu bersosialisasi.',
         dimension: 'ei',
         order: 2,
         reversed: false,
       },
       {
         id: 'static-3',
-        text: 'You are expressive.',
+        text: 'Kamu ekspresif.',
         dimension: 'ei',
         order: 3,
         reversed: false,
       },
       {
         id: 'static-4',
-        text: 'You learn better by listening.',
+        text: 'Kamu belajar lebih baik dengan mendengarkan.',
         dimension: 'ei',
         order: 4,
         reversed: true,
       },
       {
         id: 'static-5',
-        text: 'You are talkative.',
+        text: 'Kamu banyak bicara.',
         dimension: 'ei',
         order: 5,
         reversed: false,
       },
       {
         id: 'static-6',
-        text: 'You enjoy meeting new people.',
+        text: 'Kamu senang bertemu orang baru.',
         dimension: 'ei',
         order: 6,
         reversed: false,
@@ -339,42 +339,42 @@ export class MBTIQuestionsManager {
       // SN 7-12
       {
         id: 'static-7',
-        text: 'You prefer theoretical subjects.',
+        text: 'Kamu lebih suka mata pelajaran teoritis.',
         dimension: 'sn',
         order: 7,
         reversed: false,
       },
       {
         id: 'static-8',
-        text: 'You prefer novel over traditional.',
+        text: 'Kamu lebih suka yang baru daripada yang tradisional.',
         dimension: 'sn',
         order: 8,
         reversed: false,
       },
       {
         id: 'static-9',
-        text: 'You prefer being curious.',
+        text: 'Kamu lebih suka menjadi penasaran.',
         dimension: 'sn',
         order: 9,
         reversed: true,
       },
       {
         id: 'static-10',
-        text: 'You prefer abstract over specific.',
+        text: 'Kamu lebih suka abstrak daripada spesifik.',
         dimension: 'sn',
         order: 10,
         reversed: false,
       },
       {
         id: 'static-11',
-        text: 'You notice patterns more than details.',
+        text: 'Kamu memperhatikan pola lebih daripada detail.',
         dimension: 'sn',
         order: 11,
         reversed: true,
       },
       {
         id: 'static-12',
-        text: 'You prefer conceptual tasks.',
+        text: 'Kamu lebih suka tugas konseptual.',
         dimension: 'sn',
         order: 12,
         reversed: false,
@@ -382,42 +382,42 @@ export class MBTIQuestionsManager {
       // TF 13-18
       {
         id: 'static-13',
-        text: 'You think judges should be merciful.',
+        text: 'Kamu berpikir hakim harus bermurah hati.',
         dimension: 'tf',
         order: 13,
         reversed: false,
       },
       {
         id: 'static-14',
-        text: 'You tend to be diplomatic.',
+        text: 'Kamu cenderung diplomatis.',
         dimension: 'tf',
         order: 14,
         reversed: true,
       },
       {
         id: 'static-15',
-        text: 'You rely on empathy when deciding.',
+        text: 'Kamu mengandalkan empati saat memutuskan.',
         dimension: 'tf',
         order: 15,
         reversed: true,
       },
       {
         id: 'static-16',
-        text: 'You prioritize fairness over harmony.',
+        text: 'Kamu memprioritaskan keadilan daripada harmoni.',
         dimension: 'tf',
         order: 16,
         reversed: false,
       },
       {
         id: 'static-17',
-        text: 'You value logic over emotions.',
+        text: 'Kamu menghargai logika daripada emosi.',
         dimension: 'tf',
         order: 17,
         reversed: true,
       },
       {
         id: 'static-18',
-        text: 'You consider others’ feelings when judging.',
+        text: 'Kamu mempertimbangkan perasaan orang lain saat menghakimi.',
         dimension: 'tf',
         order: 18,
         reversed: false,
@@ -425,42 +425,42 @@ export class MBTIQuestionsManager {
       // PJ 19-24
       {
         id: 'static-19',
-        text: 'You are systematic in your routines.',
+        text: 'Kamu sistematis dalam rutinitas.',
         dimension: 'pj',
         order: 19,
         reversed: false,
       },
       {
         id: 'static-20',
-        text: 'You prefer routine over variety.',
+        text: 'Kamu lebih suka rutinitas daripada variasi.',
         dimension: 'pj',
         order: 20,
         reversed: true,
       },
       {
         id: 'static-21',
-        text: 'You work better under pressure.',
+        text: 'Kamu bekerja lebih baik di bawah tekanan.',
         dimension: 'pj',
         order: 21,
         reversed: false,
       },
       {
         id: 'static-22',
-        text: 'You are methodical.',
+        text: 'Kamu metodis.',
         dimension: 'pj',
         order: 22,
         reversed: true,
       },
       {
         id: 'static-23',
-        text: 'You prefer open-ended activities.',
+        text: 'Kamu lebih suka aktivitas terbuka.',
         dimension: 'pj',
         order: 23,
         reversed: true,
       },
       {
         id: 'static-24',
-        text: 'You like to plan ahead.',
+        text: 'Kamu suka merencanakan ke depan.',
         dimension: 'pj',
         order: 24,
         reversed: false,
@@ -835,7 +835,7 @@ export class MBTIQuestionsManager {
 
   async dispose(): Promise<void> {
     if (this.metricsInterval) {
-      clearInterval(this.metricsInterval);
+      clearInterval(this.metricsInterval as any);
       this.metricsInterval = null;
     }
 
