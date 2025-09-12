@@ -1,20 +1,5 @@
 // Module type declarations for external packages
 
-declare module '@upstash/redis' {
-  export class Redis {
-    constructor(config: {
-      url: string;
-      token: string;
-    });
-    
-    ping(): Promise<string>;
-    get<T = any>(key: string): Promise<T | null>;
-    set<T = any>(key: string, value: T, options?: { ex?: number }): Promise<string>;
-    del(...keys: string[]): Promise<number>;
-    keys(pattern: string): Promise<string[]>;
-  }
-}
-
 declare module 'node-cache' {
   interface NodeCacheOptions {
     stdTTL?: number;
