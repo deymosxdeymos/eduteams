@@ -7,14 +7,14 @@ import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { CreateAssignmentModal } from './create-assignment-modal';
 import { EmptyAssignmentState } from './empty-assignment-state';
 import { ShareClassModal } from './share-class-modal';
-import { getDictionary } from '@/i18n/get-dictionary';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
 
 interface ClassAssignmentsProps {
   classId: string;
@@ -236,7 +236,8 @@ export function ClassAssignments({
                         } else if (a.submissionsCount === 0) {
                           text =
                             messages?.dashboard?.classAssignments?.status
-                              ?.noneFilled || 'Belum ada yang mengisi kuisioner';
+                              ?.noneFilled ||
+                            'Belum ada yang mengisi kuisioner';
                           color = 'bg-red-50 text-orange-900';
                         } else {
                           const tpl =

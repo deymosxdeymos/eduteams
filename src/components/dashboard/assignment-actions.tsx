@@ -19,9 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getDictionary } from '@/i18n/get-dictionary';
 import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
 import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 
 interface AssignmentActionsProps {
   assignmentId: string;
@@ -288,8 +288,8 @@ export function AssignmentActions({
                   onClick={handleCreate}
                 >
                   {submitting
-                    ? messages?.dashboard?.assignment?.actions?.submitCreating ||
-                      'Membuat...'
+                    ? messages?.dashboard?.assignment?.actions
+                        ?.submitCreating || 'Membuat...'
                     : messages?.dashboard?.assignment?.actions?.submitCreate ||
                       'Buat Kelompok'}
                 </Button>

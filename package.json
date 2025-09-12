@@ -61,7 +61,6 @@
     "@types/node": "^20.19.13",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
-    "bun-types": "^1.2.21",
     "cheerio": "^1.1.2",
     "eslint": "^9.34.0",
     "eslint-config-next": "15.4.1",

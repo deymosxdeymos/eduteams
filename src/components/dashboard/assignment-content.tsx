@@ -3,9 +3,9 @@ import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeams } from '@/components/dashboard/assignment-teams';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
+import { getMessages } from '@/i18n/server';
 import prisma from '@/lib/prisma';
 import type { AssignmentStats } from '@/lib/stats/assignment';
-import { getMessages } from '@/i18n/server';
 
 interface AssignmentContentProps {
   assignmentId: string;
