@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/api-utils';
+import { isInstitutionalEmail } from '@/lib/email';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
 
@@ -41,9 +42,13 @@ export async function submitRole(
     revalidatePath('/dashboard');
     revalidatePath('/onboarding');
 
-    // Redirect to next step
+    // Redirect to next step (domain-based for dosen)
     if (role === 'dosen') {
-      redirect('/onboarding/token-verifikasi');
+      if (isInstitutionalEmail(user.email)) {
+        redirect('/onboarding/data-diri/dosen');
+      } else {
+        redirect('/onboarding/role?err=dosen_email');
+      }
     } else {
       redirect(`/onboarding/data-diri/${role}`);
     }
@@ -80,6 +85,7 @@ export async function getCurrentUserRole(getCurrentUserImpl = getCurrentUser) {
       select: {
         role: true,
         onboardingStep: true,
+        email: true,
       },
     });
 

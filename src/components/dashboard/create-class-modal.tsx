@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Loader2, Plus } from 'lucide-react';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 import type { Course } from '@/lib/types';
 import {
   type CourseCreateInput,
@@ -46,6 +49,23 @@ export default function CreateClassModal({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const loadMessages = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+
+    loadMessages(getClientLocaleFromCookie());
+
+    const unsubscribe = onLocaleChange(newLocale => {
+      loadMessages(newLocale);
+    });
+
+    return unsubscribe;
+  }, []);
 
   const form = useForm<CourseCreateInput>({
     resolver: zodResolver(courseCreateSchema),
@@ -114,17 +134,20 @@ export default function CreateClassModal({
         <Button variant='onboarding' className='rounded-full w-48 py-7'>
           <Plus strokeWidth={3} className='text-white' />
           <p className='text-white font-semibold text-base leading-tight'>
-            Buat Kelas Baru
+            {messages?.dashboard?.modals?.createClass?.button ||
+              'Buat Kelas Baru'}
           </p>
         </Button>
       </DialogTrigger>
       <DialogContent className='rounded-2xl sm:max-w-xl'>
         <DialogHeader>
           <DialogTitle className='text-xl font-medium'>
-            Buat Kelas Baru
+            {messages?.dashboard?.modals?.createClass?.title ||
+              'Buat Kelas Baru'}
           </DialogTitle>
           <DialogDescription className='text-sm font-normal'>
-            Silahkan isi seluruh data di bawah untuk membuat kelas baru
+            {messages?.dashboard?.modals?.createClass?.description ||
+              'Silahkan isi seluruh data di bawah untuk membuat kelas baru'}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,7 +170,10 @@ export default function CreateClassModal({
                 />
               </svg>
             </div>
-            <p className='text-green-600 font-medium'>Kelas berhasil dibuat!</p>
+            <p className='text-green-600 font-medium'>
+              {messages?.dashboard?.modals?.createClass?.success ||
+                'Kelas berhasil dibuat!'}
+            </p>
           </div>
         ) : (
           <Form {...form}>
@@ -157,10 +183,17 @@ export default function CreateClassModal({
                 name='namaMataKuliah'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nama Mata Kuliah</FormLabel>
+                    <FormLabel>
+                      {messages?.dashboard?.modals?.createClass?.fields
+                        ?.courseName || 'Nama Mata Kuliah'}
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Masukkan nama mata kuliah'
+                        placeholder={
+                          messages?.dashboard?.modals?.createClass?.fields
+                            ?.courseNamePlaceholder ||
+                          'Masukkan nama mata kuliah'
+                        }
                         {...field}
                         disabled={isPending}
                         className='file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-12 w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
@@ -176,7 +209,10 @@ export default function CreateClassModal({
                 name='kelas'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Kelas</FormLabel>
+                    <FormLabel>
+                      {messages?.dashboard?.modals?.createClass?.fields
+                        ?.class || 'Kelas'}
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -184,11 +220,19 @@ export default function CreateClassModal({
                     >
                       <FormControl>
                         <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
-                          <SelectValue placeholder='Pilih kelas' />
+                          <SelectValue
+                            placeholder={
+                              messages?.dashboard?.modals?.createClass?.fields
+                                ?.classPlaceholder || 'Pilih kelas'
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='tanpa-kelas'>Tanpa Kelas</SelectItem>
+                        <SelectItem value='tanpa-kelas'>
+                          {messages?.dashboard?.modals?.createClass?.options
+                            ?.noClass || 'Tanpa Kelas'}
+                        </SelectItem>
                         <SelectItem value='RA'>RA</SelectItem>
                         <SelectItem value='RB'>RB</SelectItem>
                         <SelectItem value='RC'>RC</SelectItem>
@@ -206,11 +250,17 @@ export default function CreateClassModal({
                 name='tahunAwalPeriode'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tahun Awal</FormLabel>
+                    <FormLabel>
+                      {messages?.dashboard?.modals?.createClass?.fields
+                        ?.startYear || 'Tahun Awal'}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type='text'
-                        placeholder='Masukkan tahun awal'
+                        placeholder={
+                          messages?.dashboard?.modals?.createClass?.fields
+                            ?.startYearPlaceholder || 'Masukkan tahun awal'
+                        }
                         value={field.value ?? ''}
                         onChange={e => {
                           const value = e.target.value.replace(/\D/g, '');
@@ -232,11 +282,17 @@ export default function CreateClassModal({
                 name='tahunAkhirPeriode'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tahun Akhir</FormLabel>
+                    <FormLabel>
+                      {messages?.dashboard?.modals?.createClass?.fields
+                        ?.endYear || 'Tahun Akhir'}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type='text'
-                        placeholder='Masukkan tahun akhir'
+                        placeholder={
+                          messages?.dashboard?.modals?.createClass?.fields
+                            ?.endYearPlaceholder || 'Masukkan tahun akhir'
+                        }
                         value={field.value ?? ''}
                         onChange={e => {
                           const value = e.target.value.replace(/\D/g, '');
@@ -258,7 +314,10 @@ export default function CreateClassModal({
                 name='periode'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Periode</FormLabel>
+                    <FormLabel>
+                      {messages?.dashboard?.modals?.createClass?.fields
+                        ?.period || 'Periode'}
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -266,12 +325,23 @@ export default function CreateClassModal({
                     >
                       <FormControl>
                         <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
-                          <SelectValue placeholder='Pilih periode' />
+                          <SelectValue
+                            placeholder={
+                              messages?.dashboard?.modals?.createClass?.fields
+                                ?.periodPlaceholder || 'Pilih periode'
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='ganjil'>Ganjil</SelectItem>
-                        <SelectItem value='genap'>Genap</SelectItem>
+                        <SelectItem value='ganjil'>
+                          {messages?.dashboard?.modals?.createClass?.options
+                            ?.odd || 'Ganjil'}
+                        </SelectItem>
+                        <SelectItem value='genap'>
+                          {messages?.dashboard?.modals?.createClass?.options
+                            ?.even || 'Genap'}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -297,7 +367,11 @@ export default function CreateClassModal({
                   ) : (
                     <Plus strokeWidth={3} className='mr-1 h-4 w-4' />
                   )}
-                  {isPending ? 'Membuat...' : 'Buat Kelas'}
+                  {isPending
+                    ? messages?.dashboard?.modals?.createClass?.creating ||
+                      'Membuat...'
+                    : messages?.dashboard?.modals?.createClass?.create ||
+                      'Buat Kelas'}
                 </Button>
               </div>
             </form>

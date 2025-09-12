@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +12,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 
 interface JoinClassModalProps {
   onClassJoined?: () => void;
@@ -25,6 +28,23 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [shakeKey, setShakeKey] = useState(0); // Key to trigger shake animation
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const loadMessages = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+
+    loadMessages(getClientLocaleFromCookie());
+
+    const unsubscribe = onLocaleChange(newLocale => {
+      loadMessages(newLocale);
+    });
+
+    return unsubscribe;
+  }, []);
 
   const hasError = Boolean(error);
 
@@ -54,10 +74,15 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
       if (!response.ok) {
         // Show specific error message for invalid token
         if (response.status === 404) {
-          setError('Kode yang Anda masukkan salah. Silahkan coba lagi');
+          setError(
+            messages?.dashboard?.modals?.joinClass?.invalidCode ||
+              'Kode yang Anda masukkan salah. Silahkan coba lagi'
+          );
         } else {
           setError(
-            result.error || 'Kode yang Anda masukkan salah. Silahkan coba lagi'
+            result.error ||
+              messages?.dashboard?.modals?.joinClass?.invalidCode ||
+              'Kode yang Anda masukkan salah. Silahkan coba lagi'
           );
         }
         triggerShake(); // Trigger shake animation on error
@@ -72,7 +97,10 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
         onClassJoined?.();
       }, 1500);
     } catch {
-      setError('Kode yang Anda masukkan salah. Silahkan coba lagi');
+      setError(
+        messages?.dashboard?.modals?.joinClass?.invalidCode ||
+          'Kode yang Anda masukkan salah. Silahkan coba lagi'
+      );
       triggerShake(); // Trigger shake animation on error
     } finally {
       setIsLoading(false);
@@ -88,17 +116,17 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
           className='rounded-full px-4 py-6 font-semibold'
         >
           <Plus strokeWidth={3} className='w-5 h-5 mr-2' />
-          Masuk Kelas
+          {messages?.dashboard?.modals?.joinClass?.button || 'Masuk Kelas'}
         </Button>
       </DialogTrigger>
       <DialogContent className='border max-w-md md:max-w-xl rounded-3xl p-0 gap-0'>
         <DialogHeader className='p-6 pb-4'>
           <DialogTitle className='text-xl font-semibold text-left'>
-            Masuk ke Kelas
+            {messages?.dashboard?.modals?.joinClass?.title || 'Masuk ke Kelas'}
           </DialogTitle>
           <p className='text-gray-600 text-sm font-normal text-left mt-2'>
-            Masukkan kode kelas yang kamu dapatkan dari dosen untuk bergabung ke
-            dalam kelas ini. Pastikan kode yang dimasukkan sudah benar, ya!
+            {messages?.dashboard?.modals?.joinClass?.description ||
+              'Masukkan kode kelas yang kamu dapatkan dari dosen untuk bergabung ke dalam kelas ini. Pastikan kode yang dimasukkan sudah benar, ya!'}
           </p>
         </DialogHeader>
 
@@ -110,7 +138,8 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
                 hasError ? 'text-red-600' : 'text-gray-900'
               }`}
             >
-              Kode Kelas
+              {messages?.dashboard?.modals?.joinClass?.classCode ||
+                'Kode Kelas'}
             </label>
             <motion.div
               key={shakeKey} // Key changes to restart animation
@@ -133,7 +162,10 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
                   setClassToken(e.target.value);
                   if (error) setError(''); // Clear error when user types
                 }}
-                placeholder='687ad8sa'
+                placeholder={
+                  messages?.dashboard?.modals?.joinClass
+                    ?.classCodePlaceholder || '687ad8sa'
+                }
                 disabled={isLoading}
                 aria-invalid={hasError}
                 className={`w-full ${
@@ -155,7 +187,9 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
             disabled={isLoading || !classToken.trim()}
             className='w-full rounded-full py-6 font-semibold'
           >
-            {isLoading ? 'Masuk...' : 'Masuk'}
+            {isLoading
+              ? messages?.dashboard?.modals?.joinClass?.joining || 'Masuk...'
+              : messages?.dashboard?.modals?.joinClass?.join || 'Masuk'}
           </Button>
         </form>
       </DialogContent>

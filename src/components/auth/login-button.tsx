@@ -12,7 +12,7 @@ export function LoginButton() {
     try {
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/onboarding/resume',
+        callbackURL: '/dashboard',
       });
     } catch (error) {
       console.error('Error signing in:', error);

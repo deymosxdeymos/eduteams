@@ -149,7 +149,7 @@ describe('Resume Page Logic', () => {
         );
       });
 
-      test('should redirect dosen to token verification after role completion', async () => {
+      test('should redirect dosen with non-institutional email back to role with error after role completion', async () => {
         const mockUser = {
           id: 'user-123',
           name: 'Test User',
@@ -163,7 +163,7 @@ describe('Resume Page Logic', () => {
 
         await ResumePage();
 
-        expect(mockRedirect).toHaveBeenCalledWith('/onboarding/token-verifikasi');
+        expect(mockRedirect).toHaveBeenCalledWith('/onboarding/role?err=dosen_email');
       });
     });
 
@@ -424,7 +424,7 @@ describe('Resume Page Logic', () => {
 
       const expectedRedirects = [
         '/onboarding/role',
-        '/onboarding/token-verifikasi',
+        '/onboarding/role?err=dosen_email',
         '/dashboard',
       ];
 

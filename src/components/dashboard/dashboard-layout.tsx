@@ -1,3 +1,9 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
@@ -13,6 +19,30 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ user }: DashboardLayoutProps) {
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const loadMessages = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+
+    // initial load
+    loadMessages(getClientLocaleFromCookie());
+
+    // subscribe to locale changes
+    const unsubscribe = onLocaleChange(newLocale => {
+      loadMessages(newLocale);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (!messages) {
+    return null; // or a loading state
+  }
+
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
@@ -29,7 +59,7 @@ export function DashboardLayout({ user }: DashboardLayoutProps) {
           {!isDosen && !isMahasiswa && (
             <div className='flex items-center justify-center h-full'>
               <p className='text-muted-foreground'>
-                Dashboard tidak tersedia untuk role Anda.
+                {messages.dashboard.layout.unavailable}
               </p>
             </div>
           )}

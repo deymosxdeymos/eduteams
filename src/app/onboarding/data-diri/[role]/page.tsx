@@ -5,9 +5,10 @@ import { redirect } from 'next/navigation';
 import Logo from '@/components/logo';
 import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
 import { Button } from '@/components/ui/button';
+import { getDictionary } from '@/i18n/get-dictionary';
+import { getLocale } from '@/i18n/server';
 import { getDataDiri } from '@/lib/actions/data-diri';
-
-import prisma from '@/lib/prisma';
+import { isInstitutionalEmail } from '@/lib/email';
 import { protectOnboardingPage } from '@/lib/server-auth';
 
 interface DataDiriPageProps {
@@ -18,6 +19,8 @@ interface DataDiriPageProps {
 
 export default async function DataDiriPage({ params }: DataDiriPageProps) {
   const { role } = await params;
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
 
   // Validate role parameter
   if (!['dosen', 'mahasiswa'].includes(role)) {
@@ -27,18 +30,10 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
   // Protect the onboarding page
   const user = await protectOnboardingPage();
 
-  // For dosen, check if they have verified their token
+  // For dosen, ensure institutional email domain
   if (role === 'dosen') {
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        onboardingStep: true,
-      },
-    });
-
-    // If dosen hasn't verified token yet, redirect to token verification
-    if (!currentUser?.onboardingStep || currentUser.onboardingStep === 'role') {
-      redirect('/onboarding/token-verifikasi');
+    if (!isInstitutionalEmail(user.email)) {
+      redirect('/onboarding/role?err=dosen_email');
     }
   }
 
@@ -66,7 +61,7 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          Isi data diri
+          {dict.onboarding.dataDiri.title}
         </h1>
         <Image
           src='/emoji/pencil.svg'
@@ -76,16 +71,10 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
         />
       </div>
       <div className='flex items-start justify-center py-14 px-8'>
-        <DataDiriFormClient role={role} initialData={initialData} />
+        <DataDiriFormClient role={role} initialData={initialData} dict={dict} />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
-        <Link
-          href={
-            role === 'dosen'
-              ? '/onboarding/token-verifikasi'
-              : '/onboarding/role'
-          }
-        >
+        <Link href='/onboarding/role'>
           <Button
             variant='ghost'
             size='icon'
@@ -103,7 +92,7 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
           form='data-diri-form'
           type='submit'
         >
-          Lanjut
+          {dict.onboarding.dataDiri.continue}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

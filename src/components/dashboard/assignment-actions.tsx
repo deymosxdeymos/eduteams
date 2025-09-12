@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,6 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 
 interface AssignmentActionsProps {
   assignmentId: string;
@@ -49,6 +52,18 @@ export function AssignmentActions({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [resetting, setResetting] = useState(false);
+  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
+  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const load = async (l: Locale) => {
+      const dict = await getDictionary(l);
+      setMessages(dict);
+    };
+    load(getClientLocaleFromCookie());
+    const unsub = onLocaleChange(l => load(l));
+    return unsub;
+  }, []);
 
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !submitting
@@ -68,11 +83,16 @@ export function AssignmentActions({
       const data = await res.json();
       if (!res.ok || !data?.success) {
         setError(
-          data?.error || 'Gagal membentuk kelompok. Coba lagi sebentar lagi.'
+          data?.error ||
+            messages?.dashboard?.assignment?.actions?.errorCreateFailed ||
+            'Gagal membentuk kelompok. Coba lagi sebentar lagi.'
         );
         return;
       }
-      setSuccess('Berhasil membentuk kelompok!');
+      setSuccess(
+        messages?.dashboard?.assignment?.actions?.successCreate ||
+          'Berhasil membentuk kelompok!'
+      );
       // Close and refresh after brief delay
       setTimeout(() => {
         setModalOpen(false);
@@ -81,7 +101,10 @@ export function AssignmentActions({
         router.refresh();
       }, 900);
     } catch {
-      setError('Terjadi kesalahan jaringan. Coba lagi.');
+      setError(
+        messages?.dashboard?.assignment?.actions?.networkError ||
+          'Terjadi kesalahan jaringan. Coba lagi.'
+      );
     } finally {
       setSubmitting(false);
     }
@@ -90,7 +113,8 @@ export function AssignmentActions({
   const handleReset = async () => {
     if (resetting) return;
     const ok = window.confirm(
-      'Reset pembagian kelompok untuk tugas ini?\nIni tidak menghapus data preferensi. Anda dapat membentuk ulang setelah reset.'
+      (messages?.dashboard?.assignment?.actions?.resetConfirm ||
+        'Reset pembagian kelompok untuk tugas ini?\nIni tidak menghapus data preferensi. Anda dapat membentuk ulang setelah reset.') as string
     );
     if (!ok) return;
     setResetting(true);
@@ -102,13 +126,23 @@ export function AssignmentActions({
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
-        setError(data?.error || 'Gagal mereset pembagian kelompok');
+        setError(
+          data?.error ||
+            messages?.dashboard?.assignment?.actions?.resetFailed ||
+            'Gagal mereset pembagian kelompok'
+        );
         return;
       }
-      setSuccess('Berhasil mereset. Anda dapat membentuk ulang.');
+      setSuccess(
+        messages?.dashboard?.assignment?.actions?.resetSuccess ||
+          'Berhasil mereset. Anda dapat membentuk ulang.'
+      );
       setTimeout(() => router.refresh(), 600);
     } catch {
-      setError('Terjadi kesalahan jaringan saat reset.');
+      setError(
+        messages?.dashboard?.assignment?.actions?.resetNetworkError ||
+          'Terjadi kesalahan jaringan saat reset.'
+      );
     } finally {
       setResetting(false);
     }
@@ -130,23 +164,28 @@ export function AssignmentActions({
           <DialogTrigger asChild>
             <Button variant='onboarding' className='rounded-full p-6 w-[11rem]'>
               <Plus strokeWidth={3} className='w-4 h-4 text-white' />
-              <span className='font-semibold text-sm'>Buat Kelompok</span>
+              <span className='font-semibold text-sm'>
+                {messages?.dashboard?.assignment?.actions?.createTeamsButton ||
+                  'Buat Kelompok'}
+              </span>
             </Button>
           </DialogTrigger>
           <DialogContent className='border max-w-md md:max-w-xl rounded-3xl p-0 gap-0'>
             <DialogHeader className='p-6 pb-2'>
               <DialogTitle className='text-xl font-semibold text-left'>
-                Buat Kelompok
+                {messages?.dashboard?.assignment?.actions?.createTeamsTitle ||
+                  'Buat Kelompok'}
               </DialogTitle>
               <p className='text-gray-600 text-sm font-normal text-left mt-2'>
-                Pilih cara pembagian, sistem akan menyusun kelompok secara
-                otomatis berdasarkan data mahasiswa.
+                {messages?.dashboard?.assignment?.actions?.createTeamsDesc ||
+                  'Pilih cara pembagian, sistem akan menyusun kelompok secara otomatis berdasarkan data mahasiswa.'}
               </p>
             </DialogHeader>
             <div className='p-6 pt-0 space-y-5'>
               <div className='space-y-2'>
                 <label className='text-sm font-medium text-gray-900'>
-                  Metode Pembagian Kelompok
+                  {messages?.dashboard?.assignment?.actions?.methodLabel ||
+                    'Metode Pembagian Kelompok'}
                 </label>
                 <Select
                   value={method}
@@ -156,14 +195,22 @@ export function AssignmentActions({
                   }}
                 >
                   <SelectTrigger className='!h-12 !min-h-[3rem] w-full rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20'>
-                    <SelectValue placeholder='Pilih metode' />
+                    <SelectValue
+                      placeholder={
+                        messages?.dashboard?.assignment?.actions
+                          ?.methodPlaceholder || 'Pilih metode'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='JUMLAH_KELOMPOK'>
-                      Jumlah Kelompok
+                      {messages?.dashboard?.assignment?.actions
+                        ?.methodByGroupCount || 'Jumlah Kelompok'}
                     </SelectItem>
                     <SelectItem value='JUMLAH_MHS_PER_KELOMPOK'>
-                      Jumlah Mahasiswa per Kelompok
+                      {messages?.dashboard?.assignment?.actions
+                        ?.methodByStudentsPerGroup ||
+                        'Jumlah Mahasiswa per Kelompok'}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -173,14 +220,21 @@ export function AssignmentActions({
                 <div className='space-y-2'>
                   <label className='text-sm font-medium text-gray-900'>
                     {method === 'JUMLAH_KELOMPOK'
-                      ? 'Jumlah Kelompok'
-                      : 'Jumlah Mahasiswa per Kelompok'}
+                      ? messages?.dashboard?.assignment?.actions
+                          ?.methodByGroupCount || 'Jumlah Kelompok'
+                      : messages?.dashboard?.assignment?.actions
+                          ?.methodByStudentsPerGroup ||
+                        'Jumlah Mahasiswa per Kelompok'}
                   </label>
                   <InputRounded
                     type='number'
                     min={method === 'JUMLAH_MHS_PER_KELOMPOK' ? 2 : 1}
                     placeholder={
-                      method === 'JUMLAH_KELOMPOK' ? 'mis. 5' : 'mis. 4'
+                      method === 'JUMLAH_KELOMPOK'
+                        ? messages?.dashboard?.assignment?.actions
+                            ?.valuePlaceholderGroups || 'mis. 5'
+                        : messages?.dashboard?.assignment?.actions
+                            ?.valuePlaceholderStudents || 'mis. 4'
                     }
                     value={value}
                     onChange={e =>
@@ -204,7 +258,13 @@ export function AssignmentActions({
                                 )
                               : 0;
                         if (groups && groups !== topicCount) {
-                          return `Catatan: Jumlah topik (${topicCount}) tidak sama dengan jumlah kelompok (${groups}). Preferensi topik akan dipetakan secara best‑effort.`;
+                          const tpl =
+                            messages?.dashboard?.assignment?.actions
+                              ?.noteTopicsMismatch ||
+                            'Catatan: Jumlah topik ({topicCount}) tidak sama dengan jumlah kelompok ({groups}). Preferensi topik akan dipetakan secara best‑effort.';
+                          return tpl
+                            .replace('{topicCount}', String(topicCount))
+                            .replace('{groups}', String(groups));
                         }
                         return null;
                       })()}
@@ -227,7 +287,11 @@ export function AssignmentActions({
                   disabled={!canSubmit}
                   onClick={handleCreate}
                 >
-                  {submitting ? 'Membuat...' : 'Buat Kelompok'}
+                  {submitting
+                    ? messages?.dashboard?.assignment?.actions
+                        ?.submitCreating || 'Membuat...'
+                    : messages?.dashboard?.assignment?.actions?.submitCreate ||
+                      'Buat Kelompok'}
                 </Button>
               </div>
             </div>
@@ -242,7 +306,11 @@ export function AssignmentActions({
           disabled={resetting}
           onClick={handleReset}
         >
-          {resetting ? 'Mereset...' : 'Reset Kelompok'}
+          {resetting
+            ? messages?.dashboard?.assignment?.actions?.resetting ||
+              'Mereset...'
+            : messages?.dashboard?.assignment?.actions?.resetButton ||
+              'Reset Kelompok'}
         </Button>
       )}
 
@@ -250,10 +318,16 @@ export function AssignmentActions({
         <Button
           variant='outline'
           className='rounded-full border border-black p-6 w-[15rem]'
+          onClick={() =>
+            router.push(
+              `/dashboard/class/${classId}/assignments/${assignmentId}/answers`
+            )
+          }
         >
           <ChartLineIcon className='w-4 h-4 text-black' />
           <span className='text-black font-semibold text-sm'>
-            Lihat Jawaban Mahasiswa
+            {messages?.dashboard?.assignment?.actions?.viewAnswers ||
+              'Lihat Jawaban Mahasiswa'}
           </span>
         </Button>
       )}
@@ -270,7 +344,8 @@ export function AssignmentActions({
         >
           <ChartLineIcon className='w-4 h-4 text-black' />
           <span className='text-black font-semibold text-sm'>
-            Lihat Jawaban Saya
+            {messages?.dashboard?.assignment?.actions?.viewMyAnswers ||
+              'Lihat Jawaban Saya'}
           </span>
         </Button>
       )}
