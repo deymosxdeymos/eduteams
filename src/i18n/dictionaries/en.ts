@@ -289,8 +289,7 @@ export const messages = {
         valuePlaceholderStudents: 'e.g. 4',
         noteTopicsMismatch:
           'Note: Number of topics ({topicCount}) does not match number of teams ({groups}). Topic preferences will be mapped best‑effort.',
-        errorCreateFailed:
-          'Failed to form teams. Please try again shortly.',
+        errorCreateFailed: 'Failed to form teams. Please try again shortly.',
         successCreate: 'Successfully formed teams!',
         networkError: 'Network error. Please try again.',
         submitCreating: 'Creating...',

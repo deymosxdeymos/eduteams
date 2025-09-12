@@ -1,16 +1,16 @@
 'use client';
 
 import { Smile, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
+import type { Locale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/get-dictionary';
 import type { ExtendedUser } from '@/lib/types';
 import { Button } from '../ui/button';
 import { MBTIDisplay } from './mbti-display';
 import { PersonalityDescription } from './personality-description';
 import { PersonalityMetrics } from './personality-metrics';
 import { ProfileHeader } from './profile-header';
-import { useEffect, useState } from 'react';
-import { getDictionary } from '@/i18n/get-dictionary';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
 
 interface StudentProfileContentProps {
   student: ExtendedUser;
@@ -51,8 +51,10 @@ export function StudentProfileContent({
       {isModal && onClose && (
         <div className='flex justify-between items-center'>
           <div className='text-lg font-semibold text-stone-900'>
-            {(messages?.dashboard?.profile?.studentProfileTitle || 'Profil {name}')
-              .replace('{name}', student.name ?? 'Mahasiswa')}
+            {(
+              messages?.dashboard?.profile?.studentProfileTitle ||
+              'Profil {name}'
+            ).replace('{name}', student.name ?? 'Mahasiswa')}
           </div>
           <Button
             variant='ghost'

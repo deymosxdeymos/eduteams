@@ -148,7 +148,7 @@ export class MBTIQuestionsManager {
   private metrics: SystemMetrics;
   private fallbackData: FallbackData | null = null;
   private isInitialized = false;
-  private metricsInterval: Timeout | null = null;
+  private metricsInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(config: Partial<MBTISystemConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -208,14 +208,13 @@ export class MBTIQuestionsManager {
     }
   }
 
-
   private startMetricsCollection(): void {
     if (this.metricsInterval) return;
 
     this.metricsInterval = setInterval(() => {
       this.updateMemoryMetrics();
       this.persistMetrics();
-    }, this.config.monitoring.metricsInterval) as unknown as Timeout;
+    }, this.config.monitoring.metricsInterval);
   }
 
   private updateMemoryMetrics(): void {
@@ -420,7 +419,6 @@ export class MBTIQuestionsManager {
       },
     ];
   }
-
 
   private getFromMemory<T>(key: string): T | null {
     if (!this.memoryCache) return null;
@@ -713,7 +711,7 @@ export class MBTIQuestionsManager {
 
   async dispose(): Promise<void> {
     if (this.metricsInterval) {
-      clearInterval(this.metricsInterval as any);
+      clearInterval(this.metricsInterval);
       this.metricsInterval = null;
     }
 
