@@ -11,6 +11,9 @@
   ],
   "exclude": [
     "node_modules",
-    "src/generated/prisma"
+    "src/generated/prisma",
+    "__tests__/database/**",
+    "__tests__/integration/**",
+    "__tests__/components/personality-test-client.test.tsx"
   ]
 }
