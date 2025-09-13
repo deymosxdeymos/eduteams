@@ -2,9 +2,16 @@
 // Usage: bun run scripts/verify-coverage.ts [lcovPath]
 // Env: COVERAGE_LINES_MIN, COVERAGE_FUNCTIONS_MIN, COVERAGE_STATEMENTS_MIN, COVERAGE_BRANCHES_MIN
 
-const lcovPath = Bun.argv[2] || 'coverage/lcov.info';
+import { readFile } from 'node:fs/promises';
 
-const text = await Bun.file(lcovPath).text().catch(() => '');
+const lcovPath = process.argv[2] || 'coverage/lcov.info';
+
+let text = '';
+try {
+  text = await readFile(lcovPath, 'utf8');
+} catch {
+  text = '';
+}
 if (!text) {
   console.error(`Coverage file not found: ${lcovPath}`);
   process.exit(2);
@@ -41,4 +48,3 @@ if (!ok) {
 }
 
 console.log('Coverage gate passed');
-
