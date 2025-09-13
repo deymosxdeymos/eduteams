@@ -59,6 +59,20 @@ export async function middleware(request: NextRequest) {
     return Boolean(token);
   })();
 
+  // Ensure language cookie exists without redirecting
+  const hasLang = request.cookies.get('lang')?.value;
+  if (!hasLang) {
+    const accept = request.headers.get('accept-language')?.toLowerCase() || '';
+    const inferred = accept.startsWith('en') ? 'en' : 'id';
+    const response = NextResponse.next();
+    response.cookies.set('lang', inferred, {
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+    });
+    return applySecurityHeaders(response);
+  }
+
   const publicRoutes = ['/'];
   const isPublicRoute = publicRoutes.includes(pathname);
 

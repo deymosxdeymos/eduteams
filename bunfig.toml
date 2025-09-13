@@ -7,7 +7,7 @@ coverageReporter = ["text", "lcov"]
 coverageSkipTestFiles = true
 
 # Preload setup files
-preload = ["./__tests__/setup.ts", "./__tests__/dom-setup.ts"]
+preload = ["./__tests__/dom-setup.ts", "./__tests__/setup.ts"]
 
 # Test timeout (10 seconds)
 timeout = 10000
@@ -16,7 +16,8 @@ timeout = 10000
 coverageDirectory = "coverage"
 
 # Coverage thresholds - temporarily disabled to debug
-# coverageThreshold = { lines = 0.75, functions = 0.6, statements = 0.75 }
+# Enforce minimum coverage (tune upward over time)
+coverageThreshold = { lines = 0.8, functions = 0.75, statements = 0.8 }
 
 # Ignore patterns for coverage
 coveragePathIgnorePatterns = [
@@ -27,3 +28,7 @@ coveragePathIgnorePatterns = [
   "**/coverage/**",
   "**/.next/**"
 ]
+
+[test.reporter]
+# JUnit XML output for CI test reporting (use coverage dir to avoid mkdir issues)
+junit = "coverage/junit.xml"

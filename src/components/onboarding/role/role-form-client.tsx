@@ -10,11 +10,23 @@ import { submitRole } from '@/lib/actions/role';
 interface RoleFormClientProps {
   initialRole?: 'dosen' | 'mahasiswa';
   hasInstitutionalEmail?: boolean;
+  dict: {
+    onboarding: {
+      role: {
+        dosen: string;
+        mahasiswa: string;
+        institutionalEmailRequired: string;
+        loading: string;
+        continue: string;
+      };
+    };
+  };
 }
 
 export default function RoleFormClient({
   initialRole,
   hasInstitutionalEmail = false,
+  dict,
 }: RoleFormClientProps) {
   const [selectedRole, setSelectedRole] = useState<
     'dosen' | 'mahasiswa' | undefined
@@ -56,6 +68,7 @@ export default function RoleFormClient({
           onRoleSelect={handleRoleSelect}
           selectedRole={selectedRole}
           showDosenInvalid={isDosenInvalid}
+          dict={dict}
         />
       </div>
       <div className='flex items-center justify-center gap-x-2'>
@@ -83,7 +96,9 @@ export default function RoleFormClient({
               isBlocked ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {isPending ? 'Loading...' : 'Lanjut'}
+            {isPending
+              ? dict.onboarding.role.loading
+              : dict.onboarding.role.continue}
             <ArrowRight
               strokeWidth={3}
               className='font-bold text-neutral-400 text-lg'

@@ -1,4 +1,3 @@
-import { Redis } from '@upstash/redis';
 import NodeCache from 'node-cache';
 import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
@@ -43,14 +42,6 @@ export interface SystemMetrics {
 }
 
 export interface MBTISystemConfig {
-  redis: {
-    enabled: boolean;
-    url?: string;
-    token?: string;
-    ttl: number;
-    maxRetries: number;
-    retryDelay: number;
-  };
   memory: {
     enabled: boolean;
     ttl: number;
@@ -83,7 +74,7 @@ export interface CacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number;
-  source: 'database' | 'cache' | 'static';
+  source: 'database' | 'memory' | 'static';
 }
 
 export class MBTIQuestionsError extends Error {
@@ -129,14 +120,6 @@ export class ValidationError extends MBTIQuestionsError {
 }
 
 const DEFAULT_CONFIG: MBTISystemConfig = {
-  redis: {
-    enabled: !!process.env.UPSTASH_REDIS_REST_URL,
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    ttl: 30 * 60, // 30 minutes
-    maxRetries: 3,
-    retryDelay: 1000,
-  },
   memory: {
     enabled: true,
     ttl: 10 * 60, // 10 minutes
@@ -160,13 +143,12 @@ const DEFAULT_CONFIG: MBTISystemConfig = {
 };
 
 export class MBTIQuestionsManager {
-  private redis: Redis | null = null;
   private memoryCache: NodeCache | null = null;
   private config: MBTISystemConfig;
   private metrics: SystemMetrics;
   private fallbackData: FallbackData | null = null;
   private isInitialized = false;
-  private metricsInterval: NodeJS.Timeout | null = null;
+  private metricsInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(config: Partial<MBTISystemConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -205,19 +187,6 @@ export class MBTIQuestionsManager {
       // Set initialized flag early to prevent recursive calls
       this.isInitialized = true;
 
-      if (
-        this.config.redis.enabled &&
-        this.config.redis.url &&
-        this.config.redis.token
-      ) {
-        this.redis = new Redis({
-          url: this.config.redis.url,
-          token: this.config.redis.token,
-        });
-
-        await this.testRedisConnection();
-      }
-
       if (this.config.memory.enabled) {
         this.memoryCache = new NodeCache({
           stdTTL: this.config.memory.ttl,
@@ -236,17 +205,6 @@ export class MBTIQuestionsManager {
     } catch (error) {
       logger.error('Failed to initialize MBTI Questions Manager:', error);
       this.isInitialized = true;
-    }
-  }
-
-  private async testRedisConnection(): Promise<void> {
-    if (!this.redis) return;
-
-    try {
-      await this.redis.ping();
-    } catch (error) {
-      logger.warn('Redis connection test failed:', error);
-      this.redis = null;
     }
   }
 
@@ -269,15 +227,9 @@ export class MBTIQuestionsManager {
   }
 
   private async persistMetrics(): Promise<void> {
-    if (!this.redis) return;
-
-    try {
-      await this.redis.set('mbti:metrics', JSON.stringify(this.metrics), {
-        ex: this.config.redis.ttl,
-      });
-    } catch (error) {
-      logger.error('Failed to persist metrics:', error);
-    }
+    // Metrics are now only stored in memory
+    // In a production environment, you might want to persist to a database
+    logger.debug('Metrics updated:', this.metrics);
   }
 
   private async warmCache(): Promise<void> {
@@ -296,42 +248,42 @@ export class MBTIQuestionsManager {
       // EI 1-6
       {
         id: 'static-1',
-        text: 'You prefer groups to individuals.',
+        text: 'Kamu lebih suka kelompok daripada individu.',
         dimension: 'ei',
         order: 1,
         reversed: false,
       },
       {
         id: 'static-2',
-        text: 'You are sociable.',
+        text: 'Kamu bersosialisasi.',
         dimension: 'ei',
         order: 2,
         reversed: false,
       },
       {
         id: 'static-3',
-        text: 'You are expressive.',
+        text: 'Kamu ekspresif.',
         dimension: 'ei',
         order: 3,
         reversed: false,
       },
       {
         id: 'static-4',
-        text: 'You learn better by listening.',
+        text: 'Kamu belajar lebih baik dengan mendengarkan.',
         dimension: 'ei',
         order: 4,
         reversed: true,
       },
       {
         id: 'static-5',
-        text: 'You are talkative.',
+        text: 'Kamu banyak bicara.',
         dimension: 'ei',
         order: 5,
         reversed: false,
       },
       {
         id: 'static-6',
-        text: 'You enjoy meeting new people.',
+        text: 'Kamu senang bertemu orang baru.',
         dimension: 'ei',
         order: 6,
         reversed: false,
@@ -339,42 +291,42 @@ export class MBTIQuestionsManager {
       // SN 7-12
       {
         id: 'static-7',
-        text: 'You prefer theoretical subjects.',
+        text: 'Kamu lebih suka mata pelajaran teoritis.',
         dimension: 'sn',
         order: 7,
         reversed: false,
       },
       {
         id: 'static-8',
-        text: 'You prefer novel over traditional.',
+        text: 'Kamu lebih suka yang baru daripada yang tradisional.',
         dimension: 'sn',
         order: 8,
         reversed: false,
       },
       {
         id: 'static-9',
-        text: 'You prefer being curious.',
+        text: 'Kamu lebih suka menjadi penasaran.',
         dimension: 'sn',
         order: 9,
         reversed: true,
       },
       {
         id: 'static-10',
-        text: 'You prefer abstract over specific.',
+        text: 'Kamu lebih suka abstrak daripada spesifik.',
         dimension: 'sn',
         order: 10,
         reversed: false,
       },
       {
         id: 'static-11',
-        text: 'You notice patterns more than details.',
+        text: 'Kamu memperhatikan pola lebih daripada detail.',
         dimension: 'sn',
         order: 11,
         reversed: true,
       },
       {
         id: 'static-12',
-        text: 'You prefer conceptual tasks.',
+        text: 'Kamu lebih suka tugas konseptual.',
         dimension: 'sn',
         order: 12,
         reversed: false,
@@ -382,42 +334,42 @@ export class MBTIQuestionsManager {
       // TF 13-18
       {
         id: 'static-13',
-        text: 'You think judges should be merciful.',
+        text: 'Kamu berpikir hakim harus bermurah hati.',
         dimension: 'tf',
         order: 13,
         reversed: false,
       },
       {
         id: 'static-14',
-        text: 'You tend to be diplomatic.',
+        text: 'Kamu cenderung diplomatis.',
         dimension: 'tf',
         order: 14,
         reversed: true,
       },
       {
         id: 'static-15',
-        text: 'You rely on empathy when deciding.',
+        text: 'Kamu mengandalkan empati saat memutuskan.',
         dimension: 'tf',
         order: 15,
         reversed: true,
       },
       {
         id: 'static-16',
-        text: 'You prioritize fairness over harmony.',
+        text: 'Kamu memprioritaskan keadilan daripada harmoni.',
         dimension: 'tf',
         order: 16,
         reversed: false,
       },
       {
         id: 'static-17',
-        text: 'You value logic over emotions.',
+        text: 'Kamu menghargai logika daripada emosi.',
         dimension: 'tf',
         order: 17,
         reversed: true,
       },
       {
         id: 'static-18',
-        text: 'You consider others’ feelings when judging.',
+        text: 'Kamu mempertimbangkan perasaan orang lain saat menghakimi.',
         dimension: 'tf',
         order: 18,
         reversed: false,
@@ -425,82 +377,47 @@ export class MBTIQuestionsManager {
       // PJ 19-24
       {
         id: 'static-19',
-        text: 'You are systematic in your routines.',
+        text: 'Kamu sistematis dalam rutinitas.',
         dimension: 'pj',
         order: 19,
         reversed: false,
       },
       {
         id: 'static-20',
-        text: 'You prefer routine over variety.',
+        text: 'Kamu lebih suka rutinitas daripada variasi.',
         dimension: 'pj',
         order: 20,
         reversed: true,
       },
       {
         id: 'static-21',
-        text: 'You work better under pressure.',
+        text: 'Kamu bekerja lebih baik di bawah tekanan.',
         dimension: 'pj',
         order: 21,
         reversed: false,
       },
       {
         id: 'static-22',
-        text: 'You are methodical.',
+        text: 'Kamu metodis.',
         dimension: 'pj',
         order: 22,
         reversed: true,
       },
       {
         id: 'static-23',
-        text: 'You prefer open-ended activities.',
+        text: 'Kamu lebih suka aktivitas terbuka.',
         dimension: 'pj',
         order: 23,
         reversed: true,
       },
       {
         id: 'static-24',
-        text: 'You like to plan ahead.',
+        text: 'Kamu suka merencanakan ke depan.',
         dimension: 'pj',
         order: 24,
         reversed: false,
       },
     ];
-  }
-
-  private async getFromRedis<T>(key: string): Promise<T | null> {
-    if (!this.redis) return null;
-
-    try {
-      const data = await this.redis.get(key);
-      if (data) {
-        this.metrics.cache.hits++;
-        return JSON.parse(data as string) as T;
-      }
-      this.metrics.cache.misses++;
-      return null;
-    } catch (error) {
-      this.metrics.cache.errors++;
-      logger.error('Redis get error:', error);
-      return null;
-    }
-  }
-
-  private async setInRedis<T>(
-    key: string,
-    value: T,
-    ttl?: number
-  ): Promise<void> {
-    if (!this.redis) return;
-
-    try {
-      await this.redis.set(key, JSON.stringify(value), {
-        ex: ttl || this.config.redis.ttl,
-      });
-    } catch (error) {
-      this.metrics.cache.errors++;
-      logger.error('Redis set error:', error);
-    }
   }
 
   private getFromMemory<T>(key: string): T | null {
@@ -680,17 +597,11 @@ export class MBTIQuestionsManager {
       return questions;
     }
 
-    questions = await this.getFromRedis<MBTIQuestion[]>(cacheKey);
-    if (questions) {
-      this.setInMemory(cacheKey, questions);
-      return questions;
-    }
-
     try {
       questions = await this.getFromDatabase();
 
       // If database returned zero questions, provide a static fallback so UI keeps working.
-      // Use short in-memory TTL and skip Redis so fresh seeds are picked up quickly.
+      // Use short in-memory TTL so fresh seeds are picked up quickly.
       if (questions.length === 0) {
         const fallback = await this.getFallbackData();
         this.setInMemory(cacheKey, fallback, 60);
@@ -698,8 +609,6 @@ export class MBTIQuestionsManager {
       }
 
       this.setInMemory(cacheKey, questions);
-      await this.setInRedis(cacheKey, questions);
-
       return questions;
     } catch (error) {
       // If it's a validation error, don't use fallback - throw immediately
@@ -728,19 +637,11 @@ export class MBTIQuestionsManager {
       return pageQuestions;
     }
 
-    pageQuestions = await this.getFromRedis<MBTIQuestion[]>(cacheKey);
-    if (pageQuestions) {
-      this.setInMemory(cacheKey, pageQuestions);
-      return pageQuestions;
-    }
-
     const questions = await this.getMBTIQuestions();
     const startIndex = (page - 1) * PAGE_SIZE;
     pageQuestions = questions.slice(startIndex, startIndex + PAGE_SIZE);
 
     this.setInMemory(cacheKey, pageQuestions);
-    await this.setInRedis(cacheKey, pageQuestions);
-
     return pageQuestions;
   }
 
@@ -752,35 +653,16 @@ export class MBTIQuestionsManager {
       return totalPages;
     }
 
-    totalPages = await this.getFromRedis<number>(cacheKey);
-    if (totalPages) {
-      this.setInMemory(cacheKey, totalPages);
-      return totalPages;
-    }
-
     const questions = await this.getMBTIQuestions();
     totalPages = Math.ceil(questions.length / 6);
 
     this.setInMemory(cacheKey, totalPages);
-    await this.setInRedis(cacheKey, totalPages);
-
     return totalPages;
   }
 
   async invalidateCache(): Promise<void> {
     if (this.memoryCache) {
       this.memoryCache.flushAll();
-    }
-
-    if (this.redis) {
-      try {
-        const keys = await this.redis.keys('mbti:*');
-        if (keys.length > 0) {
-          await this.redis.del(...keys);
-        }
-      } catch (error) {
-        logger.error('Failed to invalidate Redis cache:', error);
-      }
     }
 
     this.fallbackData = null;
@@ -797,15 +679,10 @@ export class MBTIQuestionsManager {
 
   getHealthStatus(): {
     status: 'healthy' | 'degraded' | 'unhealthy';
-    redis: boolean;
     memory: boolean;
     database: boolean;
     fallback: boolean;
   } {
-    const redisHealthy =
-      !this.config.redis.enabled ||
-      (this.redis !== null && this.metrics.cache.errors < 10);
-
     const memoryHealthy =
       !this.config.memory.enabled ||
       (this.memoryCache !== null &&
@@ -820,13 +697,12 @@ export class MBTIQuestionsManager {
 
     if (!databaseHealthy) {
       status = 'unhealthy';
-    } else if (!redisHealthy || !memoryHealthy) {
+    } else if (!memoryHealthy) {
       status = 'degraded';
     }
 
     return {
       status,
-      redis: redisHealthy,
       memory: memoryHealthy,
       database: databaseHealthy,
       fallback: fallbackHealthy,
@@ -844,7 +720,6 @@ export class MBTIQuestionsManager {
       this.memoryCache = null;
     }
 
-    this.redis = null;
     this.isInitialized = false;
   }
 }

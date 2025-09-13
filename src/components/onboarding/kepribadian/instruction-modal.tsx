@@ -8,20 +8,68 @@ interface InstructionModalProps {
   isOpen: boolean;
   onCloseAction: () => void;
   title?: string;
+  dict?: {
+    onboarding: {
+      kepribadian: {
+        instructions: {
+          title: string;
+          step1: string;
+          step2: string;
+          step3: string;
+          step4: string;
+          likertScale: {
+            stronglyDisagree: string;
+            disagree: string;
+            neutral: string;
+            agree: string;
+            stronglyAgree: string;
+          };
+          startNow: string;
+        };
+      };
+    };
+  };
 }
 
 export default function InstructionModal({
   isOpen,
   onCloseAction,
-  title = 'Instruksi Pengerjaan Tes Kepribadian',
+  title,
+  dict,
 }: InstructionModalProps) {
-  const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju' },
-    { icon: 'Disagree', label: 'Tidak Setuju' },
-    { icon: 'Neutral', label: 'Netral' },
-    { icon: 'Agree', label: 'Setuju' },
-    { icon: 'Strongly-Agree', label: 'Sangat Setuju' },
-  ];
+  const likertScale = dict
+    ? [
+        {
+          icon: 'Strongly-Disagree',
+          label:
+            dict.onboarding.kepribadian.instructions.likertScale
+              .stronglyDisagree,
+        },
+        {
+          icon: 'Disagree',
+          label: dict.onboarding.kepribadian.instructions.likertScale.disagree,
+        },
+        {
+          icon: 'Neutral',
+          label: dict.onboarding.kepribadian.instructions.likertScale.neutral,
+        },
+        {
+          icon: 'Agree',
+          label: dict.onboarding.kepribadian.instructions.likertScale.agree,
+        },
+        {
+          icon: 'Strongly-Agree',
+          label:
+            dict.onboarding.kepribadian.instructions.likertScale.stronglyAgree,
+        },
+      ]
+    : [
+        { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju' },
+        { icon: 'Disagree', label: 'Tidak Setuju' },
+        { icon: 'Neutral', label: 'Netral' },
+        { icon: 'Agree', label: 'Setuju' },
+        { icon: 'Strongly-Agree', label: 'Sangat Setuju' },
+      ];
 
   return (
     <AnimatePresence>
@@ -62,27 +110,46 @@ export default function InstructionModal({
               className='bg-white rounded-4xl max-w-4xl w-full pt-12 px-12 pb-12 shadow-2xl'
             >
               <div className='text-center mb-8'>
-                <h1 className='text-3xl font-bold text-black mb-6'>{title}</h1>
+                <h1 className='text-3xl font-bold text-black mb-6'>
+                  {title ||
+                    (dict
+                      ? dict.onboarding.kepribadian.instructions.title
+                      : 'Instruksi Pengerjaan Tes Kepribadian')}
+                </h1>
 
                 <div className='text-left space-y-4 text-black leading-relaxed font-medium text-xl'>
-                  <p>
-                    1. Pilihlah jawaban{' '}
-                    <span className='font-bold'>yang paling sesuai</span> hingga{' '}
-                    <span className='font-bold'>yang tidak sesuai</span> dengan
-                    kondisimu saat ini.
-                  </p>
-                  <p>
-                    2. Temukan posisi senyaman mungkin dan pastikan tidak ada
-                    kegiatan lain yang sedang kamu lakukan saat menjawab tes.
-                  </p>
-                  <p>
-                    3. Jawablah setiap pertanyaan dengan jujur. Setiap soal
-                    dalam tes ini hanya bisa satu kali, jadi kerjakanlah dengan
-                    teliti.
-                  </p>
-                  <p>
-                    4. Sesuaikan jawaban kamu dengan parameter jawaban berikut:
-                  </p>
+                  {dict ? (
+                    <>
+                      <p>1. {dict.onboarding.kepribadian.instructions.step1}</p>
+                      <p>2. {dict.onboarding.kepribadian.instructions.step2}</p>
+                      <p>3. {dict.onboarding.kepribadian.instructions.step3}</p>
+                      <p>4. {dict.onboarding.kepribadian.instructions.step4}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        1. Pilihlah jawaban{' '}
+                        <span className='font-bold'>yang paling sesuai</span>{' '}
+                        hingga{' '}
+                        <span className='font-bold'>yang tidak sesuai</span>{' '}
+                        dengan kondisimu saat ini.
+                      </p>
+                      <p>
+                        2. Temukan posisi senyaman mungkin dan pastikan tidak
+                        ada kegiatan lain yang sedang kamu lakukan saat menjawab
+                        tes.
+                      </p>
+                      <p>
+                        3. Jawablah setiap pertanyaan dengan jujur. Setiap soal
+                        dalam tes ini hanya bisa satu kali, jadi kerjakanlah
+                        dengan teliti.
+                      </p>
+                      <p>
+                        4. Sesuaikan jawaban kamu dengan parameter jawaban
+                        berikut:
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -117,7 +184,9 @@ export default function InstructionModal({
                   onClick={onCloseAction}
                   className='text-lg font-semibold'
                 >
-                  Mulai Sekarang
+                  {dict
+                    ? dict.onboarding.kepribadian.instructions.startNow
+                    : 'Mulai Sekarang'}
                 </Button>
               </div>
             </motion.div>
