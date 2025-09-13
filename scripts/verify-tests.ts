@@ -1,9 +1,16 @@
 // Verifies JUnit XML produced by Bun tests has zero failures/errors
 // Usage: bun run scripts/verify-tests.ts [junitPath]
 
-const junitPath = Bun.argv[2] || 'coverage/junit.xml';
+import { readFile } from 'node:fs/promises';
 
-const xml = await Bun.file(junitPath).text().catch(() => '');
+const junitPath = process.argv[2] || 'coverage/junit.xml';
+
+let xml = '';
+try {
+  xml = await readFile(junitPath, 'utf8');
+} catch {
+  xml = '';
+}
 if (!xml) {
   console.error(`JUnit report not found: ${junitPath}`);
   process.exit(2);
@@ -26,4 +33,3 @@ if (failures > 0 || errors > 0 || hasFailureTags) {
 }
 
 console.log('All tests passed');
-
