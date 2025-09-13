@@ -2,6 +2,9 @@
   "name": "eduteams",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24.6.0 <25"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate --no-engine && next build",
@@ -10,6 +13,8 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "type-check": "tsc --noEmit",
+    "type-check:test": "tsc -p tsconfig.test.json --noEmit",
+    "type-check:strict": "tsc --noEmit --skipLibCheck false",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
@@ -61,6 +66,7 @@
     "@types/node": "^20.19.13",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
+    "bun-types": "^1.2.21",
     "cheerio": "^1.1.2",
     "eslint": "^9.34.0",
     "eslint-config-next": "15.4.1",
