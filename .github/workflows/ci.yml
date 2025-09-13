@@ -36,7 +36,16 @@ jobs:
       - name: Run tests (coverage + bail)
         run: |
           mkdir -p coverage
-          bun test --coverage --bail
+          # Run tests; allow non-zero to handle Bun's strict exit codes
+          bun test --coverage --bail || true
+
+      - name: Verify test results (JUnit)
+        run: |
+          bun run verify-tests
+
+      - name: Verify coverage thresholds
+        run: |
+          bun run verify-coverage
 
       - name: Upload coverage lcov
         if: always()
