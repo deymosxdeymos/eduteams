@@ -72,7 +72,7 @@ export default function RoleFormClient({
         />
       </div>
       <div className='flex items-center justify-center gap-x-2'>
-        <input type='hidden' name='role' value={selectedRole || ''} />
+        <input type='hidden' name='role' value={selectedRole || ''} readOnly />
         <motion.div
           key={shakeKey}
           animate={
