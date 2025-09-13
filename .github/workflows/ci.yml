@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   build-and-test:
@@ -16,17 +16,38 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.x
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Type check
+      - name: Type check (app)
         run: bun run type-check
+
+      - name: Type check (tests)
+        run: bun run type-check:test
+
+      - name: Type check (app, strict libs)
+        run: bun run type-check:strict
 
       - name: Lint
         run: bun run lint
 
-      # Later
-      # - name: Run tests
-# run: bun test --bail
+      - name: Run tests (coverage + bail)
+        run: |
+          mkdir -p coverage
+          bun test --coverage --bail
+
+      - name: Upload coverage lcov
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: coverage/junit.xml

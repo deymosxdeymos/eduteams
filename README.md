@@ -94,6 +94,29 @@ bun test:update-snapshots
 
 # Run tests with bail on first failure
 bun test:bail
+
+### Snapshots
+
+```bash
+# Run tests and update any mismatched snapshots
+bun test --update-snapshots
+
+# Commit updated snapshots after review
+git add -A && git commit -m "test: update snapshots"
+```
+
+### Filtering Tests
+
+```bash
+# Run tests in files whose path contains the substring
+bun test lib  # or any path substring
+
+# Run a specific test file
+bun test ./src/lib/stats/__tests__/assignment.test.ts
+
+# Run tests whose names match a pattern
+bun test --test-name-pattern "aggregates MBTI"
+```
 ```
 
 ### Database Commands
