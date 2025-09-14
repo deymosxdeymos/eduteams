@@ -28,3 +28,25 @@
 - Bun test runner with `__tests__/` structure
 - Mock setup in `__tests__/setup.ts`
 - Use `@testing-library/react` for component tests
+
+### AI-Friendly Test Output
+When using Bun's test runner with AI coding assistants, you can enable quieter output to improve readability and reduce context noise. This feature minimizes test output verbosity while preserving essential failure information.
+
+**Environment Variables**
+Set any of the following environment variables to enable AI-friendly output:
+- `CLAUDECODE=1` - For Claude Code
+- `REPL_ID=1` - For Replit
+- `AGENT=1` - Generic AI agent flag
+
+**Behavior**
+When an AI agent environment is detected:
+- Only test failures are displayed in detail
+- Passing, skipped, and todo test indicators are hidden
+- Summary statistics remain intact
+
+**Example:**
+```bash
+CLAUDECODE=1 bun test
+```
+
+This still shows failures and summary, but hides verbose passing test output. This feature is particularly useful in AI-assisted development workflows where reduced output verbosity improves context efficiency while maintaining visibility into test failures.

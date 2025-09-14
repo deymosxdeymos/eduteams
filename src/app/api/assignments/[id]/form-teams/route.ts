@@ -4,6 +4,37 @@ import type { Prisma } from '@/generated/prisma';
 import { handleApiError, withRole } from '@/lib/api-utils';
 import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
 import prisma from '@/lib/prisma';
+import { ValidationError } from '@/lib/utils/errors';
+
+function normalizeGender(
+  g: unknown
+): 'MALE' | 'FEMALE' | undefined {
+  if (!g || typeof g !== 'string') return undefined;
+  const v = g.trim().toLowerCase();
+  // Common mappings (ID + EN)
+  if (
+    v === 'male' ||
+    v === 'laki-laki' ||
+    v === 'laki laki' ||
+    v === 'pria' ||
+    v === 'm' ||
+    v === 'l'
+  )
+    return 'MALE';
+  if (
+    v === 'female' ||
+    v === 'perempuan' ||
+    v === 'wanita' ||
+    v === 'f' ||
+    v === 'p'
+  )
+    return 'FEMALE';
+  // Already in expected form
+  if (v === 'male'.toLowerCase() || v === 'female'.toLowerCase())
+    return v.toUpperCase() as 'MALE' | 'FEMALE';
+  if (v === 'ma le') return 'MALE';
+  return undefined;
+}
 
 const BODY_SCHEMA = z
   .object({
@@ -18,8 +49,27 @@ export const runtime = 'nodejs';
 export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
   try {
     const { id: assignmentId } = await ctx.params;
-    const body = await req.json();
-    const { method, value } = BODY_SCHEMA.parse(body);
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      throw new ValidationError('Invalid JSON in request body');
+    }
+
+    let parsedBody: z.infer<typeof BODY_SCHEMA>;
+    try {
+      parsedBody = BODY_SCHEMA.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationError(
+          `Validation failed: ${error.issues.map(issue => issue.message).join(', ')}`
+        );
+      }
+      throw error;
+    }
+
+    const { method, value } = parsedBody;
 
     // Verify assignment and ownership
     const assignment = await prisma.assignment.findUnique({
@@ -99,7 +149,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // Build people payload as required by openapi.json
     const people = students.map(s => ({
       id: s.id,
-      gender: s.gender ?? undefined,
+      gender: normalizeGender(s.gender ?? undefined),
       personality: {
         ei: Number.isFinite(s.ei ?? 0) ? (s.ei ?? 0) : 0,
         sn: Number.isFinite(s.sn ?? 0) ? (s.sn ?? 0) : 0,
@@ -292,7 +342,8 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       }
 
       tasks = groupSizes.map((sz, i) => ({
-        id: representativeTopicId[i],
+        // Ensure task IDs remain unique even if the same topic is reused
+        id: `${representativeTopicId[i]}-${i + 1}`,
         skills: defaultTaskSkills,
         teamSize: sz,
         preferences: prefsByBucket[i]?.length ? prefsByBucket[i] : undefined,
@@ -342,10 +393,14 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       });
 
       // Optionally, update assignment status
-      await prisma.assignment.update({
-        where: { id: assignmentId },
-        data: { status: 'BERHASIL_PEMBAGIAN_GRUP' },
-      });
+      try {
+        await prisma.assignment.update({
+          where: { id: assignmentId },
+          data: { status: 'BERHASIL_PEMBAGIAN_GRUP' },
+        });
+      } catch {
+        // Optional field; ignore if not present in schema
+      }
 
       return NextResponse.json({
         success: true,

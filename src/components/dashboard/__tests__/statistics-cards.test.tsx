@@ -1,8 +1,18 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, mock } from 'bun:test';
 import useSWR from 'swr';
-import { messages as idMessages } from '@/i18n/dictionaries/id';
 import { StatisticsCards } from '../statistics-cards';
+
+// Mock messages for testing
+const mockMessages = {
+  dashboard: {
+    statistics: {
+      totalAssignments: 'Total tugas telah dibuat',
+      totalTeams: 'Total kelompok berhasil dibentuk',
+      avgTeamQuality: 'Rata-rata skor kualitas kelompok',
+    },
+  },
+};
 
 // Mock SWR
 mock.module('swr', () => ({
@@ -12,9 +22,19 @@ mock.module('swr', () => ({
   })),
 }));
 
+// Mock i18n client functions
+mock.module('@/i18n/client', () => ({
+  getClientLocaleFromCookie: () => 'id',
+  onLocaleChange: (callback: (locale: string) => void) => {
+    // Return unsubscribe function
+    return () => {};
+  },
+  emitLocaleChange: () => {},
+}));
+
 // Mock i18n dictionary loader to avoid dynamic import timing
 mock.module('@/i18n/get-dictionary', () => ({
-  getDictionary: async () => idMessages,
+  getDictionary: async () => mockMessages,
 }));
 
 const mockUseSWR = useSWR as any;
