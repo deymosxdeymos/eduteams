@@ -6,9 +6,7 @@ import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
 import prisma from '@/lib/prisma';
 import { ValidationError } from '@/lib/utils/errors';
 
-function normalizeGender(
-  g: unknown
-): 'MALE' | 'FEMALE' | undefined {
+function normalizeGender(g: unknown): 'MALE' | 'FEMALE' | undefined {
   if (!g || typeof g !== 'string') return undefined;
   const v = g.trim().toLowerCase();
   // Common mappings (ID + EN)

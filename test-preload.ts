@@ -1,9 +1,15 @@
 import { mock } from 'bun:test';
 
+// Lightweight helper types for test mocks (avoid any)
+type WhereId = { where: { id: string } };
+type CreateArgs = { data: Record<string, unknown> };
+type UpdateArgs = { where: { id: string }; data: Record<string, unknown> };
+type UpsertArgs = { create: Record<string, unknown> };
+
 // Mock Prisma with a comprehensive implementation that handles all test scenarios
-const prismaMock: any = {
+const prismaMock: unknown = {
   user: {
-    findUnique: mock(async ({ where }: any) => {
+    findUnique: mock(async ({ where }: WhereId['where']) => {
       if (where.id === 'u1')
         return {
           id: 'u1',
@@ -86,20 +92,20 @@ const prismaMock: any = {
         };
       return null;
     }),
-    create: mock(async (args: any) => ({
+    create: mock(async (args: CreateArgs) => ({
       id: 'new-user',
       ...args.data,
       createdAt: new Date(),
       updatedAt: new Date(),
     })),
-    update: mock(async (args: any) => ({
+    update: mock(async (args: UpdateArgs) => ({
       id: args.where.id,
       ...args.data,
       updatedAt: new Date(),
     })),
   },
   course: {
-    create: mock(async (args: any) => ({
+    create: mock(async (args: CreateArgs) => ({
       id: 'c1',
       ...args.data,
       dosenId: args.data.dosenId || 'u1',
@@ -123,7 +129,7 @@ const prismaMock: any = {
         _count: { enrollments: 3 },
       },
     ]),
-    findUnique: mock(async ({ where }: any) => {
+    findUnique: mock(async ({ where }: WhereId['where']) => {
       if (where.id === 'c1')
         return {
           id: 'c1',
@@ -140,14 +146,14 @@ const prismaMock: any = {
         };
       return null;
     }),
-    update: mock(async (args: any) => ({
+    update: mock(async (args: UpdateArgs) => ({
       id: args.where.id,
       ...args.data,
       updatedAt: new Date(),
     })),
   },
   courseEnrollment: {
-    create: mock(async (args: any) => ({
+    create: mock(async (args: CreateArgs) => ({
       id: 'e1',
       ...args.data,
       createdAt: new Date(),
@@ -157,14 +163,14 @@ const prismaMock: any = {
     delete: mock(async () => ({ id: 'e1' })),
   },
   assignment: {
-    create: mock(async (args: any) => ({
+    create: mock(async (args: CreateArgs) => ({
       id: 'a1',
       ...args.data,
       createdAt: new Date(),
       updatedAt: new Date(),
     })),
     findMany: mock(async () => []),
-    findUnique: mock(async ({ where }: any) => {
+    findUnique: mock(async ({ where }: WhereId['where']) => {
       if (where.id === 'a1')
         return {
           id: 'a1',
@@ -179,21 +185,21 @@ const prismaMock: any = {
         };
       return null;
     }),
-    update: mock(async (args: any) => ({
+    update: mock(async (args: UpdateArgs) => ({
       id: args.where.id,
       ...args.data,
       updatedAt: new Date(),
     })),
   },
   assignmentSubmission: {
-    create: mock(async (args: any) => ({
+    create: mock(async (args: CreateArgs) => ({
       id: 'sub1',
       ...args.data,
       createdAt: new Date(),
     })),
     findMany: mock(async () => []),
     findUnique: mock(async () => null),
-    upsert: mock(async (args: any) => ({
+    upsert: mock(async (args: UpsertArgs) => ({
       id: 'sub1',
       ...args.create,
       createdAt: new Date(),
