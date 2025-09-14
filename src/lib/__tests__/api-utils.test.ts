@@ -340,22 +340,22 @@ describe('api-utils', () => {
     it('passes when user has required role', async () => {
       const { requireRole } = await import('@/lib/api-utils');
       const user = { id: 'u1', role: 'dosen' as const, isOnboarded: true };
-      expect(() => requireRole('dosen', user)).not.toThrow();
+      expect(() => requireRole('dosen', user as any)).not.toThrow();
     });
 
     it('throws when user lacks required role', async () => {
       const { requireRole } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: 'mahasiswa' as const, isOnboarded: true };
-      expect(() => requireRole('dosen', user)).toThrow(AuthorizationError);
-      expect(() => requireRole('dosen', user)).toThrow('Insufficient permissions');
+      expect(() => requireRole('dosen', user as any)).toThrow(AuthorizationError);
+      expect(() => requireRole('dosen', user as any)).toThrow('Insufficient permissions');
     });
 
     it('throws when user has no role', async () => {
       const { requireRole } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: null, isOnboarded: true };
-      expect(() => requireRole('dosen', user)).toThrow(AuthorizationError);
+      expect(() => requireRole('dosen', user as any)).toThrow(AuthorizationError);
     });
   });
 
@@ -363,15 +363,15 @@ describe('api-utils', () => {
     it('passes when user is onboarded', async () => {
       const { requireOnboarded } = await import('@/lib/api-utils');
       const user = { id: 'u1', role: 'dosen' as const, isOnboarded: true };
-      expect(() => requireOnboarded(user)).not.toThrow();
+      expect(() => requireOnboarded(user as any)).not.toThrow();
     });
 
     it('throws when user is not onboarded', async () => {
       const { requireOnboarded } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: 'dosen' as const, isOnboarded: false };
-      expect(() => requireOnboarded(user)).toThrow(AuthorizationError);
-      expect(() => requireOnboarded(user)).toThrow('User must complete onboarding first');
+      expect(() => requireOnboarded(user as any)).toThrow(AuthorizationError);
+      expect(() => requireOnboarded(user as any)).toThrow('User must complete onboarding first');
     });
   });
 });
