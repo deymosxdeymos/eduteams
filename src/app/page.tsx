@@ -13,12 +13,16 @@ export default async function Home() {
   const locale = await getLocale();
   const dict = await getDictionary(locale);
   return (
-    <main>
-      <section className='bg-blue-background min-h-screen flex flex-col pt-14'>
+    <main className='overflow-x-hidden'>
+      <section className='bg-blue-background flex flex-col px-6 pt-14 overflow-x-hidden relative'>
         {/* header */}
-        <div className='relative flex items-center justify-center px-4'>
-          <Logo className='justify-center' />
-          <div className='absolute right-24'>
+        <div className='relative flex items-center justify-between lg:justify-center px-4 max-w-full overflow-hidden'>
+          <Logo
+            imageSize='w-8 h-8 md:w-12 md:h-12'
+            size='text-xl sm:text-2xl md:text-3xl'
+            className='justify-center'
+          />
+          <div className='absolute right-4 sm:right-24'>
             <LanguageSwitcher current={locale} />
           </div>
         </div>
@@ -51,13 +55,13 @@ export default async function Home() {
             <LoginButton />
           </div>
           {/* mascot */}
-          <div className='flex items-center justify-center z-10 mt-4'>
+          <div className='flex items-center justify-center z-20 relative mt-4 mb-6 lg:mb-0'>
             <Image
               src='/landing/Illustration.svg'
               width={700}
               height={700}
               alt='mascot'
-              className='w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] h-auto'
+              className='w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] z-20 h-auto'
               priority
             />
           </div>
@@ -65,24 +69,25 @@ export default async function Home() {
       </section>
 
       {/* hills */}
-      <section className='relative bg-white mt-10'>
-        <Image
-          src='/landing/Subtract.svg'
-          width={1920}
-          height={400}
-          alt='hills'
-          className='absolute left-0 right-0 -top-24 sm:-top-36 md:-top-42 z-0 w-full h-auto'
-          priority
-        />
-
+      <section className='relative bg-white '>
+        <div className='absolute inset-x-0 -top-8 lg:-top-10 -translate-y-[8%] sm:-translate-y-[30%] lg:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
+          <Image
+            src='/landing/Subtract.svg'
+            width={1920}
+            height={400}
+            alt='hills'
+            className='w-full h-auto max-w-[1920px]'
+            priority
+          />
+        </div>
         {/* text statement */}
-        <div className=' flex flex-col items-center justify-center px-2 sm:px-4'>
+        <div className='relative z-20 flex flex-col items-center justify-center px-2 sm:px-4 max-w-full overflow-hidden'>
           <Image
             src='/landing/ENFJ.svg'
             width={200}
             height={200}
             alt='ENFJ'
-            className='flex mr-auto ml-40 -mt-34 z-10'
+            className='flex mr-auto ml-4 sm:ml-20 lg:ml-40 -mt-16 sm:-mt-20 z-10 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
           />
           <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
             <div className='flex items-center justify-center h-full'>
@@ -99,13 +104,13 @@ export default async function Home() {
             width={200}
             height={200}
             alt='ENTJ'
-            className='absolute right-0 -bottom-16'
+            className='absolute right-2 sm:right-4 -bottom-16 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
           />{' '}
         </div>
       </section>
 
       {/* grey area underneath */}
-      <section className='bg-accent min-h-screen flex flex-col items-center justify-center p-10'>
+      <section className='bg-accent min-h-screen flex flex-col items-center justify-center p-4 lg:p-10 overflow-x-hidden'>
         <h1 className='text-black text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4'>
           {dict.homepage.problems.title}
         </h1>
@@ -124,7 +129,7 @@ export default async function Home() {
               width={200}
               height={200}
               alt='INFJ'
-              className='ml-auto -mr-6'
+              className='ml-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
             />
           </div>
           {/* Card 2 */}
@@ -137,7 +142,7 @@ export default async function Home() {
               width={200}
               height={200}
               alt='ESTP'
-              className='ml-auto -mr-6'
+              className='ml-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
             />
           </div>
           {/* Card 3 */}
@@ -150,7 +155,7 @@ export default async function Home() {
               width={200}
               height={200}
               alt='INTJ'
-              className='ml-auto -mr-6'
+              className='ml-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
             />
           </div>
         </div>
@@ -159,7 +164,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className='bg-white min-h-screen flex flex-col items-center justify-center px-10 py-18'>
+      <section className='bg-white min-h-screen flex flex-col items-center justify-center px-4 lg:px-10 py-18 overflow-x-hidden'>
         <h1 className='text-blue-background text-5xl font-extrabold mt-2'>
           {dict.homepage.solution.title}
         </h1>
@@ -271,7 +276,7 @@ export default async function Home() {
                 className='p-6'
               />
             </div>
-            <h1 className='text-emerald-700 font-bold text-2xl mb-2 text-center whitespace-nowrap'>
+            <h1 className='text-emerald-700 font-bold text-2xl mb-2 text-center'>
               {dict.homepage.solution.features.personalityMatching.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
@@ -331,16 +336,16 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <section className='bg-blue-background min-h-screen flex flex-col items-center px-6 py-18'>
+      <section className='bg-blue-background min-h-screen flex flex-col items-center px-4 sm:px-6 py-18 overflow-x-hidden'>
         <h1 className='text-white text-5xl font-bold mt-2'>
           {dict.homepage.benefits.title}
         </h1>
         <p className='text-white font-normal text-base sm:text-lg lg:text-xl text-center mt-8'>
           {dict.homepage.benefits.description}
         </p>
-        <div className='flex justify-center items-center gap-8 mt-18 max-w-6xl mx-auto'>
+        <div className='flex flex-col lg:flex-row justify-center items-center gap-6 lg:gap-8 mt-18 max-w-6xl mx-auto px-4'>
           {/* card 1 */}
-          <div className='bg-white/10 rounded-3xl flex flex-col justify-start items-start shadow-md p-8 flex-1 min-h-[500px]'>
+          <div className='bg-white/10 rounded-3xl flex flex-col justify-start items-start shadow-md p-6 lg:p-8 flex-1 min-h-[500px] w-full'>
             <div className='bg-emerald-100 rounded-xl flex items-center justify-center mb-6 w-fit'>
               <Image
                 src='/mahasiswa.svg'
@@ -377,7 +382,7 @@ export default async function Home() {
             </ul>
           </div>
           {/* card 2 */}
-          <div className='bg-white/10 rounded-3xl flex flex-col justify-start items-start shadow-md p-8 flex-1 min-h-[500px]'>
+          <div className='bg-white/10 rounded-3xl flex flex-col justify-start items-start shadow-md p-6 lg:p-8 flex-1 min-h-[500px] w-full'>
             <div className='bg-amber-100 rounded-xl flex items-center justify-center mb-6 w-fit'>
               <Image
                 src='/dosen.svg'
@@ -415,25 +420,25 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <section className='bg-white min-h-screen flex flex-col items-center justify-center px-10 py-18'>
+      <section className='bg-white min-h-screen flex flex-col items-center justify-center px-4 lg:px-10 py-18 overflow-x-hidden'>
         <div className='flex flex-col items-center justify-center gap-18 max-w-6xl text-center'>
-          <h1 className='text-zinc-800 text-4xl font-semibold mt-2'>
+          <h1 className='text-zinc-800 text-2xl sm:text-3xl lg:text-4xl font-semibold mt-2'>
             {dict.homepage.focus.title}
           </h1>
-          <h1 className='text-zinc-800 text-7xl font-extrabold italic mt-2 tracking-tight leading-snug'>
+          <h1 className='text-zinc-800 text-3xl sm:text-5xl lg:text-7xl font-extrabold italic mt-2 tracking-tight leading-snug'>
             <span className='text-blue-background'>EquiTeam</span>{' '}
             <HighlightText text={dict.homepage.focus.text} />
           </h1>
-          <p className='font-light tracking-tight text-zinc-800 text-3xl'>
+          <p className='font-light tracking-tight text-zinc-800 text-lg sm:text-2xl lg:text-3xl px-4'>
             {dict.homepage.focus.justice}
           </p>
         </div>
       </section>
-      <footer className='bg-blue-background min-h-screen flex flex-col items-start gap-32 p-32 relative'>
-        <h1 className='text-white text-9xl font-normal z-10'>
+      <footer className='bg-blue-background min-h-screen flex flex-col items-start gap-8 sm:gap-16 lg:gap-32 p-4 sm:p-8 lg:p-32 relative max-w-full overflow-hidden'>
+        <h1 className='text-white text-4xl sm:text-6xl lg:text-9xl font-normal z-10'>
           {dict.homepage.footer.title}
         </h1>{' '}
-        <div className='flex items-start justify-start gap-48 text-start whitespace-pre-line z-10'>
+        <div className='flex flex-col lg:flex-row items-start justify-start gap-8 lg:gap-48 text-start whitespace-pre-line z-10 w-full'>
           <h2 className='text-white text-3xl font-semibold mt-2 max-w-lg'>
             {dict.homepage.footer.description}
           </h2>
@@ -465,10 +470,14 @@ export default async function Home() {
             </div>
           </div>
         </div>
-        <div className='flex items-center justify-between text-start gap-6 mt-20 max-w-6xl z-10 w-full'>
-          <Logo size='text-4xl' className='min-w-2xl' />
-          <div className='flex flex-row items-center'>
-            <p className='text-white text-lg font-normal min-w-sm whitespace-pre-line mt-2'>
+        <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between text-start gap-6 mt-8 lg:mt-20 max-w-6xl z-10 w-full'>
+          <Logo
+            size='text-lg sm:text-2xl md:text-3xl lg:text-4xl'
+            imageSize='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14'
+            className='min-w-0'
+          />
+          <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
+            <p className='text-white text-sm sm:text-lg font-normal whitespace-pre-line mt-2'>
               {dict.homepage.footer.copyright}
             </p>
             {/* SocialRow: social icons row */}
@@ -480,7 +489,7 @@ export default async function Home() {
           alt='footer'
           width={700}
           height={700}
-          className='absolute right-0 bottom-0 z-0'
+          className='absolute right-0 bottom-0 z-0 max-w-[300px] sm:max-w-[500px] lg:max-w-[700px] h-auto'
         />
       </footer>
     </main>
