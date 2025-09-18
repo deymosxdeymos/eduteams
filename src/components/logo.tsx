@@ -4,12 +4,14 @@ interface LogoProps {
   color?: 'white' | 'black';
   className?: string;
   size?: string;
+  imageSize?: string;
 }
 
 export default function Logo({
   color = 'white',
   className,
   size = 'text-3xl',
+  imageSize = 'w-12 h-12',
 }: LogoProps) {
   const mainTextClass = color === 'black' ? 'text-black' : 'text-white';
   const spanTextClass = color === 'black' ? 'text-neutral-800' : 'text-white';
@@ -18,10 +20,10 @@ export default function Logo({
     <header className={`flex flex-row items-center gap-8 ${className || ''}`}>
       <Image
         src='/mascot-yellow-head.svg'
-        width={50}
-        height={50}
+        width={48}
+        height={48}
         alt='logo'
-        className='w-auto h-auto'
+        className={imageSize}
       />
       <p className={`${mainTextClass} ${size} font-bold`}>
         Equi<span className={`${spanTextClass} font-light`}>Team</span>
