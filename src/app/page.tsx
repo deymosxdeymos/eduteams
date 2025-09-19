@@ -16,7 +16,7 @@ export default async function Home() {
     <main className='overflow-x-hidden'>
       <section className='bg-blue-background flex flex-col px-6 pt-14 overflow-x-hidden relative'>
         {/* header */}
-        <div className='relative flex items-center justify-between lg:justify-center px-4 max-w-full overflow-hidden'>
+        <div className='flex items-center justify-between lg:justify-center px-4 max-w-full min-h-fit overflow-hidden'>
           <Logo
             imageSize='w-8 h-8 md:w-12 md:h-12'
             size='text-xl sm:text-2xl md:text-3xl'
@@ -30,7 +30,7 @@ export default async function Home() {
         {/* hero content */}
         <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
           <div className='text-center'>
-            <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
+            <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
               {dict.homepage.hero.titlePrefix}{' '}
               <TextRotate
                 texts={[...dict.homepage.hero.rotatingWords]}
@@ -41,7 +41,7 @@ export default async function Home() {
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               />
             </h1>
-            <h1 className='text-white text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight'>
+            <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight'>
               {dict.homepage.hero.titleSuffix}
             </h1>
           </div>
@@ -58,10 +58,11 @@ export default async function Home() {
           <div className='flex items-center justify-center z-20 relative mt-4 mb-6 lg:mb-0'>
             <Image
               src='/landing/Illustration.svg'
-              width={700}
-              height={700}
+              width={0}
+              height={0}
+              sizes='100vw'
               alt='mascot'
-              className='w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] z-20 h-auto'
+              className='w-full h-auto max-w-[300px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20'
               priority
             />
           </div>
@@ -69,26 +70,20 @@ export default async function Home() {
       </section>
 
       {/* hills */}
-      <section className='relative bg-white '>
-        <div className='absolute inset-x-0 -top-8 lg:-top-10 -translate-y-[8%] sm:-translate-y-[30%] lg:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
+      <section className='relative bg-white -mt-2 sm:mt-0'>
+        <div className='absolute inset-x-0 -top-8 lg:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
           <Image
             src='/landing/Subtract.svg'
-            width={1920}
-            height={400}
+            width={0}
+            height={0}
+            sizes='100vw'
             alt='hills'
             className='w-full h-auto max-w-[1920px]'
             priority
           />
         </div>
         {/* text statement */}
-        <div className='relative z-20 flex flex-col items-center justify-center px-2 sm:px-4 max-w-full overflow-hidden'>
-          <Image
-            src='/landing/ENFJ.svg'
-            width={200}
-            height={200}
-            alt='ENFJ'
-            className='flex mr-auto ml-4 sm:ml-20 lg:ml-40 -mt-16 sm:-mt-20 z-10 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
-          />
+        <div className='relative flex flex-col items-center justify-center px-2 sm:px-4 max-w-full overflow-visible'>
           <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
             <div className='flex items-center justify-center h-full'>
               <h1 className='text-lg sm:text-3xl lg:text-7xl font-extrabold text-blue-background leading-snug mb-2 sm:mb-4'>
@@ -101,17 +96,18 @@ export default async function Home() {
           </div>
           <Image
             src='/landing/ENTJ.svg'
-            width={200}
-            height={200}
+            width={0}
+            height={0}
+            sizes='100vw'
             alt='ENTJ'
-            className='absolute right-2 sm:right-4 -bottom-16 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
-          />{' '}
+            className='absolute right-0 -bottom-16 w-auto h-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px] z-20'
+          />
         </div>
       </section>
 
-      {/* grey area underneath */}
-      <section className='bg-accent min-h-screen flex flex-col items-center justify-center p-4 lg:p-10 overflow-x-hidden'>
-        <h1 className='text-black text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4'>
+      {/* grey area */}
+      <section className='bg-accent min-h-screen flex flex-col items-center justify-center px-12 py-14 lg:p-10 overflow-x-hidden z-0'>
+        <h1 className='text-black text-4xl sm:text-5xl text-center font-semibold sm:font-bold tracking-tight mb-4'>
           {dict.homepage.problems.title}
         </h1>
         <p className='text-gray-900 text-base sm:text-xl lg:text-2xl text-center px-4'>
@@ -120,42 +116,45 @@ export default async function Home() {
         {/* 3 problem cards row */}
         <div className='w-full max-w-5xl mx-auto mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch'>
           {/* Card 1 */}
-          <div className='bg-gradient-to-b from-white to-lime-100 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+          <div className='bg-gradient-to-b from-white to-lime-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
             <h1 className='text-emerald-900 font-bold text-5xl mb-1'>
               {dict.homepage.problems.problem1}
             </h1>
             <Image
               src='/landing/INFJ.svg'
-              width={200}
-              height={200}
+              width={0}
+              height={0}
+              sizes='100vw'
               alt='INFJ'
-              className='ml-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
+              className='ml-auto w-auto h-auto max-w-[150px] lg:max-w-[200px]'
             />
           </div>
           {/* Card 2 */}
-          <div className='bg-gradient-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+          <div className='bg-gradient-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
             <h1 className='text-orange-900 font-bold text-5xl mb-1'>
               {dict.homepage.problems.problem2}
             </h1>
             <Image
               src='/landing/ESTP.svg'
-              width={200}
-              height={200}
+              width={0}
+              height={0}
+              sizes='100vw'
               alt='ESTP'
-              className='ml-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
+              className='ml-auto w-auto h-auto max-w-[150px] lg:max-w-[200px]'
             />
           </div>
           {/* Card 3 */}
-          <div className='bg-gradient-to-b from-white to-indigo-200 rounded-xl shadow-md p-6 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+          <div className='bg-gradient-to-b from-white to-indigo-200 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
             <h1 className='text-violet-900 font-bold text-5xl mb-1'>
               {dict.homepage.problems.problem3}
             </h1>
             <Image
               src='/landing/INTJ.svg'
-              width={200}
-              height={200}
+              width={0}
+              height={0}
+              sizes='100vw'
               alt='INTJ'
-              className='ml-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]'
+              className='ml-auto w-auto h-auto max-w-[150px] lg:max-w-[200px]'
             />
           </div>
         </div>
@@ -164,8 +163,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className='bg-white min-h-screen flex flex-col items-center justify-center px-4 lg:px-10 py-18 overflow-x-hidden'>
-        <h1 className='text-blue-background text-5xl font-extrabold mt-2'>
+      {/*solusi */}
+      <section className='bg-white min-h-screen flex flex-col items-center justify-center px-8 lg:px-10 py-18 overflow-x-hidden'>
+        <h1 className='text-blue-background text-5xl sm:text-5xl tracking-tighter sm:tracking-normal font-semibold sm:font-bold mt-2'>
           {dict.homepage.solution.title}
         </h1>
         <p className='text-gray-900 text-base sm:text-xl lg:text-2xl text-center mt-4'>
@@ -227,7 +227,7 @@ export default async function Home() {
               {dict.homepage.solution.aspects.description}
             </p>
 
-            <div className='grid grid-cols-2 gap-4 mt-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6'>
               <div className='bg-white/10 rounded-xl p-4 text-center'>
                 <h3 className='text-emerald-400 font-bold text-2xl mb-2'>
                   {dict.homepage.solution.aspects.personality.name}
@@ -265,9 +265,9 @@ export default async function Home() {
         </div>
 
         {/* Second row: 4 cards */}
-        <div className='w-full max-w-6xl mx-auto mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+        <div className='w-full max-w-6xl mx-auto mt-8 grid grid-cols-2 sm:grid-cols-4 gap-6'>
           <div className='flex flex-col items-center'>
-            <div className='bg-emerald-100 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+            <div className='bg-emerald-100 rounded-xl p-6 flex items-center justify-center mb-4 aspect-square sm:h-62'>
               <Image
                 src='/landing/personality.svg'
                 width={200}
@@ -276,7 +276,7 @@ export default async function Home() {
                 className='p-6'
               />
             </div>
-            <h1 className='text-emerald-700 font-bold text-2xl mb-2 text-center'>
+            <h1 className='text-emerald-1000 font-bold text-2xl mb-2 text-center'>
               {dict.homepage.solution.features.personalityMatching.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
@@ -284,7 +284,7 @@ export default async function Home() {
             </p>
           </div>
           <div className='flex flex-col items-center'>
-            <div className='bg-amber-100 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+            <div className='bg-amber-100 rounded-xl p-6 flex items-center justify-center mb-4 aspect-square sm:h-62'>
               <Image
                 src='/landing/skill.svg'
                 width={200}
@@ -293,7 +293,7 @@ export default async function Home() {
                 className='p-6'
               />
             </div>
-            <h1 className='text-amber-700 font-bold text-2xl mb-2 text-center'>
+            <h1 className='text-amber-1000 font-bold text-2xl mb-2 text-center'>
               {dict.homepage.solution.features.skillBalancing.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
@@ -301,7 +301,7 @@ export default async function Home() {
             </p>
           </div>
           <div className='flex flex-col items-center'>
-            <div className='bg-sky-200 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+            <div className='bg-sky-200 rounded-xl p-6 flex items-center justify-center mb-4 aspect-square sm:h-62'>
               <Image
                 src='/landing/gender.svg'
                 width={200}
@@ -310,7 +310,7 @@ export default async function Home() {
                 className='p-6'
               />
             </div>
-            <h1 className='text-sky-700 font-bold text-2xl mb-2 text-center'>
+            <h1 className='text-sky-1000 font-bold text-2xl mb-2 text-center'>
               {dict.homepage.solution.features.genderBalance.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
@@ -318,7 +318,7 @@ export default async function Home() {
             </p>
           </div>
           <div className='flex flex-col items-center'>
-            <div className='bg-indigo-100 rounded-xl p-6 flex items-center justify-center mb-4 h-62'>
+            <div className='bg-indigo-100 rounded-xl p-6 flex items-center justify-center mb-4 aspect-square sm:h-62'>
               <Image
                 src='/landing/preference-task.svg'
                 width={200}
@@ -327,7 +327,7 @@ export default async function Home() {
                 className='p-6'
               />
             </div>
-            <h1 className='text-indigo-700 font-bold text-2xl mb-2 text-center'>
+            <h1 className='text-indigo-1000 font-bold text-2xl mb-2 text-center'>
               {dict.homepage.solution.features.taskPreference.title}
             </h1>
             <p className='text-gray-900 text-sm text-center font-normal'>
@@ -337,7 +337,7 @@ export default async function Home() {
         </div>
       </section>
       <section className='bg-blue-background min-h-screen flex flex-col items-center px-4 sm:px-6 py-18 overflow-x-hidden'>
-        <h1 className='text-white text-5xl font-bold mt-2'>
+        <h1 className='text-white text-center text-5xl font-bold mt-2'>
           {dict.homepage.benefits.title}
         </h1>
         <p className='text-white font-normal text-base sm:text-lg lg:text-xl text-center mt-8'>
@@ -487,9 +487,10 @@ export default async function Home() {
         <Image
           src='/landing/footer.svg'
           alt='footer'
-          width={700}
-          height={700}
-          className='absolute right-0 bottom-0 z-0 max-w-[300px] sm:max-w-[500px] lg:max-w-[700px] h-auto'
+          width={0}
+          height={0}
+          sizes='100vw'
+          className='absolute right-0 bottom-0 z-0 w-auto h-auto max-w-[300px] sm:max-w-[500px] lg:max-w-[1000px]'
         />
       </footer>
     </main>
