@@ -1,158 +1,114 @@
-## Interactivity
+Concise rules for building accessible, fast, delightful UIs Use MUST/SHOULD/NEVER to guide decisions
 
-- Clicking the input label should focus the input field
-- Inputs should be wrapped with a `<form>` to submit by pressing Enter
-- Inputs should have an appropriate `type` like `password`, `email`, etc
-- Inputs should disable `spellcheck` and `autocomplete` attributes most of the
-  time
-- Inputs should leverage HTML form validation by using the `required` attribute
-  when appropriate
-- Input prefix and suffix decorations, such as icons, should be absolutely
-  positioned on top of the text input with padding, not next to it, and trigger
-  focus on the input
-- Toggles should immediately take effect, not require confirmation
-- Buttons should be disabled after submission to avoid duplicate network
-  requests
-- Interactive elements should disable `user-select` for inner content
-- Decorative elements (glows, gradients) should disable `pointer-events` to not
-  hijack events
-- Interactive elements in a vertical or horizontal list should have no dead
-  areas between each element, instead, increase their `padding`
+## Interactions
 
-## Typography
+- Keyboard
+  - MUST: Full keyboard support per [WAI-ARIA APG](https://wwww3org/WAI/ARIA/apg/patterns/)
+  - MUST: Visible focus rings (`:focus-visible`; group with `:focus-within`)
+  - MUST: Manage focus (trap, move, and return) per APG patterns
+- Targets & input
+  - MUST: Hit target ≥24px (mobile ≥44px) If visual <24px, expand hit area
+  - MUST: Mobile `<input>` font-size ≥16px or set:
+    ```html
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    ```
+  - NEVER: Disable browser zoom
+  - MUST: `touch-action: manipulation` to prevent double-tap zoom; set `-webkit-tap-highlight-color` to match design
+- Inputs & forms (behavior)
+  - MUST: Hydration-safe inputs (no lost focus/value)
+  - NEVER: Block paste in `<input>/<textarea>`
+  - MUST: Loading buttons show spinner and keep original label
+  - MUST: Enter submits focused text input In `<textarea>`, ⌘/Ctrl+Enter submits; Enter adds newline
+  - MUST: Keep submit enabled until request starts; then disable, show spinner, use idempotency key
+  - MUST: Don’t block typing; accept free text and validate after
+  - MUST: Allow submitting incomplete forms to surface validation
+  - MUST: Errors inline next to fields; on submit, focus first error
+  - MUST: `autocomplete` + meaningful `name`; correct `type` and `inputmode`
+  - SHOULD: Disable spellcheck for emails/codes/usernames
+  - SHOULD: Placeholders end with ellipsis and show example pattern (eg, `+1 (123) 456-7890`, `sk-012345…`)
+  - MUST: Warn on unsaved changes before navigation
+  - MUST: Compatible with password managers & 2FA; allow pasting one-time codes
+  - MUST: Trim values to handle text expansion trailing spaces
+  - MUST: No dead zones on checkboxes/radios; label+control share one generous hit target
+- State & navigation
+  - MUST: URL reflects state (deep-link filters/tabs/pagination/expanded panels) Prefer libs like [nuqs](https://nuqs47ngcom/)
+  - MUST: Back/Forward restores scroll
+  - MUST: Links are links—use `<a>/<Link>` for navigation (support Cmd/Ctrl/middle-click)
+- Feedback
+  - SHOULD: Optimistic UI; reconcile on response; on failure show error and rollback or offer Undo
+  - MUST: Confirm destructive actions or provide Undo window
+  - MUST: Use polite `aria-live` for toasts/inline validation
+  - SHOULD: Ellipsis (`…`) for options that open follow-ups (eg, “Rename…”)
+- Touch/drag/scroll
+  - MUST: Design forgiving interactions (generous targets, clear affordances; avoid finickiness)
+  - MUST: Delay first tooltip in a group; subsequent peers no delay
+  - MUST: Intentional `overscroll-behavior: contain` in modals/drawers
+  - MUST: During drag, disable text selection and set `inert` on dragged element/containers
+  - MUST: No “dead-looking” interactive zones—if it looks clickable, it is
+- Autofocus
+  - SHOULD: Autofocus on desktop when there’s a single primary input; rarely on mobile (to avoid layout shift)
 
-- Fonts should have `-webkit-font-smoothing: antialiased` applied for better
-  legibility
-- Fonts should have `text-rendering: optimizeLegibility` applied for better
-  legibility
-- Fonts should be subset based on the content, alphabet or relevant language(s)
-- Font weight should not change on hover or selected state to prevent layout
-  shift
-- Font weights below 400 should not be used
-- Medium sized headings generally look best with a font weight between 500-600
-- Adjust values fluidly by using CSS
-  [`clamp()`](https://developer.mozilla.org/en-US/docs/Web/CSS/clamp), e.g.
-  `clamp(48px, 5vw, 72px)` for the `font-size` of a heading
-- Where available, tabular figures should be applied with
-  `font-variant-numeric: tabular-nums`, particularly in tables or when layout
-  shifts are undesirable, like in timers
-- Prevent text resizing unexpectedly in landscape mode on iOS with
-  `-webkit-text-size-adjust: 100%`
+## Animation
 
-## Motion
+- MUST: Honor `prefers-reduced-motion` (provide reduced variant)
+- SHOULD: Prefer CSS > Web Animations API > JS libraries
+- MUST: Animate compositor-friendly props (`transform`, `opacity`); avoid layout/repaint props (`top/left/width/height`)
+- SHOULD: Animate only to clarify cause/effect or add deliberate delight
+- SHOULD: Choose easing to match the change (size/distance/trigger)
+- MUST: Animations are interruptible and input-driven (avoid autoplay)
+- MUST: Correct `transform-origin` (motion starts where it “physically” should)
 
-- Switching themes should not trigger transitions and animations on elements [^1]
-- Animation duration should not be more than 200ms for interactions to feel
-  immediate
-- Animation values should be proportional to the trigger size:
-  - Don't animate dialog scale in from 0 → 1, fade opacity and scale from ~0.8
-  - Don't scale buttons on press from 1 → 0.8, but ~0.96, ~0.9, or so
-- Actions that are frequent and low in novelty should avoid extraneous
-  animations: [^2]
-  - Opening a right click menu
-  - Deleting or adding items from a list
-  - Hovering trivial buttons
-- Looping animations should pause when not visible on the screen to offload CPU
-  and GPU usage
-- Use `scroll-behavior: smooth` for navigating to in-page anchors, with an
-  appropriate offset
+## Layout
 
-## Touch
+- SHOULD: Optical alignment; adjust by ±1px when perception beats geometry
+- MUST: Deliberate alignment to grid/baseline/edges/optical centers—no accidental placement
+- SHOULD: Balance icon/text lockups (stroke/weight/size/spacing/color)
+- MUST: Verify mobile, laptop, ultra-wide (simulate ultra-wide at 50% zoom)
+- MUST: Respect safe areas (use env(safe-area-inset-*))
+- MUST: Avoid unwanted scrollbars; fix overflows
 
-- Hover states should not be visible on touch press, use `@media (hover: hover)`[^3]
-- Font size for inputs should not be smaller than 16px to prevent iOS zooming on
-  focus
-- Inputs should not auto focus on touch devices as it will open the keyboard and
-  cover the screen
-- Apply `muted` and `playsinline` to `<video />` tags to auto play on iOS
-- Disable `touch-action` for custom components that implement pan and zoom
-  gestures to prevent interference from native behavior like zooming and
-  scrolling
-- Disable the default iOS tap highlight with
-  `-webkit-tap-highlight-color: rgba(0,0,0,0)`, but always replace it with an
-  appropriate alternative
+## Content & Accessibility
 
-## Optimizations
+- SHOULD: Inline help first; tooltips last resort
+- MUST: Skeletons mirror final content to avoid layout shift
+- MUST: `<title>` matches current context
+- MUST: No dead ends; always offer next step/recovery
+- MUST: Design empty/sparse/dense/error states
+- SHOULD: Curly quotes (“ ”); avoid widows/orphans
+- MUST: Tabular numbers for comparisons (`font-variant-numeric: tabular-nums` or a mono like Geist Mono)
+- MUST: Redundant status cues (not color-only); icons have text labels
+- MUST: Don’t ship the schema—visuals may omit labels but accessible names still exist
+- MUST: Use the ellipsis character `…` (not ``)
+- MUST: `scroll-margin-top` on headings for anchored links; include a “Skip to content” link; hierarchical `<h1–h6>`
+- MUST: Resilient to user-generated content (short/avg/very long)
+- MUST: Locale-aware dates/times/numbers/currency
+- MUST: Accurate names (`aria-label`), decorative elements `aria-hidden`, verify in the Accessibility Tree
+- MUST: Icon-only buttons have descriptive `aria-label`
+- MUST: Prefer native semantics (`button`, `a`, `label`, `table`) before ARIA
+- SHOULD: Right-clicking the nav logo surfaces brand assets
+- MUST: Use non-breaking spaces to glue terms: `10&nbsp;MB`, `⌘&nbsp;+&nbsp;K`, `Vercel&nbsp;SDK`
 
-- Large `blur()` values for `filter` and `backdrop-filter` may be slow
-- Scaling and blurring filled rectangles will cause banding, use radial
-  gradients instead
-- Sparingly enable GPU rendering with `transform: translateZ(0)` for
-  unperformant animations
-- Toggle `will-change` on unperformant scroll animations for the duration of the
-  animation [^4]
-- Auto-playing too many videos on iOS will choke the device, pause or even
-  unmount off-screen videos
-- Bypass React's render lifecycle with refs for real-time values that can commit
-  to the DOM directly [^5]
-- [Detect and adapt](https://github.com/GoogleChromeLabs/react-adaptive-hooks)
-  to the hardware and network capabilities of the user's device
+## Performance
 
-## Accessibility
-
-- Disabled buttons should not have tooltips, they are not accessible [^6]
-- Box shadow should be used for focus rings, not outline which won’t respect
-  radius [^7]
-- Focusable elements in a sequential list should be navigable with <kbd>↑</kbd>
-  <kbd>↓</kbd>
-- Focusable elements in a sequential list should be deletable with <kbd>⌘</kbd>
-  <kbd>Backspace</kbd>
-- To open immediately on press, dropdown menus should trigger on `mousedown`,
-  not `click`
-- Use a svg favicon with a style tag that adheres to the system theme based on
-  `prefers-color-scheme`
-- Icon only interactive elements should define an explicit `aria-label`
-- Tooltips triggered by hover should not contain interactive content
-- Images should always be rendered with `<img>` for screen readers and ease of
-  copying from the right click menu
-- Illustrations built with HTML should have an explicit `aria-label` instead of
-  announcing the raw DOM tree to people using screen readers
-- Gradient text should unset the gradient on `::selection` state
-- When using nested menus, use a "prediction cone" to prevent the pointer from
-  accidentally closing the menu when moving across other elements.
+- SHOULD: Test iOS Low Power Mode and macOS Safari
+- MUST: Measure reliably (disable extensions that skew runtime)
+- MUST: Track and minimize re-renders (React DevTools/React Scan)
+- MUST: Profile with CPU/network throttling
+- MUST: Batch layout reads/writes; avoid unnecessary reflows/repaints
+- MUST: Mutations (`POST/PATCH/DELETE`) target <500 ms
+- SHOULD: Prefer uncontrolled inputs; make controlled loops cheap (keystroke cost)
+- MUST: Virtualize large lists (eg, `virtua`)
+- MUST: Preload only above-the-fold images; lazy-load the rest
+- MUST: Prevent CLS from images (explicit dimensions or reserved space)
 
 ## Design
 
-- Optimistically update data locally and roll back on server error with feedback
-- Authentication redirects should happen on the server before the client loads
-  to avoid janky URL changes
-- Style the document selection state with `::selection`
-- Display feedback relative to its trigger:
-  - Show a temporary inline checkmark on a successful copy, not a notification
-  - Highlight the relevant input(s) on form error(s)
-- Empty states should prompt to create a new item, with optional templates
-
-[^1]: Switching between dark mode or light mode will trigger transitions on
-    elements that are meant for explicit interactions like hover. We can
-    [disable transitions temporarily](https://paco.me/writing/disable-theme-transitions)
-    to prevent this. For Next.js, use
-    [next-themes](https://github.com/pacocoursey/next-themes) which prevents
-    transitions out of the box.
-
-[^2]: This is a matter of taste but some interactions just feel better with no
-    motion. For example, the native macOS right click menu only animates out,
-    not in, due to the frequent usage of it.
-
-[^3]: Most touch devices on press will temporarily flash the hover state, unless
-    explicitly only defined for pointer devices with
-    [`@media (hover: hover)`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/hover).
-
-[^4]: Use
-    [`will-change`](https://developer.mozilla.org/en-US/docs/Web/CSS/will-change)
-    as a last resort to improve performance. Pre-emptively throwing it on
-    elements for better performance may have the opposite effect.
-
-[^5]: This might be controversial but sometimes it can be beneficial to
-    manipulate the DOM directly. For example, instead of relying on React
-    re-rendering on every wheel event, we can track the delta in a ref and
-    update relevant elements directly in the callback.
-
-[^6]: Disabled buttons do not appear in tab order in the DOM so the tooltip will
-    never be announced for keyboard users and they won't know why the button is
-    disabled.
-
-[^7]: As of 2023, Safari will not take the border radius of an element into
-    account when defining custom outline styles.
-    [Safari 16.4](https://developer.apple.com/documentation/safari-release-notes/safari-16_4-release-notes)
-    has added support for `outline` following the curve of border radius.
-    However, keep in mind that not everyone updates their OS immediately.
+- SHOULD: Layered shadows (ambient + direct)
+- SHOULD: Crisp edges via semi-transparent borders + shadows
+- SHOULD: Nested radii: child ≤ parent; concentric
+- SHOULD: Hue consistency: tint borders/shadows/text toward bg hue
+- MUST: Accessible charts (color-blind-friendly palettes)
+- MUST: Meet contrast—prefer [APCA](https://apcacontrastcom/) over WCAG 2
+- MUST: Increase contrast on `:hover/:active/:focus`
+- SHOULD: Match browser UI to bg
+- SHOULD: Avoid gradient banding (use masks when needed)

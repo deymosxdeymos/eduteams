@@ -1,7 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
-import LetterSwapForward from '@/components/ui/letter-swap-forward';
+import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 
 export function LoginButton() {
@@ -20,25 +21,22 @@ export function LoginButton() {
     }
   };
   return (
-    <button
-      type='button'
+    <Button
+      variant='outline'
+      className='w-fit rounded-full text-sm sm:text-lg py-8 px-10 transition-all duration-200 ease-out hover:scale-105 active:scale-95 disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95'
       onClick={signIn}
       disabled={isLoading}
-      className='relative text-center text-3xl font-semibold w-56 rounded-full bg-white p-4 text-blue-800 transition-all duration-300 ease-out shadow-md hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95 active:translate-y-0 active:shadow-sm active:duration-75 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0'
     >
-      <LetterSwapForward
-        label={isLoading ? 'Loading...' : 'Masuk'}
-        reverse={false}
-        staggerFrom='center'
-        transition={{
-          type: 'spring',
-          duration: 0.5,
-        }}
-        staggerDuration={0.05}
+      <Image
+        src='/google.svg'
+        alt='Google Logo'
+        width={0}
+        height={0}
+        sizes='100vw'
+        className='mr-2'
+        style={{ width: '24px', height: '24px' }}
       />
-      <div className='absolute z-10 right-0'>
-        <div className='rounded-sm before:rounded-full before:absolute before:-bottom-9.5 before:-left-17 before:h-14 before:w-7 before:rotate-42 before:transform before:border-r-2 before:border-t-2 before:border-white before:bg-white'></div>
-      </div>
-    </button>
+      {isLoading ? 'Loading...' : 'Masuk dengan Google'}
+    </Button>
   );
 }
