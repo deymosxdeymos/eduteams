@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
 
 export function LoginButton() {
@@ -23,20 +24,23 @@ export function LoginButton() {
   return (
     <Button
       variant='outline'
-      className='w-fit rounded-full text-sm sm:text-lg py-8 px-10 transition-all duration-200 ease-out hover:scale-105 active:scale-95 disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95'
+      className='w-fit rounded-full text-sm sm:text-lg py-8 px-10 transition-all duration-200 ease-out disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95'
       onClick={signIn}
       disabled={isLoading}
     >
-      <Image
-        src='/google.svg'
-        alt='Google Logo'
-        width={0}
-        height={0}
-        sizes='100vw'
-        className='mr-2'
-        style={{ width: '24px', height: '24px' }}
-      />
-      {isLoading ? 'Loading...' : 'Masuk dengan Google'}
+      {isLoading ? (
+        <LoadingSpinner size='sm' className='mr-2' color='currentColor' />
+      ) : (
+        <Image
+          src='/google.svg'
+          alt='Google Logo'
+          width={24}
+          height={24}
+          className='mr-2'
+          style={{ width: 'auto', height: 'auto' }}
+        />
+      )}
+      Masuk dengan Google
     </Button>
   );
 }

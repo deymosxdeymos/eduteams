@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { setLocale } from '@/app/actions/set-locale';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { emitLocaleChange } from '@/i18n/client';
 import type { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/get-dictionary';
@@ -40,20 +41,36 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
         });
       }}
     >
-      <h1 className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
-        {current.toUpperCase()}
-      </h1>
-      <Image
-        src={current === 'id' ? '/indo.svg' : '/english.svg'}
-        width={40}
-        height={40}
-        alt={
-          current === 'id'
-            ? messages?.dashboard?.languageSwitcher?.indonesiaAlt || 'indonesia'
-            : messages?.dashboard?.languageSwitcher?.englishAlt || 'english'
-        }
-        className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
-      />
+      {isPending ? (
+        <>
+          <LoadingSpinner
+            size='sm'
+            className='mr-1 sm:mr-2'
+            color='currentColor'
+          />
+          <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
+            {current.toUpperCase()}
+          </span>
+        </>
+      ) : (
+        <>
+          <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
+            {current.toUpperCase()}
+          </span>
+          <Image
+            src={current === 'id' ? '/indo.svg' : '/english.svg'}
+            width={40}
+            height={40}
+            alt={
+              current === 'id'
+                ? messages?.dashboard?.languageSwitcher?.indonesiaAlt ||
+                  'indonesia'
+                : messages?.dashboard?.languageSwitcher?.englishAlt || 'english'
+            }
+            className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
+          />
+        </>
+      )}
     </Button>
   );
 }
