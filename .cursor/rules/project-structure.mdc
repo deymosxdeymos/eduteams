@@ -1,0 +1,41 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# EduTeams Project Structure
+
+## Architecture Overview
+EduTeams is a Next.js 15 application with TypeScript, Prisma, and Better Auth for team formation in educational settings.
+
+## Key Directories
+- `src/app/` - Next.js App Router pages and layouts
+- `src/components/` - Reusable React components organized by feature
+- `src/lib/` - Utility functions, API logic, and business logic
+- `src/i18n/` - Internationalization (Indonesian/English)
+- `prisma/` - Database schema and migrations
+- `__tests__/` - Test files using Bun test runner
+
+## Component Organization
+- `components/auth/` - Authentication components
+- `components/dashboard/` - Dashboard-specific components
+- `components/onboarding/` - User onboarding flow components
+- `components/ui/` - Reusable UI components (shadcn/ui based)
+
+## File Naming Conventions
+- Components: PascalCase (e.g., `ClassCard.tsx`)
+- Utilities: kebab-case (e.g., `api-utils.ts`)
+- Pages: lowercase with hyphens (e.g., `page.tsx`)
+- Tests: `*.test.ts` or `*.test.tsx`
+
+## Import Patterns
+- Use `@/` alias for src directory imports
+- Group imports: external libraries, internal modules, relative imports
+- Prefer named exports over default exports for utilities
+
+## Key Files
+- [package.json](mdc:package.json) - Dependencies and scripts
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration
+- [biome.json](mdc:biome.json) - Code formatting and linting
+- [prisma/schema.prisma](mdc:prisma/schema.prisma) - Database schema
+- [src/middleware.ts](mdc:src/middleware.ts) - Next.js middleware for auth

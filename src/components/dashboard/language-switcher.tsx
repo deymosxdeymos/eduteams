@@ -36,7 +36,18 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
       onClick={() => {
         startTransition(async () => {
           await setLocale(nextLocale, { path: pathname || '/' });
+          try {
+            document.cookie = `lang=${nextLocale}; path=/; samesite=lax`;
+          } catch {}
           emitLocaleChange(nextLocale);
+          const currentPath = pathname || '/';
+          const isEn = currentPath === '/en' || currentPath.startsWith('/en/');
+          const normalized = isEn
+            ? currentPath.replace(/^\/en(\/|$)/, '/').replace(/\/+/g, '/')
+            : currentPath;
+          const targetPath =
+            nextLocale === 'en' ? `/en${normalized}` : normalized;
+          router.push(targetPath);
           router.refresh();
         });
       }}

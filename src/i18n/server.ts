@@ -11,12 +11,16 @@ function pickLocaleFromAcceptLanguage(value: string | null): Locale {
 }
 
 export async function getLocale(): Promise<Locale> {
+  const hdrs = await headers();
+  const override = hdrs.get('x-lang');
+  if (override && (locales as readonly string[]).includes(override)) {
+    return override as Locale;
+  }
   const cookieStore = await cookies();
   const cookieLocale = cookieStore.get('lang')?.value;
   if (cookieLocale && (locales as readonly string[]).includes(cookieLocale)) {
     return cookieLocale as Locale;
   }
-  const hdrs = await headers();
   const accept = hdrs.get('accept-language');
   return pickLocaleFromAcceptLanguage(accept);
 }

@@ -1,0 +1,67 @@
+---
+globs: prisma/**/*,src/lib/**/*.ts
+description: Database and Prisma ORM patterns
+---
+
+# Database & Prisma Guidelines
+
+## Prisma Schema
+- Use descriptive model and field names
+- Implement proper relationships between models
+- Use appropriate data types and constraints
+- Add proper indexes for performance
+- Use enums for fixed value sets
+
+## Database Patterns
+- Use transactions for multi-table operations
+- Implement proper error handling
+- Use connection pooling
+- Handle database migrations carefully
+
+## Query Optimization
+- Use `select` to fetch only needed fields
+- Use `include` for related data
+- Implement proper pagination
+- Use database indexes effectively
+- Avoid N+1 query problems
+
+## Data Validation
+- Use Zod schemas for input validation
+- Validate data at API boundaries
+- Implement proper error handling
+- Use proper data sanitization
+
+## Migration Management
+- Create descriptive migration names
+- Test migrations on development data
+- Use proper rollback strategies
+- Document breaking changes
+
+## Model Relationships
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  courses   Course[]
+  // ... other fields
+}
+
+model Course {
+  id       String @id @default(cuid())
+  ownerId  String
+  owner    User   @relation(fields: [ownerId], references: [id])
+  // ... other fields
+}
+```
+
+## Error Handling
+- Use proper Prisma error types
+- Implement graceful error handling
+- Log errors appropriately
+- Return user-friendly error messages
+
+## Performance
+- Use proper database indexes
+- Implement query optimization
+- Use connection pooling
+- Monitor query performance

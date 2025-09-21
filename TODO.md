@@ -166,3 +166,27 @@ Notes for handler tests:
 ---
 
 References: see `docs/bun-test/` for configuration, discovery, DOM setup, mocks, lifecycle, coverage, reporters, runtime behavior, and writing tests.
+
+
+## 15) i18n Routing & Language Switcher
+- [x] Add locale subpath support with default `id` unprefixed
+- [x] Preserve headers (`x-lang`) on rewrites for server locale resolution
+- [x] Avoid redirects/cookie writes on non‑HTML or non‑GET requests
+- [x] Switcher sets cookie client‑side and navigates, preserving path
+- [x] Per‑key fallback: English falls back to Indonesian
+
+How it was solved
+- Middleware adds `/en` subpath support while keeping default `id` unprefixed; URL prefix > cookie > `Accept-Language`.
+- Rewrites for `/en` preserve headers and set `x-lang: en`, so `getLocale()` resolves correctly server‑side.
+- Redirects/cookie writes are limited to HTML document `GET` requests, preventing asset/data requests from overriding the `lang` cookie.
+- `LanguageSwitcher` sets `document.cookie=lang` before navigation, then pushes to `/en{path}` or `{path}` and refreshes.
+- `get-dictionary` deeply merges `en` over `id`, so missing English keys fall back to Indonesian.
+
+## 16) Lessons learned (things I did wrong)
+- Setting `lang` during asset/data requests caused the cookie to flip back unexpectedly; only mutate cookies on HTML document `GET`.
+- Redirecting on non‑GET requests interfered with server actions/navigation; limit redirects to document `GET`.
+- Not preserving headers on rewrites meant the server couldn’t see the effective locale; inject `x-lang` on rewrites.
+- Relying on `Accept-Language` over cookie for unprefixed paths kept users on English; cookie should win after first choice.
+- Not writing the cookie client‑side before navigation led to a race; set `document.cookie` before pushing the new path.
+- Missing per‑key fallback produced undefined text for incomplete translations; deep‑merge `en` over `id`.
+- Revalidating `/en/...` while routes are unprefixed didn’t match; normalize path before `revalidatePath`.

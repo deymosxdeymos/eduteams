@@ -18,6 +18,7 @@ export async function setLocale(
   const store = await cookies();
   store.set('lang', locale, { path: '/', httpOnly: false, sameSite: 'lax' });
   if (options?.path) {
-    revalidatePath(options.path);
+    const normalized = options.path.replace(/^\/en(\/|$)/, '/');
+    revalidatePath(normalized);
   }
 }
