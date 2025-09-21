@@ -1,0 +1,55 @@
+---
+globs: *.ts,*.tsx,*.js,*.jsx
+description: Code style and formatting guidelines using Biome
+---
+
+# Code Style Guidelines
+
+## Formatting (Biome)
+- **Indentation**: 2 spaces
+- **Line width**: 80 characters
+- **Quotes**: Single quotes for strings
+- **Semicolons**: Always required
+- **Trailing commas**: ES5 style
+- **JSX quotes**: Single quotes
+- **Bracket spacing**: Enabled
+
+## TypeScript Conventions
+- Use strict TypeScript configuration
+- Prefer `interface` over `type` for object shapes
+- Use `const assertions` for immutable data
+- Prefer `unknown` over `any`
+- Use proper generic constraints
+
+## Import Organization
+```typescript
+// 1. External libraries
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+
+// 2. Internal modules (using @/ alias)
+import { prisma } from '@/lib/prisma';
+import { Button } from '@/components/ui/button';
+
+// 3. Relative imports
+import './styles.css';
+```
+
+## Component Patterns
+- Use functional components with TypeScript
+- Prefer composition over inheritance
+- Use proper prop typing with interfaces
+- Implement proper error boundaries
+
+## Naming Conventions
+- **Variables/Functions**: camelCase
+- **Components**: PascalCase
+- **Constants**: UPPER_SNAKE_CASE
+- **Files**: kebab-case for utilities, PascalCase for components
+- **Types/Interfaces**: PascalCase with descriptive names
+
+## Code Organization
+- Keep functions small and focused
+- Use early returns to reduce nesting
+- Prefer explicit over implicit
+- Group related functionality together

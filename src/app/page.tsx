@@ -79,8 +79,8 @@ export default async function Home() {
         </section>
 
         {/* hills */}
-        <section className='relative bg-white -mt-2 sm:mt-0'>
-          <div className='absolute inset-x-0 -top-8 lg:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
+        <section className='relative bg-white -mt-6 sm:mt-0'>
+          <div className='absolute inset-x-0 -top-6 sm:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
             <Image
               src='/landing/Subtract.svg'
               width={1920}
@@ -92,11 +92,13 @@ export default async function Home() {
             />
           </div>
           {/* text statement */}
-          <div className='relative flex flex-col items-center justify-center px-2 sm:px-4 max-w-full overflow-visible'>
+          <div className='relative flex flex-col items-center justify-center px-8 max-w-full overflow-visible'>
             <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
-              <div className='flex items-center justify-center h-full'>
-                <h2 className='text-lg sm:text-3xl lg:text-7xl font-extrabold text-blue-background leading-snug mb-2 sm:mb-4'>
-                  {dict.homepage.about.title}
+              <div className='flex items-start sm:items-center justify-start sm:justify-center h-full'>
+                <h2 className='text-5xl sm:text-7xl font-bold sm:font-extrabold text-blue-background leading-snug sm:leading-snug mb-2 sm:mb-4'>
+                  EquiTeam
+                  <br className='sm:hidden' />{' '}
+                  {dict.homepage.about.title.split(' ').slice(1).join(' ')}
                 </h2>
               </div>
               <div className='flex items-center justify-center text-black text-xl font normal h-full'>

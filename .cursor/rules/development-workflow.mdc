@@ -1,0 +1,57 @@
+---
+alwaysApply: true
+description: Development workflow and best practices
+---
+
+# Development Workflow
+
+## Available Scripts
+- `bun dev` - Start development server with Turbopack
+- `bun run build` - Build for production
+- `bun run lint` - Run ESLint and Biome checks
+- `bun run format` - Format code with Biome
+- `bun test` - Run tests with Bun
+- `bun run type-check` - TypeScript type checking
+
+## Development Environment
+- Node.js 22.x required
+- Bun as package manager and test runner
+- PostgreSQL database
+- Redis for caching and rate limiting
+
+## Code Quality
+- Use Biome for formatting and linting
+- Run type checking before commits
+- Write tests for new features
+- Follow established patterns and conventions
+
+## Git Workflow
+- Use descriptive commit messages
+- Create feature branches for new work
+- Use pull requests for code review
+- Keep commits focused and atomic
+
+## Environment Setup
+- Copy `env.example` to `.env.local`
+- Configure database connection
+- Set up Redis connection
+- Configure authentication providers
+
+## Testing Strategy
+- Write unit tests for utilities and components
+- Test user interactions and workflows
+- Use proper mocking for external dependencies
+- Maintain high test coverage
+
+## Performance Considerations
+- Use Next.js Image component for images
+- Implement proper caching strategies
+- Optimize database queries
+- Monitor bundle size and performance
+
+## Security Best Practices
+- Validate all inputs with Zod
+- Use proper authentication and authorization
+- Implement rate limiting
+- Follow security headers in middleware
+- Never commit secrets or sensitive data

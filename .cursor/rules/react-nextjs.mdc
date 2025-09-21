@@ -1,0 +1,65 @@
+---
+globs: *.tsx,*.ts
+description: React and Next.js specific patterns and conventions
+---
+
+# React & Next.js Guidelines
+
+## Next.js App Router Patterns
+- Use Server Components by default
+- Only use Client Components when necessary (interactivity, hooks, browser APIs)
+- Implement proper loading and error boundaries
+- Use proper metadata API for SEO
+
+## Component Structure
+```typescript
+// Server Component (default)
+export default async function Page() {
+  const data = await fetchData();
+  return <div>{data}</div>;
+}
+
+// Client Component (when needed)
+'use client';
+import { useState } from 'react';
+
+export function InteractiveComponent() {
+  const [state, setState] = useState();
+  return <div>Interactive content</div>;
+}
+```
+
+## State Management
+- Use React state for local component state
+- Use SWR for server state management
+- Prefer server state over client state when possible
+- Use proper loading and error states
+
+## Authentication Patterns
+- Use Better Auth for authentication
+- Implement proper session management
+- Use middleware for route protection
+- Handle onboarding flow properly
+
+## Internationalization
+- Use the i18n system for all user-facing text
+- Support Indonesian (id) and English (en)
+- Use proper locale detection and switching
+
+## Performance
+- Use Next.js Image component for images
+- Implement proper loading states
+- Use dynamic imports for code splitting
+- Optimize bundle size
+
+## Data Fetching
+- Use Server Components for initial data
+- Use SWR for client-side data fetching
+- Implement proper caching strategies
+- Handle loading and error states
+
+## Form Handling
+- Use React Hook Form with Zod validation
+- Implement proper error handling
+- Use controlled components
+- Validate on both client and server
