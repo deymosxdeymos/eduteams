@@ -17,12 +17,8 @@ export default async function Home() {
 
   return (
     <>
-      {/* Hidden focusable element to prevent skip link from being focused on page load */}
-      <div
-        tabIndex={0}
-        aria-hidden='true'
-        style={{ position: 'absolute', left: '-10000px' }}
-      />
+      {/* Hidden element to prevent skip link from being focused on page load */}
+      <div style={{ position: 'absolute', left: '-10000px' }} />
       <SkipLink href={`#${mainContentId}`}>Skip to content</SkipLink>
       <main id={mainContentId} className='overflow-x-hidden'>
         <section className='bg-blue-background flex flex-col px-6 pt-14 overflow-x-hidden relative'>
