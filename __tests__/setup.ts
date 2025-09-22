@@ -44,7 +44,7 @@ console.warn = (...args: any[]) => {
   ) {
     return;
   }
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: re-emit warning when not filtered
   return originalWarn(...args);
 };
 
@@ -54,6 +54,6 @@ console.error = (...args: any[]) => {
   if (typeof first === 'string' && first.includes('not wrapped in act')) {
     return;
   }
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: re-emit error when not filtered
   return originalError(...args);
 };

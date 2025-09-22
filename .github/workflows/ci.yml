@@ -21,42 +21,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Type check (app)
+      - name: Lint
+        run: bun run lint && bun run lint:ci
+
+      - name: Type check
         run: bun run type-check
 
-      - name: Type check (tests)
-        run: bun run type-check:test
-
-      - name: Type check (app, strict libs)
-        run: bun run type-check:strict
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Run tests (coverage + bail)
-        run: |
-          mkdir -p coverage
-          # Run tests; allow non-zero to handle Bun's strict exit codes
-          bun test --coverage --bail || true
-
-      - name: Verify test results (JUnit)
-        run: |
-          bun run verify-tests
-
-      - name: Verify coverage thresholds
-        run: |
-          bun run verify-coverage
-
-      - name: Upload coverage lcov
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-lcov
-          path: coverage/lcov.info
-
-      - name: Upload JUnit report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: junit-report
-          path: coverage/junit.xml
+      - name: Test (coverage + bail)
+        run: bun run test

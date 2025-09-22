@@ -37,7 +37,7 @@ jobs:
       - name: Run flake tests
         run: |
           mkdir -p coverage
-          bun run test:flake
+          bun test --rerun-each 50 --bail=1
 
       - name: Upload JUnit report (flake)
         if: always()
