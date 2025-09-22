@@ -4,6 +4,7 @@ import { LoginButton } from '@/components/auth/login-button';
 import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
 import Logo from '@/components/logo';
 import { HighlightText } from '@/components/ui/highlight-text';
+import { SkipLink } from '@/components/ui/skip-link';
 import { SocialRow } from '@/components/ui/social-row';
 import { TextRotate } from '@/components/ui/text-rotate';
 import { getDictionary } from '@/i18n/get-dictionary';
@@ -16,12 +17,13 @@ export default async function Home() {
 
   return (
     <>
-      <a
-        href={`#${mainContentId}`}
-        className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-background text-white px-4 py-2 rounded-md z-50'
-      >
-        Skip to content
-      </a>
+      {/* Hidden focusable element to prevent skip link from being focused on page load */}
+      <div
+        tabIndex={0}
+        aria-hidden='true'
+        style={{ position: 'absolute', left: '-10000px' }}
+      />
+      <SkipLink href={`#${mainContentId}`}>Skip to content</SkipLink>
       <main id={mainContentId} className='overflow-x-hidden'>
         <section className='bg-blue-background flex flex-col px-6 pt-14 overflow-x-hidden relative'>
           {/* header */}
