@@ -1,8 +1,9 @@
 {
-  "outputStyle": "default",
   "permissions": {
     "allow": [
-      "Bash(CLAUDECODE=1 bun test --coverage)"
+      "Bash(CLAUDECODE=1 bun test --coverage)",
+      "Bash(bun run:*)"
     ]
-  }
+  },
+  "outputStyle": "default"
 }
