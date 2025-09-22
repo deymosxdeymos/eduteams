@@ -8,18 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Development server:** `bun dev` (uses Turbopack for fast builds)
 - **Build for production:** `bun run build` (includes Prisma generation)
 - **Production server:** `bun start`
-- **Linting:** `bun run lint` (Next.js lint + Biome check)
-- **Type checking:** `bun run type-check` (standard), `bun run type-check:test` (test files)
-- **Code formatting:** `bun run format` (write), `bun run format:check` (check only)
+- **Linting:** `bun run lint`
+- **Type checking:** `bun run type-check`
+- **Code formatting:** `bun run format`
 
 ### Testing
-- **Run all tests:** `bun test` (with AGENT=1 for cleaner output)
-- **Test with coverage:** `bun test:coverage`
-- **Watch mode:** `bun test:watch`
-- **CI tests:** `bun test:ci` (coverage + bail on first failure)
+- **Run all tests:** `bun run test`
+- **Watch mode:** `AGENT=1 bun test --watch`
 - **Single test:** `bun test path/to/test.ts`
-- **Update snapshots:** `bun test:update-snapshots`
-- **Bail on failure:** `bun test:bail`
+- **Update snapshots:** `AGENT=1 bun test --update-snapshots`
+- **Bail on failure:** `AGENT=1 bun test --bail`
 
 ### Database Management
 - **Generate Prisma client:** `bun prisma generate` (auto-run before build)

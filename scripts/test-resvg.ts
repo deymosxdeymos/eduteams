@@ -9,10 +9,10 @@ const r = new Resvg(svg, {
   fitTo: { mode: 'width', value: 1000 },
 });
 const out = r.render();
-// eslint-disable-next-line no-console
+// biome-ignore lint/suspicious/noConsole: logging debug info for CLI script
 console.log('render keys', Object.keys(out as any));
-// eslint-disable-next-line no-console
+// biome-ignore lint/suspicious/noConsole: logging debug info for CLI script
 console.log('render props', { width: (out as any).width, height: (out as any).height });
 // Try to access pixels if available
-// eslint-disable-next-line no-console
+// biome-ignore lint/suspicious/noConsole: logging debug info for CLI script
 console.log('has pixels?', !!(out as any).pixels, typeof (out as any).pixels);

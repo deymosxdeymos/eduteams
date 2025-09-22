@@ -2,7 +2,7 @@
 
 ## Commands
 - **Dev:** `bun dev` | **Build:** `bun run build` | **Lint:** `bun run lint` | **Type:** `bun run type-check`
-- **Test all:** `bun test` | **Single test:** `bun test path/to/test.ts` | **Watch:** `bun test --watch`
+- **Test all:** `bun run test` | **Single test:** `bun test path/to/test.ts` | **Watch:** `bun test --watch`
 - **Coverage:** `bun test --coverage` | **Bail on fail:** `bun test --bail`
 
 ## Code Style

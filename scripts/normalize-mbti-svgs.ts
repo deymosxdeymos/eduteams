@@ -113,7 +113,7 @@ function normalizeOne(file: string, outDir: string) {
   const svg = readFileSync(file, 'utf8');
   const vb = parseViewBox(svg);
   if (!vb) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: warning about skipped files improves CLI feedback
     console.warn(`Skipping ${file} (no viewBox)`);
     return;
   }
@@ -128,7 +128,7 @@ function normalizeOne(file: string, outDir: string) {
 
   const b = computeAlphaBounds(pixels, widthPx, heightPx);
   if (!b) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: warning about skipped files improves CLI feedback
     console.warn(`No visible pixels in ${file}; copying as-is.`);
     writeFileSync(join(outDir, basename(file)), svg);
     return;
@@ -221,15 +221,15 @@ function main() {
     .map(f => join(inDir, f))
     .filter(f => statSync(f).isFile());
 
-  // eslint-disable-next-line no-console
+  // biome-ignore lint/suspicious/noConsole: CLI progress output
   console.log(`Normalizing ${files.length} SVGs from ${inDir} -> ${outDir}`);
   for (const f of files) {
     try {
       normalizeOne(f, outDir);
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: CLI progress output
       console.log('✓', basename(f));
     } catch (err) {
-      // eslint-disable-next-line no-console
+      // biome-ignore lint/suspicious/noConsole: CLI progress output
       console.error('✗', basename(f), err);
     }
   }
