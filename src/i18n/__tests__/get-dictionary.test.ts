@@ -31,7 +31,7 @@ describe('getDictionary', () => {
 
   it('returns English dictionary for "en" locale', async () => {
     const result = await getDictionary('en');
-    expect(result.greeting).toBe('Hello, {name}!');
+    expect(result.greeting as string).toBe(mockEnMessages.greeting);
   });
 
   it('returns Indonesian dictionary for "id" locale', async () => {
@@ -63,8 +63,8 @@ describe('getDictionary', () => {
       getDictionary('id'),
     ]);
 
-    expect(enResult.greeting).toBe('Hello, {name}!');
-    expect(idResult.greeting).toBe('Halo, {name}!');
+    expect(enResult.greeting as string).toBe(mockEnMessages.greeting);
+    expect(idResult.greeting as string).toBe(mockIdMessages.greeting);
     expect(enResult.greeting).not.toBe(idResult.greeting);
   });
 
