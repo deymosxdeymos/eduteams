@@ -12,7 +12,9 @@ export const GET = async () => {
     if (!user.isOnboarded) {
       switch (user.onboardingStep) {
         case 'role':
-          redirectUrl = `/onboarding/data-diri/${user.role}`;
+          redirectUrl = user.role
+            ? `/onboarding/data-diri/${user.role}`
+            : '/onboarding/role';
           break;
         case 'data-diri':
           redirectUrl = user.role
