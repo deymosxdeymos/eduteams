@@ -203,6 +203,10 @@ export const messages = {
       totalAssignments: 'Total tugas telah dibuat',
       totalTeams: 'Total kelompok berhasil dibentuk',
       avgTeamQuality: 'Rata-rata skor kualitas kelompok',
+      qualityTitle: 'Kualitas Skor Kelompok',
+      min: 'Min',
+      max: 'Max',
+      mean: 'Mean',
     },
     search: {
       placeholder: 'Mencari sesuatu?',
