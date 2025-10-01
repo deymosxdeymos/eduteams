@@ -39,6 +39,15 @@ const intlMiddleware = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip middleware for API routes, auth endpoints, and static files
+  if (
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp)$/)
+  ) {
+    return NextResponse.next();
+  }
+
   const hasSessionToken = (() => {
     try {
       const tokenFromHeader = getSessionCookie(request.headers);
