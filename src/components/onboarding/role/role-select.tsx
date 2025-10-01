@@ -2,29 +2,21 @@
 
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 
 interface RoleSelectProps {
   onRoleSelect: (role: 'dosen' | 'mahasiswa') => void;
   selectedRole?: 'dosen' | 'mahasiswa';
   showDosenInvalid?: boolean;
-  dict: {
-    onboarding: {
-      role: {
-        dosen: string;
-        mahasiswa: string;
-        institutionalEmailRequired: string;
-      };
-    };
-  };
 }
 
 export default function RoleSelect({
   onRoleSelect,
   selectedRole,
   showDosenInvalid,
-  dict,
 }: RoleSelectProps) {
+  const t = useTranslations('onboarding.role');
   const id = useId();
 
   return (
@@ -58,7 +50,7 @@ export default function RoleSelect({
             className='font-bold text-center text-amber-950 text-5xl
  			tracking-tighter leading-none uppercase'
           >
-            {dict.onboarding.role.dosen}
+            {t('dosen')}
           </h1>
         </button>
         {showDosenInvalid && (
@@ -70,7 +62,7 @@ export default function RoleSelect({
           >
             <AlertCircle className='h-3.5 w-3.5' />
             <span className='whitespace-nowrap'>
-              {dict.onboarding.role.institutionalEmailRequired}
+              {t('institutionalEmailRequired')}
             </span>
           </div>
         )}
@@ -98,7 +90,7 @@ export default function RoleSelect({
           className='mb-[-20px]'
         />
         <h1 className='font-bold text-center text-green-950 text-5xl tracking-tighter leading-none uppercase'>
-          {dict.onboarding.role.mahasiswa}
+          {t('mahasiswa')}
         </h1>
       </button>
     </div>

@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,44 +13,25 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
 
 interface JoinClassModalProps {
   onClassJoined?: () => void;
 }
 
 export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
+  const t = useTranslations('dashboard.modals.joinClass');
   const inputId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [classToken, setClassToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [shakeKey, setShakeKey] = useState(0); // Key to trigger shake animation
-  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
-
-  useEffect(() => {
-    const loadMessages = async (l: Locale) => {
-      const dict = await getDictionary(l);
-      setMessages(dict);
-    };
-
-    loadMessages(getClientLocaleFromCookie());
-
-    const unsubscribe = onLocaleChange(newLocale => {
-      loadMessages(newLocale);
-    });
-
-    return unsubscribe;
-  }, []);
+  const [shakeKey, setShakeKey] = useState(0);
 
   const hasError = Boolean(error);
 
   const triggerShake = () => {
-    setShakeKey(prev => prev + 1); // Increment key to restart animation
+    setShakeKey(prev => prev + 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,20 +54,12 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        // Show specific error message for invalid token
         if (response.status === 404) {
-          setError(
-            messages?.dashboard?.modals?.joinClass?.invalidCode ||
-              'Kode yang Anda masukkan salah. Silahkan coba lagi'
-          );
+          setError(t('invalidCode'));
         } else {
-          setError(
-            result.error ||
-              messages?.dashboard?.modals?.joinClass?.invalidCode ||
-              'Kode yang Anda masukkan salah. Silahkan coba lagi'
-          );
+          setError(result.error || t('invalidCode'));
         }
-        triggerShake(); // Trigger shake animation on error
+        triggerShake();
         return;
       }
 
@@ -97,11 +71,8 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
         onClassJoined?.();
       }, 1500);
     } catch {
-      setError(
-        messages?.dashboard?.modals?.joinClass?.invalidCode ||
-          'Kode yang Anda masukkan salah. Silahkan coba lagi'
-      );
-      triggerShake(); // Trigger shake animation on error
+      setError(t('invalidCode'));
+      triggerShake();
     } finally {
       setIsLoading(false);
     }
@@ -116,17 +87,16 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
           className='rounded-full px-4 py-6 font-semibold'
         >
           <Plus strokeWidth={3} className='w-5 h-5 mr-2' />
-          {messages?.dashboard?.modals?.joinClass?.button || 'Masuk Kelas'}
+          {t('button')}
         </Button>
       </DialogTrigger>
       <DialogContent className='border max-w-md md:max-w-xl rounded-3xl p-0 gap-0'>
         <DialogHeader className='p-6 pb-4'>
           <DialogTitle className='text-xl font-semibold text-left'>
-            {messages?.dashboard?.modals?.joinClass?.title || 'Masuk ke Kelas'}
+            {t('title')}
           </DialogTitle>
           <p className='text-gray-600 text-sm font-normal text-left mt-2'>
-            {messages?.dashboard?.modals?.joinClass?.description ||
-              'Masukkan kode kelas yang kamu dapatkan dari dosen untuk bergabung ke dalam kelas ini. Pastikan kode yang dimasukkan sudah benar, ya!'}
+            {t('description')}
           </p>
         </DialogHeader>
 
@@ -138,11 +108,10 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
                 hasError ? 'text-red-600' : 'text-gray-900'
               }`}
             >
-              {messages?.dashboard?.modals?.joinClass?.classCode ||
-                'Kode Kelas'}
+              {t('classCode')}
             </label>
             <motion.div
-              key={shakeKey} // Key changes to restart animation
+              key={shakeKey}
               animate={
                 hasError
                   ? {
@@ -160,12 +129,9 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
                 value={classToken}
                 onChange={e => {
                   setClassToken(e.target.value);
-                  if (error) setError(''); // Clear error when user types
+                  if (error) setError('');
                 }}
-                placeholder={
-                  messages?.dashboard?.modals?.joinClass
-                    ?.classCodePlaceholder || '687ad8sa'
-                }
+                placeholder={t('classCodePlaceholder')}
                 disabled={isLoading}
                 aria-invalid={hasError}
                 className={`w-full ${
@@ -187,9 +153,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
             disabled={isLoading || !classToken.trim()}
             className='w-full rounded-full py-6 font-semibold'
           >
-            {isLoading
-              ? messages?.dashboard?.modals?.joinClass?.joining || 'Masuk...'
-              : messages?.dashboard?.modals?.joinClass?.join || 'Masuk'}
+            {isLoading ? t('joining') : t('join')}
           </Button>
         </form>
       </DialogContent>

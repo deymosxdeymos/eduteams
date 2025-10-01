@@ -1,10 +1,7 @@
 'use client';
 
 import { Smile, Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
+import { useTranslations } from 'next-intl';
 import type { ExtendedUser } from '@/lib/types';
 import { Button } from '../ui/button';
 import { MBTIDisplay } from './mbti-display';
@@ -29,39 +26,25 @@ export function StudentProfileContent({
   onShowMBTI,
   isModal = false,
 }: StudentProfileContentProps) {
-  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
+  const t = useTranslations('dashboard.profile');
 
-  useEffect(() => {
-    const load = async (l: Locale) => {
-      const dict = await getDictionary(l);
-      setMessages(dict);
-    };
-    load(getClientLocaleFromCookie());
-    const unsub = onLocaleChange(l => load(l));
-    return unsub;
-  }, []);
   return (
     <div
       className={`bg-white ${
         isModal ? 'rounded-3xl' : 'rounded-3xl'
       } flex flex-col p-4 gap-4`}
     >
-      {/* Close button for modal */}
       {isModal && onClose && (
         <div className='flex justify-between items-center'>
           <div className='text-lg font-semibold text-stone-900'>
-            {(
-              messages?.dashboard?.profile?.studentProfileTitle ||
-              'Profil {name}'
-            ).replace('{name}', student.name ?? 'Mahasiswa')}
+            {t('studentProfileTitle', { name: student.name ?? 'Mahasiswa' })}
           </div>
           <Button
             variant='ghost'
             size='icon'
             className='rounded-full'
             onClick={onClose}
-            aria-label={messages?.dashboard?.profile?.close || 'Tutup'}
+            aria-label={t('close')}
           >
             <X className='w-5 h-5' />
           </Button>
@@ -80,7 +63,6 @@ export function StudentProfileContent({
         <PersonalityDescription user={student} />
       </div>
 
-      {/* Buttons row */}
       <div className='flex justify-between items-center gap-4 mb-0 pb-0'>
         <Button
           onClick={onShowMBTI}
@@ -89,8 +71,7 @@ export function StudentProfileContent({
         >
           <Smile strokeWidth={3} />
           <span className='text-md text-stone-900 font-semibold'>
-            {messages?.dashboard?.profile?.viewMbtiDistribution ||
-              'Lihat Persebaran MBTI'}
+            {t('viewMbtiDistribution')}
           </span>
         </Button>
 
@@ -101,10 +82,7 @@ export function StudentProfileContent({
             className='rounded-full h-[3rem]'
           >
             <Trash2 strokeWidth={2} />
-            <span className='text-md font-semibold'>
-              {messages?.dashboard?.profile?.removeStudent ||
-                'Keluarkan Mahasiswa'}
-            </span>
+            <span className='text-md font-semibold'>{t('removeStudent')}</span>
           </Button>
         )}
       </div>
