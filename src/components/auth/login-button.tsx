@@ -3,10 +3,15 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
 
-export function LoginButton() {
+interface LoginButtonProps {
+  className?: string;
+}
+
+export function LoginButton({ className }: LoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const signIn = async () => {
@@ -24,7 +29,10 @@ export function LoginButton() {
   return (
     <Button
       variant='outline'
-      className='w-fit rounded-full text-sm sm:text-lg py-8 px-10 transition-all duration-200 ease-out disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95'
+      className={cn(
+        'w-fit rounded-full text-sm sm:text-lg py-8 px-10 transition-all duration-200 ease-out disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95',
+        className
+      )}
       onClick={signIn}
       disabled={isLoading}
     >

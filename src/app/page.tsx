@@ -20,40 +20,43 @@ export default async function Home() {
       <div style={{ position: 'absolute', left: '-10000px' }} />
       <SkipLink href={`#${mainContentId}`}>Skip to content</SkipLink>
       <main id={mainContentId} className='overflow-x-hidden'>
-        <section className='bg-blue-background flex flex-col px-6 pt-14 overflow-x-hidden relative'>
+        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-8 sm:pt-14 overflow-x-hidden relative'>
           {/* header */}
           <div className='flex items-center justify-between lg:justify-center px-4 max-w-full min-h-fit overflow-hidden'>
             <Logo
               imageSize='w-8 h-8 md:w-12 md:h-12'
               size='text-xl sm:text-2xl md:text-3xl'
-              className='justify-center'
+              className='justify-center animate-logo-welcome'
             />
             <div className='absolute right-4 sm:right-24'>
-              <LanguageSwitcher current={locale} />
+              <LanguageSwitcher
+                current={locale}
+                className='animate-hero-delay-800'
+              />
             </div>
           </div>
 
           {/* hero content */}
           <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
             <div className='text-center'>
-              <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
+              <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight mb-4 animate-hero-delay-600'>
                 {dict.homepage.hero.titlePrefix}{' '}
                 <span className='text-amber-300 font-bold'>
                   {dict.homepage.hero.titleCall}
                 </span>
               </h1>
-              <p className='text-white text-5xl lg:text-7xl font-bold tracking-tight'>
+              <p className='text-white text-5xl lg:text-7xl font-bold tracking-tight animate-hero-delay-600'>
                 {dict.homepage.hero.titleSuffix}
               </p>
             </div>
 
-            <p className='text-center text-white text-base sm:text-xl lg:text-2xl max-w-4xl'>
+            <p className='text-center text-white text-base sm:text-xl lg:text-2xl max-w-4xl animate-hero-delay-700'>
               {dict.homepage.hero.description}
             </p>
 
             {/* login button speech bubble */}
             <div className='mt-4'>
-              <LoginButton />
+              <LoginButton className='animate-hero-delay-800' />
             </div>
             {/* mascot */}
             <div className='flex items-center justify-center z-20 relative mt-4 mb-6 lg:mb-0'>
@@ -63,7 +66,7 @@ export default async function Home() {
                 height={800}
                 sizes='(max-width: 640px) 300px, (max-width: 768px) 500px, (max-width: 1024px) 700px, 1000px'
                 alt='mascot'
-                className='w-full h-auto max-w-[300px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20'
+                className='w-full h-auto max-w-[300px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20 animate-mascot'
                 style={{ height: 'auto' }}
                 priority
               />
@@ -72,7 +75,7 @@ export default async function Home() {
         </section>
 
         {/* hills */}
-        <section className='relative bg-white -mt-6 sm:mt-0'>
+        <section className='relative bg-white -mt-36 sm:mt-0 animate-hills'>
           <div className='absolute inset-x-0 -top-6 sm:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
             <Image
               src='/landing/Subtract.svg'
@@ -80,16 +83,16 @@ export default async function Home() {
               height={400}
               sizes='100vw'
               alt='hills'
-              className='w-full h-auto max-w-[1920px]'
+              className='w-full h-auto max-w-[1920px] animate-hills'
               style={{ height: 'auto' }}
               priority
             />
           </div>
           {/* text statement */}
-          <div className='relative flex flex-col items-center justify-center px-8 max-w-full overflow-visible'>
+          <div className='relative flex flex-col items-center justify-center px-8 max-w-full overflow-visible animate-hills-content'>
             <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
               <div className='flex items-start sm:items-center justify-start sm:justify-center h-full'>
-                <h2 className='text-5xl sm:text-7xl font-bold sm:font-extrabold text-blue-background leading-snug sm:leading-snug mb-2 sm:mb-4'>
+                <h2 className='text-5xl sm:text-7xl font-bold sm:font-extrabold text-blue-background leading-snug sm:leading-snug mt-28 sm:mt-0 mb-2 sm:mb-4'>
                   EquiTeam
                   <br className='sm:hidden' />{' '}
                   {dict.homepage.about.title.split(' ').slice(1).join(' ')}
