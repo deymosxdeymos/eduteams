@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
-import useSWR from 'swr';
 import { ArrowDown, ArrowUp, Dot } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
+import useSWR from 'swr';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);

@@ -18,7 +18,32 @@ interface DataDiriPageProps {
 
 export default async function DataDiriPage({ params }: DataDiriPageProps) {
   const { role } = await params;
-  const messages = (await getMessages()) as any;
+  const messages = (await getMessages()) as {
+    onboarding: {
+      dataDiri: {
+        title: string;
+        namaLengkap: string;
+        namaLengkapPlaceholder: string;
+        nim: string;
+        nimPlaceholder: string;
+        npm: string;
+        npmPlaceholder: string;
+        jenisKelamin: string;
+        lakiLaki: string;
+        perempuan: string;
+        continue: string;
+        saving: string;
+        validation: {
+          namaLengkapMin: string;
+          nimMin: string;
+          nimMax: string;
+          npmMin: string;
+          npmMax: string;
+          jenisKelaminRequired: string;
+        };
+      };
+    };
+  };
 
   // Validate role parameter
   if (!['dosen', 'mahasiswa'].includes(role)) {

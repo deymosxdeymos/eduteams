@@ -3,9 +3,9 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
+import { cn } from '@/lib/utils';
 
 interface LoginButtonProps {
   className?: string;
