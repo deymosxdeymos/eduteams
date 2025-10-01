@@ -10,6 +10,10 @@ const mockMessages = {
       totalAssignments: 'Total tugas telah dibuat',
       totalTeams: 'Total kelompok berhasil dibentuk',
       avgTeamQuality: 'Rata-rata skor kualitas kelompok',
+      qualityTitle: 'Kualitas Skor Kelompok',
+      min: 'Min',
+      max: 'Max',
+      mean: 'Mean',
     },
   },
 };
@@ -40,7 +44,7 @@ mock.module('@/i18n/get-dictionary', () => ({
 const mockUseSWR = useSWR as any;
 
 describe('StatisticsCards', () => {
-  it('displays loading state with zeros when no data', async () => {
+  it('displays loading state with zeros and placeholders when no data', async () => {
     mockUseSWR.mockReturnValue({
       data: null,
       error: null,
@@ -52,11 +56,14 @@ describe('StatisticsCards', () => {
     await screen.findByText('Total tugas telah dibuat');
 
     // Assert numbers and labels
-    const headings = screen.getAllByRole('heading', { level: 1 });
-    expect(headings.map(h => h.textContent)).toEqual(['0', '0', '0']);
     expect(screen.getByText('Total tugas telah dibuat')).toBeTruthy();
     expect(screen.getByText('Total kelompok berhasil dibentuk')).toBeTruthy();
-    expect(screen.getByText('Rata-rata skor kualitas kelompok')).toBeTruthy();
+    expect(screen.getByText('Kualitas Skor Kelompok')).toBeTruthy();
+    // Two numeric zeros for totals
+    const totals = screen.getAllByRole('heading', { level: 1 }).slice(0, 2);
+    expect(totals.map(h => h.textContent)).toEqual(['0', '0']);
+    // Quality stats default to 0%
+    expect(screen.getAllByText('0%').length).toBeGreaterThanOrEqual(1);
   });
 
   it('displays statistics data when loaded', async () => {
@@ -64,7 +71,8 @@ describe('StatisticsCards', () => {
       data: {
         totalAssignments: 5,
         totalTeams: 12,
-        avgTeamQuality: 4.75,
+        avgTeamQuality: 0.5,
+        qualitySummary: { min: 0.1, max: 0.9, mean: 0.5, n: 10 },
       },
     };
 
@@ -79,15 +87,18 @@ describe('StatisticsCards', () => {
 
     expect(screen.getByText('5')).toBeTruthy();
     expect(screen.getByText('12')).toBeTruthy();
-    expect(screen.getByText('4.75')).toBeTruthy();
+    expect(screen.getByText('10%')).toBeTruthy();
+    expect(screen.getByText('90%')).toBeTruthy();
+    expect(screen.getByText('50%')).toBeTruthy();
   });
 
-  it('rounds average team quality to 2 decimal places', async () => {
+  it('rounds percent values correctly', async () => {
     const mockData = {
       data: {
         totalAssignments: 3,
         totalTeams: 8,
-        avgTeamQuality: 4.123456,
+        avgTeamQuality: 0.4119,
+        qualitySummary: { min: 0.001, max: 0.999, mean: 0.4119, n: 10 },
       },
     };
 
@@ -98,9 +109,10 @@ describe('StatisticsCards', () => {
 
     render(<StatisticsCards />);
 
-    await screen.findByText('Rata-rata skor kualitas kelompok');
-
-    expect(screen.getByText('4.12')).toBeTruthy();
+    await screen.findByText('Kualitas Skor Kelompok');
+    expect(screen.getByText('0%')).toBeTruthy();
+    expect(screen.getByText('100%')).toBeTruthy();
+    expect(screen.getByText('41%')).toBeTruthy();
   });
 
   it('handles error state gracefully', async () => {
@@ -112,12 +124,12 @@ describe('StatisticsCards', () => {
     render(<StatisticsCards />);
     await waitFor(() => {
       const hs = screen.getAllByRole('heading', { level: 1 });
-      expect(hs.length).toBe(3);
+      expect(hs.length).toBeGreaterThanOrEqual(2);
     });
 
-    // Should still display zeros when there's an error
-    const headings = screen.getAllByRole('heading', { level: 1 });
-    expect(headings.map(h => h.textContent)).toEqual(['0', '0', '0']);
+    // Should still display zeros for totals when there's an error
+    const totals = screen.getAllByRole('heading', { level: 1 }).slice(0, 2);
+    expect(totals.map(h => h.textContent)).toEqual(['0', '0']);
   });
 
   it('fetches data from correct API endpoint', () => {

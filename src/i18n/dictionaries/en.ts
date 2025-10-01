@@ -201,6 +201,10 @@ export const messages = {
       totalAssignments: 'Total assignments created',
       totalTeams: 'Total teams successfully formed',
       avgTeamQuality: 'Average team quality score',
+      qualityTitle: 'Team Quality Score',
+      min: 'Min',
+      max: 'Max',
+      mean: 'Mean',
     },
     search: {
       placeholder: 'Search for something?',

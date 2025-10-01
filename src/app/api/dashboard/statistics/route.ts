@@ -38,8 +38,7 @@ export const GET = withAuth(
         },
       });
 
-      // Calculate average team quality (for future use)
-      const avgTeamQuality = await prisma.team.aggregate({
+      const qualityAggregates = await prisma.team.aggregate({
         where: {
           teamFormationRequest: {
             ownerId: user.id,
@@ -51,12 +50,35 @@ export const GET = withAuth(
         _avg: {
           quality: true,
         },
+        _min: {
+          quality: true,
+        },
+        _max: {
+          quality: true,
+        },
+      });
+
+      const qualityCount = await prisma.team.count({
+        where: {
+          teamFormationRequest: {
+            ownerId: user.id,
+          },
+          quality: {
+            not: null,
+          },
+        },
       });
 
       const statistics = {
         totalAssignments,
         totalTeams,
-        avgTeamQuality: avgTeamQuality._avg.quality ?? 0,
+        avgTeamQuality: qualityAggregates._avg.quality ?? 0,
+        qualitySummary: {
+          min: qualityAggregates._min.quality ?? null,
+          max: qualityAggregates._max.quality ?? null,
+          mean: qualityAggregates._avg.quality ?? null,
+          n: qualityCount,
+        },
       };
 
       return createApiResponse(statistics);
