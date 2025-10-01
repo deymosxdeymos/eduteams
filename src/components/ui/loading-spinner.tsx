@@ -11,7 +11,7 @@ const bars = Array(12).fill(0);
 export function LoadingSpinner({
   size = 'md',
   className,
-  color,
+  color = 'white',
 }: LoadingSpinnerProps) {
   const sizeMap = {
     sm: 16,
@@ -20,41 +20,57 @@ export function LoadingSpinner({
   };
 
   const spinnerSize = sizeMap[size];
-  const spinnerColor = color || 'rgb(var(--color-blue-500) / 0.8)';
 
   return (
-    <div
-      className={cn('flex items-center justify-center', className)}
-      style={{
-        ['--spinner-size' as string]: `${spinnerSize}px`,
-        ['--spinner-color' as string]: spinnerColor,
-      }}
-    >
+    <>
+      <style>{`
+        @keyframes spinner-fade {
+          0% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.15;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .spinner-bar {
+            animation: none !important;
+            opacity: 0.5;
+          }
+        }
+      `}</style>
       <div
-        className='relative'
+        className={cn('inline-block', className)}
         style={{
           height: `${spinnerSize}px`,
           width: `${spinnerSize}px`,
         }}
       >
-        {bars.map((_, i) => (
-          <div
-            key={`spinner-bar-${i}-${spinnerSize}`}
-            className='absolute rounded-md'
-            style={{
-              background: `var(--spinner-color)`,
-              height: '8%',
-              left: '-10%',
-              top: '-3.9%',
-              width: '24%',
-              animation: 'spin-fade 1.2s linear infinite',
-              animationDelay: `-${1.2 - i * 0.1}s`,
-              transform: `rotate(${i * 30}deg) translate(146%)`,
-            }}
-          />
-        ))}
+        <div
+          className='relative'
+          style={{
+            height: `${spinnerSize}px`,
+            width: `${spinnerSize}px`,
+            top: '50%',
+            left: '50%',
+          }}
+        >
+          {bars.map((_, i) => (
+            <div
+              key={`spinner-bar-${i}`}
+              className='spinner-bar absolute left-[-10%] top-[-3.9%] h-[8%] w-[24%] rounded-md will-change-[opacity]'
+              style={{
+                background: color,
+                animation: 'spinner-fade 0.8s linear infinite',
+                animationDelay: `${-0.8 + i * (0.8 / 12)}s`,
+                transform: `rotate(${i * 30}deg) translate(146%)`,
+              }}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

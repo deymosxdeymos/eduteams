@@ -6,7 +6,6 @@ import Logo from '@/components/logo';
 import { HighlightText } from '@/components/ui/highlight-text';
 import { SkipLink } from '@/components/ui/skip-link';
 import { SocialRow } from '@/components/ui/social-row';
-import { TextRotate } from '@/components/ui/text-rotate';
 import { getDictionary } from '@/i18n/get-dictionary';
 import { getLocale } from '@/i18n/server';
 
@@ -39,14 +38,9 @@ export default async function Home() {
             <div className='text-center'>
               <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight mb-4'>
                 {dict.homepage.hero.titlePrefix}{' '}
-                <TextRotate
-                  texts={[...dict.homepage.hero.rotatingWords]}
-                  className='text-amber-300'
-                  splitBy='characters'
-                  staggerDuration={0.03}
-                  rotationInterval={2000}
-                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                />
+                <span className='text-amber-300 font-bold'>
+                  {dict.homepage.hero.titleCall}
+                </span>
               </h1>
               <p className='text-white text-5xl lg:text-7xl font-bold tracking-tight'>
                 {dict.homepage.hero.titleSuffix}
