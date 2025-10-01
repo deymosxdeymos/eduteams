@@ -1,10 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, mock } from 'bun:test';
 import JoinClassModal from '@/components/dashboard/join-class-modal';
 
 describe('JoinClassModal', () => {
   it('submits successfully and shows success message', async () => {
-    // Mock fetch success
     const fetchMock = mock(async (_input: RequestInfo, _init?: RequestInit) => {
       return new Response(JSON.stringify({ message: 'Successfully joined class!' }), {
         status: 200,
@@ -15,13 +14,11 @@ describe('JoinClassModal', () => {
 
     render(<JoinClassModal onClassJoined={mock(() => {})} />);
 
-    // Open modal
-    fireEvent.click(screen.getByRole('button', { name: /Masuk Kelas/i }));
+    fireEvent.click(screen.getByRole('button', { name: /dashboard\.modals\.joinClass\.button/i }));
 
-    // Fill and submit
-    const input = await screen.findByPlaceholderText('687ad8sa');
+    const input = await screen.findByPlaceholderText('dashboard.modals.joinClass.classCodePlaceholder');
     fireEvent.change(input, { target: { value: 'abc123' } });
-    fireEvent.click(screen.getByRole('button', { name: /Masuk$/ }));
+    fireEvent.click(screen.getByRole('button', { name: /dashboard\.modals\.joinClass\.join/i }));
 
     await screen.findByText('Successfully joined class!');
     expect(fetchMock).toHaveBeenCalledWith('/api/student/join-class', expect.any(Object));
@@ -38,16 +35,14 @@ describe('JoinClassModal', () => {
 
     render(<JoinClassModal />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Masuk Kelas/i }));
+    fireEvent.click(screen.getByRole('button', { name: /dashboard\.modals\.joinClass\.button/i }));
 
-    const input = await screen.findByPlaceholderText('687ad8sa');
+    const input = await screen.findByPlaceholderText('dashboard.modals.joinClass.classCodePlaceholder');
     fireEvent.change(input, { target: { value: 'badcode' } });
-    fireEvent.click(screen.getByRole('button', { name: /Masuk$/ }));
+    fireEvent.click(screen.getByRole('button', { name: /dashboard\.modals\.joinClass\.join/i }));
 
-    // Default Indonesian error string should appear
-    await screen.findByText('Kode yang Anda masukkan salah. Silahkan coba lagi');
-    // Input is remounted due to shake animation; re-query and expect invalid
-    const invalidInput = screen.getByPlaceholderText('687ad8sa');
+    await screen.findByText('dashboard.modals.joinClass.invalidCode');
+    const invalidInput = screen.getByPlaceholderText('dashboard.modals.joinClass.classCodePlaceholder');
     expect(invalidInput.getAttribute('aria-invalid')).toBe('true');
   });
 });

@@ -14,7 +14,11 @@ const prismaMock: any = {
   assignment: { count: mock(async () => 5) },
   team: {
     count: mock(async () => 12),
-    aggregate: mock(async () => ({ _avg: { quality: 4.75 } })),
+    aggregate: mock(async () => ({
+      _avg: { quality: 0.5 },
+      _min: { quality: 0.1 },
+      _max: { quality: 0.9 },
+    })),
   },
 };
 
@@ -40,7 +44,13 @@ describe('GET /api/dashboard/statistics', () => {
     expect(json.data).toEqual({
       totalAssignments: 5,
       totalTeams: 12,
-      avgTeamQuality: 4.75,
+      avgTeamQuality: 0.5,
+      qualitySummary: {
+        min: 0.1,
+        max: 0.9,
+        mean: 0.5,
+        n: 12,
+      },
     });
   });
 

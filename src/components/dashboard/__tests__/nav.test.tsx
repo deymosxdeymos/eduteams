@@ -27,21 +27,18 @@ describe('Nav', () => {
       />
     );
 
-    // Wait for i18n messages to load
     const classHeading = await screen.findByRole('heading', {
       level: 1,
       name: 'Algoritma - RA',
     });
     expect(classHeading).toBeTruthy();
 
-    // Assignment crumb appears
     const assignmentHeading = screen.getByRole('heading', {
       level: 2,
       name: 'Tugas 1',
     });
     expect(assignmentHeading).toBeTruthy();
 
-    // Answers crumb appears with provided label
     const answersHeading = screen.getByRole('heading', {
       level: 3,
       name: 'Jawaban',

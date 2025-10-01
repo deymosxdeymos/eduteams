@@ -2,11 +2,10 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { getMessages } from 'next-intl/server';
 import Logo from '@/components/logo';
 import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
 import { Button } from '@/components/ui/button';
-import { getDictionary } from '@/i18n/get-dictionary';
-import { getLocale } from '@/i18n/server';
 import { getDataDiri } from '@/lib/actions/data-diri';
 import { isInstitutionalEmail } from '@/lib/email';
 import { protectOnboardingPage } from '@/lib/server-auth';
@@ -19,8 +18,7 @@ interface DataDiriPageProps {
 
 export default async function DataDiriPage({ params }: DataDiriPageProps) {
   const { role } = await params;
-  const locale = await getLocale();
-  const dict = await getDictionary(locale);
+  const messages = (await getMessages()) as any;
 
   // Validate role parameter
   if (!['dosen', 'mahasiswa'].includes(role)) {
@@ -61,7 +59,7 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          {dict.onboarding.dataDiri.title}
+          {messages.onboarding.dataDiri.title}
         </h1>
         <Image
           src='/emoji/pencil.svg'
@@ -71,7 +69,11 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
         />
       </div>
       <div className='flex items-start justify-center py-14 px-8'>
-        <DataDiriFormClient role={role} initialData={initialData} dict={dict} />
+        <DataDiriFormClient
+          role={role}
+          initialData={initialData}
+          dict={messages}
+        />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
         <Link href='/onboarding/role'>
@@ -92,7 +94,7 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
           form='data-diri-form'
           type='submit'
         >
-          {dict.onboarding.dataDiri.continue}
+          {messages.onboarding.dataDiri.continue}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

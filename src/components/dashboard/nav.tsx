@@ -2,11 +2,8 @@
 
 import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import type { Course, ExtendedUser } from '@/lib/types';
 
@@ -23,31 +20,8 @@ export default function Nav({
   assignmentTitle,
   answersCrumb,
 }: NavProps) {
-  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
-  const [locale, setLocale] = useState<Locale>('id');
+  const t = useTranslations();
 
-  useEffect(() => {
-    const loadMessages = async (l: Locale) => {
-      setLocale(l);
-      const dict = await getDictionary(l);
-      setMessages(dict);
-    };
-
-    // initial load
-    loadMessages(getClientLocaleFromCookie());
-
-    // subscribe to locale changes
-    const unsubscribe = onLocaleChange(newLocale => {
-      loadMessages(newLocale);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  if (!messages) {
-    return null; // or a loading state
-  }
   const isClassCurrent = !!className && !assignmentTitle && !answersCrumb;
   const isAssignmentCurrent = !!className && !!assignmentTitle && !answersCrumb;
   const isAnswersCurrent = !!className && !!assignmentTitle && !!answersCrumb;
@@ -63,14 +37,12 @@ export default function Nav({
         <div className='leading-loose flex items-center'>
           {className ? (
             <div className='flex items-center gap-2'>
-              {/* Class crumb (no leading chevron) */}
               <h1
                 className={`text-xl ${isClassCurrent ? 'font-bold' : 'font-medium'} tracking-tight`}
               >
                 {className.namaMataKuliah}
                 {className.kelas ? ` - ${className.kelas}` : ''}
               </h1>
-              {/* Assignment crumb */}
               {assignmentTitle ? (
                 <>
                   <ChevronRight
@@ -84,7 +56,6 @@ export default function Nav({
                   </h2>
                 </>
               ) : null}
-              {/* Answers crumb */}
               {assignmentTitle && answersCrumb ? (
                 <>
                   <ChevronRight
@@ -96,7 +67,7 @@ export default function Nav({
                   >
                     {typeof answersCrumb === 'string'
                       ? answersCrumb
-                      : messages.answersDefault}
+                      : t('answersDefault')}
                   </h3>
                 </>
               ) : null}
@@ -104,18 +75,18 @@ export default function Nav({
           ) : (
             <div>
               <h1 className='text-3xl font-semibold tracking-tight'>
-                {messages.greeting.replace('{name}', user.name)}
+                {t('greeting', { name: user.name })}
               </h1>
               <p className='text-lg font-normal mt-2'>
                 {canAccessMahasiswaFeatures(user)
-                  ? messages.mahasiswaSubtitle
-                  : messages.dosenSubtitle}
+                  ? t('mahasiswaSubtitle')
+                  : t('dosenSubtitle')}
               </p>
             </div>
           )}
         </div>
       </div>
-      <LanguageSwitcher current={locale} />
+      <LanguageSwitcher />
     </div>
   );
 }
