@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import RoleSelect from '@/components/onboarding/role/role-select';
 import { Button } from '@/components/ui/button';
@@ -10,24 +11,13 @@ import { submitRole } from '@/lib/actions/role';
 interface RoleFormClientProps {
   initialRole?: 'dosen' | 'mahasiswa';
   hasInstitutionalEmail?: boolean;
-  dict: {
-    onboarding: {
-      role: {
-        dosen: string;
-        mahasiswa: string;
-        institutionalEmailRequired: string;
-        loading: string;
-        continue: string;
-      };
-    };
-  };
 }
 
 export default function RoleFormClient({
   initialRole,
   hasInstitutionalEmail = false,
-  dict,
 }: RoleFormClientProps) {
+  const t = useTranslations('onboarding.role');
   const [selectedRole, setSelectedRole] = useState<
     'dosen' | 'mahasiswa' | undefined
   >(initialRole);
@@ -68,7 +58,6 @@ export default function RoleFormClient({
           onRoleSelect={handleRoleSelect}
           selectedRole={selectedRole}
           showDosenInvalid={isDosenInvalid}
-          dict={dict}
         />
       </div>
       <div className='flex items-center justify-center gap-x-2'>
@@ -96,9 +85,7 @@ export default function RoleFormClient({
               isBlocked ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {isPending
-              ? dict.onboarding.role.loading
-              : dict.onboarding.role.continue}
+            {isPending ? t('loading') : t('continue')}
             <ArrowRight
               strokeWidth={3}
               className='font-bold text-neutral-400 text-lg'

@@ -2,14 +2,12 @@
 
 import { ArrowLeft, Calendar, Plus, Search, Share2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { CreateAssignmentModal } from './create-assignment-modal';
@@ -54,12 +52,11 @@ export function ClassAssignments({
   studentCount = 0,
 }: ClassAssignmentsProps) {
   const router = useRouter();
+  const t = useTranslations('dashboard.classAssignments');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCreateAssignmentModalOpen, setIsCreateAssignmentModalOpen] =
     useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
 
   // Use courseData if provided, otherwise fetch via SWR
   const { data: classData, error } = useSWR(
@@ -110,18 +107,6 @@ export function ClassAssignments({
     return `${timeFormatter.format(d)}, ${dateFormatter.format(d)}`;
   };
 
-  // Load i18n messages and react to locale changes
-  useEffect(() => {
-    const load = async (l: Locale) => {
-      const dict = await getDictionary(l);
-      setMessages(dict);
-    };
-    const current = getClientLocaleFromCookie();
-    load(current);
-    const unsub = onLocaleChange(l => load(l));
-    return unsub;
-  }, []);
-
   return (
     <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
       <div className='p-6'>
@@ -144,8 +129,7 @@ export function ClassAssignments({
           >
             <Plus strokeWidth={3} className='w-4 h-4 text-white' />
             <span className='font-semibold text-sm'>
-              {messages?.dashboard?.classAssignments?.createAssignment ||
-                'Buat Tugas Baru'}
+              {t('createAssignment')}
             </span>
           </Button>
 
@@ -155,26 +139,17 @@ export function ClassAssignments({
             onClick={() => setIsShareModalOpen(true)}
           >
             <Share2 className='w-4 h-4' />
-            <span className='font-semibold text-sm'>
-              {messages?.dashboard?.classAssignments?.shareClass ||
-                'Bagikan Kelas'}
-            </span>
+            <span className='font-semibold text-sm'>{t('shareClass')}</span>
           </Button>
 
           {hasAssignments && (
             <div className='ml-auto w-80 relative'>
               <InputRounded
-                placeholder={
-                  messages?.dashboard?.classAssignments?.searchPlaceholder ||
-                  'Cari tugas?'
-                }
+                placeholder={t('searchPlaceholder')}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className='pr-10'
-                aria-label={
-                  messages?.dashboard?.classAssignments?.searchAria ||
-                  'Cari tugas'
-                }
+                aria-label={t('searchAria')}
               />
               <Search className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
             </div>
@@ -191,12 +166,7 @@ export function ClassAssignments({
                 {searchTerm.trim() !== '' &&
                 filteredAssignments.length === 0 ? (
                   <div className='text-sm text-neutral-500 px-1 py-2'>
-                    {(() => {
-                      const tpl =
-                        messages?.dashboard?.classAssignments?.noMatches ||
-                        'Tidak ada tugas yang cocok untuk "{query}".';
-                      return tpl.replace('{query}', searchTerm);
-                    })()}
+                    {t('noMatches', { query: searchTerm })}
                   </div>
                 ) : null}
                 {filteredAssignments.map(a => (
@@ -224,29 +194,19 @@ export function ClassAssignments({
                         let text = '';
                         let color = '';
                         if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
-                          text =
-                            messages?.dashboard?.classAssignments?.status
-                              ?.formed || 'Pembagian grup berhasil dilakukan';
+                          text = t('status.formed');
                           color = 'bg-emerald-50 text-emerald-900';
                         } else if (a.status === 'MENUNGGU') {
-                          text =
-                            messages?.dashboard?.classAssignments?.status
-                              ?.waiting || 'Menunggu pembagian grup';
+                          text = t('status.waiting');
                           color = 'bg-sky-50 text-sky-900';
                         } else if (a.submissionsCount === 0) {
-                          text =
-                            messages?.dashboard?.classAssignments?.status
-                              ?.noneFilled ||
-                            'Belum ada yang mengisi kuisioner';
+                          text = t('status.noneFilled');
                           color = 'bg-red-50 text-orange-900';
                         } else {
-                          const tpl =
-                            messages?.dashboard?.classAssignments?.status
-                              ?.progress ||
-                            '{filled} dari {total} mahasiswa telah mengisi kuisioner';
-                          text = tpl
-                            .replace('{filled}', String(a.submissionsCount))
-                            .replace('{total}', String(studentCount));
+                          text = t('status.progress', {
+                            filled: a.submissionsCount,
+                            total: studentCount,
+                          });
                           color = 'bg-amber-50 text-orange-900';
                         }
                         return (
