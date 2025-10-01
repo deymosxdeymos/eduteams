@@ -10,7 +10,7 @@ export const messages = {
   homepage: {
     hero: {
       titlePrefix: 'Dimana',
-      rotatingWords: ['Keadilan', 'Kesetaraan', 'Kesempatan'],
+      titleCall: 'Keadilan',
       titleSuffix: 'Menciptakan Keunggulan',
       description:
         'Setiap hasil yang hebat dimulai dengan tim yang hebat. Selamat datang di EquiTeam, mari kita mulai sesuatu yang luar biasa.',

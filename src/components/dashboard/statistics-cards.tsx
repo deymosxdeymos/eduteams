@@ -67,12 +67,12 @@ export function StatisticsCards() {
         </p>
       </div>
       <div className='px-10 py-6 flex-1 bg-amber-100 rounded-3xl'>
+        <p className='text-amber-900 text-base font-medium mb-4'>
+          {messages.dashboard.statistics.avgTeamQuality}
+        </p>
         <h1 className='text-6xl font-bold text-amber-700'>
           {Math.round(statistics.avgTeamQuality * 100) / 100}
         </h1>
-        <p className='text-amber-900 text-base font-medium pt-4'>
-          {messages.dashboard.statistics.avgTeamQuality}
-        </p>
       </div>
     </div>
   );

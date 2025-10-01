@@ -66,7 +66,7 @@ export default function RoleSelect({
             role='status'
             aria-live='polite'
             id={`${id}-dosen-email-requirement`}
-            className='absolute top-full mt-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 text-amber-800 px-3 py-1 text-xs shadow-sm'
+            className='absolute top-full mt-6 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-sm border border-amber-200 bg-amber-50 text-amber-800 px-3 py-1 text-xs shadow-sm'
           >
             <AlertCircle className='h-3.5 w-3.5' />
             <span className='whitespace-nowrap'>

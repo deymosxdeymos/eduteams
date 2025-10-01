@@ -10,7 +10,7 @@ export const messages = {
   homepage: {
     hero: {
       titlePrefix: 'Where',
-      rotatingWords: ['Justice', 'Equality', 'Opportunity'],
+      titleCall: 'Justice',
       titleSuffix: 'Creates Excellence',
       description:
         "Every great result starts with a great team. Welcome to EquiTeam, let's start something extraordinary.",
