@@ -24,11 +24,55 @@ mock.module('next/navigation', () => ({
     back: () => {},
   }),
   usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+  redirect: (url: string) => {
+    throw new Error(`Redirecting to ${url}`);
+  },
+  permanentRedirect: (url: string) => {
+    throw new Error(`Permanent redirect to ${url}`);
+  },
 }));
 
 // Mock server action used by LanguageSwitcher
 mock.module('@/app/actions/set-locale', () => ({
   setLocale: async () => {},
+}));
+
+// Mock next-intl
+mock.module('next-intl', () => ({
+  useTranslations: (namespace?: string) => {
+    return (key: string) => {
+      return `${namespace ? `${namespace}.` : ''}${key}`;
+    };
+  },
+  useLocale: () => 'id',
+  useFormatter: () => ({
+    number: (value: number) => value.toString(),
+    dateTime: (value: Date) => value.toISOString(),
+  }),
+}));
+
+// Mock next-intl routing
+mock.module('@/i18n/routing', () => ({
+  routing: {
+    locales: ['id', 'en'],
+    defaultLocale: 'id',
+    localePrefix: 'as-needed',
+  },
+  Link: (props: any) => React.createElement('a', props),
+  redirect: (pathname: string) => {
+    throw new Error(`Redirecting to ${pathname}`);
+  },
+  usePathname: () => '/',
+  useRouter: () => ({
+    push: () => {},
+    replace: () => {},
+    back: () => {},
+    forward: () => {},
+    refresh: () => {},
+    prefetch: () => {},
+  }),
+  getPathname: (pathname: string) => pathname,
 }));
 
 // Filter noisy test-only warnings

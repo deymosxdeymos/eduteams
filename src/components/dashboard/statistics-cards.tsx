@@ -1,10 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -13,23 +10,7 @@ const fetcher = async (url: string) => {
 };
 
 export function StatisticsCards() {
-  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
-
-  useEffect(() => {
-    const loadMessages = async (l: Locale) => {
-      const dict = await getDictionary(l);
-      setMessages(dict);
-    };
-
-    loadMessages(getClientLocaleFromCookie());
-
-    const unsubscribe = onLocaleChange(newLocale => {
-      loadMessages(newLocale);
-    });
-
-    return unsubscribe;
-  }, []);
+  const t = useTranslations('dashboard.statistics');
 
   const { data, error } = useSWR('/api/dashboard/statistics', fetcher);
 
@@ -45,9 +26,6 @@ export function StatisticsCards() {
     }
   }
 
-  if (!messages) {
-    return null; // or a loading state
-  }
   return (
     <div className='flex gap-4'>
       <div className='px-10 py-6 flex-1 bg-blue-100 rounded-3xl'>
@@ -55,7 +33,7 @@ export function StatisticsCards() {
           {statistics.totalAssignments}
         </h1>
         <p className='text-sky-900 text-base font-medium pt-4'>
-          {messages.dashboard.statistics.totalAssignments}
+          {t('totalAssignments')}
         </p>
       </div>
       <div className='px-10 py-6 flex-1 bg-emerald-100 rounded-3xl'>
@@ -63,7 +41,7 @@ export function StatisticsCards() {
           {statistics.totalTeams}
         </h1>
         <p className='text-emerald-900 text-base font-medium pt-4'>
-          {messages.dashboard.statistics.totalTeams}
+          {t('totalTeams')}
         </p>
       </div>
       <div className='px-10 py-6 flex-1 bg-amber-100 rounded-3xl'>
@@ -71,7 +49,7 @@ export function StatisticsCards() {
           {Math.round(statistics.avgTeamQuality * 100) / 100}
         </h1>
         <p className='text-amber-900 text-base font-medium pt-4'>
-          {messages.dashboard.statistics.avgTeamQuality}
+          {t('avgTeamQuality')}
         </p>
       </div>
     </div>

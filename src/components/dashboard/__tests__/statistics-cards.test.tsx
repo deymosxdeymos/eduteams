@@ -3,38 +3,11 @@ import { describe, expect, it, mock } from 'bun:test';
 import useSWR from 'swr';
 import { StatisticsCards } from '../statistics-cards';
 
-// Mock messages for testing
-const mockMessages = {
-  dashboard: {
-    statistics: {
-      totalAssignments: 'Total tugas telah dibuat',
-      totalTeams: 'Total kelompok berhasil dibentuk',
-      avgTeamQuality: 'Rata-rata skor kualitas kelompok',
-    },
-  },
-};
-
-// Mock SWR
 mock.module('swr', () => ({
   default: mock(() => ({
     data: null,
     error: null,
   })),
-}));
-
-// Mock i18n client functions
-mock.module('@/i18n/client', () => ({
-  getClientLocaleFromCookie: () => 'id',
-  onLocaleChange: (callback: (locale: string) => void) => {
-    // Return unsubscribe function
-    return () => {};
-  },
-  emitLocaleChange: () => {},
-}));
-
-// Mock i18n dictionary loader to avoid dynamic import timing
-mock.module('@/i18n/get-dictionary', () => ({
-  getDictionary: async () => mockMessages,
 }));
 
 const mockUseSWR = useSWR as any;
@@ -48,15 +21,14 @@ describe('StatisticsCards', () => {
 
     render(<StatisticsCards />);
 
-    // Wait for i18n messages to load
-    await screen.findByText('Total tugas telah dibuat');
+    await waitFor(() => {
+      const headings = screen.getAllByRole('heading', { level: 1 });
+      expect(headings.map(h => h.textContent)).toEqual(['0', '0', '0']);
+    });
 
-    // Assert numbers and labels
-    const headings = screen.getAllByRole('heading', { level: 1 });
-    expect(headings.map(h => h.textContent)).toEqual(['0', '0', '0']);
-    expect(screen.getByText('Total tugas telah dibuat')).toBeTruthy();
-    expect(screen.getByText('Total kelompok berhasil dibentuk')).toBeTruthy();
-    expect(screen.getByText('Rata-rata skor kualitas kelompok')).toBeTruthy();
+    expect(screen.getByText('dashboard.statistics.totalAssignments')).toBeTruthy();
+    expect(screen.getByText('dashboard.statistics.totalTeams')).toBeTruthy();
+    expect(screen.getByText('dashboard.statistics.avgTeamQuality')).toBeTruthy();
   });
 
   it('displays statistics data when loaded', async () => {
@@ -75,11 +47,11 @@ describe('StatisticsCards', () => {
 
     render(<StatisticsCards />);
 
-    await screen.findByText('Total tugas telah dibuat');
-
-    expect(screen.getByText('5')).toBeTruthy();
-    expect(screen.getByText('12')).toBeTruthy();
-    expect(screen.getByText('4.75')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('5')).toBeTruthy();
+      expect(screen.getByText('12')).toBeTruthy();
+      expect(screen.getByText('4.75')).toBeTruthy();
+    });
   });
 
   it('rounds average team quality to 2 decimal places', async () => {
@@ -98,9 +70,9 @@ describe('StatisticsCards', () => {
 
     render(<StatisticsCards />);
 
-    await screen.findByText('Rata-rata skor kualitas kelompok');
-
-    expect(screen.getByText('4.12')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('4.12')).toBeTruthy();
+    });
   });
 
   it('handles error state gracefully', async () => {
@@ -115,7 +87,6 @@ describe('StatisticsCards', () => {
       expect(hs.length).toBe(3);
     });
 
-    // Should still display zeros when there's an error
     const headings = screen.getAllByRole('heading', { level: 1 });
     expect(headings.map(h => h.textContent)).toEqual(['0', '0', '0']);
   });
