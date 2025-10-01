@@ -9,8 +9,17 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { emitLocaleChange } from '@/i18n/client';
 import type { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/get-dictionary';
+import { cn } from '@/lib/utils';
 
-export function LanguageSwitcher({ current }: { current: Locale }) {
+interface LanguageSwitcherProps {
+  current: Locale;
+  className?: string;
+}
+
+export function LanguageSwitcher({
+  current,
+  className,
+}: LanguageSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
@@ -31,7 +40,10 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
     <Button
       variant='outline'
       size='sm'
-      className='px-2 py-3 sm:px-3 sm:py-4 lg:px-6 lg:py-7 rounded-full gap-x-1 sm:gap-x-2 lg:gap-x-4 min-w-fit overflow-hidden'
+      className={cn(
+        'px-2 py-3 sm:px-3 sm:py-4 lg:px-6 lg:py-7 rounded-full gap-x-1 sm:gap-x-2 lg:gap-x-4 min-w-fit overflow-hidden',
+        className
+      )}
       disabled={isPending}
       onClick={() => {
         startTransition(async () => {
