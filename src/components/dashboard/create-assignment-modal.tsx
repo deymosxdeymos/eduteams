@@ -73,7 +73,7 @@ export function CreateAssignmentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-4xl'>
+      <DialogContent className='max-w-4xl rounded-2xl'>
         <DialogHeader>
           <DialogTitle className='text-xl font-medium'>
             Buat Tugas Baru?
@@ -200,7 +200,7 @@ export function CreateAssignmentModal({
         {/* Create Button */}
         <Button
           variant='onboarding'
-          className='w-full py-5 rounded-4xl font-medium'
+          className='w-full py-6 rounded-4xl font-medium'
           disabled={submitting || !title.trim()}
           onClick={async () => {
             try {
@@ -238,7 +238,7 @@ export function CreateAssignmentModal({
             }
           }}
         >
-          <Plus className='w-4 h-4 mr-2' />
+          <Plus strokeWidth={3} className='w-4 h-4 mr-2' />
           <span className='text-sm'>
             {submitting ? 'Membuat…' : 'Buat Tugas'}
           </span>
