@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Select,
   SelectContent,
@@ -31,9 +32,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Course } from '@/lib/types';
+import { getCurrentAcademicYear } from '@/lib/utils/period';
 import {
-  type CourseCreateInput,
-  courseCreateSchema,
+  type CourseCreateUserInput,
+  courseCreateInputSchema,
 } from '@/lib/validation/course';
 
 interface CreateClassModalProps {
@@ -49,18 +51,18 @@ export default function CreateClassModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const form = useForm<CourseCreateInput>({
-    resolver: zodResolver(courseCreateSchema),
+  const academicYear = getCurrentAcademicYear();
+
+  const form = useForm<CourseCreateUserInput>({
+    resolver: zodResolver(courseCreateInputSchema),
     defaultValues: {
       namaMataKuliah: '',
       kelas: undefined,
-      tahunAwalPeriode: new Date().getFullYear(),
-      tahunAkhirPeriode: new Date().getFullYear() + 1,
       periode: undefined,
     },
   });
 
-  const onSubmit = (values: CourseCreateInput) => {
+  const onSubmit = (values: CourseCreateUserInput) => {
     startTransition(async () => {
       try {
         setError(null);
@@ -190,9 +192,6 @@ export default function CreateClassModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='tanpa-kelas'>
-                          {t('options.noClass')}
-                        </SelectItem>
                         <SelectItem value='RA'>RA</SelectItem>
                         <SelectItem value='RB'>RB</SelectItem>
                         <SelectItem value='RC'>RC</SelectItem>
@@ -200,58 +199,6 @@ export default function CreateClassModal({
                         <SelectItem value='RE'>RE</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='tahunAwalPeriode'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('fields.startYear')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        placeholder={t('fields.startYearPlaceholder')}
-                        value={field.value ?? ''}
-                        onChange={e => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          field.onChange(value ? Number(value) : '');
-                        }}
-                        disabled={isPending}
-                        inputMode='numeric'
-                        pattern='[0-9]*'
-                        className='flex h-12 w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='tahunAkhirPeriode'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('fields.endYear')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        placeholder={t('fields.endYearPlaceholder')}
-                        value={field.value ?? ''}
-                        onChange={e => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          field.onChange(value ? Number(value) : '');
-                        }}
-                        disabled={isPending}
-                        inputMode='numeric'
-                        pattern='[0-9]*'
-                        className='flex h-12 w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -277,14 +224,17 @@ export default function CreateClassModal({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value='ganjil'>
-                          {t('options.odd')}
+                          {academicYear.label} {t('options.odd')}
                         </SelectItem>
                         <SelectItem value='genap'>
-                          {t('options.even')}
+                          {academicYear.label} {t('options.even')}
                         </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                    <p className='text-xs text-muted-foreground'>
+                      {t('periodAutoDetected')}
+                    </p>
                   </FormItem>
                 )}
               />
@@ -303,7 +253,7 @@ export default function CreateClassModal({
                   disabled={isPending}
                 >
                   {isPending ? (
-                    <Loader2 className='mr-1 h-4 w-4 animate-spin' />
+                    <LoadingSpinner size='sm' color='white' className='mr-1' />
                   ) : (
                     <Plus strokeWidth={3} className='mr-1 h-4 w-4' />
                   )}

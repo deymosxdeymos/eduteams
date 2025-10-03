@@ -6,9 +6,11 @@ import {
   withValidation,
 } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
+import { getCurrentAcademicYear } from '@/lib/utils/period';
 import {
   type CourseCreateInput,
-  courseCreateSchema,
+  type CourseCreateUserInput,
+  courseCreateInputSchema,
 } from '@/lib/validation/course';
 
 // Prisma requires Node.js runtime
@@ -16,14 +18,24 @@ export const runtime = 'nodejs';
 
 export const POST = withAuth(
   withValidation(
-    (data: unknown) => courseCreateSchema.parse(data),
+    (data: unknown) => courseCreateInputSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
-      const courseData = validatedData as CourseCreateInput;
+      const userInput = validatedData as CourseCreateUserInput;
 
       // Only dosen can create courses
       if (user?.role !== 'dosen') {
         return createErrorResponse('Only dosen can create courses', 403);
       }
+
+      // Auto-detect current academic year
+      const academicYear = getCurrentAcademicYear();
+
+      // Merge user input with auto-detected academic year
+      const courseData: CourseCreateInput = {
+        ...userInput,
+        tahunAwalPeriode: academicYear.tahunAwalPeriode,
+        tahunAkhirPeriode: academicYear.tahunAkhirPeriode,
+      };
 
       // Create course in database
       const course = await prisma.course.create({

@@ -1,8 +1,8 @@
 'use client';
 
-import { Loader } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
 
 interface CookieStoreAPI {
@@ -55,7 +55,7 @@ export default function SessionClearClient() {
   return (
     <div className='flex items-center justify-center min-h-screen'>
       <div className='text-center'>
-        <Loader className='h-8 w-8 animate-spin mx-auto text-gray-600' />
+        <LoadingSpinner size='lg' color='#4b5563' className='mx-auto' />
         <p className='mt-4 text-gray-600'>Clearing session...</p>
       </div>
     </div>

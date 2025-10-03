@@ -178,9 +178,9 @@
       "totalTeams": "Total kelompok berhasil dibentuk",
       "avgTeamQuality": "Rata-rata skor kualitas kelompok",
       "qualityTitle": "Kualitas Kelompok",
-      "min": "Minimum",
-      "max": "Maksimum",
-      "mean": "Rata-rata"
+      "min": "Min",
+      "max": "Max",
+      "mean": "Mean"
     },
     "search": {
       "placeholder": "Mencari sesuatu?"
@@ -208,15 +208,11 @@
           "courseNamePlaceholder": "Masukkan nama mata kuliah",
           "class": "Kelas",
           "classPlaceholder": "Pilih kelas",
-          "startYear": "Tahun Awal",
-          "startYearPlaceholder": "Masukkan tahun awal",
-          "endYear": "Tahun Akhir",
-          "endYearPlaceholder": "Masukkan tahun akhir",
-          "period": "Periode",
-          "periodPlaceholder": "Pilih periode"
+          "period": "Periode Akademik",
+          "periodPlaceholder": "Pilih semester"
         },
+        "periodAutoDetected": "Tahun akademik terdeteksi otomatis berdasarkan tanggal saat ini",
         "options": {
-          "noClass": "Tanpa Kelas",
           "odd": "Ganjil",
           "even": "Genap"
         }

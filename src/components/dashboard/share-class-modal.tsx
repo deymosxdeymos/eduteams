@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ShareClassModalProps {
   isOpen: boolean;
@@ -144,7 +145,7 @@ export function ShareClassModal({
             </>
           ) : (
             <div className='text-center py-4'>
-              <div className='animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto'></div>
+              <LoadingSpinner size='md' color='#3b82f6' className='mx-auto' />
               <p className='text-sm text-gray-500 mt-2'>Memuat data...</p>
             </div>
           )}
