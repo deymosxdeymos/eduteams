@@ -70,13 +70,15 @@ export default function Content() {
     <div className='h-full flex flex-col gap-4'>
       <StatisticsCards />
       <div className='bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden'>
-        <div className='p-6 pb-0'>
-          <SearchInput
-            onClassCreated={handleClassCreated}
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
-          />
-        </div>
+        {hasClasses && (
+          <div className='p-6 pb-0'>
+            <SearchInput
+              onClassCreated={handleClassCreated}
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+            />
+          </div>
+        )}
         <div className='flex-1 px-6 min-h-0 overflow-hidden'>
           {hasClasses ? (
             <ClassGrid

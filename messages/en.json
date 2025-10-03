@@ -178,9 +178,9 @@
       "totalTeams": "Total teams successfully formed",
       "avgTeamQuality": "Average team quality score",
       "qualityTitle": "Team Quality",
-      "min": "Minimum",
-      "max": "Maximum",
-      "mean": "Average"
+      "min": "Min",
+      "max": "Max",
+      "mean": "Mean"
     },
     "search": {
       "placeholder": "Search for something?"
@@ -208,15 +208,11 @@
           "courseNamePlaceholder": "Enter course name",
           "class": "Class",
           "classPlaceholder": "Select class",
-          "startYear": "Start Year",
-          "startYearPlaceholder": "Enter start year",
-          "endYear": "End Year",
-          "endYearPlaceholder": "Enter end year",
-          "period": "Period",
-          "periodPlaceholder": "Select period"
+          "period": "Academic Period",
+          "periodPlaceholder": "Select semester"
         },
+        "periodAutoDetected": "Academic year automatically detected based on current date",
         "options": {
-          "noClass": "No Class",
           "odd": "Odd",
           "even": "Even"
         }

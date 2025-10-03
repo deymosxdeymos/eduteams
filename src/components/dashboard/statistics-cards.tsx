@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDown, ArrowUp, Dot } from 'lucide-react';
+import { ChevronDown, ChevronUp, Dot } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import useSWR from 'swr';
@@ -69,18 +69,18 @@ export function StatisticsCards() {
           <div className='flex flex-col items-start'>
             <div className='flex items-center gap-1.5 text-amber-900 text-sm font-medium'>
               <span>{t('min')}</span>
-              <ArrowDown size={16} />
+              <ChevronDown size={16} />
             </div>
-            <h1 className='text-4xl font-bold text-amber-700'>
+            <h1 className='text-4xl font-semibold text-amber-700'>
               {formatPercent(min)}
             </h1>
           </div>
           <div className='flex flex-col items-start'>
             <div className='flex items-center gap-1.5 text-amber-900 text-sm font-medium'>
               <span>{t('max')}</span>
-              <ArrowUp size={16} />
+              <ChevronUp size={16} />
             </div>
-            <h1 className='text-4xl font-bold text-amber-700'>
+            <h1 className='text-4xl font-semibold text-amber-700'>
               {formatPercent(max)}
             </h1>
           </div>
@@ -89,7 +89,7 @@ export function StatisticsCards() {
               <span>{t('mean')}</span>
               <Dot size={16} />
             </div>
-            <h1 className='text-4xl font-bold text-amber-700'>
+            <h1 className='text-4xl font-semibold text-amber-700'>
               {formatPercent(mean)}
             </h1>
           </div>
