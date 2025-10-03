@@ -153,7 +153,7 @@ export function StudentList({
       className='bg-white rounded-3xl rounded-l-none h-full flex flex-col overflow-hidden'
     >
       <div className='p-6 pb-4'>
-        <div className='flex flex-col gap-y-2 mb-4'>
+        <div className='flex gap-x-2 mb-4'>
           <h3 className='text-lg font-semibold text-gray-800'>
             Daftar Mahasiswa
           </h3>
