@@ -176,7 +176,11 @@
     "statistics": {
       "totalAssignments": "Total assignments created",
       "totalTeams": "Total teams successfully formed",
-      "avgTeamQuality": "Average team quality score"
+      "avgTeamQuality": "Average team quality score",
+      "qualityTitle": "Team Quality",
+      "min": "Minimum",
+      "max": "Maximum",
+      "mean": "Average"
     },
     "search": {
       "placeholder": "Search for something?"
