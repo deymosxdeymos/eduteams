@@ -10,7 +10,7 @@ import PersonalityQuestion from '@/components/onboarding/kepribadian/personality
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { submitPersonalityTest } from '@/lib/actions/personality';
-import type { MBTIQuestion } from '@/lib/mbti-questions';
+import type { MBTIQuestion } from '@/lib/mbti-questions-simple';
 import {
   convertAnswersForSubmission,
   getQuestionsForPage,

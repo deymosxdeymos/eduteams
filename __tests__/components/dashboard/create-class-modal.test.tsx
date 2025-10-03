@@ -232,4 +232,17 @@ describe('CreateClassModal', () => {
       expect(resetInput).toHaveValue('');
     });
   });
+
+  describe('Component integration', () => {
+    it('should render with onClassCreated callback prop', () => {
+      const mockCallback = mock((course: Course) => {});
+      const { container } = render(<CreateClassModal onClassCreated={mockCallback} />);
+      expect(container).toBeTruthy();
+    });
+
+    it('should render without callback prop', () => {
+      const { container } = render(<CreateClassModal />);
+      expect(container).toBeTruthy();
+    });
+  });
 });

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 import { createApiResponse } from '@/lib/api-utils';
 import { auth } from '@/lib/auth';
-import { getMBTIQuestions } from '@/lib/mbti-questions';
+import { getMBTIQuestions } from '@/lib/mbti-questions-simple';
 import {
   calculatePersonalityScoresFromQuestions,
   getMBTIType,

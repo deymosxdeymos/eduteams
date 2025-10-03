@@ -1,6 +1,6 @@
 import { getMessages } from 'next-intl/server';
 import PersonalityTestClient from '@/components/onboarding/kepribadian/personality-test-client';
-import { getMBTIQuestions } from '@/lib/mbti-questions';
+import { getMBTIQuestions } from '@/lib/mbti-questions-simple';
 
 export const dynamic = 'force-dynamic';
 

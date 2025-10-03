@@ -9,7 +9,6 @@ import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { isSameOrigin } from '@/lib/csrf';
 import prisma from '@/lib/prisma';
-import { limit, tooManyRequests } from '@/lib/rate-limit';
 import type { ExtendedUser } from '@/lib/types';
 
 // Prisma requires Node.js runtime
@@ -26,15 +25,6 @@ async function leaveClass(
   // Basic CSRF protection for browser-initiated POSTs
   if (!isSameOrigin(request)) {
     return createErrorResponse('Invalid origin', 403);
-  }
-
-  // Rate limit per user + endpoint
-  const rl = await limit(request, `leave-class:${user.id}`);
-  if (!rl.success) {
-    return tooManyRequests(
-      {},
-      rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {}
-    );
   }
 
   const { courseId } = await request.json();
