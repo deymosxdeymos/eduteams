@@ -96,14 +96,14 @@ export function StudentList({
     console.error('Failed to load students:', error);
   }
 
-  // If modal is open and fresh data arrives, sync selected student
   useEffect(() => {
-    if (!isMbtiOpen || !selectedStudent) return;
-    const updated = students.find(s => s.id === selectedStudent.id);
-    if (updated) {
-      setSelectedStudent(prev => (prev ? { ...prev, ...updated } : updated));
-    }
-  }, [students, isMbtiOpen, selectedStudent]);
+    if (!isMbtiOpen) return;
+    setSelectedStudent(prev => {
+      if (!prev) return null;
+      const updated = students.find(s => s.id === prev.id);
+      return updated || prev;
+    });
+  }, [students, isMbtiOpen]);
 
   // Close menus when clicking outside
   const containerRef = useRef<HTMLDivElement | null>(null);
