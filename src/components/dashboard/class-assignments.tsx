@@ -112,7 +112,7 @@ export function ClassAssignments({
       <div className='p-6'>
         <div className='flex items-center gap-4'>
           <Button
-            variant='outline'
+            variant='ghost'
             size='icon'
             onClick={() => window.history.back()}
             className='rounded-full'
@@ -245,12 +245,12 @@ export function ClassAssignments({
       <ShareClassModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        classId={classId}
+        courseData={course}
       />
 
       <CreateAssignmentModal
-        isOpen={isCreateAssignmentModalOpen}
-        onClose={() => setIsCreateAssignmentModalOpen(false)}
+        open={isCreateAssignmentModalOpen}
+        onOpenChange={setIsCreateAssignmentModalOpen}
         classId={classId}
       />
     </div>

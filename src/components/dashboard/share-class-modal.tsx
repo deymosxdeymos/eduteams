@@ -1,8 +1,7 @@
 'use client';
 
-import { Copy, X } from 'lucide-react';
+import { Check, Copy, X } from 'lucide-react';
 import { useState } from 'react';
-import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,41 +10,28 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ShareClassModalProps {
   isOpen: boolean;
   onClose: () => void;
-  classId: string;
+  courseData?: {
+    namaMataKuliah: string;
+    kelas: string;
+    shareToken?: string | null;
+  };
 }
-
-interface ShareTokenData {
-  token: string;
-  shareUrl: string;
-  courseName: string;
-  className: string;
-}
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
-};
 
 export function ShareClassModal({
   isOpen,
   onClose,
-  classId,
+  courseData,
 }: ShareClassModalProps) {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
 
-  const { data, error } = useSWR(
-    isOpen ? `/api/courses/${classId}/share-token` : null,
-    fetcher
-  );
-
-  const shareData: ShareTokenData = data?.data;
+  const shareToken = courseData?.shareToken;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const shareUrl = shareToken ? `${baseUrl}/join-class/${shareToken}` : '';
 
   const copyToClipboard = async (text: string, type: 'url' | 'token') => {
     try {
@@ -61,10 +47,6 @@ export function ShareClassModal({
       console.error('Failed to copy:', err);
     }
   };
-
-  if (error) {
-    console.error('Failed to load share token:', error);
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,62 +75,107 @@ export function ShareClassModal({
             informasi ini dari sumber resmi.
           </p>
 
-          {shareData ? (
-            <>
-              <div className='space-y-2'>
-                <label className='text-sm font-medium'>Tautan Kelas</label>
-                <div className='flex gap-2 text-gray-400'>
-                  <InputRounded
-                    value={shareData.shareUrl}
-                    readOnly
-                    className='flex-1 bg-gray-50'
+          <div className='space-y-2'>
+            <label className='text-sm font-medium'>Tautan Kelas</label>
+            <div className='flex gap-2 text-gray-400'>
+              <InputRounded
+                value={shareUrl}
+                readOnly
+                className={`flex-1 transition-all duration-200 ${
+                  copiedUrl
+                    ? 'bg-green-50 border-green-300 scale-[1.02]'
+                    : 'bg-gray-50 border-gray-200 scale-100'
+                }`}
+                style={{
+                  transitionTimingFunction:
+                    'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                }}
+              />
+              <Button
+                variant='outline'
+                size='icon'
+                onClick={() => copyToClipboard(shareUrl, 'url')}
+                className='shrink-0 rounded-full w-12 h-12 active:scale-[0.97] transition-transform duration-200'
+                disabled={!shareToken}
+              >
+                <div className='relative w-4 h-4'>
+                  <Copy
+                    className={`absolute inset-0 transition-all duration-200 ${
+                      copiedUrl
+                        ? 'scale-50 opacity-0 blur-sm'
+                        : 'scale-100 opacity-100 blur-0'
+                    }`}
+                    style={{
+                      transitionTimingFunction:
+                        'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    }}
                   />
-                  <Button
-                    variant='outline'
-                    size='icon'
-                    onClick={() => copyToClipboard(shareData.shareUrl, 'url')}
-                    className='shrink-0 rounded-full w-12 h-12'
-                  >
-                    <Copy className='h-4 w-4' />
-                  </Button>
-                </div>
-                {copiedUrl && (
-                  <p className='text-xs text-green-600'>
-                    Tautan berhasil disalin!
-                  </p>
-                )}
-              </div>
-
-              <div className='space-y-2'>
-                <label className='text-sm font-medium'>Token Kelas</label>
-                <div className='flex gap-2 text-gray-400'>
-                  <InputRounded
-                    value={shareData.token}
-                    readOnly
-                    className='flex-1 bg-gray-50'
+                  <Check
+                    className={`absolute inset-0 text-green-600 transition-all duration-200 ${
+                      copiedUrl
+                        ? 'scale-100 opacity-100 blur-0'
+                        : 'scale-50 opacity-0 blur-sm'
+                    }`}
+                    style={{
+                      transitionTimingFunction:
+                        'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    }}
                   />
-                  <Button
-                    variant='outline'
-                    size='icon'
-                    onClick={() => copyToClipboard(shareData.token, 'token')}
-                    className='shrink-0 rounded-full w-12 h-12'
-                  >
-                    <Copy className='h-4 w-4' />
-                  </Button>
                 </div>
-                {copiedToken && (
-                  <p className='text-xs text-green-600'>
-                    Token berhasil disalin!
-                  </p>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className='text-center py-4'>
-              <LoadingSpinner size='md' color='#3b82f6' className='mx-auto' />
-              <p className='text-sm text-gray-500 mt-2'>Memuat data...</p>
+              </Button>
             </div>
-          )}
+          </div>
+
+          <div className='space-y-2'>
+            <label className='text-sm font-medium'>Token Kelas</label>
+            <div className='flex gap-2 text-gray-400'>
+              <InputRounded
+                value={shareToken || ''}
+                readOnly
+                className={`flex-1 transition-all duration-200 ${
+                  copiedToken
+                    ? 'bg-green-50 border-green-300 scale-[1.02]'
+                    : 'bg-gray-50 border-gray-200 scale-100'
+                }`}
+                style={{
+                  transitionTimingFunction:
+                    'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                }}
+              />
+              <Button
+                variant='outline'
+                size='icon'
+                onClick={() => copyToClipboard(shareToken || '', 'token')}
+                className='shrink-0 rounded-full w-12 h-12 active:scale-[0.97] transition-transform duration-200'
+                disabled={!shareToken}
+              >
+                <div className='relative w-4 h-4'>
+                  <Copy
+                    className={`absolute inset-0 transition-all duration-200 ${
+                      copiedToken
+                        ? 'scale-50 opacity-0 blur-sm'
+                        : 'scale-100 opacity-100 blur-0'
+                    }`}
+                    style={{
+                      transitionTimingFunction:
+                        'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    }}
+                  />
+                  <Check
+                    className={`absolute inset-0 text-green-600 transition-all duration-200 ${
+                      copiedToken
+                        ? 'scale-100 opacity-100 blur-0'
+                        : 'scale-50 opacity-0 blur-sm'
+                    }`}
+                    style={{
+                      transitionTimingFunction:
+                        'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    }}
+                  />
+                </div>
+              </Button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
