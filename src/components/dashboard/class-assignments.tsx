@@ -184,7 +184,7 @@ export function ClassAssignments({
                   return (
                     <div
                       key={a.id}
-                      className='border rounded-2xl p-4 bg-white cursor-pointer hover:shadow-sm'
+                      className='border rounded-2xl p-4 bg-card cursor-pointer hover:shadow-sm'
                       role='button'
                       tabIndex={0}
                       onClick={() =>
