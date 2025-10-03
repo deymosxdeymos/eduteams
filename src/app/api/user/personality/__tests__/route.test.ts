@@ -9,7 +9,7 @@ mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 describe('POST /api/user/personality', () => {
   it('calculates scores and returns MBTI only when fully answered', async () => {
     mock.module('@/lib/auth', () => ({ auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } } }));
-    mock.module('@/lib/mbti-questions', () => ({
+    mock.module('@/lib/mbti-questions-simple', () => ({
       getMBTIQuestions: async () => Array.from({ length: 4 }).map((_, i) => ({ id: `q${i + 1}`, text: 'x', dimension: ['ei','sn','tf','pj'][i]})),
     }));
     const { POST } = await import('../route');

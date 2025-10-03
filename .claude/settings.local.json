@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(CLAUDECODE=1 bun test --coverage)",
-      "Bash(bun run:*)"
+      "Bash(bun run:*)",
+      "Bash(find:*)"
     ]
   },
   "outputStyle": "default"

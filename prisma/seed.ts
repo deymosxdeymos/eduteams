@@ -1,5 +1,4 @@
 import prisma from '../src/lib/prisma';
-import { refreshQuestionsCache } from '../src/lib/mbti-questions';
 import { randomUUID } from 'crypto';
 
 type MBTIQuestionData = {
@@ -84,14 +83,6 @@ async function seedMBTIQuestions() {
       const created = await Promise.all(creations);
       console.log(`✅ Created ${created.length} MBTI questions`);
     });
-
-    // Invalidate and refresh MBTI questions cache so UI picks up immediately
-    try {
-      await refreshQuestionsCache();
-      console.log('🔄 MBTI questions cache refreshed');
-    } catch (e) {
-      console.warn('⚠️ Failed to refresh MBTI cache (will fall back to runtime refresh):', e);
-    }
 
     console.log('🎉 MBTI questions seeding completed successfully!');
     console.log('\n📊 Seeding Summary:');

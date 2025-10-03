@@ -6,7 +6,7 @@ import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { ProfileHeader } from '@/components/dashboard/profile-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { canAccessDosenFeatures } from '@/lib/authorization';
-import { getMBTIQuestions } from '@/lib/mbti-questions';
+import { getMBTIQuestions } from '@/lib/mbti-questions-simple';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 import type { Course, ExtendedUser } from '@/lib/types';
