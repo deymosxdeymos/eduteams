@@ -5,14 +5,14 @@ import { useTranslations } from 'next-intl';
 import type { ChangeEvent, ComponentProps, ReactNode } from 'react';
 import type { Course } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { InputRounded } from '../ui/input-rounded';
+import { Input } from '../ui/input';
 import CreateClassModal from './create-class-modal';
 import JoinClassModal from './join-class-modal';
 
-type InputRoundedProps = ComponentProps<typeof InputRounded>;
+type InputProps = ComponentProps<typeof Input>;
 
 interface SearchInputProps
-  extends Omit<InputRoundedProps, 'value' | 'onChange' | 'placeholder'> {
+  extends Omit<InputProps, 'value' | 'onChange' | 'placeholder'> {
   onClassCreated?: (course?: Course) => void;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
@@ -75,7 +75,7 @@ export function SearchInput({
 
   const searchField = (
     <div className={inputWrapperClasses}>
-      <InputRounded
+      <Input
         {...inputProps}
         type={inputType}
         value={searchValue}
@@ -83,7 +83,7 @@ export function SearchInput({
         placeholder={actualPlaceholder}
         aria-label={actualAriaLabel}
         className={cn(
-          'pr-10 text-gray-700 placeholder:text-gray-400',
+          'rounded-full pr-10 py-2.5 h-11 text-gray-700 placeholder:text-gray-400',
           className
         )}
       />
