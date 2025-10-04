@@ -5,7 +5,7 @@ import {
   motion,
   stagger,
   useAnimate,
-} from 'motion/react';
+} from 'framer-motion';
 import { useState } from 'react';
 
 interface TextProps {
