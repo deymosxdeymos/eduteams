@@ -1,34 +1,12 @@
 [test]
-# Enable coverage reporting
-coverage = true
-coverageReporter = ["text", "lcov"]
-
-# Skip test files from coverage
-coverageSkipTestFiles = true
-
 # Preload setup files
 preload = ["./test-preload.ts", "./__tests__/dom-setup.ts", "./__tests__/setup.ts"]
 
 # Test timeout (10 seconds)
 timeout = 10000
 
-# Coverage directory
-coverageDirectory = "coverage"
+# Coverage thresholds
+coverageThreshold = { lines = 0.85, functions = 0.85 }
 
-# Coverage thresholds — baseline from current suite
-# Raise gradually as we add/expand tests
-coverageThreshold = { lines = 0.57, functions = 0.63, statements = 0.0, branches = 0.0 }
-
-# Ignore patterns for coverage
-coveragePathIgnorePatterns = [
-  "**/*.d.ts",
-  "**/*.config.*",
-  "**/node_modules/**",
-  "**/__tests__/**",
-  "**/coverage/**",
-  "**/.next/**"
-]
-
-[test.reporter]
-# JUnit XML output for CI test reporting (use coverage dir to avoid mkdir issues)
-junit = "coverage/junit.xml"
+# Skip test files from coverage
+coverageSkipTestFiles = true
