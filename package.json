@@ -13,7 +13,7 @@
     "lint:ci": "biome lint .",
     "format": "biome format --write .",
     "type-check": "tsc --noEmit",
-    "test": "bun run scripts/run-tests.ts",
+    "test": "bun test",
     "db:seed": "bun run prisma/seed.ts",
     "db:reset": "prisma migrate reset --force && bun run db:seed",
     "assets:normalize-mbti": "bun run scripts/normalize-mbti-svgs.ts",
