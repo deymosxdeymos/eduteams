@@ -12,6 +12,8 @@
     },
     "about": {
       "title": "EquiTeam itu apa sih?",
+      "titlePrefix": "EquiTeam",
+      "titleSuffix": "itu apa sih?",
       "description": "EquiTeam bukan sekadar alat pembagi kelompok biasa. Kami adalah sebuah platform pintar yang dirancang untuk mengakhiri drama \"salah tim\". Dengan bantuan kecerdasan buatan, kami memastikan setiap kelompok memiliki kombinasi anggota yang pas, baik dari segi keahlian maupun cara kerja, sehingga semua orang bisa nyaman berkontribusi dan meraih hasil terbaik bersama."
     },
     "problems": {

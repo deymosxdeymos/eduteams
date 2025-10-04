@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { InputRounded } from '@/components/ui/input-rounded';
 import type { ExtendedUser } from '@/lib/types';
 import { Badge } from '../ui/badge';
 import { MBTIOverviewLayout } from './mbti-overview-layout';
@@ -38,6 +39,7 @@ interface StudentListProps {
   submittedStudentIds?: string[]; // students who have filled both quizzes for this assignment
   submittedCount?: number; // number of students who have submitted
   totalStudents?: number; // total number of students in class
+  isAssignmentPage?: boolean; // true when on assignment/task pages
 }
 
 const fetcher = async (url: string) => {
@@ -78,6 +80,7 @@ export function StudentList({
   submittedStudentIds,
   submittedCount,
   totalStudents,
+  isAssignmentPage = false,
 }: StudentListProps) {
   const [searchValue, setSearchValue] = useState('');
   const [openMenuStudentId, setOpenMenuStudentId] = useState<string | null>(
@@ -249,7 +252,13 @@ export function StudentList({
       className='bg-white rounded-3xl rounded-l-none h-full flex flex-col overflow-hidden'
     >
       <div className='p-6 pb-4'>
-        <div className='flex gap-x-2 items-center mb-4'>
+        <div
+          className={
+            isAssignmentPage
+              ? 'flex flex-col gap-2 mb-4'
+              : 'flex gap-x-2 items-center mb-4'
+          }
+        >
           <h3 className='text-lg font-semibold text-gray-800'>
             Daftar Mahasiswa
           </h3>
@@ -285,7 +294,25 @@ export function StudentList({
             ) : canManage &&
               typeof submittedCount === 'number' &&
               typeof totalStudents === 'number' ? (
-              submittedCount < totalStudents ? (
+              submittedCount === 0 ? (
+                <motion.div
+                  key='no-submission-badge'
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 400,
+                    damping: 30,
+                  }}
+                >
+                  <Badge className='bg-red-50 px-3 rounded-full'>
+                    <span className='text-sm text-red-900 font-medium'>
+                      Belum ada yang mengisi kuesioner
+                    </span>
+                  </Badge>
+                </motion.div>
+              ) : submittedCount < totalStudents ? (
                 <motion.div
                   key='submitted-badge'
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -345,12 +372,12 @@ export function StudentList({
         </div>
 
         <div className='relative'>
-          <input
+          <InputRounded
             type='text'
             placeholder='Cari mahasiswa?'
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
-            className='w-full px-4 py-3 pr-10 border border-gray-200 rounded-full outline-none focus:border-neutral-500 text-gray-700 placeholder-gray-400'
+            className='pr-10 text-gray-700 placeholder:text-gray-400'
           />
           <Search className='absolute right-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400' />
         </div>

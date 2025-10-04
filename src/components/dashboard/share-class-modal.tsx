@@ -162,7 +162,7 @@ export function ShareClassModal({
                     }}
                   />
                   <Check
-                    className={`absolute inset-0 text-green-600 transition-all duration-200 ${
+                    className={`absolute inset-0 transition-all duration-200 ${
                       copiedToken
                         ? 'scale-100 opacity-100 blur-0'
                         : 'scale-50 opacity-0 blur-sm'
