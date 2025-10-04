@@ -1,17 +1,17 @@
 'use client';
 
-import { ArrowLeft, Calendar, Plus, Search, Share2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Plus, Share2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { InputRounded } from '@/components/ui/input-rounded';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { CreateAssignmentModal } from './create-assignment-modal';
 import { EmptyAssignmentState } from './empty-assignment-state';
+import { SearchInput } from './search-input';
 import { ShareClassModal } from './share-class-modal';
 
 interface ClassAssignmentsProps {
@@ -153,16 +153,15 @@ export function ClassAssignments({
           </Button>
 
           {hasAssignments && (
-            <div className='ml-auto w-80 relative'>
-              <InputRounded
-                placeholder={t('searchPlaceholder')}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className='pr-10'
-                aria-label={t('searchAria')}
-              />
-              <Search className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
-            </div>
+            <SearchInput
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder={t('searchPlaceholder')}
+              ariaLabel={t('searchAria')}
+              showClassActions={false}
+              containerClassName='ml-auto w-80'
+              className='pr-10'
+            />
           )}
         </div>
       </div>

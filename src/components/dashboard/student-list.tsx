@@ -13,10 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { InputRounded } from '@/components/ui/input-rounded';
 import type { ExtendedUser } from '@/lib/types';
 import { Badge } from '../ui/badge';
 import { MBTIOverviewLayout } from './mbti-overview-layout';
+import { SearchInput } from './search-input';
 import { StudentProfileContent } from './student-profile-content';
 
 interface Student {
@@ -371,16 +371,15 @@ export function StudentList({
           </AnimatePresence>
         </div>
 
-        <div className='relative'>
-          <InputRounded
-            type='text'
-            placeholder='Cari mahasiswa?'
-            value={searchValue}
-            onChange={e => setSearchValue(e.target.value)}
-            className='pr-10 text-gray-700 placeholder:text-gray-400'
-          />
-          <Search className='absolute right-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400' />
-        </div>
+        <SearchInput
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          placeholder='Cari mahasiswa?'
+          showClassActions={false}
+          containerClassName='relative'
+          className='pr-10 text-gray-700 placeholder:text-gray-400'
+          iconClassName='right-5 w-6 h-6'
+        />
 
         <AnimatePresence>
           {isSelectMode && canManage && (

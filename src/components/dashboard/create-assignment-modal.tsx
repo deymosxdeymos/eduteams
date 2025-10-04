@@ -32,6 +32,7 @@ export function CreateAssignmentModal({
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isFormValid = Boolean(title.trim()) && skills.length > 0;
 
   const addSkill = () => {
     const trimmedInput = skillInput.trim();
@@ -201,8 +202,11 @@ export function CreateAssignmentModal({
         <Button
           variant='onboarding'
           className='w-full py-6 rounded-4xl font-medium'
-          disabled={submitting || !title.trim()}
+          disabled={submitting || !isFormValid}
           onClick={async () => {
+            if (!isFormValid || submitting) {
+              return;
+            }
             try {
               setSubmitting(true);
               setError(null);
