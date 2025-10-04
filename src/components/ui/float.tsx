@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useAnimationFrame, useMotionValue } from 'motion/react';
+import { motion, useAnimationFrame, useMotionValue } from 'framer-motion';
 import type React from 'react';
 import { useRef } from 'react';
 
