@@ -1,16 +1,16 @@
 'use client';
 
-import { ArrowLeft, Calendar, RotateCcw, Search } from 'lucide-react';
+import { ArrowLeft, Calendar, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { InputRounded } from '@/components/ui/input-rounded';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { Course } from '@/lib/types';
 import type { AssignmentClient } from '@/lib/validation/assignments';
 import { EmptyStudentAssignmentState } from './empty-student-assignment-state';
+import { SearchInput } from './search-input';
 
 interface StudentClassAssignmentsProps {
   classId: string;
@@ -102,16 +102,15 @@ export function StudentClassAssignments({
           <span className='text-gray-600 font-medium'>Kembali</span>
 
           {hasAssignments && (
-            <div className='ml-auto w-80 relative'>
-              <InputRounded
-                placeholder='Cari tugas?'
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className='pr-10'
-                aria-label='Cari tugas'
-              />
-              <Search className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
-            </div>
+            <SearchInput
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder='Cari tugas?'
+              ariaLabel='Cari tugas'
+              showClassActions={false}
+              containerClassName='ml-auto w-80'
+              className='pr-10'
+            />
           )}
         </div>
       </div>
