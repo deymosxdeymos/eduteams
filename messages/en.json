@@ -12,6 +12,8 @@
     },
     "about": {
       "title": "What is EquiTeam?",
+      "titlePrefix": "What is",
+      "titleSuffix": "EquiTeam?",
       "description": "EquiTeam is not just another ordinary group division tool. We are a smart platform designed to end the drama of \"wrong team\". With the help of artificial intelligence, we ensure every group has the perfect combination of members, both in terms of skills and working styles, so everyone can comfortably contribute and achieve the best results together."
     },
     "problems": {

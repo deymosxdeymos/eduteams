@@ -31,8 +31,10 @@ export default async function Home() {
 
           <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
             <div className='text-center'>
-              <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight mb-4 animate-hero-delay-600'>
-                {t('homepage.hero.titlePrefix')}{' '}
+              <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight  animate-hero-delay-600'>
+                {t('homepage.hero.titlePrefix')}
+                <br className='sm:hidden' />
+                <span className='hidden sm:inline'> </span>
                 <span className='text-amber-300'>
                   {t('homepage.hero.titleCall')}
                 </span>
@@ -54,9 +56,9 @@ export default async function Home() {
                 src='/landing/Illustration.svg'
                 width={1000}
                 height={800}
-                sizes='(max-width: 640px) 300px, (max-width: 768px) 500px, (max-width: 1024px) 700px, 1000px'
+                sizes='(max-width: 640px) 450px, (max-width: 768px) 500px, (max-width: 1024px) 700px, 1000px'
                 alt='mascot'
-                className='w-full h-auto max-w-[300px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20 animate-mascot'
+                className='w-full h-auto max-w-[450px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20 animate-mascot'
                 style={{ height: 'auto' }}
                 priority
               />
@@ -64,7 +66,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className='relative bg-white -mt-36 sm:mt-0 animate-hills'>
+        <section className='relative bg-white -mt-56 sm:mt-0 animate-hills'>
           <div className='absolute inset-x-0 -top-6 sm:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
             <Image
               src='/landing/Subtract.svg'
@@ -81,9 +83,8 @@ export default async function Home() {
             <div className='p-4 sm:p-8 lg:p-10 mb-22 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8'>
               <div className='flex items-start sm:items-center justify-start sm:justify-center h-full'>
                 <h2 className='text-5xl sm:text-7xl font-bold sm:font-extrabold text-blue-background leading-snug sm:leading-snug mt-28 sm:mt-0 mb-2 sm:mb-4'>
-                  EquiTeam
-                  <br className='sm:hidden' />{' '}
-                  {t('homepage.about.title').split(' ').slice(1).join(' ')}
+                  {t('homepage.about.titlePrefix')}
+                  <br className='sm:hidden' /> {t('homepage.about.titleSuffix')}
                 </h2>
               </div>
               <div className='flex items-center justify-center text-black text-xl font normal h-full'>
