@@ -27,5 +27,5 @@ jobs:
       - name: Type check
         run: bun run type-check
 
-      - name: Test (coverage + bail)
-        run: CLAUDECODE=1 bun test --coverage --bail
+      - name: Test
+        run: bun test --coverage --bail
