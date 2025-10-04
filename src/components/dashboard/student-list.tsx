@@ -262,48 +262,49 @@ export function StudentList({
           <h3 className='text-lg font-semibold text-gray-800'>
             Daftar Mahasiswa
           </h3>
-          <AnimatePresence mode='popLayout'>
-            {isSelectMode && canManage ? (
-              <motion.div
-                key='select-badge'
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 400,
-                  damping: 30,
-                }}
-              >
-                <Badge className='bg-blue-50 px-3 rounded-full flex items-center gap-2'>
-                  <span className='text-sm text-blue-900 font-medium'>
-                    {selectedStudentIds.size} mahasiswa dipilih
-                  </span>
-                  <button
-                    onClick={() => {
-                      setIsSelectMode(false);
-                      setSelectedStudentIds(new Set());
+          <motion.div
+            layout
+            transition={{ duration: 0.2, ease: [0.215, 0.61, 0.355, 1] }}
+          >
+            <Badge className='px-3 rounded-full flex items-center gap-1 bg-sky-50'>
+              <span className='text-sm font-medium text-sky-900'>
+                {isSelectMode && canManage
+                  ? selectedStudentIds.size
+                  : students.length}{' '}
+                Mahasiswa
+              </span>
+              <AnimatePresence>
+                {isSelectMode && canManage && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{
+                      duration: 0.2,
+                      ease: [0.215, 0.61, 0.355, 1],
                     }}
-                    className='hover:bg-blue-100 rounded-full p-0.5 transition-colors duration-200'
-                    aria-label='Keluar dari mode pilih'
+                    className='text-sm font-medium text-sky-900 overflow-hidden whitespace-nowrap'
                   >
-                    <X className='w-4 h-4 text-blue-700' />
-                  </button>
-                </Badge>
-              </motion.div>
-            ) : canManage &&
+                    dipilih
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Badge>
+          </motion.div>
+          <AnimatePresence mode='popLayout'>
+            {!isSelectMode &&
+              canManage &&
               typeof submittedCount === 'number' &&
-              typeof totalStudents === 'number' ? (
-              submittedCount === 0 ? (
+              typeof totalStudents === 'number' &&
+              (submittedCount === 0 ? (
                 <motion.div
                   key='no-submission-badge'
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 30,
+                    duration: 0.2,
+                    ease: [0.215, 0.61, 0.355, 1],
                   }}
                 >
                   <Badge className='bg-red-50 px-3 rounded-full'>
@@ -315,13 +316,12 @@ export function StudentList({
               ) : submittedCount < totalStudents ? (
                 <motion.div
                   key='submitted-badge'
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 30,
+                    duration: 0.2,
+                    ease: [0.215, 0.61, 0.355, 1],
                   }}
                 >
                   <Badge className='bg-amber-50 px-3 rounded-full'>
@@ -333,13 +333,12 @@ export function StudentList({
               ) : (
                 <motion.div
                   key='ready-badge'
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 30,
+                    duration: 0.2,
+                    ease: [0.215, 0.61, 0.355, 1],
                   }}
                 >
                   <Badge className='bg-sky-50 px-3 rounded-full'>
@@ -348,26 +347,7 @@ export function StudentList({
                     </span>
                   </Badge>
                 </motion.div>
-              )
-            ) : (
-              <motion.div
-                key='default-badge'
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 400,
-                  damping: 30,
-                }}
-              >
-                <Badge className='bg-sky-50 px-2 rounded-full'>
-                  <span className='text-sm text-sky-900 font-medium'>
-                    {students.length} Mahasiswa
-                  </span>
-                </Badge>
-              </motion.div>
-            )}
+              ))}
           </AnimatePresence>
         </div>
 
@@ -384,20 +364,19 @@ export function StudentList({
         <AnimatePresence>
           {isSelectMode && canManage && (
             <motion.div
-              initial={{ opacity: 0, height: 0, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, height: 'auto', filter: 'blur(0px)' }}
-              exit={{ opacity: 0, height: 0, filter: 'blur(8px)' }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
               transition={{
-                type: 'spring',
-                stiffness: 300,
-                damping: 30,
+                duration: 0.2,
+                ease: [0.215, 0.61, 0.355, 1],
               }}
               className='overflow-hidden'
-              style={{ willChange: 'filter, transform' }}
+              style={{ willChange: 'opacity, transform' }}
             >
               <div className='flex items-center justify-between mt-4'>
                 <label
-                  className='flex items-center gap-2 cursor-pointer'
+                  className='flex items-center gap-2 cursor-pointer select-none'
                   onClick={() => {
                     if (selectedStudentIds.size === filteredStudents.length) {
                       setSelectedStudentIds(new Set());
@@ -437,18 +416,32 @@ export function StudentList({
                     Pilih semua
                   </span>
                 </label>
-                <Button
-                  variant='destructive'
-                  size='sm'
-                  disabled={selectedStudentIds.size === 0}
-                  onClick={() => {
-                    setConfirmStudentId('bulk');
-                  }}
-                  className='rounded-full flex items-center gap-2 cursor-pointer hover:bg-red-700 transition-colors duration-200'
-                >
-                  <Trash2 className='w-4 h-4' />
-                  Keluarkan mahasiswa
-                </Button>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    variant='destructive'
+                    size='sm'
+                    disabled={selectedStudentIds.size === 0}
+                    onClick={() => {
+                      setConfirmStudentId('bulk');
+                    }}
+                    className='text-sm rounded-full flex items-center gap-2 cursor-pointer hover:bg-red-700 transition-colors duration-200'
+                  >
+                    <Trash2 className='w-4 h-4' />
+                    Keluarkan mahasiswa
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    onClick={() => {
+                      setIsSelectMode(false);
+                      setSelectedStudentIds(new Set());
+                    }}
+                    className='rounded-full'
+                    aria-label='Keluar dari mode pilih'
+                  >
+                    <X className='w-4 h-4' />
+                  </Button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -489,26 +482,22 @@ export function StudentList({
                       <motion.div
                         initial={{
                           opacity: 0,
-                          scale: 0.8,
-                          filter: 'blur(4px)',
+                          scale: 0.9,
                         }}
                         animate={{
                           opacity: 1,
                           scale: 1,
-                          filter: 'blur(0px)',
                         }}
                         exit={{
                           opacity: 0,
-                          scale: 0.8,
-                          filter: 'blur(4px)',
+                          scale: 0.9,
                         }}
                         transition={{
-                          type: 'spring',
-                          stiffness: 300,
-                          damping: 30,
+                          duration: 0.2,
+                          ease: [0.215, 0.61, 0.355, 1],
                         }}
                         className='flex-shrink-0'
-                        style={{ willChange: 'filter, transform' }}
+                        style={{ willChange: 'opacity, transform' }}
                       >
                         <button
                           type='button'
@@ -626,32 +615,44 @@ export function StudentList({
                         >
                           <MoreVertical className='w-5 h-5 text-gray-500' />
                         </button>
-                        {openMenuStudentId === student.id && (
-                          <div className='absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden'>
-                            <button
-                              className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50'
-                              onClick={e => {
-                                e.stopPropagation();
-                                setIsSelectMode(true);
-                                setSelectedStudentIds(new Set([student.id]));
-                                setOpenMenuStudentId(null);
+                        <AnimatePresence>
+                          {openMenuStudentId === student.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              transition={{
+                                duration: 0.2,
+                                ease: [0.215, 0.61, 0.355, 1],
                               }}
+                              className='absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden'
+                              style={{ transformOrigin: 'top right' }}
                             >
-                              Pilih
-                            </button>
-                            <button
-                              className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600'
-                              onClick={e => {
-                                e.stopPropagation();
-                                setConfirmStudentId(student.id);
-                                setOpenMenuStudentId(null);
-                                setRemoveError(null);
-                              }}
-                            >
-                              Hapus mahasiswa
-                            </button>
-                          </div>
-                        )}
+                              <button
+                                className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50'
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setIsSelectMode(true);
+                                  setSelectedStudentIds(new Set([student.id]));
+                                  setOpenMenuStudentId(null);
+                                }}
+                              >
+                                Pilih
+                              </button>
+                              <button
+                                className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600'
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setConfirmStudentId(student.id);
+                                  setOpenMenuStudentId(null);
+                                  setRemoveError(null);
+                                }}
+                              >
+                                Hapus mahasiswa
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     )}
                   </motion.div>
