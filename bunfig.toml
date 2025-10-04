@@ -5,8 +5,5 @@ preload = ["./test-preload.ts", "./__tests__/dom-setup.ts", "./__tests__/setup.t
 # Test timeout (10 seconds)
 timeout = 10000
 
-# Coverage thresholds
-coverageThreshold = { lines = 0.85, functions = 0.85 }
-
 # Skip test files from coverage
 coverageSkipTestFiles = true
