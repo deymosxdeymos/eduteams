@@ -2,13 +2,11 @@
 
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useEffect, useId, useMemo, useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
+import { useId, useMemo, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
-import { getClientLocaleFromCookie, onLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
+import { useRouter } from '@/i18n/routing';
 import type { ExtendedUser } from '@/lib/types';
 
 interface DosenProfileContentProps {
@@ -17,6 +15,7 @@ interface DosenProfileContentProps {
 
 export function DosenProfileContent({ user }: DosenProfileContentProps) {
   const router = useRouter();
+  const t = useTranslations('dashboard.profile');
   const [namaLengkap, setNamaLengkap] = useState<string>(user.name ?? '');
   const initialJenisKelamin = useMemo(() => {
     if (user.gender === 'MALE') return 'laki-laki';
@@ -31,23 +30,6 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
   const [error, setError] = useState<string | null>(null);
   const isMale = jenisKelamin === 'laki-laki';
   const isFemale = jenisKelamin === 'perempuan';
-  // biome-ignore lint/suspicious/noExplicitAny: dynamic messages
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
-
-  // Auto-select current gender on mount/hydration based on user.gender
-  useEffect(() => {
-    setJenisKelamin(initialJenisKelamin);
-  }, [initialJenisKelamin]);
-
-  useEffect(() => {
-    const load = async (l: Locale) => {
-      const dict = await getDictionary(l);
-      setMessages(dict);
-    };
-    load(getClientLocaleFromCookie());
-    const unsub = onLocaleChange(l => load(l));
-    return unsub;
-  }, []);
 
   const onSave = () => {
     setMessage(null);
@@ -67,23 +49,12 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
 
         const json = await res.json().catch(() => ({}));
         if (!res.ok || !json?.success) {
-          throw new Error(
-            json?.error ||
-              messages?.dashboard?.profile?.saveFailed ||
-              'Gagal menyimpan perubahan'
-          );
+          throw new Error(json?.error || t('saveFailed'));
         }
-        setMessage(
-          messages?.dashboard?.profile?.saveSuccess ||
-            'Perubahan berhasil disimpan'
-        );
+        setMessage(t('saveSuccess'));
       } catch (e) {
         const err = e as Error;
-        setError(
-          err.message ||
-            messages?.dashboard?.profile?.errorGeneric ||
-            'Terjadi kesalahan'
-        );
+        setError(err.message || t('errorGeneric'));
       }
     });
   };
@@ -95,35 +66,29 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           variant='ghost'
           size='icon'
           className='rounded-full'
-          aria-label={messages?.dashboard?.profile?.back || 'Kembali'}
+          aria-label={t('back')}
           onClick={() => router.back()}
         >
           <ArrowLeft className='w-5 h-5' />
         </Button>
-        <h1 className='text-xl font-medium text-gray-900'>
-          {messages?.dashboard?.profile?.title || 'Profil'}
-        </h1>
+        <h1 className='text-xl font-medium text-gray-900'>{t('title')}</h1>
       </div>
 
       <div className='flex flex-col gap-6 p-2'>
         <p className='text-neutral-800 text-sm font-normal'>
-          {messages?.dashboard?.profile?.instructions ||
-            'Untuk mengubah data diri Anda, harap isi kolom-kolom berikut.'}
+          {t('instructions')}
         </p>
         <div className='flex flex-col gap-2'>
           <label
             htmlFor={nameInputId}
             className='text-black text-xl font-normal'
           >
-            {messages?.dashboard?.profile?.fullName || 'Nama Lengkap'}
+            {t('fullName')}
           </label>
           <div className='relative max-w-xl'>
             <InputRounded
               id={nameInputId}
-              placeholder={
-                messages?.dashboard?.profile?.fullNamePlaceholder ||
-                'Masukkan nama lengkap'
-              }
+              placeholder={t('fullNamePlaceholder')}
               value={namaLengkap}
               onChange={e => setNamaLengkap(e.target.value)}
             />
@@ -132,7 +97,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
 
         <div className='flex flex-col gap-2'>
           <span id={genderLabelId} className='text-black text-xl font-normal'>
-            {messages?.dashboard?.profile?.gender || 'Jenis Kelamin'}
+            {t('gender')}
           </span>
           <div
             className='flex gap-x-4 items-start'
@@ -157,11 +122,11 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
                 src='/laki.svg'
                 width={80}
                 height={80}
-                alt={messages?.dashboard?.profile?.male || 'Laki-laki'}
+                alt={t('male')}
                 className='mb-[-10px] w-auto h-auto'
               />
               <p className='font-bold text-center text-blue-950 text-md tracking-tighter leading-none uppercase'>
-                {messages?.dashboard?.profile?.male || 'Laki-laki'}
+                {t('male')}
               </p>
             </button>
 
@@ -183,11 +148,11 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
                 src='/perempuan.svg'
                 width={80}
                 height={80}
-                alt={messages?.dashboard?.profile?.female || 'Perempuan'}
+                alt={t('female')}
                 className='mb-[-10px] w-auto h-auto'
               />
               <p className='font-bold text-center text-pink-950 text-md tracking-tighter leading-none uppercase'>
-                {messages?.dashboard?.profile?.female || 'Perempuan'}
+                {t('female')}
               </p>
             </button>
           </div>
@@ -201,9 +166,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           className='rounded-full w-[36rem] h-[3rem]'
           disabled={isPending || !namaLengkap || !jenisKelamin}
         >
-          {isPending
-            ? messages?.dashboard?.profile?.saving || 'Menyimpan...'
-            : messages?.dashboard?.profile?.save || 'Simpan perubahan'}
+          {isPending ? t('saving') : t('save')}
         </Button>
         {message && <span className='text-green-600 text-sm'>{message}</span>}
         {error && <span className='text-red-600 text-sm'>{error}</span>}

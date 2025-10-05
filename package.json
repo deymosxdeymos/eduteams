@@ -2,28 +2,27 @@
   "name": "eduteams",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate --no-engine && next build",
     "start": "next start",
-    "lint": "next lint && biome check .",
+    "lint": "biome check .",
+    "lint:ci": "biome lint .",
     "format": "biome format --write .",
-    "format:check": "biome format .",
     "type-check": "tsc --noEmit",
     "test": "bun test",
-    "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage",
-    "test:ci": "bun test --coverage --bail",
-    "test:update-snapshots": "bun test --update-snapshots",
-    "test:bail": "bun test --bail",
     "db:seed": "bun run prisma/seed.ts",
     "db:reset": "prisma migrate reset --force && bun run db:seed",
-    "assets:normalize-mbti": "bun run scripts/normalize-mbti-svgs.ts"
+    "assets:normalize-mbti": "bun run scripts/normalize-mbti-svgs.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
     "@paralleldrive/cuid2": "^2.2.2",
-    "@prisma/client": "^6.15.0",
+    "@prisma/client": "^6.16.1",
     "@prisma/extension-accelerate": "^2.0.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.7",
@@ -31,16 +30,13 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@upstash/ratelimit": "^2.0.6",
-    "@upstash/redis": "^1.35.3",
-    "better-auth": "^1.3.8",
+    "better-auth": "^1.3.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.541.0",
-    "motion": "^12.23.12",
     "next": "15.4.1",
-    "node-cache": "^5.1.2",
+    "next-intl": "^4.3.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-error-boundary": "^6.0.0",
@@ -48,25 +44,30 @@
     "recharts": "2.15.4",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
-    "zod": "^4.1.5"
+    "zod": "^4.1.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.3",
-    "@eslint/eslintrc": "^3.3.1",
+    "@biomejs/biome": "^2.2.4",
+    "@happy-dom/global-registrator": "^18.0.1",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4.1.13",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
-    "@types/node": "^20.19.13",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/bun": "latest",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^20.19.14",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
+    "bun-types": "^1.2.21",
     "cheerio": "^1.1.2",
-    "eslint": "^9.34.0",
-    "eslint-config-next": "15.4.1",
     "glob": "^11.0.3",
     "happy-dom": "^18.0.1",
-    "prisma": "^6.15.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.3",
+    "prisma": "^6.16.1",
     "tailwindcss": "^4.1.13",
     "tw-animate-css": "^1.3.8",
     "typescript": "^5.9.2"
@@ -74,5 +75,12 @@
   "overrides": {
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "biome check --write --no-errors-on-unmatched",
+      "biome format --write"
+    ],
+    "*.{json,md,css}": ["biome format --write"]
   }
 }

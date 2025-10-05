@@ -4,18 +4,24 @@ import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
 import { Textarea } from '@/components/ui/textarea';
 
 interface CreateAssignmentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   classId: string;
 }
 
 export function CreateAssignmentModal({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   classId,
 }: CreateAssignmentModalProps) {
   const [skills, setSkills] = useState<string[]>([]);
@@ -26,6 +32,7 @@ export function CreateAssignmentModal({
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isFormValid = Boolean(title.trim()) && skills.length > 0;
 
   const addSkill = () => {
     const trimmedInput = skillInput.trim();
@@ -65,26 +72,17 @@ export function CreateAssignmentModal({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center'>
-      <button
-        className='fixed inset-0 bg-black/50 border-none p-0 cursor-default'
-        onClick={onClose}
-        aria-label='Close modal'
-        type='button'
-      />
-      <div className='relative bg-white rounded-lg p-6 w-full max-w-4xl mx-4'>
-        <div className='flex items-center justify-between mb-2'>
-          <h2 className='text-xl font-medium'>Buat Tugas Baru?</h2>
-          <Button variant='ghost' size='sm' onClick={onClose}>
-            <X className='text-black w-5 hover:text-black/70' />
-          </Button>
-        </div>
-        <p className='text-base font-normal mb-6'>
-          Silahkan isi seluruh data di bawah untuk membuat tugas baru
-        </p>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className='max-w-4xl rounded-2xl'>
+        <DialogHeader>
+          <DialogTitle className='text-xl font-medium'>
+            Buat Tugas Baru?
+          </DialogTitle>
+          <p className='text-base font-normal'>
+            Silahkan isi seluruh data di bawah untuk membuat tugas baru
+          </p>
+        </DialogHeader>
 
         <div className='grid grid-cols-2 gap-8 mb-8'>
           {/* Left Column */}
@@ -203,9 +201,12 @@ export function CreateAssignmentModal({
         {/* Create Button */}
         <Button
           variant='onboarding'
-          className='w-full py-5 rounded-4xl font-medium'
-          disabled={submitting || !title.trim()}
+          className='w-full py-6 rounded-4xl font-medium'
+          disabled={submitting || !isFormValid}
           onClick={async () => {
+            if (!isFormValid || submitting) {
+              return;
+            }
             try {
               setSubmitting(true);
               setError(null);
@@ -228,7 +229,7 @@ export function CreateAssignmentModal({
               setDescription('');
               setSkills([]);
               setTopics([]);
-              onClose();
+              onOpenChange(false);
               // Let caller refresh via SWR (handled in parent by mutate)
               const ev = new CustomEvent('assignment:created', {
                 detail: { classId },
@@ -241,12 +242,12 @@ export function CreateAssignmentModal({
             }
           }}
         >
-          <Plus className='w-4 h-4 mr-2' />
+          <Plus strokeWidth={3} className='w-4 h-4 mr-2' />
           <span className='text-sm'>
             {submitting ? 'Membuat…' : 'Buat Tugas'}
           </span>
         </Button>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

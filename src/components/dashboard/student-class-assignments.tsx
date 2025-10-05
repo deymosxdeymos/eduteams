@@ -1,16 +1,16 @@
 'use client';
 
-import { ArrowLeft, Calendar, RotateCcw, Search } from 'lucide-react';
+import { ArrowLeft, Calendar, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { InputRounded } from '@/components/ui/input-rounded';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { Course } from '@/lib/types';
 import type { AssignmentClient } from '@/lib/validation/assignments';
 import { EmptyStudentAssignmentState } from './empty-student-assignment-state';
+import { SearchInput } from './search-input';
 
 interface StudentClassAssignmentsProps {
   classId: string;
@@ -76,12 +76,22 @@ export function StudentClassAssignments({
     return `${timeFormatter.format(d)}, ${dateFormatter.format(d)}`;
   };
 
+  const extractDescriptionText = (description: string | null | undefined) => {
+    if (!description) return null;
+    try {
+      const parsed = JSON.parse(description);
+      return parsed.text || null;
+    } catch {
+      return description;
+    }
+  };
+
   return (
     <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
       <div className='p-6'>
         <div className='flex items-center gap-4'>
           <Button
-            variant='outline'
+            variant='ghost'
             size='icon'
             onClick={() => window.history.back()}
             className='rounded-full'
@@ -92,16 +102,15 @@ export function StudentClassAssignments({
           <span className='text-gray-600 font-medium'>Kembali</span>
 
           {hasAssignments && (
-            <div className='ml-auto w-80 relative'>
-              <InputRounded
-                placeholder='Cari tugas?'
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className='pr-10'
-                aria-label='Cari tugas'
-              />
-              <Search className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
-            </div>
+            <SearchInput
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              placeholder='Cari tugas?'
+              ariaLabel='Cari tugas'
+              showClassActions={false}
+              containerClassName='ml-auto w-80'
+              className='pr-10'
+            />
           )}
         </div>
       </div>
@@ -118,26 +127,15 @@ export function StudentClassAssignments({
                     Tidak ada tugas yang cocok untuk &quot;{searchTerm}&quot;.
                   </div>
                 ) : null}
-                {filteredAssignments.map(a => (
-                  <div
-                    key={a.id}
-                    className='border rounded-2xl p-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow'
-                    role='button'
-                    tabIndex={0}
-                    onClick={() => {
-                      if (a.submittedByMe) {
-                        router.push(
-                          `/dashboard/class/${classId}/assignments/${a.id}`
-                        );
-                      } else {
-                        router.push(
-                          `/dashboard/class/${classId}/assignments/${a.id}/quiz`
-                        );
-                      }
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+                {filteredAssignments.map(a => {
+                  const descriptionText = extractDescriptionText(a.description);
+                  return (
+                    <div
+                      key={a.id}
+                      className='border rounded-2xl p-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow'
+                      role='button'
+                      tabIndex={0}
+                      onClick={() => {
                         if (a.submittedByMe) {
                           router.push(
                             `/dashboard/class/${classId}/assignments/${a.id}`
@@ -147,89 +145,103 @@ export function StudentClassAssignments({
                             `/dashboard/class/${classId}/assignments/${a.id}/quiz`
                           );
                         }
-                      }
-                    }}
-                  >
-                    <div className='flex items-start justify-between gap-3'>
-                      {(() => {
-                        let text = '';
-                        let color = '';
-                        if (a.submittedByMe) {
-                          text = 'Sudah mengisi kuisioner';
-                          color = 'bg-emerald-50 text-emerald-900';
-                        } else if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
-                          text = 'Pembagian grup berhasil dilakukan';
-                          color = 'bg-emerald-50 text-emerald-900';
-                        } else if (a.status === 'MENUNGGU') {
-                          text = 'Menunggu pembagian grup';
-                          color = 'bg-sky-50 text-sky-900';
-                        } else {
-                          text = 'Belum mengisi kuisioner';
-                          color = 'bg-amber-50 text-orange-900';
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          if (a.submittedByMe) {
+                            router.push(
+                              `/dashboard/class/${classId}/assignments/${a.id}`
+                            );
+                          } else {
+                            router.push(
+                              `/dashboard/class/${classId}/assignments/${a.id}/quiz`
+                            );
+                          }
                         }
-                        return (
-                          <div className='flex items-center gap-3'>
-                            <Badge className={`rounded-full ${color} border`}>
-                              {text}
-                            </Badge>
-                            {process.env.NODE_ENV !== 'production' && (
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                className='h-7 px-2 rounded-full border border-red-600 text-red-700'
-                                onClick={async ev => {
-                                  ev.stopPropagation();
-                                  try {
-                                    if (
-                                      !confirm(
-                                        'Reset status kuisioner untuk tugas ini?'
+                      }}
+                    >
+                      <div className='flex items-start justify-between gap-3'>
+                        {(() => {
+                          let text = '';
+                          let color = '';
+                          if (a.submittedByMe) {
+                            text = 'Sudah mengisi kuisioner';
+                            color = 'bg-emerald-50 text-emerald-900';
+                          } else if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
+                            text = 'Pembagian grup berhasil dilakukan';
+                            color = 'bg-emerald-50 text-emerald-900';
+                          } else if (a.status === 'MENUNGGU') {
+                            text = 'Menunggu pembagian grup';
+                            color = 'bg-sky-50 text-sky-900';
+                          } else {
+                            text = 'Belum mengisi kuisioner';
+                            color = 'bg-amber-50 text-orange-900';
+                          }
+                          return (
+                            <div className='flex items-center gap-3'>
+                              <Badge className={`rounded-full ${color} border`}>
+                                {text}
+                              </Badge>
+                              {process.env.NODE_ENV !== 'production' && (
+                                <Button
+                                  variant='outline'
+                                  size='sm'
+                                  className='h-7 px-2 rounded-full border border-red-600 text-red-700'
+                                  onClick={async ev => {
+                                    ev.stopPropagation();
+                                    try {
+                                      if (
+                                        !confirm(
+                                          'Reset status kuisioner untuk tugas ini?'
+                                        )
                                       )
-                                    )
-                                      return;
-                                    const res = await fetch(
-                                      `/api/courses/${classId}/assignments/submissions?assignmentId=${a.id}`,
-                                      { method: 'DELETE' }
-                                    );
-                                    if (!res.ok) {
-                                      console.error(
-                                        'Reset failed',
-                                        await res.text()
+                                        return;
+                                      const res = await fetch(
+                                        `/api/courses/${classId}/assignments/submissions?assignmentId=${a.id}`,
+                                        { method: 'DELETE' }
                                       );
-                                      alert('Gagal reset kuisioner.');
-                                      return;
+                                      if (!res.ok) {
+                                        console.error(
+                                          'Reset failed',
+                                          await res.text()
+                                        );
+                                        alert('Gagal reset kuisioner.');
+                                        return;
+                                      }
+                                      await mutateAssignments();
+                                    } catch (err) {
+                                      console.error('Reset error', err);
+                                      alert('Terjadi kesalahan saat reset.');
                                     }
-                                    await mutateAssignments();
-                                  } catch (err) {
-                                    console.error('Reset error', err);
-                                    alert('Terjadi kesalahan saat reset.');
-                                  }
-                                }}
-                                title='Dev-only reset'
-                              >
-                                <RotateCcw className='w-3.5 h-3.5 mr-1' />
-                                Reset
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })()}
+                                  }}
+                                  title='Dev-only reset'
+                                >
+                                  <RotateCcw className='w-3.5 h-3.5 mr-1' />
+                                  Reset
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <h3 className='mt-2 text-lg font-normal text-stone-900'>
+                        {a.title}
+                      </h3>
+                      <div className='mt-1 flex items-center gap-4 text-xs font-normal text-neutral-600'>
+                        <span className='inline-flex items-center gap-1'>
+                          <Calendar className='w-4 h-4' />
+                          {formatIdTimeDate(a.startAt)}
+                        </span>
+                      </div>
+                      {descriptionText ? (
+                        <p className='mt-2 font-light text-sm text-neutral-800 whitespace-pre-wrap'>
+                          {descriptionText}
+                        </p>
+                      ) : null}
                     </div>
-                    <h3 className='mt-2 text-lg font-normal text-stone-900'>
-                      {a.title}
-                    </h3>
-                    <div className='mt-1 flex items-center gap-4 text-xs font-normal text-neutral-600'>
-                      <span className='inline-flex items-center gap-1'>
-                        <Calendar className='w-4 h-4' />
-                        {formatIdTimeDate(a.startAt)}
-                      </span>
-                    </div>
-                    {a.description ? (
-                      <p className='mt-2 font-light text-sm text-neutral-800 whitespace-pre-wrap'>
-                        {a.description}
-                      </p>
-                    ) : null}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (

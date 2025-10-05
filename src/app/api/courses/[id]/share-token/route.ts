@@ -7,7 +7,6 @@ import {
 } from '@/lib/api-utils';
 import { isSameOrigin } from '@/lib/csrf';
 import prisma from '@/lib/prisma';
-import { limit, tooManyRequests } from '@/lib/rate-limit';
 
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
@@ -68,15 +67,6 @@ export const POST = withAuth<{ id: string }>(
     // Basic CSRF protection for browser-initiated POSTs
     if (!isSameOrigin(request)) {
       return createErrorResponse('Invalid origin', 403);
-    }
-
-    // Rate limit per user + endpoint
-    const rl = await limit(request, `regenerate-share-token:${user.id}`);
-    if (!rl.success) {
-      return tooManyRequests(
-        {},
-        rl.retryAfter ? { 'Retry-After': String(rl.retryAfter) } : {}
-      );
     }
 
     const { id: courseId } = await params;

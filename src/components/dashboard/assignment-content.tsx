@@ -1,9 +1,9 @@
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeams } from '@/components/dashboard/assignment-teams';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
-import { getMessages } from '@/i18n/server';
 import prisma from '@/lib/prisma';
 import type { AssignmentStats } from '@/lib/stats/assignment';
 
@@ -71,7 +71,7 @@ export async function AssignmentContent({
     }
   }
 
-  const { messages } = await getMessages();
+  const t = await getTranslations('dashboard.assignment.studentWaiting');
 
   return (
     <div className='flex-1 p-8 min-h-0'>
@@ -94,23 +94,16 @@ export async function AssignmentContent({
               <div className='flex flex-col items-center text-center max-w-xl'>
                 <Image
                   src='/waiting-form.svg'
-                  alt={
-                    messages.dashboard.assignment.studentWaiting.alt ||
-                    'Menunggu pembagian kelompok'
-                  }
+                  alt={t('alt')}
                   width={120}
                   height={120}
                   className='mb-6'
                   priority
                 />
                 <h1 className='text-2xl font-bold text-gray-800 mb-2'>
-                  {messages.dashboard.assignment.studentWaiting.title ||
-                    'Menunggu pembagian kelompok!'}
+                  {t('title')}
                 </h1>
-                <p className='text-gray-600'>
-                  {messages.dashboard.assignment.studentWaiting.description ||
-                    'Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya, dosen sedang memproses pembagian kelompok.'}
-                </p>
+                <p className='text-gray-600'>{t('description')}</p>
               </div>
             </div>
           )

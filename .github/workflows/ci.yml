@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   build-and-test:
@@ -16,17 +16,16 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.2.21
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Lint
+        run: bun run lint && bun run lint:ci
+
       - name: Type check
         run: bun run type-check
 
-      - name: Lint
-        run: bun run lint
-
-      # Later
-      # - name: Run tests
-# run: bun test --bail
+      - name: Test
+        run: bun test --coverage --bail

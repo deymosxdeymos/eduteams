@@ -106,10 +106,38 @@ export const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
 
     useEffect(() => {
       if (auto) {
-        intervalRef.current = setInterval(next, rotationInterval);
+        const mediaQuery = window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        );
+        const shouldAnimate = !mediaQuery.matches;
+
+        if (shouldAnimate) {
+          intervalRef.current = setInterval(next, rotationInterval);
+        }
+
+        const handleChange = (event: MediaQueryListEvent) => {
+          if (event.matches && intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          } else if (!event.matches && !intervalRef.current) {
+            intervalRef.current = setInterval(next, rotationInterval);
+          }
+        };
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+          mediaQuery.addEventListener('change', handleChange);
+        } else {
+          mediaQuery.addListener(handleChange);
+        }
+
         return () => {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
+          }
+          if (typeof mediaQuery.removeEventListener === 'function') {
+            mediaQuery.removeEventListener('change', handleChange);
+          } else {
+            mediaQuery.removeListener(handleChange);
           }
         };
       }
@@ -165,7 +193,10 @@ export const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
             {segments.map((segment, segmentIndex) => (
               <motion.span
                 key={segmentIndex}
-                className={cn('inline-block', elementLevelClassName)}
+                className={cn(
+                  'inline-block motion-reduce:transform-none',
+                  elementLevelClassName
+                )}
                 initial={getAnimationProps(segmentIndex, initial)}
                 animate={getAnimationProps(segmentIndex, animate)}
                 exit={getAnimationProps(segmentIndex, exit)}

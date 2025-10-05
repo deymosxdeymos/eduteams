@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "types": ["bun-types", "node"],
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/__tests__/**/*.ts",
+    "src/**/__tests__/**/*.tsx",
+    "__tests__/**/*.ts",
+    "__tests__/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/.next/**",
+    "coverage/**"
+  ]
+}
+

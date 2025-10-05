@@ -1,5 +1,7 @@
 import { getSessionCookie } from 'better-auth/cookies';
 import { type NextRequest, NextResponse } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 
 function applySecurityHeaders(response: NextResponse) {
   const csp = [
@@ -17,7 +19,6 @@ function applySecurityHeaders(response: NextResponse) {
 
   response.headers.set('Content-Security-Policy-Report-Only', csp);
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  // Prefer frame-ancestors over X-Frame-Options, but include XFO for legacy
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set(
@@ -33,21 +34,20 @@ function applySecurityHeaders(response: NextResponse) {
   return response;
 }
 
+const intlMiddleware = createMiddleware(routing);
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for static assets, API routes, and Next.js internals
+  // Skip middleware for API routes, auth endpoints, and static files
   if (
-    pathname.startsWith('/_next') ||
     pathname.startsWith('/api/') ||
-    pathname.startsWith('/static/') ||
-    pathname.includes('.') ||
-    pathname.startsWith('/favicon')
+    pathname.startsWith('/_next/') ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp)$/)
   ) {
-    return applySecurityHeaders(NextResponse.next());
+    return NextResponse.next();
   }
 
-  // Check if session token exists (lightweight check without database)
   const hasSessionToken = (() => {
     try {
       const tokenFromHeader = getSessionCookie(request.headers);
@@ -59,43 +59,32 @@ export async function middleware(request: NextRequest) {
     return Boolean(token);
   })();
 
-  // Ensure language cookie exists without redirecting
-  const hasLang = request.cookies.get('lang')?.value;
-  if (!hasLang) {
-    const accept = request.headers.get('accept-language')?.toLowerCase() || '';
-    const inferred = accept.startsWith('en') ? 'en' : 'id';
-    const response = NextResponse.next();
-    response.cookies.set('lang', inferred, {
-      path: '/',
-      httpOnly: false,
-      sameSite: 'lax',
-    });
-    return applySecurityHeaders(response);
-  }
+  const publicPathnameRegex = /^\/(en)?\/?$/;
+  const isPublicRoute = publicPathnameRegex.test(pathname);
 
-  const publicRoutes = ['/'];
-  const isPublicRoute = publicRoutes.includes(pathname);
-
-  // Allow authenticated users to stay on homepage
-  // They can continue their session by clicking "masuk" button
-
-  // Handle auth pages (login/register)
-  if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
+  if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/en/login') ||
+    pathname.startsWith('/en/register')
+  ) {
     if (hasSessionToken) {
-      const res = NextResponse.redirect(new URL('/dashboard', request.url));
+      const locale = pathname.startsWith('/en') ? 'en' : 'id';
+      const target = locale === 'en' ? '/en/dashboard' : '/dashboard';
+      const res = NextResponse.redirect(new URL(target, request.url));
       return applySecurityHeaders(res);
     }
-    return applySecurityHeaders(NextResponse.next());
   }
 
-  // Protect non-public routes
   if (!isPublicRoute && !hasSessionToken) {
-    const res = NextResponse.redirect(new URL('/', request.url));
+    const locale = pathname.startsWith('/en') ? 'en' : 'id';
+    const url = new URL(locale === 'en' ? '/en' : '/', request.url);
+    const res = NextResponse.redirect(url);
     return applySecurityHeaders(res);
   }
 
-  // Let server components handle full session validation and onboarding logic
-  return applySecurityHeaders(NextResponse.next());
+  const response = intlMiddleware(request);
+  return applySecurityHeaders(response);
 }
 
 export const config = {

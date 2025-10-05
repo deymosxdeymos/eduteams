@@ -83,6 +83,7 @@ export function AssignmentLayout({
               submittedStudentIds={canManage ? submittedStudentIds : undefined}
               submittedCount={submittedCount}
               totalStudents={totalStudents}
+              isAssignmentPage={true}
             />
           )}
         </div>

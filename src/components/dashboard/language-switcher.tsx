@@ -1,58 +1,65 @@
 'use client';
 
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
-import { setLocale } from '@/app/actions/set-locale';
+import { useLocale, useTranslations } from 'next-intl';
+import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { emitLocaleChange } from '@/i18n/client';
-import type { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/get-dictionary';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { usePathname, useRouter } from '@/i18n/routing';
+import { cn } from '@/lib/utils';
 
-export function LanguageSwitcher({ current }: { current: Locale }) {
+interface LanguageSwitcherProps {
+  className?: string;
+}
+
+export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const current = useLocale() as 'id' | 'en';
   const [isPending, startTransition] = useTransition();
-  // biome-ignore lint/suspicious/noExplicitAny: Dynamic message loading for i18n
-  const [messages, setMessages] = useState<Record<string, any> | null>(null);
-  const nextLocale: Locale = current === 'id' ? 'en' : 'id';
-
-  useEffect(() => {
-    const loadMessages = async () => {
-      const dict = await getDictionary(current);
-      setMessages(dict);
-    };
-
-    loadMessages();
-  }, [current]);
+  const t = useTranslations('dashboard.languageSwitcher');
+  const nextLocale: 'id' | 'en' = current === 'id' ? 'en' : 'id';
 
   return (
     <Button
       variant='outline'
       size='sm'
-      className='py-7 rounded-full gap-x-4'
+      className={cn(
+        'px-2 py-3 sm:px-3 sm:py-4 lg:px-6 lg:py-7 rounded-full gap-x-1 sm:gap-x-2 lg:gap-x-4 min-w-fit overflow-hidden',
+        className
+      )}
       disabled={isPending}
       onClick={() => {
-        startTransition(async () => {
-          await setLocale(nextLocale, { path: pathname || '/' });
-          emitLocaleChange(nextLocale);
-          router.refresh();
+        startTransition(() => {
+          router.replace(pathname, { locale: nextLocale });
         });
       }}
     >
-      <h1 className='text-2xl text-stone-950 font-semibold'>
-        {current.toUpperCase()}
-      </h1>
-      <Image
-        src={current === 'id' ? '/indo.svg' : '/english.svg'}
-        width={40}
-        height={40}
-        alt={
-          current === 'id'
-            ? messages?.dashboard?.languageSwitcher?.indonesiaAlt || 'indonesia'
-            : messages?.dashboard?.languageSwitcher?.englishAlt || 'english'
-        }
-      />
+      {isPending ? (
+        <>
+          <LoadingSpinner
+            size='sm'
+            className='mr-1 sm:mr-2'
+            color='currentColor'
+          />
+          <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
+            {current.toUpperCase()}
+          </span>
+        </>
+      ) : (
+        <>
+          <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
+            {current.toUpperCase()}
+          </span>
+          <Image
+            src={current === 'id' ? '/indo.svg' : '/english.svg'}
+            width={40}
+            height={40}
+            alt={current === 'id' ? t('indonesiaAlt') : t('englishAlt')}
+            className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
+          />
+        </>
+      )}
     </Button>
   );
 }

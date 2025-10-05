@@ -77,23 +77,40 @@ bun run type-check
 ### Testing Commands
 
 ```bash
-# Run all tests
-bun test
+# Run all tests with coverage and quiet output
+bun run test
 
-# Run tests with coverage
-bun test:coverage
+# Watch mode during development
+CLAUDECODE=1 bun test --watch
 
-# Run tests in watch mode
-bun test:watch
-
-# Run tests for CI (with coverage and bail on first failure)
-bun test:ci
+# Bail on first failure (useful for quick feedback)
+CLAUDECODE=1 bun test --bail
 
 # Update test snapshots
-bun test:update-snapshots
+CLAUDECODE=1 bun test --update-snapshots
 
-# Run tests with bail on first failure
-bun test:bail
+### Snapshots
+
+```bash
+# Run tests and update any mismatched snapshots
+CLAUDECODE=1 bun test --update-snapshots
+
+# Commit updated snapshots after review
+git add -A && git commit -m "test: update snapshots"
+```
+
+### Filtering Tests
+
+```bash
+# Run tests in files whose path contains the substring
+bun test lib  # or any path substring
+
+# Run a specific test file
+bun test ./src/lib/stats/__tests__/assignment.test.ts
+
+# Run tests whose names match a pattern
+bun test --test-name-pattern "aggregates MBTI"
+```
 ```
 
 ### Database Commands
@@ -124,8 +141,8 @@ bun run db:reset
 # Format code with Biome
 bun run format
 
-# Check code formatting
-bun run format:check
+# Lint and formatting checks
+bun run lint
 
 # Run type checking
 bun run type-check
@@ -301,19 +318,16 @@ The project uses Bun's built-in test runner with comprehensive test coverage acr
 
 ```bash
 # Run all tests
-bun test
-
-# Run with coverage report
-bun test:coverage
+bun run test
 
 # Run in watch mode during development
-bun test:watch
+CLAUDECODE=1 bun test --watch
 
 # Run performance tests
 bun test performance/
 
 # Update snapshots after UI changes
-bun test:update-snapshots
+CLAUDECODE=1 bun test --update-snapshots
 ```
 
 ## Code Quality
@@ -326,8 +340,7 @@ bun test:update-snapshots
 
 ### Linting & Formatting
 
-- ESLint with Next.js configuration
-- Prettier for code formatting
+- Biome for linting and formatting
 - Pre-commit hooks for quality assurance
 
 ### Performance

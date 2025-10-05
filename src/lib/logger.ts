@@ -1,8 +1,7 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-const env = process.env.NODE_ENV || 'development';
-
 function shouldLog(level: LogLevel): boolean {
+  const env = process.env.NODE_ENV || 'development';
   if (env === 'test') return false;
   if (env === 'production') return level === 'warn' || level === 'error';
   return true;

@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+// User input schema - only requires fields the user provides
+export const courseCreateInputSchema = z.object({
+  namaMataKuliah: z.string().min(1, 'Nama mata kuliah is required'),
+  kelas: z.enum(['RA', 'RB', 'RC', 'RD', 'RE'], {
+    message: 'Kelas must be one of: RA, RB, RC, RD, RE',
+  }),
+  periode: z.enum(['ganjil', 'genap'], {
+    message: 'Periode must be either ganjil or genap',
+  }),
+});
+
+// Full schema for database validation (includes auto-detected period fields)
 export const courseCreateSchema = z
   .object({
     namaMataKuliah: z.string().min(1, 'Nama mata kuliah is required'),
@@ -27,5 +39,6 @@ export const courseCreateSchema = z
 
 export const courseUpdateSchema = courseCreateSchema.partial();
 
+export type CourseCreateUserInput = z.infer<typeof courseCreateInputSchema>;
 export type CourseCreateInput = z.infer<typeof courseCreateSchema>;
 export type CourseUpdateInput = z.infer<typeof courseUpdateSchema>;

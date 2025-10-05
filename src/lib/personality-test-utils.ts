@@ -1,4 +1,4 @@
-import type { MBTIQuestion } from '@/lib/mbti-questions';
+import type { MBTIQuestion } from '@/lib/mbti-questions-simple';
 
 export interface PersonalityTestState {
   currentPage: number;
