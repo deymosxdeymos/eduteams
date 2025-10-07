@@ -135,6 +135,34 @@ export default function DataDiriFormClient({
         onSubmit={form.handleSubmit(handleSubmit)}
         className='space-y-8 w-full max-w-2xl'
       >
+        <div className='flex items-center gap-2 mb-6'>
+          <span
+            className={`text-sm font-medium uppercase tracking-wide ${
+              role === 'dosen' ? 'text-amber-700' : 'text-green-700'
+            }`}
+          >
+            ROLE:
+          </span>
+          <div
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-sm ${
+              role === 'dosen'
+                ? 'bg-amber-100 text-amber-700'
+                : 'bg-green-100 text-green-700'
+            }`}
+          >
+            <Image
+              src={`/${role}.svg`}
+              alt={role}
+              width={20}
+              height={20}
+              className='w-5 h-5'
+            />
+            <span className='text-sm font-semibold uppercase'>
+              {role === 'mahasiswa' ? 'Mahasiswa' : 'Dosen'}
+            </span>
+          </div>
+        </div>
+
         <FormField
           control={form.control}
           name='namaLengkap'
@@ -150,7 +178,7 @@ export default function DataDiriFormClient({
                 </FormLabel>
                 <FormControl>
                   <div className='relative'>
-                    <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black' />
+                    <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black z-10' />
                     <InputRounded
                       id={fieldId}
                       placeholder={
@@ -189,7 +217,7 @@ export default function DataDiriFormClient({
                       alt={`${role === 'mahasiswa' ? 'NIM' : 'NPM'} icon`}
                       width={16}
                       height={16}
-                      className='absolute left-3 top-1/2 -translate-y-1/2'
+                      className='absolute left-3 top-1/2 -translate-y-1/2 z-10'
                     />
                     <InputRounded
                       id={fieldId}
@@ -234,14 +262,18 @@ export default function DataDiriFormClient({
                     onKeyDown={e =>
                       e.key === 'Enter' && field.onChange('laki-laki')
                     }
-                    className={`bg-blue-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
+                    className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
                       field.value === 'laki-laki'
-                        ? 'ring-4 ring-blue-300 scale-105'
-                        : 'hover:bg-blue-200'
+                        ? 'bg-blue-100 ring-4 ring-blue-300 scale-105'
+                        : 'bg-muted hover:bg-muted/70'
                     }`}
                   >
                     <Image
-                      src='/laki.svg'
+                      src={
+                        field.value === 'laki-laki'
+                          ? '/laki.svg'
+                          : '/laki-not-active.svg'
+                      }
                       width={80}
                       height={80}
                       alt='laki-laki'
@@ -260,14 +292,18 @@ export default function DataDiriFormClient({
                     onKeyDown={e =>
                       e.key === 'Enter' && field.onChange('perempuan')
                     }
-                    className={`bg-pink-100 flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
+                    className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
                       field.value === 'perempuan'
-                        ? 'ring-4 ring-pink-300 scale-105'
-                        : 'hover:bg-pink-200'
+                        ? 'bg-pink-100 ring-4 ring-pink-300 scale-105'
+                        : 'bg-muted hover:bg-muted/70'
                     }`}
                   >
                     <Image
-                      src='/perempuan.svg'
+                      src={
+                        field.value === 'perempuan'
+                          ? '/perempuan.svg'
+                          : '/perempuan-not-active.svg'
+                      }
                       width={80}
                       height={80}
                       alt='perempuan'
