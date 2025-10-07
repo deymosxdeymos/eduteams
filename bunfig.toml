@@ -1,6 +1,6 @@
 [test]
 # Preload setup files
-preload = ["./test-preload.ts", "./__tests__/dom-setup.ts", "./__tests__/setup.ts"]
+preload = ["./__tests__/dom-setup.ts", "./__tests__/setup.ts"]
 
 # Test timeout (10 seconds)
 timeout = 10000

@@ -73,58 +73,56 @@ export default function SkillsQuiz({
                 </p>
               </div>
 
-              <div className='flex items-center justify-between relative px-12 max-w-5xl mx-auto'>
-                <div className='flex items-start justify-between relative flex-1 mx-12'>
-                  {likertScale.map(item => (
+              <div className='flex items-start justify-center max-w-5xl mx-auto'>
+                {likertScale.map((item, index) => (
+                  <div key={item.value} className='flex items-start'>
                     <motion.div
-                      key={item.value}
-                      className='relative z-10 flex flex-col items-center space-y-3 cursor-pointer'
+                      className='flex flex-col items-center space-y-3 cursor-pointer'
                       onClick={() => handleSelection(skillIndex, item.value)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       animate={{
-                        scale:
-                          answers[skillIndex] === item.value ? [1, 1.15] : 1,
+                        scale: answers[skillIndex] === item.value ? 1.1 : 1,
                         y: answers[skillIndex] === item.value ? -5 : 0,
                       }}
                       transition={{
-                        duration: 0.15,
-                        ease: 'easeOut',
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 25,
                       }}
                     >
-                      <div className='w-20 h-20 bg-white flex items-center justify-center'>
-                        <Image
-                          src={`/quiz/skills/${item.icon}.svg`}
-                          width={48}
-                          height={48}
-                          alt={item.label}
-                          className='object-contain'
-                        />
-                      </div>
+                      <Image
+                        src={`/quiz/skills/${item.icon}${answers[skillIndex] === item.value ? '' : '-not-active'}.svg`}
+                        width={48}
+                        height={48}
+                        alt={item.label}
+                        className='object-contain'
+                      />
                       <div className='text-center'>
                         <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
                           {item.label}
                         </div>
                       </div>
                     </motion.div>
-                  ))}
-
-                  <div className='absolute top-8 left-0 right-0 h-1 bg-gray-300 z-[1]' />
-                </div>
+                    {index < likertScale.length - 1 && (
+                      <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
+                    )}
+                  </div>
+                ))}
               </div>
 
               {hasError && !answers[skillIndex] && (
                 <motion.div
                   key={`error-${skillIndex}`}
-                  initial={{ opacity: 0, height: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{
                     opacity: 1,
-                    height: 'auto',
                     y: 0,
                   }}
                   transition={{
-                    duration: 0.3,
-                    ease: 'easeOut',
+                    type: 'spring',
+                    stiffness: 400,
+                    damping: 30,
                   }}
                   className='overflow-hidden'
                 >
@@ -133,10 +131,9 @@ export default function SkillsQuiz({
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{
-                        duration: 0.4,
                         type: 'spring',
-                        stiffness: 200,
-                        damping: 10,
+                        stiffness: 300,
+                        damping: 25,
                       }}
                     >
                       <MessageSquareWarning className='w-4 h-4 mr-2' />
@@ -145,9 +142,9 @@ export default function SkillsQuiz({
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
-                        duration: 0.3,
-                        delay: 0.1,
-                        ease: 'easeOut',
+                        type: 'spring',
+                        stiffness: 400,
+                        damping: 30,
                       }}
                       className='text-sm font-normal'
                     >

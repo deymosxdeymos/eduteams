@@ -72,7 +72,9 @@ export default function SkillTestInstructionModal({
                     jawaban dengan hati-hati.
                   </p>
                   <p>
-                    3. Sesuaikan jawaban kamu dengan parameter jawaban berikut:
+                    3. Sesuaikan jawaban kamu{' '}
+                    <span className='font-bold'>dengan parameter jawaban </span>{' '}
+                    berikut:
                   </p>
                 </div>
               </div>
