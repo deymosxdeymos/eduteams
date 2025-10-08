@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { MessageSquareWarning } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
 
 interface PersonalityQuestionProps {
   question: string;
@@ -20,11 +19,7 @@ export default function PersonalityQuestion({
   questionId,
   initialValue,
 }: PersonalityQuestionProps) {
-  const [selectedValue, setSelectedValue] = useState<number | null>(
-    initialValue || null
-  );
-  const [previousValue, setPreviousValue] = useState<number | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const selectedValue = typeof initialValue === 'number' ? initialValue : null;
 
   const likertScale = [
     {
@@ -40,10 +35,6 @@ export default function PersonalityQuestion({
   ];
 
   const handleSelection = (value: number) => {
-    if (isAnimating) return; // Prevent clicks during animation
-    setIsAnimating(true);
-    setPreviousValue(selectedValue);
-    setSelectedValue(value);
     onAnswerAction(value);
   };
 
@@ -70,23 +61,13 @@ export default function PersonalityQuestion({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   animate={{
-                    scale:
-                      selectedValue === item.value
-                        ? 1.1
-                        : previousValue === item.value
-                          ? 1
-                          : 1,
+                    scale: selectedValue === item.value ? 1.1 : 1,
                     y: selectedValue === item.value ? -5 : 0,
                   }}
                   transition={{
                     type: 'spring',
                     stiffness: 300,
                     damping: 25,
-                  }}
-                  onAnimationComplete={() => {
-                    if (selectedValue === item.value) {
-                      setIsAnimating(false);
-                    }
                   }}
                 >
                   <Image

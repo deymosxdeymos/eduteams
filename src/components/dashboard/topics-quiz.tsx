@@ -75,13 +75,18 @@ export default function TopicsQuiz({
                         damping: 25,
                       }}
                     >
-                      <Image
-                        src={`/mbti-test/${item.icon}${answers[topicIndex] === item.value ? '' : '-not-active'}.svg`}
-                        width={item.size}
-                        height={item.size}
-                        alt={item.label}
-                        className='object-contain'
-                      />
+                      <div
+                        style={{ height: '64px' }}
+                        className='flex items-center justify-center'
+                      >
+                        <Image
+                          src={`/mbti-test/${item.icon}${answers[topicIndex] === item.value ? '' : '-not-active'}.svg`}
+                          width={item.size}
+                          height={item.size}
+                          alt={item.label}
+                          className='object-contain'
+                        />
+                      </div>
                       <div className='text-center'>
                         <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
                           {item.label}

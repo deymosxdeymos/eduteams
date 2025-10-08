@@ -96,13 +96,18 @@ export default function SkillsQuiz({
                         damping: 25,
                       }}
                     >
-                      <Image
-                        src={`/quiz/skills/${item.icon}${answers[skillIndex] === item.value ? '' : '-not-active'}.svg`}
-                        width={item.size}
-                        height={item.size}
-                        alt={item.label}
-                        className='object-contain'
-                      />
+                      <div
+                        style={{ height: '64px' }}
+                        className='flex items-center justify-center'
+                      >
+                        <Image
+                          src={`/quiz/skills/${item.icon}${answers[skillIndex] === item.value ? '' : '-not-active'}.svg`}
+                          width={item.size}
+                          height={item.size}
+                          alt={item.label}
+                          className='object-contain'
+                        />
+                      </div>
                       <div className='text-center'>
                         <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
                           {item.label}
