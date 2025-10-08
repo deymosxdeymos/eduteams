@@ -152,7 +152,7 @@
     },
     "kepribadian": {
       "title": "Tes Kepribadian",
-      "description": "Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan untuk membentuk tim belajar yang paling cocok buat kamu!",
+      "description": "Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan \nuntuk membentuk tim belajar yang paling cocok buat kamu!",
       "pageOf": "Halaman {current} dari {total}",
       "sending": "Mengirim...",
       "selesai": "Selesai",

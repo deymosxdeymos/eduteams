@@ -18,11 +18,16 @@ export default function TopicsQuiz({
   answers,
 }: TopicsQuizProps) {
   const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nTertarik', value: 1 },
-    { icon: 'Disagree', label: 'Tidak Tertarik', value: 2 },
-    { icon: 'Neutral', label: 'Netral', value: 3 },
-    { icon: 'Agree', label: 'Tertarik', value: 4 },
-    { icon: 'Strongly-Agree', label: 'Sangat Tertarik', value: 5 },
+    {
+      icon: 'Strongly-Disagree',
+      label: 'Sangat Tidak\nTertarik',
+      value: 1,
+      size: 64,
+    },
+    { icon: 'Disagree', label: 'Tidak Tertarik', value: 2, size: 56 },
+    { icon: 'Neutral', label: 'Netral', value: 3, size: 48 },
+    { icon: 'Agree', label: 'Tertarik', value: 4, size: 56 },
+    { icon: 'Strongly-Agree', label: 'Sangat Tertarik', value: 5, size: 64 },
   ];
 
   const handleSelection = (topicIndex: number, value: number) => {
@@ -72,8 +77,8 @@ export default function TopicsQuiz({
                     >
                       <Image
                         src={`/mbti-test/${item.icon}${answers[topicIndex] === item.value ? '' : '-not-active'}.svg`}
-                        width={48}
-                        height={48}
+                        width={item.size}
+                        height={item.size}
                         alt={item.label}
                         className='object-contain'
                       />

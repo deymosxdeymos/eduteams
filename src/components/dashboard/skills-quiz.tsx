@@ -23,30 +23,35 @@ export default function SkillsQuiz({
       label: 'Pemula',
       description: 'Belum pernah atau sangat jarang menggunakan',
       value: 1,
+      size: 64,
     },
     {
       icon: 'Advanced-Beginner',
       label: 'Pemula\nLanjut',
       description: 'Pernah menggunakan tapi masih butuh bantuan',
       value: 2,
+      size: 56,
     },
     {
       icon: 'Competent',
       label: 'Kompeten',
       description: 'Bisa menggunakan dengan baik dan mandiri',
       value: 3,
+      size: 48,
     },
     {
       icon: 'Proficient',
       label: 'Mahir',
       description: 'Sangat ahli dan bisa mengajari orang lain',
       value: 4,
+      size: 56,
     },
     {
       icon: 'Expert',
       label: 'Jago\nBanget',
       description: 'Master level, bisa membuat inovasi baru',
       value: 5,
+      size: 64,
     },
   ];
 
@@ -93,8 +98,8 @@ export default function SkillsQuiz({
                     >
                       <Image
                         src={`/quiz/skills/${item.icon}${answers[skillIndex] === item.value ? '' : '-not-active'}.svg`}
-                        width={48}
-                        height={48}
+                        width={item.size}
+                        height={item.size}
                         alt={item.label}
                         className='object-contain'
                       />

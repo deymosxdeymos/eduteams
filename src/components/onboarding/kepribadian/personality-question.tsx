@@ -27,11 +27,16 @@ export default function PersonalityQuestion({
   const [isAnimating, setIsAnimating] = useState(false);
 
   const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju', value: 1 },
-    { icon: 'Disagree', label: 'Tidak Setuju', value: 2 },
-    { icon: 'Neutral', label: 'Netral', value: 3 },
-    { icon: 'Agree', label: 'Setuju', value: 4 },
-    { icon: 'Strongly-Agree', label: 'Sangat Setuju', value: 5 },
+    {
+      icon: 'Strongly-Disagree',
+      label: 'Sangat Tidak\nSetuju',
+      value: 1,
+      size: 64,
+    },
+    { icon: 'Disagree', label: 'Tidak Setuju', value: 2, size: 56 },
+    { icon: 'Neutral', label: 'Netral', value: 3, size: 48 },
+    { icon: 'Agree', label: 'Setuju', value: 4, size: 56 },
+    { icon: 'Strongly-Agree', label: 'Sangat Setuju', value: 5, size: 64 },
   ];
 
   const handleSelection = (value: number) => {
@@ -56,56 +61,52 @@ export default function PersonalityQuestion({
             <p className='text-md font-normal text-black'>{question}</p>
           </div>
 
-          <div className='flex items-center justify-between px-8 max-w-4xl mx-auto'>
-            <div className='text-center text-md text-red-400 font-light'>
-              Tidak <br />
-              Setuju
-            </div>
-
-            <div className='flex items-start justify-center mx-8'>
-              {likertScale.map((item, index) => (
-                <div key={item.value} className='flex items-start'>
-                  <motion.div
-                    className='flex flex-col items-center space-y-3 cursor-pointer'
-                    onClick={() => handleSelection(item.value)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={{
-                      scale:
-                        selectedValue === item.value
-                          ? 1.1
-                          : previousValue === item.value
-                            ? 1
-                            : 1,
-                      y: selectedValue === item.value ? -5 : 0,
-                    }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 300,
-                      damping: 25,
-                    }}
-                    onAnimationComplete={() => {
-                      if (selectedValue === item.value) {
-                        setIsAnimating(false);
-                      }
-                    }}
-                  >
-                    <Image
-                      src={`/mbti-test/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
-                      width={48}
-                      height={48}
-                      alt={item.label}
-                      className='object-contain'
-                    />
-                  </motion.div>
-                  {index < likertScale.length - 1 && (
-                    <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className='text-md text-green-400 font-light'>Setuju</div>
+          <div className='flex items-start justify-center max-w-5xl mx-auto'>
+            {likertScale.map((item, index) => (
+              <div key={item.value} className='flex items-start'>
+                <motion.div
+                  className='flex flex-col items-center space-y-3 cursor-pointer'
+                  onClick={() => handleSelection(item.value)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{
+                    scale:
+                      selectedValue === item.value
+                        ? 1.1
+                        : previousValue === item.value
+                          ? 1
+                          : 1,
+                    y: selectedValue === item.value ? -5 : 0,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                  onAnimationComplete={() => {
+                    if (selectedValue === item.value) {
+                      setIsAnimating(false);
+                    }
+                  }}
+                >
+                  <Image
+                    src={`/mbti-test/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
+                    width={item.size}
+                    height={item.size}
+                    alt={item.label}
+                    className='object-contain'
+                  />
+                  <div className='text-center'>
+                    <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
+                      {item.label}
+                    </div>
+                  </div>
+                </motion.div>
+                {index < likertScale.length - 1 && (
+                  <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
+                )}
+              </div>
+            ))}
           </div>
 
           <motion.div
