@@ -15,6 +15,7 @@ import { SearchInput } from './search-input';
 interface StudentClassAssignmentsProps {
   classId: string;
   initialAssignments?: AssignmentClient[];
+  studentCount?: number;
 }
 
 const fetcher = async (url: string) => {
@@ -38,6 +39,7 @@ const dateFormatter = new Intl.DateTimeFormat('en-GB', {
 export function StudentClassAssignments({
   classId,
   initialAssignments,
+  studentCount = 0,
 }: StudentClassAssignmentsProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -163,26 +165,55 @@ export function StudentClassAssignments({
                     >
                       <div className='flex items-start justify-between gap-3'>
                         {(() => {
+                          const safeTotalStudents = Math.max(0, studentCount);
+                          const safeSubmittedCount = Math.max(
+                            0,
+                            a.submissionsCount
+                          );
+                          const clampedSubmittedCount =
+                            safeTotalStudents > 0
+                              ? Math.min(safeSubmittedCount, safeTotalStudents)
+                              : safeSubmittedCount;
+                          const allStudentsSubmitted =
+                            safeTotalStudents > 0 &&
+                            clampedSubmittedCount === safeTotalStudents;
+
                           let text = '';
                           let color = '';
-                          if (a.submittedByMe) {
-                            text = 'Sudah mengisi kuisioner';
-                            color = 'bg-emerald-50 text-emerald-900';
-                          } else if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
+
+                          if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
                             text = 'Pembagian grup berhasil dilakukan';
                             color = 'bg-emerald-50 text-emerald-900';
-                          } else if (a.status === 'MENUNGGU') {
+                          } else if (
+                            a.status === 'MENUNGGU' ||
+                            allStudentsSubmitted
+                          ) {
                             text = 'Menunggu pembagian grup';
                             color = 'bg-sky-50 text-sky-900';
+                          } else if (safeSubmittedCount === 0) {
+                            text = 'Belum ada yang mengisi kuisioner';
+                            color = 'bg-red-50 text-red-900';
                           } else {
-                            text = 'Belum mengisi kuisioner';
+                            const totalForMessage =
+                              safeTotalStudents > 0
+                                ? safeTotalStudents
+                                : clampedSubmittedCount;
+                            text = `${clampedSubmittedCount} dari ${totalForMessage} mahasiswa telah mengisi kuisioner`;
                             color = 'bg-amber-50 text-orange-900';
                           }
+
+                          const personalBadge = a.submittedByMe ? (
+                            <Badge className='rounded-full bg-emerald-100 text-emerald-900 border'>
+                              Sudah mengisi kuisioner
+                            </Badge>
+                          ) : null;
+
                           return (
                             <div className='flex items-center gap-3'>
                               <Badge className={`rounded-full ${color} border`}>
                                 {text}
                               </Badge>
+                              {personalBadge}
                               {process.env.NODE_ENV !== 'production' && (
                                 <Button
                                   variant='outline'

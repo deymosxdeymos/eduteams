@@ -202,24 +202,46 @@ export function ClassAssignments({
                     >
                       <div className='flex items-start justify-between gap-3'>
                         {(() => {
+                          const safeTotalStudents = Math.max(0, studentCount);
+                          const safeSubmittedCount = Math.max(
+                            0,
+                            a.submissionsCount
+                          );
+                          const clampedSubmittedCount =
+                            safeTotalStudents > 0
+                              ? Math.min(safeSubmittedCount, safeTotalStudents)
+                              : safeSubmittedCount;
+                          const allStudentsSubmitted =
+                            safeTotalStudents > 0 &&
+                            clampedSubmittedCount === safeTotalStudents;
+
                           let text = '';
                           let color = '';
+
                           if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
                             text = t('status.formed');
                             color = 'bg-emerald-50 text-emerald-900';
-                          } else if (a.status === 'MENUNGGU') {
+                          } else if (
+                            a.status === 'MENUNGGU' ||
+                            allStudentsSubmitted
+                          ) {
                             text = t('status.waiting');
                             color = 'bg-sky-50 text-sky-900';
-                          } else if (a.submissionsCount === 0) {
+                          } else if (safeSubmittedCount === 0) {
                             text = t('status.noneFilled');
-                            color = 'bg-red-50 text-orange-900';
+                            color = 'bg-red-50 text-red-900';
                           } else {
+                            const totalForMessage =
+                              safeTotalStudents > 0
+                                ? safeTotalStudents
+                                : clampedSubmittedCount;
                             text = t('status.progress', {
-                              filled: a.submissionsCount,
-                              total: studentCount,
+                              filled: clampedSubmittedCount,
+                              total: totalForMessage,
                             });
                             color = 'bg-amber-50 text-orange-900';
                           }
+
                           return (
                             <Badge className={`rounded-full ${color} border`}>
                               {text}

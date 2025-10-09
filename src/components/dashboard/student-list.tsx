@@ -118,6 +118,57 @@ export function StudentList({
     [studentsData, initialData]
   );
 
+  const submittedProgressAvailable =
+    isAssignmentPage &&
+    typeof submittedCount === 'number' &&
+    typeof totalStudents === 'number';
+
+  const showProgressBadge = submittedProgressAvailable && !canManage;
+
+  const { badgeLabel, badgeClassName, badgeTextClassName } = (() => {
+    if (showProgressBadge) {
+      const safeTotalStudents = Math.max(0, totalStudents ?? 0);
+      const safeSubmittedCount = Math.max(0, submittedCount ?? 0);
+      const clampedSubmittedCount = Math.min(
+        safeSubmittedCount,
+        safeTotalStudents
+      );
+
+      if (safeTotalStudents === 0) {
+        return {
+          badgeLabel: 'Belum ada mahasiswa di kelas',
+          badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
+          badgeTextClassName: 'text-sm font-medium text-sky-900',
+        } as const;
+      }
+
+      if (clampedSubmittedCount === safeTotalStudents) {
+        return {
+          badgeLabel: 'Grup siap untuk dibagi',
+          badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
+          badgeTextClassName: 'text-sm font-medium text-sky-900',
+        } as const;
+      }
+
+      return {
+        badgeLabel: `${clampedSubmittedCount} dari ${safeTotalStudents} mahasiswa telah mengisi kuesioner`,
+        badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-amber-50',
+        badgeTextClassName: 'text-sm font-medium text-orange-900',
+      } as const;
+    }
+
+    const baseLabel =
+      isSelectMode && canManage
+        ? `${selectedStudentIds.size} Mahasiswa`
+        : `${students.length} Mahasiswa`;
+
+    return {
+      badgeLabel: baseLabel,
+      badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
+      badgeTextClassName: 'text-sm font-medium text-sky-900',
+    } as const;
+  })();
+
   const filteredStudents = useMemo(
     () =>
       students.filter(
@@ -262,38 +313,38 @@ export function StudentList({
           <h3 className='text-lg font-semibold text-gray-800'>
             Daftar Mahasiswa
           </h3>
-          <motion.div
-            layout
-            transition={{ duration: 0.2, ease: [0.215, 0.61, 0.355, 1] }}
-          >
-            <Badge className='px-3 rounded-full flex items-center gap-1 bg-sky-50'>
-              <span className='text-sm font-medium text-sky-900'>
-                {isSelectMode && canManage
-                  ? selectedStudentIds.size
-                  : students.length}{' '}
-                Mahasiswa
-              </span>
-              <AnimatePresence>
-                {isSelectMode && canManage && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{
-                      duration: 0.2,
-                      ease: [0.215, 0.61, 0.355, 1],
-                    }}
-                    className='text-sm font-medium text-sky-900 overflow-hidden whitespace-nowrap'
-                  >
-                    dipilih
-                  </motion.span>
+          {!(canManage && submittedProgressAvailable && !isSelectMode) && (
+            <motion.div
+              layout
+              transition={{ duration: 0.2, ease: [0.215, 0.61, 0.355, 1] }}
+            >
+              <Badge className={badgeClassName}>
+                <span className={badgeTextClassName}>{badgeLabel}</span>
+                {!showProgressBadge && (
+                  <AnimatePresence>
+                    {isSelectMode && canManage && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{
+                          duration: 0.2,
+                          ease: [0.215, 0.61, 0.355, 1],
+                        }}
+                        className='text-sm font-medium text-sky-900 overflow-hidden whitespace-nowrap'
+                      >
+                        dipilih
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 )}
-              </AnimatePresence>
-            </Badge>
-          </motion.div>
+              </Badge>
+            </motion.div>
+          )}
           <AnimatePresence mode='popLayout'>
             {!isSelectMode &&
               canManage &&
+              submittedProgressAvailable &&
               typeof submittedCount === 'number' &&
               typeof totalStudents === 'number' &&
               (submittedCount === 0 ? (
@@ -326,7 +377,7 @@ export function StudentList({
                 >
                   <Badge className='bg-amber-50 px-3 rounded-full'>
                     <span className='text-sm text-orange-900 font-medium'>
-                      {`${submittedCount} dari ${totalStudents} mahasiswa telah mengisi kuesioner`}
+                      {`${Math.min(submittedCount, totalStudents)} dari ${totalStudents} mahasiswa telah mengisi kuesioner`}
                     </span>
                   </Badge>
                 </motion.div>
@@ -596,9 +647,12 @@ export function StudentList({
                         </span>
                       </div>
                     )}
-                    <div className='flex-1 min-w-0'>
+                    <div className='flex-1 min-w-0 flex flex-col'>
                       <p className='font-medium text-gray-900 truncate'>
                         {student.name}
+                      </p>
+                      <p className='text-[0.625rem] font-normal text-gray-500 truncate'>
+                        {student.nim}
                       </p>
                     </div>
                     {canManage && !isSelectMode && (

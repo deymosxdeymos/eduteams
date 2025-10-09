@@ -43,6 +43,7 @@ export function StudentClassPageLayout({
           <StudentClassAssignments
             classId={classId}
             initialAssignments={initialAssignments}
+            studentCount={studentsData.length}
           />
           <StudentList
             classId={classId}
