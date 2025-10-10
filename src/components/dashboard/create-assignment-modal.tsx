@@ -1,6 +1,7 @@
 'use client';
 
 import { Plus, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ export function CreateAssignmentModal({
   onOpenChange,
   classId,
 }: CreateAssignmentModalProps) {
+  const t = useTranslations('dashboard.assignments.create');
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
   const [topics, setTopics] = useState<string[]>([]);
@@ -77,32 +79,31 @@ export function CreateAssignmentModal({
       <DialogContent className='max-w-4xl rounded-2xl'>
         <DialogHeader>
           <DialogTitle className='text-xl font-medium'>
-            Buat Tugas Baru?
+            {t('title')}
           </DialogTitle>
-          <p className='text-base font-normal'>
-            Silahkan isi seluruh data di bawah untuk membuat tugas baru
-          </p>
+          <p className='text-base font-normal'>{t('description')}</p>
         </DialogHeader>
 
         <div className='grid grid-cols-2 gap-8 mb-8'>
           {/* Left Column */}
           <div className='space-y-6'>
             <div>
-              <h3 className='font-medium text-base mb-2'>Nama Tugas</h3>
+              <h3 className='font-medium text-base mb-2'>{t('titleField')}</h3>
               <InputRounded
                 className='w-full'
-                placeholder='Tugas Besar'
+                placeholder={t('titlePlaceholder')}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
               />
             </div>
             <div>
               <h3 className='font-medium text-base mb-2'>
-                Deskripsi <span className='font-light'>(opsional)</span>
+                {t('descriptionField')}{' '}
+                <span className='font-light'>({t('optional')})</span>
               </h3>
               <Textarea
                 className='bg-neutral-50 w-full h-32 resize-none'
-                placeholder='Deskripsi'
+                placeholder={t('descriptionPlaceholder')}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
               />
@@ -112,13 +113,11 @@ export function CreateAssignmentModal({
           {/* Right Column */}
           <div className='space-y-6'>
             <div>
-              <h3 className='font-medium text-base mb-2'>
-                Spesifikasi Keahlian
-              </h3>
+              <h3 className='font-medium text-base mb-2'>{t('skills')}</h3>
               <div className='flex items-center gap-x-2 mb-3'>
                 <InputRounded
                   className='flex-1'
-                  placeholder='Keahlian'
+                  placeholder={t('skillsPlaceholder')}
                   value={skillInput}
                   onChange={e => setSkillInput(e.target.value)}
                   onKeyDown={handleSkillKeyDown}
@@ -154,12 +153,13 @@ export function CreateAssignmentModal({
 
             <div>
               <h3 className='font-medium text-base mb-2'>
-                Preferensi Topik <span className='font-light'>(opsional)</span>
+                {t('topics')}{' '}
+                <span className='font-light'>({t('optional')})</span>
               </h3>
               <div className='flex items-center gap-x-2 mb-3'>
                 <InputRounded
                   className='flex-1'
-                  placeholder='Preferensi Topik'
+                  placeholder={t('topicsPlaceholder')}
                   value={topicInput}
                   onChange={e => setTopicInput(e.target.value)}
                   onKeyDown={handleTopicKeyDown}
@@ -222,7 +222,7 @@ export function CreateAssignmentModal({
               });
               const data = await res.json();
               if (!res.ok || !data?.success) {
-                throw new Error(data?.error || 'Gagal membuat tugas');
+                throw new Error(data?.error || t('error'));
               }
               // Reset form and close
               setTitle('');
@@ -236,7 +236,7 @@ export function CreateAssignmentModal({
               });
               window.dispatchEvent(ev);
             } catch (e) {
-              setError(e instanceof Error ? e.message : 'Terjadi kesalahan');
+              setError(e instanceof Error ? e.message : t('error'));
             } finally {
               setSubmitting(false);
             }
@@ -244,7 +244,7 @@ export function CreateAssignmentModal({
         >
           <Plus strokeWidth={3} className='w-4 h-4 mr-2' />
           <span className='text-sm'>
-            {submitting ? 'Membuat…' : 'Buat Tugas'}
+            {submitting ? t('creating') : t('create')}
           </span>
         </Button>
       </DialogContent>

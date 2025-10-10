@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useReducer, useRef, useState } from 'react';
 import PreferenceTestInstructionModal from '@/components/dashboard/preference-test-instruction-modal';
 import SkillTestInstructionModal from '@/components/dashboard/skill-test-instruction-modal';
@@ -100,6 +101,7 @@ export function AssignmentQuizClient({
   assignmentId,
   assignment,
 }: AssignmentQuizClientProps) {
+  const t = useTranslations('dashboard.assignments.quiz');
   const router = useRouter();
   const [state, dispatch] = useReducer(quizReducer, initialQuizState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -196,7 +198,7 @@ export function AssignmentQuizClient({
       router.push(`/dashboard/class/${classId}/assignments/${assignmentId}`);
     } catch (error) {
       console.error('Error submitting quiz:', error);
-      alert('Terjadi kesalahan saat mengirim jawaban. Silakan coba lagi.');
+      alert(t('error'));
     } finally {
       dispatch({ type: 'SET_SUBMITTING', payload: false });
     }
@@ -222,17 +224,13 @@ export function AssignmentQuizClient({
       />
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          {state.currentStep === 'skills'
-            ? '🚀 Tes Keahlian'
-            : '📚 Preferensi Topik'}
+          {state.currentStep === 'skills' ? t('skillsTitle') : t('topicsTitle')}
         </h1>
       </div>
 
       <div className='flex items-center justify-center p-6'>
         <p className='font-normal text-black text-xl tracking-tight'>
-          Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan
-          <br />
-          untuk membentuk tim belajar yang paling cocok buat kamu!
+          {t('description')}
         </p>
       </div>
 
@@ -273,10 +271,10 @@ export function AssignmentQuizClient({
           disabled={state.isSubmitting}
         >
           {state.isSubmitting
-            ? 'Mengirim...'
+            ? t('sending')
             : state.currentStep === 'skills'
-              ? 'Lanjut ke Preferensi Topik'
-              : 'Selesai'}
+              ? t('nextToTopics')
+              : t('finish')}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

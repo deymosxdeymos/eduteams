@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Calendar, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ export function StudentClassAssignments({
   initialAssignments,
   studentCount = 0,
 }: StudentClassAssignmentsProps) {
+  const t = useTranslations('dashboard.assignments.list');
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -101,14 +103,14 @@ export function StudentClassAssignments({
             <ArrowLeft strokeWidth={2} className='w-5 h-5 text-gray-600' />
           </Button>
 
-          <span className='text-gray-600 font-medium'>Kembali</span>
+          <span className='text-gray-600 font-medium'>{t('back')}</span>
 
           {hasAssignments && (
             <SearchInput
               searchValue={searchTerm}
               onSearchChange={setSearchTerm}
-              placeholder='Cari tugas?'
-              ariaLabel='Cari tugas'
+              placeholder={t('search')}
+              ariaLabel={t('search')}
               showClassActions={false}
               containerClassName='ml-auto w-80'
               className='pr-10'
@@ -126,7 +128,7 @@ export function StudentClassAssignments({
                 {searchTerm.trim() !== '' &&
                 filteredAssignments.length === 0 ? (
                   <div className='text-sm text-neutral-500 px-1 py-2'>
-                    Tidak ada tugas yang cocok untuk &quot;{searchTerm}&quot;.
+                    {t('noMatch', { query: searchTerm })}
                   </div>
                 ) : null}
                 {filteredAssignments.map(a => {
@@ -182,38 +184,34 @@ export function StudentClassAssignments({
                           let color = '';
 
                           if (a.status === 'BERHASIL_PEMBAGIAN_GRUP') {
-                            text = 'Pembagian grup berhasil dilakukan';
+                            text = t('statusFormed');
                             color = 'bg-emerald-50 text-emerald-900';
                           } else if (
                             a.status === 'MENUNGGU' ||
                             allStudentsSubmitted
                           ) {
-                            text = 'Menunggu pembagian grup';
+                            text = t('statusWaiting');
                             color = 'bg-sky-50 text-sky-900';
                           } else if (safeSubmittedCount === 0) {
-                            text = 'Belum ada yang mengisi kuisioner';
+                            text = t('statusNoSubmissions');
                             color = 'bg-red-50 text-red-900';
                           } else {
                             const totalForMessage =
                               safeTotalStudents > 0
                                 ? safeTotalStudents
                                 : clampedSubmittedCount;
-                            text = `${clampedSubmittedCount} dari ${totalForMessage} mahasiswa telah mengisi kuisioner`;
+                            text = t('statusProgress', {
+                              filled: clampedSubmittedCount,
+                              total: totalForMessage,
+                            });
                             color = 'bg-amber-50 text-orange-900';
                           }
-
-                          const personalBadge = a.submittedByMe ? (
-                            <Badge className='rounded-full bg-emerald-100 text-emerald-900 border'>
-                              Sudah mengisi kuisioner
-                            </Badge>
-                          ) : null;
 
                           return (
                             <div className='flex items-center gap-3'>
                               <Badge className={`rounded-full ${color} border`}>
                                 {text}
                               </Badge>
-                              {personalBadge}
                               {process.env.NODE_ENV !== 'production' && (
                                 <Button
                                   variant='outline'
@@ -222,12 +220,7 @@ export function StudentClassAssignments({
                                   onClick={async ev => {
                                     ev.stopPropagation();
                                     try {
-                                      if (
-                                        !confirm(
-                                          'Reset status kuisioner untuk tugas ini?'
-                                        )
-                                      )
-                                        return;
+                                      if (!confirm(t('resetConfirm'))) return;
                                       const res = await fetch(
                                         `/api/courses/${classId}/assignments/submissions?assignmentId=${a.id}`,
                                         { method: 'DELETE' }
@@ -237,19 +230,19 @@ export function StudentClassAssignments({
                                           'Reset failed',
                                           await res.text()
                                         );
-                                        alert('Gagal reset kuisioner.');
+                                        alert(t('resetFailed'));
                                         return;
                                       }
                                       await mutateAssignments();
                                     } catch (err) {
                                       console.error('Reset error', err);
-                                      alert('Terjadi kesalahan saat reset.');
+                                      alert(t('resetError'));
                                     }
                                   }}
                                   title='Dev-only reset'
                                 >
                                   <RotateCcw className='w-3.5 h-3.5 mr-1' />
-                                  Reset
+                                  {t('reset')}
                                 </Button>
                               )}
                             </div>

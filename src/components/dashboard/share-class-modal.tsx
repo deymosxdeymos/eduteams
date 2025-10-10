@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, Copy, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,7 @@ export function ShareClassModal({
   onClose,
   courseData,
 }: ShareClassModalProps) {
+  const t = useTranslations('dashboard.assignments.shareClass');
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
 
@@ -56,7 +58,7 @@ export function ShareClassModal({
       >
         <DialogHeader className='relative'>
           <DialogTitle className='text-xl font-semibold'>
-            Bagikan Kelas
+            {t('title')}
           </DialogTitle>
           <Button
             variant='ghost'
@@ -69,14 +71,10 @@ export function ShareClassModal({
         </DialogHeader>
 
         <div className='space-y-4'>
-          <p className='text-sm text-black'>
-            Silakan salin dan bagikan tautan atau token berikut kepada mahasiswa
-            untuk mengakses kelas ini. Pastikan mahasiswa hanya menerima
-            informasi ini dari sumber resmi.
-          </p>
+          <p className='text-sm text-black'>{t('description')}</p>
 
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Tautan Kelas</label>
+            <label className='text-sm font-medium'>{t('classLink')}</label>
             <div className='flex gap-2 text-gray-400'>
               <InputRounded
                 value={shareUrl}
@@ -127,7 +125,7 @@ export function ShareClassModal({
           </div>
 
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Token Kelas</label>
+            <label className='text-sm font-medium'>{t('classToken')}</label>
             <div className='flex gap-2 text-gray-400'>
               <InputRounded
                 value={shareToken || ''}

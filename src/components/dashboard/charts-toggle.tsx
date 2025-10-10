@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 
@@ -10,6 +11,7 @@ interface ChartsToggleProps {
 }
 
 export function ChartsToggle({ progressPercent, children }: ChartsToggleProps) {
+  const t = useTranslations('dashboard.charts');
   const [visible, setVisible] = useState(true);
   const onKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -28,7 +30,7 @@ export function ChartsToggle({ progressPercent, children }: ChartsToggleProps) {
           className='inline-flex items-center gap-2 text-black select-none cursor-pointer'
           aria-expanded={visible}
         >
-          <span className='font-medium'>Lihat Analisis Jawaban Mahasiswa</span>
+          <span className='font-medium'>{t('viewAnalysis')}</span>
           {visible ? (
             <ChevronDown className='w-4 h-4' />
           ) : (
@@ -36,7 +38,7 @@ export function ChartsToggle({ progressPercent, children }: ChartsToggleProps) {
           )}
         </div>
         <Badge className='rounded-full bg-emerald-50 text-emerald-700 border-emerald-200'>
-          {Math.round(progressPercent)}% mahasiswa telah menyelesaikan kuis
+          {t('completionRate', { percent: Math.round(progressPercent) })}
         </Badge>
       </div>
       {visible && children}

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 
 interface PreferenceTestInstructionModalProps {
@@ -13,12 +14,14 @@ export default function PreferenceTestInstructionModal({
   isOpen,
   onCloseAction,
 }: PreferenceTestInstructionModalProps) {
+  const t = useTranslations('dashboard.assignments.quiz.instructions');
+
   const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nTertarik' },
-    { icon: 'Disagree', label: 'Tidak Tertarik' },
-    { icon: 'Neutral', label: 'Netral' },
-    { icon: 'Agree', label: 'Tertarik' },
-    { icon: 'Strongly-Agree', label: 'Sangat Tertarik' },
+    { icon: 'Strongly-Disagree', label: t('topicLevels.stronglyDisagree') },
+    { icon: 'Disagree', label: t('topicLevels.disagree') },
+    { icon: 'Neutral', label: t('topicLevels.neutral') },
+    { icon: 'Agree', label: t('topicLevels.agree') },
+    { icon: 'Strongly-Agree', label: t('topicLevels.stronglyAgree') },
   ];
 
   return (
@@ -58,23 +61,12 @@ export default function PreferenceTestInstructionModal({
             >
               <div className='text-center mb-8'>
                 <h1 className='text-3xl font-bold text-black mb-6'>
-                  Instruksi Pengerjaan Tes Preferensi Topik
+                  {t('topicsTitle')}
                 </h1>
                 <div className='text-left space-y-4 text-black leading-relaxed font-medium text-xl'>
-                  <p>
-                    1. Pilih tingkat ketertarikanmu terhadap setiap topik yang
-                    tersedua. Dari &quot;Sangat Tidak Tertarik&quot; hingga
-                    &quot;Sangat Tertarik&quot;, pilih yang paling menggambarkan
-                    minatmu.
-                  </p>
-                  <p>
-                    2. Jawablah dengan jujur. Tes ini membantu membentuk tim
-                    yang paling cocok untuk kamu, jadi pastikan pilihanmu
-                    mencerminkan minat sejati kamu.
-                  </p>
-                  <p>
-                    3. Sesuaikan jawaban kamu dengan parameter jawaban berikut:
-                  </p>
+                  <p>1. {t('topicsStep1')}</p>
+                  <p>2. {t('topicsStep2')}</p>
+                  <p>3. {t('topicsStep3')}</p>
                 </div>
               </div>
 
@@ -110,7 +102,7 @@ export default function PreferenceTestInstructionModal({
                   onClick={onCloseAction}
                   className='text-lg font-semibold'
                 >
-                  Mulai Sekarang
+                  {t('startNow')}
                 </Button>
               </div>
             </motion.div>

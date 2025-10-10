@@ -310,6 +310,189 @@
       "studentProfileTitle": "Profil {name}",
       "viewMbtiDistribution": "Lihat Persebaran MBTI",
       "removeStudent": "Keluarkan Mahasiswa"
+    },
+    "students": {
+      "title": "Daftar Mahasiswa",
+      "count": "{count} Mahasiswa",
+      "countSelected": "{count} Mahasiswa",
+      "selected": "dipilih",
+      "search": "Cari mahasiswa?",
+      "searchAria": "Cari mahasiswa",
+      "notFound": "Tidak ditemukan",
+      "tryOtherKeyword": "Coba kata kunci lain",
+      "selectAll": "Pilih semua",
+      "select": "Pilih",
+      "remove": "Hapus mahasiswa",
+      "removeMultiple": "Keluarkan mahasiswa",
+      "exitSelectMode": "Keluar dari mode pilih",
+      "noStudents": "Belum Ada Mahasiswa",
+      "confirmRemove": "Mahasiswa akan dihapus dari kelas ini. Lanjutkan?",
+      "confirmRemoveMultiple": "{count} mahasiswa akan dihapus dari kelas ini. Lanjutkan?",
+      "removing": "Menghapus...",
+      "delete": "Hapus",
+      "cancel": "Batal",
+      "cancelSelection": "Batalkan pilihan",
+      "studentProfile": "Profil Mahasiswa",
+      "mbtiDistribution": "Persebaran MBTI",
+      "noName": "Tanpa Nama",
+      "options": "Opsi",
+      "status": {
+        "noStudentsInClass": "Belum ada mahasiswa di kelas",
+        "readyToForm": "Grup siap untuk dibagi",
+        "submittedCount": "{submitted} dari {total} mahasiswa telah mengisi kuesioner",
+        "noSubmissions": "Belum ada yang mengisi kuesioner"
+      },
+      "errors": {
+        "removeFailed": "Gagal menghapus mahasiswa",
+        "error": "Terjadi kesalahan",
+        "removePartialSuccess": "Berhasil menghapus {success} mahasiswa, {failed} gagal"
+      }
+    },
+    "assignments": {
+      "create": {
+        "title": "Buat Tugas Baru?",
+        "description": "Silahkan isi seluruh data di bawah untuk membuat tugas baru",
+        "titleField": "Nama Tugas",
+        "titlePlaceholder": "Tugas Besar",
+        "descriptionField": "Deskripsi",
+        "descriptionPlaceholder": "Deskripsi",
+        "optional": "opsional",
+        "skills": "Spesifikasi Keahlian",
+        "skillsPlaceholder": "Keahlian",
+        "topics": "Preferensi Topik",
+        "topicsPlaceholder": "Preferensi Topik",
+        "creating": "Membuat…",
+        "create": "Buat Tugas",
+        "error": "Gagal membuat tugas"
+      },
+      "quiz": {
+        "skillsTitle": "🚀 Tes Keahlian",
+        "topicsTitle": "📚 Preferensi Topik",
+        "description": "Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan untuk membentuk tim belajar yang paling cocok buat kamu!",
+        "sending": "Mengirim...",
+        "nextToTopics": "Lanjut ke Preferensi Topik",
+        "finish": "Selesai",
+        "error": "Terjadi kesalahan saat mengirim jawaban. Silakan coba lagi.",
+        "skillQuestion": "Seberapa mahir kamu dengan keahlian {skill}?",
+        "topicQuestion": "Seberapa Tertarik Anda dengan topik #{number}: {topic}?",
+        "required": "Pertanyaan ini wajib diisi",
+        "skillLevels": {
+          "novice": "Pemula",
+          "noviceDesc": "Belum pernah atau sangat jarang menggunakan",
+          "advancedBeginner": "Pemula\nLanjut",
+          "advancedBeginnerDesc": "Pernah menggunakan tapi masih butuh bantuan",
+          "competent": "Kompeten",
+          "competentDesc": "Bisa menggunakan dengan baik dan mandiri",
+          "proficient": "Mahir",
+          "proficientDesc": "Sangat ahli dan bisa mengajari orang lain",
+          "expert": "Jago\nBanget",
+          "expertDesc": "Master level, bisa membuat inovasi baru"
+        },
+        "topicLevels": {
+          "stronglyDisagree": "Sangat Tidak\nTertarik",
+          "disagree": "Tidak Tertarik",
+          "neutral": "Netral",
+          "agree": "Tertarik",
+          "stronglyAgree": "Sangat Tertarik"
+        },
+        "instructions": {
+          "skillsTitle": "Instruksi Pengerjaan Tes Keahlian",
+          "topicsTitle": "Instruksi Pengerjaan Tes Preferensi Topik",
+          "skillsStep1": "Pilih jawaban yang paling sesuai dengan kondisi dan pengalamanmu saat ini, mulai dari yang paling sesuai hingga yang tidak sesuai.",
+          "skillsStep2": "Jawablah setiap pertanyaan dengan jujur. Setiap soal hanya bisa dijawab satu kali, jadi pastikan kamu memilih jawaban dengan hati-hati.",
+          "skillsStep3": "Sesuaikan jawaban kamu dengan parameter jawaban berikut:",
+          "topicsStep1": "Pilih tingkat ketertarikanmu terhadap setiap topik yang tersedia. Dari \"Sangat Tidak Tertarik\" hingga \"Sangat Tertarik\", pilih yang paling menggambarkan minatmu.",
+          "topicsStep2": "Jawablah dengan jujur. Tes ini membantu membentuk tim yang paling cocok untuk kamu, jadi pastikan pilihanmu mencerminkan minat sejati kamu.",
+          "topicsStep3": "Sesuaikan jawaban kamu dengan parameter jawaban berikut:",
+          "startNow": "Mulai Sekarang",
+          "skillLevels": {
+            "novice": "Pemula",
+            "advancedBeginner": "Pemula\nLanjut",
+            "competent": "Kompeten",
+            "proficient": "Mahir",
+            "expert": "Jago\nBanget"
+          },
+          "topicLevels": {
+            "stronglyDisagree": "Sangat Tidak\nTertarik",
+            "disagree": "Tidak Tertarik",
+            "neutral": "Netral",
+            "agree": "Tertarik",
+            "stronglyAgree": "Sangat Tertarik"
+          }
+        }
+      },
+      "shareClass": {
+        "title": "Bagikan Kelas",
+        "description": "Silakan salin dan bagikan tautan atau token berikut kepada mahasiswa untuk mengakses kelas ini. Pastikan mahasiswa hanya menerima informasi ini dari sumber resmi.",
+        "classLink": "Tautan Kelas",
+        "classToken": "Token Kelas"
+      },
+      "list": {
+        "search": "Cari tugas?",
+        "noMatch": "Tidak ada tugas yang cocok untuk \"{query}\".",
+        "back": "Kembali",
+        "statusFormed": "Pembagian grup berhasil dilakukan",
+        "statusWaiting": "Menunggu pembagian grup",
+        "statusNoSubmissions": "Belum ada yang mengisi kuisioner",
+        "statusProgress": "{filled} dari {total} mahasiswa telah mengisi kuisioner",
+        "submittedBadge": "Sudah mengisi kuisioner",
+        "resetConfirm": "Reset status kuisioner untuk tugas ini?",
+        "resetFailed": "Gagal reset kuisioner.",
+        "resetError": "Terjadi kesalahan saat reset.",
+        "reset": "Reset"
+      }
+    },
+    "teams": {
+      "group": "Kelompok",
+      "topic": "Topik Tugas",
+      "qualityScore": "Kualitas Skor"
+    },
+    "charts": {
+      "viewAnalysis": "Lihat Analisis Jawaban Mahasiswa",
+      "completionRate": "{percent}% mahasiswa telah menyelesaikan kuis"
+    },
+    "answers": {
+      "back": "Kembali",
+      "studentSelect": "Pilih Mahasiswa",
+      "student": "Mahasiswa",
+      "of": "of"
+    },
+    "emptyAssignments": {
+      "noAssignments": "Anda belum membuat tugas",
+      "createToStart": "Buat tugas untuk memulai pembagian kelompok",
+      "noAssignmentsStudent": "Kelas ini belum memiliki tugas",
+      "checkLater": "Belum ada tugas yang tersedia saat ini. Yuk cek lagi nanti, atau hubungi dosen jika kamu merasa ini tidak sesuai."
+    },
+    "studentStats": {
+      "activeClasses": "Kelas Aktif",
+      "pendingTasks": "Tugas Pending",
+      "completedTasks": "Tugas Selesai"
     }
+  },
+  "joinClass": {
+    "title": "Join Class",
+    "invited": "You've been invited to join a class",
+    "loggedInAs": "Logged in as:",
+    "role": "Role:",
+    "roleStudent": "Student",
+    "errors": {
+      "studentsOnly": "Only students can join classes. Please log in with a student account.",
+      "completeProfile": "Please complete your profile setup before joining a class.",
+      "joinFailed": "Failed to join class",
+      "unexpected": "An unexpected error occurred"
+    },
+    "loginStudentAccount": "Login with Student Account",
+    "redirectingProfile": "Redirecting to profile setup in 3 seconds...",
+    "courseInfo": {
+      "course": "Course:",
+      "class": "Class:",
+      "instructor": "Instructor:",
+      "period": "Period:"
+    },
+    "redirectingDashboard": "Redirecting to dashboard in 3 seconds...",
+    "joiningClass": "Joining Class...",
+    "goToDashboard": "Go to Dashboard",
+    "cancel": "Cancel",
+    "invitationToken": "Invitation Token:"
   }
 }

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, MoreVertical, Search, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
@@ -82,6 +83,7 @@ export function StudentList({
   totalStudents,
   isAssignmentPage = false,
 }: StudentListProps) {
+  const t = useTranslations('dashboard.students');
   const [searchValue, setSearchValue] = useState('');
   const [openMenuStudentId, setOpenMenuStudentId] = useState<string | null>(
     null
@@ -123,44 +125,11 @@ export function StudentList({
     typeof submittedCount === 'number' &&
     typeof totalStudents === 'number';
 
-  const showProgressBadge = submittedProgressAvailable && !canManage;
-
   const { badgeLabel, badgeClassName, badgeTextClassName } = (() => {
-    if (showProgressBadge) {
-      const safeTotalStudents = Math.max(0, totalStudents ?? 0);
-      const safeSubmittedCount = Math.max(0, submittedCount ?? 0);
-      const clampedSubmittedCount = Math.min(
-        safeSubmittedCount,
-        safeTotalStudents
-      );
-
-      if (safeTotalStudents === 0) {
-        return {
-          badgeLabel: 'Belum ada mahasiswa di kelas',
-          badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
-          badgeTextClassName: 'text-sm font-medium text-sky-900',
-        } as const;
-      }
-
-      if (clampedSubmittedCount === safeTotalStudents) {
-        return {
-          badgeLabel: 'Grup siap untuk dibagi',
-          badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
-          badgeTextClassName: 'text-sm font-medium text-sky-900',
-        } as const;
-      }
-
-      return {
-        badgeLabel: `${clampedSubmittedCount} dari ${safeTotalStudents} mahasiswa telah mengisi kuesioner`,
-        badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-amber-50',
-        badgeTextClassName: 'text-sm font-medium text-orange-900',
-      } as const;
-    }
-
     const baseLabel =
       isSelectMode && canManage
-        ? `${selectedStudentIds.size} Mahasiswa`
-        : `${students.length} Mahasiswa`;
+        ? t('countSelected', { count: selectedStudentIds.size })
+        : t('count', { count: students.length });
 
     return {
       badgeLabel: baseLabel,
@@ -226,7 +195,7 @@ export function StudentList({
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(json?.error || 'Gagal menghapus mahasiswa');
+        throw new Error(json?.error || t('errors.removeFailed'));
       }
       // Refresh list if using SWR; otherwise optimistically filter from fallback
       if (shouldFetch) {
@@ -240,7 +209,7 @@ export function StudentList({
         setSelectedStudent(null);
       }
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+      setRemoveError(err instanceof Error ? err.message : t('errors.error'));
     } finally {
       setIsRemoving(false);
     }
@@ -260,7 +229,7 @@ export function StudentList({
             if (!res.ok) {
               return res.json().then(
                 json => {
-                  throw new Error(json?.error || 'Gagal menghapus mahasiswa');
+                  throw new Error(json?.error || t('errors.removeFailed'));
                 },
                 () => {
                   throw new Error('Gagal menghapus mahasiswa');
@@ -277,7 +246,10 @@ export function StudentList({
 
       if (errorCount > 0) {
         setRemoveError(
-          `Berhasil menghapus ${successCount} mahasiswa, ${errorCount} gagal`
+          t('errors.removePartialSuccess', {
+            success: successCount,
+            failed: errorCount,
+          })
         );
       }
 
@@ -291,7 +263,7 @@ export function StudentList({
         setSelectedStudentIds(new Set());
       }
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+      setRemoveError(err instanceof Error ? err.message : t('errors.error'));
     } finally {
       setIsRemoving(false);
     }
@@ -310,9 +282,7 @@ export function StudentList({
               : 'flex gap-x-2 items-center mb-4'
           }
         >
-          <h3 className='text-lg font-semibold text-gray-800'>
-            Daftar Mahasiswa
-          </h3>
+          <h3 className='text-lg font-semibold text-gray-800'>{t('title')}</h3>
           {!(canManage && submittedProgressAvailable && !isSelectMode) && (
             <motion.div
               layout
@@ -320,24 +290,22 @@ export function StudentList({
             >
               <Badge className={badgeClassName}>
                 <span className={badgeTextClassName}>{badgeLabel}</span>
-                {!showProgressBadge && (
-                  <AnimatePresence>
-                    {isSelectMode && canManage && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: 'auto' }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={{
-                          duration: 0.2,
-                          ease: [0.215, 0.61, 0.355, 1],
-                        }}
-                        className='text-sm font-medium text-sky-900 overflow-hidden whitespace-nowrap'
-                      >
-                        dipilih
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                )}
+                <AnimatePresence>
+                  {isSelectMode && canManage && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{
+                        duration: 0.2,
+                        ease: [0.215, 0.61, 0.355, 1],
+                      }}
+                      className='text-sm font-medium text-sky-900 overflow-hidden whitespace-nowrap'
+                    >
+                      {t('selected')}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Badge>
             </motion.div>
           )}
@@ -360,7 +328,7 @@ export function StudentList({
                 >
                   <Badge className='bg-red-50 px-3 rounded-full'>
                     <span className='text-sm text-red-900 font-medium'>
-                      Belum ada yang mengisi kuesioner
+                      {t('status.noSubmissions')}
                     </span>
                   </Badge>
                 </motion.div>
@@ -405,7 +373,7 @@ export function StudentList({
         <SearchInput
           searchValue={searchValue}
           onSearchChange={setSearchValue}
-          placeholder='Cari mahasiswa?'
+          placeholder={t('search')}
           showClassActions={false}
           containerClassName='relative'
           className='pr-10 text-gray-700 placeholder:text-gray-400'
@@ -464,7 +432,7 @@ export function StudentList({
                       )}
                   </div>
                   <span className='text-sm font-medium text-gray-700'>
-                    Pilih semua
+                    {t('selectAll')}
                   </span>
                 </label>
                 <div className='flex items-center gap-2'>
@@ -478,7 +446,7 @@ export function StudentList({
                     className='text-sm rounded-full flex items-center gap-2 cursor-pointer hover:bg-red-700 transition-colors duration-200'
                   >
                     <Trash2 className='w-4 h-4' />
-                    Keluarkan mahasiswa
+                    {t('removeMultiple')}
                   </Button>
                   <Button
                     variant='outline'
@@ -488,7 +456,7 @@ export function StudentList({
                       setSelectedStudentIds(new Set());
                     }}
                     className='rounded-full'
-                    aria-label='Keluar dari mode pilih'
+                    aria-label={t('exitSelectMode')}
                   >
                     <X className='w-4 h-4' />
                   </Button>
@@ -502,15 +470,15 @@ export function StudentList({
       <div className='flex-1 px-6 pb-6 overflow-y-auto'>
         {students.length === 0 ? (
           <div className='flex flex-col h-full text-center'>
-            <p className='text-gray-500 font-medium'>Belum Ada Mahasiswa</p>
+            <p className='text-gray-500 font-medium'>{t('noStudents')}</p>
           </div>
         ) : filteredStudents.length === 0 ? (
           <div className='flex flex-col items-center justify-center h-full text-center'>
             <div className='text-gray-400 mb-2'>
               <Search className='w-8 h-8 mx-auto mb-3' />
             </div>
-            <p className='text-gray-500 font-medium'>Tidak ditemukan</p>
-            <p className='text-gray-400 text-sm'>Coba kata kunci lain</p>
+            <p className='text-gray-500 font-medium'>{t('notFound')}</p>
+            <p className='text-gray-400 text-sm'>{t('tryOtherKeyword')}</p>
           </div>
         ) : (
           <div className='space-y-3'>
@@ -569,7 +537,7 @@ export function StudentList({
                               return newSet;
                             });
                           }}
-                          aria-label={`${selectedStudentIds.has(student.id) ? 'Batalkan pilihan' : 'Pilih'} ${student.name}`}
+                          aria-label={`${selectedStudentIds.has(student.id) ? t('cancelSelection') : t('select')} ${student.name}`}
                         >
                           {selectedStudentIds.has(student.id) && (
                             <Check className='w-3.5 h-3.5 text-white' />
@@ -643,7 +611,9 @@ export function StudentList({
                     ) : (
                       <div className='w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center'>
                         <span className='text-blue-600 font-semibold text-sm'>
-                          {student.name.charAt(0).toUpperCase()}
+                          {(student.name || t('noName'))
+                            .charAt(0)
+                            .toUpperCase()}
                         </span>
                       </div>
                     )}
@@ -691,7 +661,7 @@ export function StudentList({
                                   setOpenMenuStudentId(null);
                                 }}
                               >
-                                Pilih
+                                {t('select')}
                               </button>
                               <button
                                 className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600'
@@ -702,7 +672,7 @@ export function StudentList({
                                   setRemoveError(null);
                                 }}
                               >
-                                Hapus mahasiswa
+                                {t('remove')}
                               </button>
                             </motion.div>
                           )}
@@ -734,8 +704,8 @@ export function StudentList({
         >
           <DialogTitle className='sr-only'>
             {modalContent === 'profile'
-              ? 'Profil Mahasiswa'
-              : 'Persebaran MBTI'}
+              ? t('studentProfile')
+              : t('mbtiDistribution')}
           </DialogTitle>
           {selectedStudent &&
             (() => {
@@ -773,7 +743,7 @@ export function StudentList({
       >
         <DialogContent className='sm:max-w-xs'>
           <DialogHeader>
-            <DialogTitle className='text-left'>Hapus Mahasiswa</DialogTitle>
+            <DialogTitle className='text-left'>{t('remove')}</DialogTitle>
             {removeError && (
               <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md text-left'>
                 {removeError}
@@ -782,8 +752,8 @@ export function StudentList({
           </DialogHeader>
           <p className='text-sm text-muted-foreground text-left'>
             {confirmStudentId === 'bulk'
-              ? `${selectedStudentIds.size} mahasiswa akan dihapus dari kelas ini. Lanjutkan?`
-              : 'Mahasiswa akan dihapus dari kelas ini. Lanjutkan?'}
+              ? t('confirmRemoveMultiple', { count: selectedStudentIds.size })
+              : t('confirmRemove')}
           </p>
           <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
             <Button
@@ -798,7 +768,7 @@ export function StudentList({
               disabled={isRemoving}
               className='w-full rounded-full'
             >
-              {isRemoving ? 'Menghapus...' : 'Hapus'}
+              {isRemoving ? t('removing') : t('delete')}
             </Button>
             <Button
               variant='outline'
@@ -806,7 +776,7 @@ export function StudentList({
               disabled={isRemoving}
               className='w-full rounded-full'
             >
-              Batal
+              {t('cancel')}
             </Button>
           </DialogFooter>
         </DialogContent>

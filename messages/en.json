@@ -310,6 +310,189 @@
       "studentProfileTitle": "Profile {name}",
       "viewMbtiDistribution": "View MBTI Distribution",
       "removeStudent": "Remove Student"
+    },
+    "students": {
+      "title": "Student List",
+      "count": "{count} Students",
+      "countSelected": "{count} Students",
+      "selected": "selected",
+      "search": "Search students?",
+      "searchAria": "Search students",
+      "notFound": "Not found",
+      "tryOtherKeyword": "Try another keyword",
+      "selectAll": "Select all",
+      "select": "Select",
+      "remove": "Remove student",
+      "removeMultiple": "Remove students",
+      "exitSelectMode": "Exit select mode",
+      "noStudents": "No Students Yet",
+      "confirmRemove": "Student will be removed from this class. Continue?",
+      "confirmRemoveMultiple": "{count} students will be removed from this class. Continue?",
+      "removing": "Removing...",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "cancelSelection": "Cancel selection",
+      "studentProfile": "Student Profile",
+      "mbtiDistribution": "MBTI Distribution",
+      "noName": "No Name",
+      "options": "Options",
+      "status": {
+        "noStudentsInClass": "No students in class yet",
+        "readyToForm": "Groups ready to be formed",
+        "submittedCount": "{submitted} of {total} students have filled the questionnaire",
+        "noSubmissions": "No one has filled the questionnaire yet"
+      },
+      "errors": {
+        "removeFailed": "Failed to remove student",
+        "error": "An error occurred",
+        "removePartialSuccess": "Successfully removed {success} students, {failed} failed"
+      }
+    },
+    "assignments": {
+      "create": {
+        "title": "Create New Assignment?",
+        "description": "Please fill in all the data below to create a new assignment",
+        "titleField": "Assignment Title",
+        "titlePlaceholder": "Final Project",
+        "descriptionField": "Description",
+        "descriptionPlaceholder": "Description",
+        "optional": "optional",
+        "skills": "Skill Requirements",
+        "skillsPlaceholder": "Skills",
+        "topics": "Topic Preferences",
+        "topicsPlaceholder": "Topic Preferences",
+        "creating": "Creating…",
+        "create": "Create Assignment",
+        "error": "Failed to create assignment"
+      },
+      "quiz": {
+        "skillsTitle": "🚀 Skills Test",
+        "topicsTitle": "📚 Topic Preferences",
+        "description": "Answer the following questions honestly 😬 the results will be used to form the most suitable study team for you!",
+        "sending": "Sending...",
+        "nextToTopics": "Continue to Topic Preferences",
+        "finish": "Finish",
+        "error": "An error occurred while sending answers. Please try again.",
+        "skillQuestion": "How proficient are you with {skill}?",
+        "topicQuestion": "How interested are you in topic #{number}: {topic}?",
+        "required": "This question is required",
+        "skillLevels": {
+          "novice": "Novice",
+          "noviceDesc": "Never or very rarely used",
+          "advancedBeginner": "Advanced\nBeginner",
+          "advancedBeginnerDesc": "Have used but still need help",
+          "competent": "Competent",
+          "competentDesc": "Can use well and independently",
+          "proficient": "Proficient",
+          "proficientDesc": "Very skilled and can teach others",
+          "expert": "Expert",
+          "expertDesc": "Master level, can create new innovations"
+        },
+        "topicLevels": {
+          "stronglyDisagree": "Strongly\nNot Interested",
+          "disagree": "Not Interested",
+          "neutral": "Neutral",
+          "agree": "Interested",
+          "stronglyAgree": "Very Interested"
+        },
+        "instructions": {
+          "skillsTitle": "Skills Test Instructions",
+          "topicsTitle": "Topic Preference Test Instructions",
+          "skillsStep1": "Choose the answer that best matches your current condition and experience, from most suitable to least suitable.",
+          "skillsStep2": "Answer each question honestly. Each question can only be answered once, so make sure you choose carefully.",
+          "skillsStep3": "Adjust your answers according to the following parameters:",
+          "topicsStep1": "Choose your level of interest for each available topic. From \"Strongly Not Interested\" to \"Very Interested\", choose what best describes your interest.",
+          "topicsStep2": "Answer honestly. This test helps form the most suitable team for you, so make sure your choices reflect your true interests.",
+          "topicsStep3": "Adjust your answers according to the following parameters:",
+          "startNow": "Start Now",
+          "skillLevels": {
+            "novice": "Novice",
+            "advancedBeginner": "Advanced\nBeginner",
+            "competent": "Competent",
+            "proficient": "Proficient",
+            "expert": "Expert"
+          },
+          "topicLevels": {
+            "stronglyDisagree": "Strongly\nNot Interested",
+            "disagree": "Not Interested",
+            "neutral": "Neutral",
+            "agree": "Interested",
+            "stronglyAgree": "Very Interested"
+          }
+        }
+      },
+      "shareClass": {
+        "title": "Share Class",
+        "description": "Please copy and share the following link or token to students to access this class. Make sure students only receive this information from official sources.",
+        "classLink": "Class Link",
+        "classToken": "Class Token"
+      },
+      "list": {
+        "search": "Search assignments?",
+        "noMatch": "No assignments match \"{query}\".",
+        "back": "Back",
+        "statusFormed": "Team formation completed",
+        "statusWaiting": "Waiting for team formation",
+        "statusNoSubmissions": "No one has filled the questionnaire yet",
+        "statusProgress": "{filled} of {total} students have filled the questionnaire",
+        "submittedBadge": "Already filled questionnaire",
+        "resetConfirm": "Reset questionnaire status for this assignment?",
+        "resetFailed": "Failed to reset questionnaire.",
+        "resetError": "An error occurred during reset.",
+        "reset": "Reset"
+      }
+    },
+    "teams": {
+      "group": "Group",
+      "topic": "Task Topic",
+      "qualityScore": "Quality Score"
+    },
+    "charts": {
+      "viewAnalysis": "View Student Answer Analysis",
+      "completionRate": "{percent}% of students have completed the quiz"
+    },
+    "answers": {
+      "back": "Back",
+      "studentSelect": "Select Student",
+      "student": "Student",
+      "of": "of"
+    },
+    "emptyAssignments": {
+      "noAssignments": "You haven't created any assignments yet",
+      "createToStart": "Create an assignment to start team formation",
+      "noAssignmentsStudent": "This class has no assignments yet",
+      "checkLater": "No assignments available at the moment. Check again later, or contact your lecturer if this seems incorrect."
+    },
+    "studentStats": {
+      "activeClasses": "Active Classes",
+      "pendingTasks": "Pending Tasks",
+      "completedTasks": "Completed Tasks"
     }
+  },
+  "joinClass": {
+    "title": "Join Class",
+    "invited": "You've been invited to join a class",
+    "loggedInAs": "Logged in as:",
+    "role": "Role:",
+    "roleStudent": "Student",
+    "errors": {
+      "studentsOnly": "Only students can join classes. Please log in with a student account.",
+      "completeProfile": "Please complete your profile setup before joining a class.",
+      "joinFailed": "Failed to join class",
+      "unexpected": "An unexpected error occurred"
+    },
+    "loginStudentAccount": "Login with Student Account",
+    "redirectingProfile": "Redirecting to profile setup in 3 seconds...",
+    "courseInfo": {
+      "course": "Course:",
+      "class": "Class:",
+      "instructor": "Instructor:",
+      "period": "Period:"
+    },
+    "redirectingDashboard": "Redirecting to dashboard in 3 seconds...",
+    "joiningClass": "Joining Class...",
+    "goToDashboard": "Go to Dashboard",
+    "cancel": "Cancel",
+    "invitationToken": "Invitation Token:"
   }
 }

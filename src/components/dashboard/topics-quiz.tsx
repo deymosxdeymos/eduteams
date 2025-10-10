@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MessageSquareWarning } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface TopicsQuizProps {
   topics: string[];
@@ -17,17 +18,23 @@ export default function TopicsQuiz({
   hasError = false,
   answers,
 }: TopicsQuizProps) {
+  const t = useTranslations('dashboard.assignments.quiz');
   const likertScale = [
     {
       icon: 'Strongly-Disagree',
-      label: 'Sangat Tidak\nTertarik',
+      label: t('topicLevels.stronglyDisagree'),
       value: 1,
       size: 64,
     },
-    { icon: 'Disagree', label: 'Tidak Tertarik', value: 2, size: 56 },
-    { icon: 'Neutral', label: 'Netral', value: 3, size: 48 },
-    { icon: 'Agree', label: 'Tertarik', value: 4, size: 56 },
-    { icon: 'Strongly-Agree', label: 'Sangat Tertarik', value: 5, size: 64 },
+    { icon: 'Disagree', label: t('topicLevels.disagree'), value: 2, size: 56 },
+    { icon: 'Neutral', label: t('topicLevels.neutral'), value: 3, size: 48 },
+    { icon: 'Agree', label: t('topicLevels.agree'), value: 4, size: 56 },
+    {
+      icon: 'Strongly-Agree',
+      label: t('topicLevels.stronglyAgree'),
+      value: 5,
+      size: 64,
+    },
   ];
 
   const handleSelection = (topicIndex: number, value: number) => {
@@ -49,11 +56,7 @@ export default function TopicsQuiz({
             >
               <div className='text-center mb-6'>
                 <p className='text-md font-normal text-black'>
-                  Seberapa Tertarik Anda dengan topik{' '}
-                  <strong>
-                    #{topicIndex + 1}: {topic}
-                  </strong>
-                  ?
+                  {t('topicQuestion', { number: topicIndex + 1, topic })}
                 </p>
               </div>
 
@@ -137,7 +140,7 @@ export default function TopicsQuiz({
                       }}
                       className='text-sm font-normal'
                     >
-                      Pertanyaan ini wajib diisi
+                      {t('required')}
                     </motion.span>
                   </div>
                 </motion.div>

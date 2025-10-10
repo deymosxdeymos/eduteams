@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MessageSquareWarning } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface SkillsQuizProps {
   skills: string[];
@@ -17,39 +18,40 @@ export default function SkillsQuiz({
   hasError = false,
   answers,
 }: SkillsQuizProps) {
+  const t = useTranslations('dashboard.assignments.quiz');
   const likertScale = [
     {
       icon: 'Novice',
-      label: 'Pemula',
-      description: 'Belum pernah atau sangat jarang menggunakan',
+      label: t('skillLevels.novice'),
+      description: t('skillLevels.noviceDesc'),
       value: 1,
       size: 64,
     },
     {
       icon: 'Advanced-Beginner',
-      label: 'Pemula\nLanjut',
-      description: 'Pernah menggunakan tapi masih butuh bantuan',
+      label: t('skillLevels.advancedBeginner'),
+      description: t('skillLevels.advancedBeginnerDesc'),
       value: 2,
       size: 56,
     },
     {
       icon: 'Competent',
-      label: 'Kompeten',
-      description: 'Bisa menggunakan dengan baik dan mandiri',
+      label: t('skillLevels.competent'),
+      description: t('skillLevels.competentDesc'),
       value: 3,
       size: 48,
     },
     {
       icon: 'Proficient',
-      label: 'Mahir',
-      description: 'Sangat ahli dan bisa mengajari orang lain',
+      label: t('skillLevels.proficient'),
+      description: t('skillLevels.proficientDesc'),
       value: 4,
       size: 56,
     },
     {
       icon: 'Expert',
-      label: 'Jago\nBanget',
-      description: 'Master level, bisa membuat inovasi baru',
+      label: t('skillLevels.expert'),
+      description: t('skillLevels.expertDesc'),
       value: 5,
       size: 64,
     },
@@ -74,7 +76,7 @@ export default function SkillsQuiz({
             >
               <div className='text-center mb-6'>
                 <p className='text-md font-normal text-black'>
-                  Seberapa mahir kamu dengan keahlian <strong>{skill}</strong>?
+                  {t('skillQuestion', { skill })}
                 </p>
               </div>
 
@@ -158,7 +160,7 @@ export default function SkillsQuiz({
                       }}
                       className='text-sm font-normal'
                     >
-                      Pertanyaan ini wajib diisi
+                      {t('required')}
                     </motion.span>
                   </div>
                 </motion.div>

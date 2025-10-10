@@ -2,6 +2,7 @@
 
 import { MoreVertical } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,6 +37,7 @@ export function TeamMemberListClient({
   courseId,
   canManage = true,
 }: TeamMemberListClientProps) {
+  const t = useTranslations('dashboard.students');
   const [localMembers, setLocalMembers] = useState<TeamMemberItem[]>(members);
   const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null);
   const [confirmMemberId, setConfirmMemberId] = useState<string | null>(null);
@@ -69,13 +71,13 @@ export function TeamMemberListClient({
       );
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(json?.error || 'Gagal menghapus mahasiswa');
+        throw new Error(json?.error || t('errors.removeFailed'));
       }
       setLocalMembers(prev => prev.filter(m => m.id !== memberId));
       setConfirmMemberId(null);
       setOpenMenuMemberId(null);
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+      setRemoveError(err instanceof Error ? err.message : t('errors.error'));
     } finally {
       setIsRemoving(false);
     }
@@ -109,13 +111,13 @@ export function TeamMemberListClient({
           )}
           <div className='flex-1 min-w-0'>
             <p className='font-medium text-gray-900 truncate'>
-              {member.user.name || 'Tanpa Nama'}
+              {member.user.name || t('noName')}
             </p>
           </div>
           {canManage && (
             <div className='ml-auto relative'>
               <button
-                aria-label='Opsi'
+                aria-label={t('options')}
                 className='p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300'
                 onClick={e => {
                   e.stopPropagation();
@@ -137,7 +139,7 @@ export function TeamMemberListClient({
                       setRemoveError(null);
                     }}
                   >
-                    Hapus mahasiswa
+                    {t('remove')}
                   </button>
                 </div>
               )}
@@ -153,7 +155,9 @@ export function TeamMemberListClient({
         >
           <DialogContent className='sm:max-w-xs'>
             <DialogHeader>
-              <DialogTitle className='text-left'>Hapus Mahasiswa</DialogTitle>
+              <DialogTitle className='text-left'>
+                {t('removeStudent')}
+              </DialogTitle>
               {removeError && (
                 <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md text-left'>
                   {removeError}
@@ -161,7 +165,7 @@ export function TeamMemberListClient({
               )}
             </DialogHeader>
             <p className='text-sm text-muted-foreground text-left'>
-              Mahasiswa akan dihapus dari kelas ini. Lanjutkan?
+              {t('confirmRemove')}
             </p>
             <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
               <Button
@@ -172,7 +176,7 @@ export function TeamMemberListClient({
                 disabled={isRemoving}
                 className='w-full rounded-full'
               >
-                {isRemoving ? 'Menghapus...' : 'Hapus'}
+                {isRemoving ? t('removing') : t('delete')}
               </Button>
               <Button
                 variant='outline'
@@ -180,7 +184,7 @@ export function TeamMemberListClient({
                 disabled={isRemoving}
                 className='w-full rounded-full'
               >
-                Batal
+                {t('cancel')}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { TeamMemberListClient } from '@/components/dashboard/team-member-list-client';
 import prisma from '@/lib/prisma';
 
@@ -10,6 +11,7 @@ export async function AssignmentTeams({
   assignmentId,
   isStudent = false,
 }: AssignmentTeamsProps) {
+  const t = await getTranslations('dashboard.teams');
   // Load assignment to infer owner/time window
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
@@ -93,21 +95,23 @@ export async function AssignmentTeams({
             >
               <div className='flex items-start justify-between gap-3'>
                 <h2 className='font-semibold text-lg text-gray-800'>
-                  Kelompok {pad(idx + 1)}
+                  {t('group')} {pad(idx + 1)}
                 </h2>
                 {isStudent ? (
                   hasTopic ? (
                     <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
-                      Topik Tugas: {topicName}
+                      {t('topic')}: {topicName}
                     </div>
                   ) : null
                 ) : (
                   <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
                     <div className='rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-xs'>
-                      Kualitas Skor:{' '}
+                      {t('qualityScore')}:{' '}
                       {qualityPct != null ? `${qualityPct}%` : '-'}
                     </div>
-                    <div>Topik Tugas: {hasTopic ? topicName : '-'}</div>
+                    <div>
+                      {t('topic')}: {hasTopic ? topicName : '-'}
+                    </div>
                   </div>
                 )}
               </div>
