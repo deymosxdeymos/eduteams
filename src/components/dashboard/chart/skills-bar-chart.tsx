@@ -2,10 +2,10 @@ import type { AssignmentStats } from '@/lib/stats/assignment';
 
 interface SkillsBarChartProps {
   skills: AssignmentStats['skills'];
-  teamsFormed: boolean;
+  ready: boolean;
 }
 
-export function SkillsBarChart({ skills, teamsFormed }: SkillsBarChartProps) {
+export function SkillsBarChart({ skills, ready }: SkillsBarChartProps) {
   return (
     <div className='flex flex-col gap-3 flex-1 justify-center'>
       {(skills.length > 0 ? skills : []).map((s, i) => (
@@ -20,7 +20,7 @@ export function SkillsBarChart({ skills, teamsFormed }: SkillsBarChartProps) {
             <div
               className='h-3 rounded-full'
               style={{
-                width: `${teamsFormed ? s.value : 0}%`,
+                width: `${ready ? s.value : 0}%`,
                 backgroundColor: 'oklch(from #235ADF l c h)',
               }}
             />

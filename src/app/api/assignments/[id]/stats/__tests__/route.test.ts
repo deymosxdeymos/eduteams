@@ -25,6 +25,8 @@ describe('GET /api/assignments/[id]/stats', () => {
         skills: [{ label: 'Frontend', value: 80 }],
         topicPreferences: [{ name: 'Topic1', value: 90 }],
         teamsFormed: false,
+        quizSubmissions: 1,
+        chartReady: true,
       }),
     }));
     const { GET } = await import('../route');
@@ -48,6 +50,8 @@ describe('GET /api/assignments/[id]/stats', () => {
         skills: [{ label: 'Backend', value: 70 }],
         topicPreferences: [{ name: 'Topic2', value: 50 }],
         teamsFormed: false,
+        quizSubmissions: 0,
+        chartReady: false,
       }),
     }));
     const { GET } = await import('../route');
@@ -61,6 +65,8 @@ describe('GET /api/assignments/[id]/stats', () => {
     expect(json.data.gender[0].value).toBe(0);
     expect(json.data.skills[0].value).toBe(0);
     expect(json.data.topicPreferences[0].value).toBe(0);
+    expect(json.data.quizSubmissions).toBe(0);
+    expect(json.data.chartReady).toBe(false);
   });
 
   it('returns 404 if assignment not found', async () => {

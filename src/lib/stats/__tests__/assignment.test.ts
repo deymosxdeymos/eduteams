@@ -33,6 +33,9 @@ const prismaMock: any = {
   teamFormationRequest: {
     count: mock(async () => 0),
   },
+  assignmentSubmission: {
+    count: mock(async () => 0),
+  },
 };
 
 mock.module('@/lib/prisma', () => ({ default: prismaMock }));
@@ -88,6 +91,8 @@ describe('lib/stats/getAssignmentStats', () => {
     ]);
 
     expect(stats.teamsFormed).toBe(false);
+    expect(stats.quizSubmissions).toBe(0);
+    expect(stats.chartReady).toBe(false);
   });
 
   it('aggregates MBTI, gender, skills, topic prefs and team formation', async () => {
@@ -140,6 +145,7 @@ describe('lib/stats/getAssignmentStats', () => {
 
     // Team formation after startAt
     prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 2);
+    prismaMock.assignmentSubmission.count.mockImplementationOnce(async () => 3);
 
     const stats = await getAssignmentStats('a2', 'courseX');
 
@@ -166,5 +172,7 @@ describe('lib/stats/getAssignmentStats', () => {
     ]);
 
     expect(stats.teamsFormed).toBe(true);
+    expect(stats.quizSubmissions).toBe(3);
+    expect(stats.chartReady).toBe(true);
   });
 });

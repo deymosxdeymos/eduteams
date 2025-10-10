@@ -22,7 +22,7 @@ export const GET = withAuth<{ id: string }>(async (_req, { params }) => {
     const url = new URL(_req.url);
     const zeroIfNoTeams = url.searchParams.get('zeroIfNoTeams') === '1';
     const data =
-      zeroIfNoTeams && !stats.teamsFormed
+      zeroIfNoTeams && !stats.chartReady
         ? {
             ...stats,
             mbti: stats.mbti.map(s => ({ ...s, jumlah: 0 })),
@@ -32,6 +32,8 @@ export const GET = withAuth<{ id: string }>(async (_req, { params }) => {
               ...t,
               value: 0,
             })),
+            quizSubmissions: 0,
+            chartReady: false,
           }
         : stats;
 

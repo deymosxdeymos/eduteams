@@ -72,6 +72,13 @@ export async function AssignmentContent({
   }
 
   const t = await getTranslations('dashboard.assignment.studentWaiting');
+  const totalEnrollments = enrollments.length;
+  const quizCompletionPercent = totalEnrollments
+    ? Math.round(
+        (Math.min(stats.quizSubmissions, totalEnrollments) / totalEnrollments) *
+          100
+      )
+    : 0;
 
   return (
     <div className='flex-1 p-8 min-h-0'>
@@ -109,7 +116,7 @@ export async function AssignmentContent({
           )
         ) : (
           <>
-            <ChartsToggle percentAssigned={percentAssigned}>
+            <ChartsToggle progressPercent={quizCompletionPercent}>
               <AssignmentCharts stats={stats} isStudent={isStudent} />
             </ChartsToggle>
             <AssignmentTeams assignmentId={assignmentId} />

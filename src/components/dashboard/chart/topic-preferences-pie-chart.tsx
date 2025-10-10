@@ -10,7 +10,7 @@ import type { AssignmentStats } from '@/lib/stats/assignment';
 
 interface TopicPreferencesPieChartProps {
   topicPreferences: AssignmentStats['topicPreferences'];
-  teamsFormed: boolean;
+  ready: boolean;
 }
 
 function slugify(s: string) {
@@ -23,7 +23,7 @@ function slugify(s: string) {
 
 export function TopicPreferencesPieChart({
   topicPreferences,
-  teamsFormed,
+  ready,
 }: TopicPreferencesPieChartProps) {
   // Match pre-refactor palette (bluish scale) using OKLCH
   const colors = [
@@ -43,7 +43,7 @@ export function TopicPreferencesPieChart({
   const placeholder = Math.round(100 / n);
   const chartData = topicPreferences.map((t, i) => ({
     name: slugify(t.name),
-    value: teamsFormed ? t.value : placeholder,
+    value: ready ? t.value : placeholder,
     fill: colors[i % colors.length],
   }));
 

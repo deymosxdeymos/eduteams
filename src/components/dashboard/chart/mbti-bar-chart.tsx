@@ -250,13 +250,13 @@ function MbtiBarShape(
 
 interface MbtiBarChartProps {
   stats: AssignmentStats['mbti'];
-  teamsFormed: boolean;
+  ready: boolean;
 }
 
-export function MbtiBarChart({ stats, teamsFormed }: MbtiBarChartProps) {
+export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
   const chartData = stats.map(row => ({
     kategori: row.kategori,
-    jumlah: teamsFormed ? row.jumlah : 0,
+    jumlah: ready ? row.jumlah : 0,
   }));
 
   // Create unique, stable IDs for gradients and face shadow filter per chart instance

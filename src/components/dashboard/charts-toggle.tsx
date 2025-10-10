@@ -5,11 +5,11 @@ import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 
 interface ChartsToggleProps {
-  percentAssigned: number; // 0..100
+  progressPercent: number; // 0..100
   children: React.ReactNode;
 }
 
-export function ChartsToggle({ percentAssigned, children }: ChartsToggleProps) {
+export function ChartsToggle({ progressPercent, children }: ChartsToggleProps) {
   const [visible, setVisible] = useState(true);
   const onKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -36,7 +36,7 @@ export function ChartsToggle({ percentAssigned, children }: ChartsToggleProps) {
           )}
         </div>
         <Badge className='rounded-full bg-emerald-50 text-emerald-700 border-emerald-200'>
-          {Math.round(percentAssigned)}% mahasiswa mendapatkan kelompok
+          {Math.round(progressPercent)}% mahasiswa telah menyelesaikan kuis
         </Badge>
       </div>
       {visible && children}
