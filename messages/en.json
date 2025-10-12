@@ -3,6 +3,9 @@
   "mahasiswaSubtitle": "Let's check your class progress and get ready with your team!",
   "dosenSubtitle": "Track activities and manage your classes easily from this dashboard",
   "answersDefault": "Student Answers",
+  "auth": {
+    "signInWithGoogle": "Sign in with Google"
+  },
   "homepage": {
     "hero": {
       "titlePrefix": "Where",
