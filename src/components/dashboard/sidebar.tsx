@@ -1,13 +1,32 @@
 'use client';
 
 import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
 
+const SUPPORTED_LOCALES = ['id', 'en'];
+const ICON_BUTTON_CLASSES =
+  'rounded-full w-12 h-12 cursor-pointer transition-transform duration-150 active:scale-[0.96]';
+
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+
+  const normalizedPathname = useMemo(() => {
+    if (!pathname) return '/';
+
+    const segments = pathname.split('/');
+    const potentialLocale = segments[1];
+
+    if (SUPPORTED_LOCALES.includes(potentialLocale ?? '')) {
+      const rest = segments.slice(2).filter(Boolean).join('/');
+      return rest ? `/${rest}` : '/';
+    }
+
+    return pathname;
+  }, [pathname]);
 
   const handleProfileClick = () => {
     router.push('/dashboard/profile');
@@ -35,13 +54,12 @@ export default function Sidebar() {
     // Home (dashboard) should be active for all dashboard routes except profile
     if (path === '/dashboard') {
       return (
-        !!pathname &&
-        pathname.startsWith('/dashboard') &&
-        !pathname.startsWith('/dashboard/profile') &&
-        !pathname.startsWith('/dashboard/manage')
+        normalizedPathname.startsWith('/dashboard') &&
+        !normalizedPathname.startsWith('/dashboard/profile') &&
+        !normalizedPathname.startsWith('/dashboard/manage')
       );
     }
-    return !!pathname && pathname.startsWith(path);
+    return normalizedPathname.startsWith(path);
   };
 
   return (
@@ -53,8 +71,9 @@ export default function Sidebar() {
         <Button
           variant={isActive('/dashboard') ? 'onboarding' : 'ghost'}
           size='icon'
-          className='rounded-full w-12 h-12'
+          className={ICON_BUTTON_CLASSES}
           onClick={handleDashboardClick}
+          aria-current={isActive('/dashboard') ? 'page' : undefined}
         >
           <HomeIcon
             className={`size-5 ${isActive('/dashboard') ? 'text-white' : 'text-black'}`}
@@ -64,8 +83,9 @@ export default function Sidebar() {
         <Button
           variant={isActive('/dashboard/manage') ? 'onboarding' : 'ghost'}
           size='icon'
-          className='rounded-full w-12 h-12'
+          className={ICON_BUTTON_CLASSES}
           onClick={handleManageClick}
+          aria-current={isActive('/dashboard/manage') ? 'page' : undefined}
         >
           <LayoutGrid
             className={`size-5 ${isActive('/dashboard/manage') ? 'text-white' : 'text-black'}`}
@@ -76,8 +96,9 @@ export default function Sidebar() {
         <Button
           variant={isActive('/dashboard/profile') ? 'onboarding' : 'ghost'}
           size='icon'
-          className='rounded-full w-12 h-12'
+          className={ICON_BUTTON_CLASSES}
           onClick={handleProfileClick}
+          aria-current={isActive('/dashboard/profile') ? 'page' : undefined}
         >
           <CircleUser
             className={`size-5 ${isActive('/dashboard/profile') ? 'text-white' : 'text-black'}`}
@@ -87,7 +108,7 @@ export default function Sidebar() {
         <Button
           variant='ghost'
           size='icon'
-          className='rounded-full w-12 h-12'
+          className={ICON_BUTTON_CLASSES}
           onClick={handleLogout}
         >
           <LogOut className='text-red-400 size-5' />

@@ -153,8 +153,14 @@ export function StudentClassGrid({
 
   return (
     <>
-      <div className='py-6'>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+      <div className='flex h-full flex-col pt-4 pb-6'>
+        <div
+          className='grid flex-1 grid-cols-1 gap-6 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-3'
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#cbd5e1 transparent',
+          }}
+        >
           {classes.map(classItem => {
             const badgeColors = getClassBadgeColor(classItem.kelas);
 
@@ -163,52 +169,49 @@ export function StudentClassGrid({
                 key={classItem.id}
                 role='button'
                 tabIndex={0}
-                className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left'
+                className='group flex h-full w-full cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70 active:opacity-95 md:px-5 md:py-4'
                 onClick={() => handleClassClick(classItem.id)}
                 onKeyDown={e => handleKeyDown(e, classItem.id)}
               >
-                <div className='flex flex-col h-full'>
-                  <div className='flex justify-between items-start mb-4'>
-                    <div className='flex gap-2'>
-                      {classItem.kelas !== 'tanpa-kelas' && (
-                        <Badge
-                          variant='destructive'
-                          className={`${badgeColors.bg} ${badgeColors.text} text-xs flex items-center gap-1`}
-                        >
-                          <div
-                            className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
-                          ></div>
-                          {classItem.kelas}
-                        </Badge>
-                      )}
+                <div className='flex items-start justify-between'>
+                  <div className='flex flex-wrap gap-2'>
+                    {classItem.kelas !== 'tanpa-kelas' && (
                       <Badge
-                        variant='default'
-                        className='rounded-2xl font-normal text-xs text-sky-900 bg-sky-50'
+                        variant='destructive'
+                        className={`${badgeColors.bg} ${badgeColors.text} text-xs font-medium transition-colors group-hover:brightness-95`}
                       >
-                        {classItem.studentCount} mahasiswa
+                        <div
+                          className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
+                        ></div>{' '}
+                        {classItem.kelas}
                       </Badge>
-                    </div>
-                    <button
-                      className='p-1 hover:bg-gray-100 rounded-full transition-colors'
-                      onClick={e => handleOptionsClick(e, classItem)}
+                    )}
+                    <Badge
+                      variant='default'
+                      className='rounded-2xl bg-sky-50 text-xs font-medium text-sky-900'
                     >
-                      <MoreVertical className='w-4 h-4 text-gray-500' />
-                    </button>
+                      {classItem.studentCount} mahasiswa
+                    </Badge>
                   </div>
-                  <h3 className='font-semibold text-gray-800 text-2xl line-clamp-2 leading-tight flex-1'>
-                    {classItem.namaMataKuliah}
-                  </h3>
-                  <div className='mt-auto space-y-2'>
-                    <div className='flex items-center gap-2'>
-                      <User className='w-4 h-4 text-gray-600' />
-                      <span className='text-gray-600 text-sm'>
-                        {classItem.dosen?.name || 'N/A'}
-                      </span>
-                    </div>
-                    <p className='text-gray-600 text-sm'>
-                      {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
-                    </p>
+                  <button
+                    type='button'
+                    className='rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-100'
+                    onClick={e => handleOptionsClick(e, classItem)}
+                  >
+                    <MoreVertical className='h-4 w-4' />
+                  </button>
+                </div>
+                <h3 className='min-h-[3.6rem] text-[1.35rem] font-semibold leading-tight text-gray-800 line-clamp-2 md:min-h-[3.75rem] md:text-[1.65rem]'>
+                  {classItem.namaMataKuliah}
+                </h3>
+                <div className='mt-auto space-y-2 pt-1'>
+                  <div className='flex items-center gap-2 text-sm text-gray-600'>
+                    <User className='h-4 w-4' />
+                    <span>{classItem.dosen?.name || 'N/A'}</span>
                   </div>
+                  <p className='text-xs font-medium tracking-wide text-gray-500 md:text-sm md:tracking-normal'>
+                    {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
+                  </p>
                 </div>
               </div>
             );
