@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
 import { UserRound } from 'lucide-react';
 import Image from 'next/image';
 import { useId, useTransition } from 'react';
@@ -254,7 +255,7 @@ export default function DataDiriFormClient({
                   role='radiogroup'
                   aria-labelledby='gender-label'
                 >
-                  <button
+                  <motion.button
                     type='button'
                     role='radio'
                     aria-checked={field.value === 'laki-laki'}
@@ -262,11 +263,30 @@ export default function DataDiriFormClient({
                     onKeyDown={e =>
                       e.key === 'Enter' && field.onChange('laki-laki')
                     }
-                    className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
-                      field.value === 'laki-laki'
-                        ? 'bg-blue-100 ring-4 ring-blue-300 scale-105'
-                        : 'bg-muted hover:bg-muted/70'
+                    className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer ${
+                      field.value === 'laki-laki' ? 'ring-4 ring-blue-300' : ''
                     }`}
+                    animate={{
+                      scale: field.value === 'laki-laki' ? 1.05 : 1,
+                      backgroundColor:
+                        field.value === 'laki-laki'
+                          ? 'rgb(219, 234, 254)'
+                          : 'rgb(244, 244, 245)',
+                    }}
+                    whileHover={
+                      field.value !== 'laki-laki'
+                        ? {
+                            backgroundColor: 'rgb(228, 228, 231)',
+                            scale: 1.02,
+                          }
+                        : undefined
+                    }
+                    whileTap={{ scale: 0.98 }}
+                    transition={{
+                      type: 'spring',
+                      duration: 0.2,
+                      bounce: 0,
+                    }}
                   >
                     <Image
                       src={
@@ -282,9 +302,9 @@ export default function DataDiriFormClient({
                     <p className='font-bold text-center text-blue-950 text-md tracking-tighter leading-none uppercase'>
                       {dict.onboarding.dataDiri.lakiLaki}
                     </p>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
                     type='button'
                     role='radio'
                     aria-checked={field.value === 'perempuan'}
@@ -292,11 +312,30 @@ export default function DataDiriFormClient({
                     onKeyDown={e =>
                       e.key === 'Enter' && field.onChange('perempuan')
                     }
-                    className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer transition-all duration-200 ${
-                      field.value === 'perempuan'
-                        ? 'bg-pink-100 ring-4 ring-pink-300 scale-105'
-                        : 'bg-muted hover:bg-muted/70'
+                    className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer ${
+                      field.value === 'perempuan' ? 'ring-4 ring-pink-300' : ''
                     }`}
+                    animate={{
+                      scale: field.value === 'perempuan' ? 1.05 : 1,
+                      backgroundColor:
+                        field.value === 'perempuan'
+                          ? 'rgb(252, 231, 243)'
+                          : 'rgb(244, 244, 245)',
+                    }}
+                    whileHover={
+                      field.value !== 'perempuan'
+                        ? {
+                            backgroundColor: 'rgb(228, 228, 231)',
+                            scale: 1.02,
+                          }
+                        : undefined
+                    }
+                    whileTap={{ scale: 0.98 }}
+                    transition={{
+                      type: 'spring',
+                      duration: 0.2,
+                      bounce: 0,
+                    }}
                   >
                     <Image
                       src={
@@ -312,7 +351,7 @@ export default function DataDiriFormClient({
                     <p className='font-bold text-center text-pink-950 text-md tracking-tighter leading-none uppercase'>
                       {dict.onboarding.dataDiri.perempuan}
                     </p>
-                  </button>
+                  </motion.button>
                 </div>
               </FormControl>
               <FormMessage />

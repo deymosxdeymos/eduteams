@@ -59,8 +59,9 @@ export async function middleware(request: NextRequest) {
     return Boolean(token);
   })();
 
-  const publicPathnameRegex = /^\/(en)?\/?$/;
-  const isPublicRoute = publicPathnameRegex.test(pathname);
+  const protectedPathnameRegex =
+    /^\/(en\/)?(dashboard|onboarding|profile|settings)/;
+  const isProtectedRoute = protectedPathnameRegex.test(pathname);
 
   if (
     pathname.startsWith('/login') ||
@@ -76,7 +77,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (!isPublicRoute && !hasSessionToken) {
+  if (isProtectedRoute && !hasSessionToken) {
     const locale = pathname.startsWith('/en') ? 'en' : 'id';
     const url = new URL(locale === 'en' ? '/en' : '/', request.url);
     const res = NextResponse.redirect(url);

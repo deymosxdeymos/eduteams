@@ -52,9 +52,9 @@ export default function PersonalityQuestion({
             <p className='text-md font-normal text-black'>{question}</p>
           </div>
 
-          <div className='flex items-start justify-center max-w-5xl mx-auto'>
+          <div className='flex items-center justify-center max-w-5xl mx-auto'>
             {likertScale.map((item, index) => (
-              <div key={item.value} className='flex items-start'>
+              <div key={item.value} className='flex items-center'>
                 <motion.div
                   className='flex flex-col items-center space-y-3 cursor-pointer'
                   onClick={() => handleSelection(item.value)}
@@ -77,14 +77,12 @@ export default function PersonalityQuestion({
                     alt={item.label}
                     className='object-contain'
                   />
-                  <div className='text-center'>
-                    <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
-                      {item.label}
-                    </div>
+                  <div className='text-xs font-medium text-gray-700 whitespace-pre-line text-center'>
+                    {item.label}
                   </div>
                 </motion.div>
                 {index < likertScale.length - 1 && (
-                  <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
+                  <div className='h-1 w-16 bg-gray-300 mx-4' />
                 )}
               </div>
             ))}

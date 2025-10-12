@@ -59,7 +59,7 @@ export function ClassCard({
     <div
       role='button'
       tabIndex={0}
-      className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left'
+      className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left active:opacity-95'
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >

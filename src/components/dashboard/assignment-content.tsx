@@ -25,7 +25,7 @@ export async function AssignmentContent({
 }: AssignmentContentProps) {
   // Server-side: gather counts for UI and teams percentage
   // Topics count and enrollments
-  const [topics, enrollments, assignment] = (await Promise.all([
+  const [topicRecords, enrollments, assignment] = await Promise.all([
     prisma.assignmentTopic.findMany({
       where: { assignmentId },
       select: { id: true },
@@ -39,14 +39,33 @@ export async function AssignmentContent({
       select: {
         id: true,
         startAt: true,
+        description: true,
         course: { select: { dosenId: true } },
       },
     }),
-  ])) as unknown as [
-    Array<{ id: string }>,
-    Array<{ studentId: string }>,
-    { id: string; startAt: Date; course: { dosenId: string } } | null,
-  ];
+  ]);
+
+  // Topics are optional: prefer the assignment's current description JSON;
+  // fall back to historical topic records only if parsing fails.
+  let topicCount = 0;
+  if (assignment?.description) {
+    try {
+      const parsed = JSON.parse(assignment.description) as {
+        topics?: unknown;
+      };
+      if (Array.isArray(parsed?.topics)) {
+        topicCount = parsed.topics
+          .map(topic => (typeof topic === 'string' ? topic.trim() : ''))
+          .filter(Boolean).length;
+      } else {
+        topicCount = 0;
+      }
+    } catch {
+      topicCount = topicRecords.length;
+    }
+  } else {
+    topicCount = topicRecords.length;
+  }
 
   let percentAssigned = 0;
   if (assignment) {
@@ -89,7 +108,7 @@ export async function AssignmentContent({
           canManage={canManage}
           isStudent={isStudent}
           hasTeams={percentAssigned > 0}
-          topicCount={topics.length}
+          topicCount={topicCount}
           enrollmentCount={enrollments.length}
         />
 

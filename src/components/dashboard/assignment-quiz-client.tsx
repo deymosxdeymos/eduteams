@@ -15,6 +15,7 @@ interface Assignment {
   title: string;
   skills: string[];
   topics: string[];
+  hasTopics: boolean;
 }
 
 interface AssignmentQuizClientProps {
@@ -137,6 +138,9 @@ export function AssignmentQuizClient({
       }
       return false;
     }
+    if (state.validationErrors.size > 0) {
+      dispatch({ type: 'SET_VALIDATION_ERRORS', payload: new Set() });
+    }
     return true;
   };
 
@@ -144,6 +148,10 @@ export function AssignmentQuizClient({
     if (!validateCurrentStep()) return;
 
     if (state.currentStep === 'skills') {
+      if (!assignment.hasTopics || assignment.topics.length === 0) {
+        await handleComplete();
+        return;
+      }
       dispatch({ type: 'NEXT_STEP' });
       setIsPreferenceModalOpen(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -273,7 +281,9 @@ export function AssignmentQuizClient({
           {state.isSubmitting
             ? t('sending')
             : state.currentStep === 'skills'
-              ? t('nextToTopics')
+              ? assignment.hasTopics
+                ? t('nextToTopics')
+                : t('finish')
               : t('finish')}
           <ArrowRight
             strokeWidth={3}

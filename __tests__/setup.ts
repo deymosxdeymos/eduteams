@@ -52,6 +52,39 @@ mock.module('next-intl', () => ({
   }),
 }));
 
+mock.module('framer-motion', () => {
+  const omitKeys = new Set([
+    'initial',
+    'animate',
+    'exit',
+    'transition',
+    'whileHover',
+    'whileTap',
+    'layout',
+    'layoutId',
+  ]);
+  const createComponent = (tag: string) =>
+    ({ children, ...props }: any) => {
+      const cleanProps = Object.fromEntries(
+        Object.entries(props).filter(([key]) => !omitKeys.has(key))
+      );
+      return React.createElement(tag, cleanProps, children);
+    };
+
+  return {
+    AnimatePresence: ({ children }: any) =>
+      React.createElement(React.Fragment, null, children),
+    motion: new Proxy(
+      {},
+      {
+        get: (_target, key: string | symbol) =>
+          createComponent(typeof key === 'string' ? key : 'div'),
+      }
+    ),
+    animate: () => ({ stop: () => {} }),
+  };
+});
+
 // Mock next-intl routing
 mock.module('@/i18n/routing', () => ({
   routing: {

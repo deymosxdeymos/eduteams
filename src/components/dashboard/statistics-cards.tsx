@@ -29,13 +29,17 @@ export function StatisticsCards() {
     mean: null,
   };
 
+  const hasQualityData = (statistics.qualitySummary?.n ?? 0) > 0;
+
   const formatPercent = useMemo(() => {
     return (value: number | null | undefined) => {
-      if (value === null || value === undefined) return '0%';
+      if (!hasQualityData || value === null || value === undefined) {
+        return 'N/A';
+      }
       const pct = Math.round(value * 100);
       return `${pct}%`;
     };
-  }, []);
+  }, [hasQualityData]);
 
   if (error) {
     if (process.env.NODE_ENV !== 'test') {

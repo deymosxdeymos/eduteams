@@ -46,6 +46,10 @@
 @theme {
   --color-blue-background: oklch(0.224 0.258 264.376);
   --shadow-glow: 0 0 20px oklch(0.646 0.222 264.376 / 0.5);
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 body {

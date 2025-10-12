@@ -22,13 +22,10 @@ export default function NotFound() {
           <Button
             asChild
             variant='outline'
-            className='group rounded-full w-1/2 h-12 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg'
+            className='rounded-full w-full sm:w-auto px-6 h-12 transition-[background-color,border-color,color,transform] duration-200 ease-[ease] active:scale-[0.98] motion-reduce:active:scale-100'
           >
             <Link href='/'>
-              <ArrowLeft
-                strokeWidth={3}
-                className='w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1'
-              />
+              <ArrowLeft strokeWidth={3} className='w-4 h-4' />
               Kembali ke Halaman Utama
             </Link>
           </Button>

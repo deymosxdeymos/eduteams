@@ -1,8 +1,8 @@
 'use client';
 
 import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
 
 export default function Sidebar() {
@@ -15,6 +15,10 @@ export default function Sidebar() {
 
   const handleDashboardClick = () => {
     router.push('/dashboard');
+  };
+
+  const handleManageClick = () => {
+    router.push('/dashboard/manage');
   };
 
   const handleLogout = async () => {
@@ -33,7 +37,8 @@ export default function Sidebar() {
       return (
         !!pathname &&
         pathname.startsWith('/dashboard') &&
-        !pathname.startsWith('/dashboard/profile')
+        !pathname.startsWith('/dashboard/profile') &&
+        !pathname.startsWith('/dashboard/manage')
       );
     }
     return !!pathname && pathname.startsWith(path);
@@ -56,8 +61,15 @@ export default function Sidebar() {
           />
         </Button>
 
-        <Button variant='ghost' size='icon' className='rounded-full w-12 h-12'>
-          <LayoutGrid className='text-black size-5' />
+        <Button
+          variant={isActive('/dashboard/manage') ? 'onboarding' : 'ghost'}
+          size='icon'
+          className='rounded-full w-12 h-12'
+          onClick={handleManageClick}
+        >
+          <LayoutGrid
+            className={`size-5 ${isActive('/dashboard/manage') ? 'text-white' : 'text-black'}`}
+          />
         </Button>
       </div>
       <div className='flex flex-col gap-y-6'>

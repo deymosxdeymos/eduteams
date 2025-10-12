@@ -203,7 +203,11 @@ export function AssignmentActions({
                                   )
                                 )
                               : 0;
-                        if (groups && groups !== topicCount) {
+                        if (
+                          groups &&
+                          (topicCount ?? 0) > 0 &&
+                          groups !== topicCount
+                        ) {
                           return t('noteTopicsMismatch', {
                             topicCount,
                             groups,

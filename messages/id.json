@@ -3,6 +3,9 @@
   "mahasiswaSubtitle": "Yuk, cek progres kelas dan siap-siap mulai bareng kelompokmu!",
   "dosenSubtitle": "Pantau aktivitas dan kelola kelas Anda dengan mudah melalui dashboard ini",
   "answersDefault": "Jawaban Mahasiswa",
+  "auth": {
+    "signInWithGoogle": "Masuk dengan Google"
+  },
   "homepage": {
     "hero": {
       "titlePrefix": "Dimana",
@@ -322,20 +325,21 @@
       "tryOtherKeyword": "Coba kata kunci lain",
       "selectAll": "Pilih semua",
       "select": "Pilih",
-      "remove": "Hapus mahasiswa",
+      "remove": "Keluarkan mahasiswa",
       "removeMultiple": "Keluarkan mahasiswa",
       "exitSelectMode": "Keluar dari mode pilih",
       "noStudents": "Belum Ada Mahasiswa",
-      "confirmRemove": "Mahasiswa akan dihapus dari kelas ini. Lanjutkan?",
-      "confirmRemoveMultiple": "{count} mahasiswa akan dihapus dari kelas ini. Lanjutkan?",
-      "removing": "Menghapus...",
-      "delete": "Hapus",
+      "confirmRemove": "Mahasiswa akan dikeluarkan dari kelas ini. Lanjutkan?",
+      "confirmRemoveMultiple": "{count} mahasiswa akan dikeluarkan dari kelas ini. Lanjutkan?",
+      "removing": "Mengeluarkan...",
+      "delete": "Keluarkan",
       "cancel": "Batal",
       "cancelSelection": "Batalkan pilihan",
       "studentProfile": "Profil Mahasiswa",
       "mbtiDistribution": "Persebaran MBTI",
       "noName": "Tanpa Nama",
       "options": "Opsi",
+      "removeStudent": "Keluarkan Mahasiswa",
       "status": {
         "noStudentsInClass": "Belum ada mahasiswa di kelas",
         "readyToForm": "Grup siap untuk dibagi",
@@ -343,9 +347,9 @@
         "noSubmissions": "Belum ada yang mengisi kuesioner"
       },
       "errors": {
-        "removeFailed": "Gagal menghapus mahasiswa",
+        "removeFailed": "Gagal mengeluarkan mahasiswa",
         "error": "Terjadi kesalahan",
-        "removePartialSuccess": "Berhasil menghapus {success} mahasiswa, {failed} gagal"
+        "removePartialSuccess": "Berhasil mengeluarkan {success} mahasiswa, {failed} gagal"
       }
     },
     "assignments": {

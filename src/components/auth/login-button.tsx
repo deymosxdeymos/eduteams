@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -12,6 +13,7 @@ interface LoginButtonProps {
 }
 
 export function LoginButton({ className }: LoginButtonProps) {
+  const t = useTranslations('auth');
   const [isLoading, setIsLoading] = useState(false);
 
   const signIn = async () => {
@@ -48,7 +50,7 @@ export function LoginButton({ className }: LoginButtonProps) {
           style={{ width: 'auto', height: 'auto' }}
         />
       )}
-      Masuk dengan Google
+      {t('signInWithGoogle')}
     </Button>
   );
 }

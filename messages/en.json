@@ -3,6 +3,9 @@
   "mahasiswaSubtitle": "Let's check your class progress and get ready with your team!",
   "dosenSubtitle": "Track activities and manage your classes easily from this dashboard",
   "answersDefault": "Student Answers",
+  "auth": {
+    "signInWithGoogle": "Sign in with Google"
+  },
   "homepage": {
     "hero": {
       "titlePrefix": "Where",
@@ -329,7 +332,7 @@
       "confirmRemove": "Student will be removed from this class. Continue?",
       "confirmRemoveMultiple": "{count} students will be removed from this class. Continue?",
       "removing": "Removing...",
-      "delete": "Delete",
+      "delete": "Remove",
       "cancel": "Cancel",
       "cancelSelection": "Cancel selection",
       "studentProfile": "Student Profile",

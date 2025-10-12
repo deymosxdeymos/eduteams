@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
@@ -22,16 +23,37 @@ export default function RoleSelect({
   return (
     <div className='flex gap-x-16 items-start justify-center'>
       <div className='flex flex-col items-center relative'>
-        <button
+        <motion.button
           type='button'
           aria-describedby={
             showDosenInvalid ? `${id}-dosen-email-requirement` : undefined
           }
-          className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-200 ${
-            selectedRole === 'dosen'
-              ? 'bg-amber-200 ring-4 ring-amber-300 scale-105'
-              : 'bg-accent hover:bg-accent/70 hover:ring-2 hover:ring-amber-200 hover:scale-102'
+          className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer ${
+            selectedRole === 'dosen' ? 'ring-4 ring-amber-300' : ''
           }`}
+          animate={{
+            scale: selectedRole === 'dosen' ? 1.05 : 1,
+            backgroundColor:
+              selectedRole === 'dosen'
+                ? 'rgb(253, 230, 138)'
+                : 'rgb(244, 244, 245)',
+          }}
+          whileHover={
+            selectedRole !== 'dosen'
+              ? {
+                  backgroundColor: 'rgb(228, 228, 231)',
+                  scale: 1.02,
+                  boxShadow:
+                    '0 0 0 2px rgba(251, 191, 36, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                }
+              : undefined
+          }
+          whileTap={{ scale: 0.98 }}
+          transition={{
+            type: 'spring',
+            duration: 0.2,
+            bounce: 0,
+          }}
           onClick={() => onRoleSelect('dosen')}
           onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
         >
@@ -52,7 +74,7 @@ export default function RoleSelect({
           >
             {t('dosen')}
           </h1>
-        </button>
+        </motion.button>
         {showDosenInvalid && (
           <div
             role='status'
@@ -67,13 +89,34 @@ export default function RoleSelect({
           </div>
         )}
       </div>
-      <button
+      <motion.button
         type='button'
-        className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer transition-all duration-300 ${
-          selectedRole === 'mahasiswa'
-            ? 'bg-green-200 ring-4 ring-green-300 scale-105'
-            : 'bg-accent hover:bg-accent/70 hover:ring-2 hover:ring-green-200 hover:scale-102'
+        className={`flex flex-col items-center justify-center rounded-4xl w-[20rem] h-[20rem] p-2 cursor-pointer ${
+          selectedRole === 'mahasiswa' ? 'ring-4 ring-green-300' : ''
         }`}
+        animate={{
+          scale: selectedRole === 'mahasiswa' ? 1.05 : 1,
+          backgroundColor:
+            selectedRole === 'mahasiswa'
+              ? 'rgb(187, 247, 208)'
+              : 'rgb(244, 244, 245)',
+        }}
+        whileHover={
+          selectedRole !== 'mahasiswa'
+            ? {
+                backgroundColor: 'rgb(228, 228, 231)',
+                scale: 1.02,
+                boxShadow:
+                  '0 0 0 2px rgba(134, 239, 172, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              }
+            : undefined
+        }
+        whileTap={{ scale: 0.98 }}
+        transition={{
+          type: 'spring',
+          duration: 0.2,
+          bounce: 0,
+        }}
         onClick={() => onRoleSelect('mahasiswa')}
         onKeyDown={e => e.key === 'Enter' && onRoleSelect('mahasiswa')}
       >
@@ -92,7 +135,7 @@ export default function RoleSelect({
         <h1 className='font-bold text-center text-green-950 text-5xl tracking-tighter leading-none uppercase'>
           {t('mahasiswa')}
         </h1>
-      </button>
+      </motion.button>
     </div>
   );
 }

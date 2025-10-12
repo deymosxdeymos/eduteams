@@ -23,7 +23,13 @@ describe('StatisticsCards', () => {
 
     await waitFor(() => {
       const headings = screen.getAllByRole('heading', { level: 1 });
-      expect(headings.map(h => h.textContent)).toEqual(['0', '0', '0%', '0%', '0%']);
+      expect(headings.map(h => h.textContent)).toEqual([
+        '0',
+        '0',
+        'N/A',
+        'N/A',
+        'N/A',
+      ]);
     });
 
     expect(screen.getByText('dashboard.statistics.totalAssignments')).toBeTruthy();
