@@ -57,22 +57,15 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
 
   const chartVariants = {
     initial: (custom: number) => ({
-      transform: shouldReduceMotion
-        ? 'translateX(0)'
-        : `translateX(${100 * custom}%)`,
-      filter: shouldReduceMotion ? 'blur(0)' : 'blur(3px)',
+      x: shouldReduceMotion ? 0 : `${100 * custom}%`,
       opacity: shouldReduceMotion ? 1 : 0,
     }),
     animate: {
-      transform: 'translateX(0)',
-      filter: 'blur(0)',
+      x: 0,
       opacity: 1,
     },
     exit: (custom: number) => ({
-      transform: shouldReduceMotion
-        ? 'translateX(0)'
-        : `translateX(${-100 * custom}%)`,
-      filter: shouldReduceMotion ? 'blur(0)' : 'blur(3px)',
+      x: shouldReduceMotion ? 0 : `${-100 * custom}%`,
       opacity: shouldReduceMotion ? 1 : 0,
     }),
   };
@@ -119,11 +112,6 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
                 animate='animate'
                 exit='exit'
                 custom={directionRef.current}
-                style={{
-                  willChange: shouldReduceMotion
-                    ? 'auto'
-                    : 'transform, opacity, filter',
-                }}
               >
                 <div className='space-y-6'>
                   {dimensionMetrics.map(dimension => (
@@ -149,11 +137,6 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
                 exit='exit'
                 custom={directionRef.current}
                 className='flex items-center justify-center'
-                style={{
-                  willChange: shouldReduceMotion
-                    ? 'auto'
-                    : 'transform, opacity, filter',
-                }}
               >
                 <PersonalityRadarChart
                   data={radarData}
