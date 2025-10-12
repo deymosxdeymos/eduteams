@@ -1,6 +1,9 @@
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 export function EmptyStudentAssignmentState() {
+  const t = useTranslations('dashboard.emptyAssignments');
+
   return (
     <div className='flex flex-col items-center justify-center gap-y-4 mx-auto h-full'>
       <Image
@@ -11,13 +14,9 @@ export function EmptyStudentAssignmentState() {
       />
       <div className='text-center'>
         <h1 className='text-3xl font-semibold text-gray-800 tracking-tight pb-2'>
-          Kelas ini belum memiliki tugas
+          {t('noAssignmentsStudent')}
         </h1>
-        <p className='text-gray-600 text-sm font-normal'>
-          Belum ada tugas yang tersedia saat ini. Yuk cek lagi nanti, atau{' '}
-          <br />
-          hubungi dosen jika kamu merasa ini tidak sesuai.
-        </p>
+        <p className='text-gray-600 text-sm font-normal'>{t('checkLater')}</p>
       </div>
     </div>
   );

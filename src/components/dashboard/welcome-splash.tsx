@@ -7,42 +7,61 @@ interface WelcomeSplashProps {
   onAnimationComplete?: () => void;
 }
 
+const DISPLAY_DURATION_MS = 1600;
+const FADE_DURATION_MS = 420;
+const BACKDROP_EASE: [number, number, number, number] = [
+  0.25, 0.46, 0.45, 0.94,
+]; // ease-out-quad
+const HEADING_EASE: [number, number, number, number] = [0.215, 0.61, 0.355, 1]; // ease-out-cubic
+
 export function WelcomeSplash({ onAnimationComplete }: WelcomeSplashProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      if (onAnimationComplete) {
-        onAnimationComplete();
-      }
-    }, 2500);
+    const MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
+    const mediaQueryList =
+      typeof window !== 'undefined' && 'matchMedia' in window
+        ? window.matchMedia(MEDIA_QUERY)
+        : null;
 
-    return () => clearTimeout(timer);
+    if (mediaQueryList?.matches) {
+      setIsVisible(false);
+      onAnimationComplete?.();
+      return undefined;
+    }
+
+    const hideTimer = window.setTimeout(() => {
+      setIsVisible(false);
+    }, DISPLAY_DURATION_MS);
+
+    const completeTimer = window.setTimeout(() => {
+      onAnimationComplete?.();
+    }, DISPLAY_DURATION_MS + FADE_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(completeTimer);
+    };
   }, [onAnimationComplete]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: isVisible ? 1 : 0 }}
-      exit={{ opacity: 0 }}
-      transition={{
-        duration: 0.8,
-        ease: [0.43, 0.13, 0.23, 0.96], // Custom easing for smooth in/out
-      }}
+      transition={{ duration: FADE_DURATION_MS / 1000, ease: BACKDROP_EASE }}
       className='fixed inset-0 z-50 flex items-center justify-center bg-blue-600'
     >
       <motion.h1
-        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        initial={{ opacity: 0, scale: 0.82, y: 18 }}
         animate={{
           opacity: isVisible ? 1 : 0,
           scale: isVisible ? 1 : 0.9,
-          y: isVisible ? 0 : -10,
+          y: isVisible ? 0 : -12,
         }}
         transition={{
-          duration: 1.2,
-          delay: 0.2,
-          ease: [0.43, 0.13, 0.23, 0.96],
+          duration: (FADE_DURATION_MS + 80) / 1000,
+          delay: 0.1,
+          ease: HEADING_EASE,
         }}
         className='text-6xl font-bold text-white'
       >

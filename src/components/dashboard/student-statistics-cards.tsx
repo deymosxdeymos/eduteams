@@ -1,10 +1,16 @@
+import { useTranslations } from 'next-intl';
+
 export function StudentStatisticsCards() {
+  const t = useTranslations('dashboard.studentStats');
+
   return (
     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
       <div className='bg-white rounded-2xl p-6 shadow-sm'>
         <div className='flex items-center justify-between'>
           <div>
-            <p className='text-sm font-medium text-gray-600'>Kelas Aktif</p>
+            <p className='text-sm font-medium text-gray-600'>
+              {t('activeClasses')}
+            </p>
             <p className='text-2xl font-bold text-gray-900'>0</p>
           </div>
           <div className='w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center'>
@@ -30,7 +36,9 @@ export function StudentStatisticsCards() {
       <div className='bg-white rounded-2xl p-6 shadow-sm'>
         <div className='flex items-center justify-between'>
           <div>
-            <p className='text-sm font-medium text-gray-600'>Tugas Pending</p>
+            <p className='text-sm font-medium text-gray-600'>
+              {t('pendingTasks')}
+            </p>
             <p className='text-2xl font-bold text-gray-900'>0</p>
           </div>
           <div className='w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center'>
@@ -56,7 +64,9 @@ export function StudentStatisticsCards() {
       <div className='bg-white rounded-2xl p-6 shadow-sm'>
         <div className='flex items-center justify-between'>
           <div>
-            <p className='text-sm font-medium text-gray-600'>Tugas Selesai</p>
+            <p className='text-sm font-medium text-gray-600'>
+              {t('completedTasks')}
+            </p>
             <p className='text-2xl font-bold text-gray-900'>0</p>
           </div>
           <div className='w-12 h-12 bg-green-100 rounded-full flex items-center justify-center'>

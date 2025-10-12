@@ -169,7 +169,7 @@ export default function PersonalityTestClient({
       </div>
 
       <div className='flex items-center justify-center p-6'>
-        <p className='font-normal text-black text-xl tracking-tight'>
+        <p className='font-normal text-black text-xl text-center tracking-tight whitespace-pre-line'>
           {dict.onboarding.kepribadian.description}
         </p>
       </div>

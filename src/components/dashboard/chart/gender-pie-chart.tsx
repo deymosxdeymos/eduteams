@@ -10,10 +10,10 @@ import type { AssignmentStats } from '@/lib/stats/assignment';
 
 interface GenderPieChartProps {
   gender: AssignmentStats['gender'];
-  teamsFormed: boolean;
+  ready: boolean;
 }
 
-export function GenderPieChart({ gender, teamsFormed }: GenderPieChartProps) {
+export function GenderPieChart({ gender, ready }: GenderPieChartProps) {
   // Match pre-refactor colors
   const config = {
     laki: { label: 'Laki-laki', color: 'oklch(from #3B82F6 l c h)' },
@@ -23,7 +23,7 @@ export function GenderPieChart({ gender, teamsFormed }: GenderPieChartProps) {
   const placeholder = 50;
   const chartData = gender.map(g => ({
     name: g.name,
-    value: teamsFormed ? g.value : placeholder,
+    value: ready ? g.value : placeholder,
     fill:
       g.name === 'laki'
         ? 'oklch(from #3B82F6 l c h)'

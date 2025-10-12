@@ -11,6 +11,8 @@ export interface AssignmentStats {
   skills: SkillStat[];
   topicPreferences: NamedValue[]; // assignment-topic names
   teamsFormed: boolean;
+  quizSubmissions: number;
+  chartReady: boolean;
 }
 
 export async function getAssignmentStats(
@@ -18,13 +20,28 @@ export async function getAssignmentStats(
   courseId: string
 ): Promise<AssignmentStats> {
   // Load enrollments with minimal selects
-  const enrollments = await prisma.courseEnrollment.findMany({
-    where: { courseId },
-    select: {
-      studentId: true,
-      student: { select: { mbtiType: true, gender: true } },
-    },
-  });
+  const [enrollments, assignmentMeta, quizSubmissionCount] = await Promise.all([
+    prisma.courseEnrollment.findMany({
+      where: { courseId },
+      select: {
+        studentId: true,
+        student: { select: { mbtiType: true, gender: true } },
+      },
+    }),
+    prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      select: {
+        description: true,
+        startAt: true,
+        course: { select: { dosenId: true } },
+      },
+    }),
+    prisma.assignmentSubmission.count({
+      where: { assignmentId },
+    }),
+  ]);
+
+  const chartReady = quizSubmissionCount > 0;
 
   // MBTI distribution
   const mbtiCountsMap = new Map<MBTIType, number>();
@@ -70,15 +87,11 @@ export async function getAssignmentStats(
   ];
 
   // Determine assignment-specific skills and topics from assignment.description JSON
-  const assignmentForConfig = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: { description: true },
-  });
   let skillNames: string[] = [];
   let topicNames: string[] = [];
   try {
-    const parsed = assignmentForConfig?.description
-      ? JSON.parse(assignmentForConfig.description)
+    const parsed = assignmentMeta?.description
+      ? JSON.parse(assignmentMeta.description)
       : null;
     if (Array.isArray(parsed?.skills)) {
       skillNames = parsed.skills as string[];
@@ -176,21 +189,25 @@ export async function getAssignmentStats(
   }));
 
   // Teams formed heuristic: any team formation by course's dosen after assignment start
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: { startAt: true, course: { select: { dosenId: true } } },
-  });
   let teamsFormed = false;
-  if (assignment) {
+  if (assignmentMeta?.course?.dosenId && assignmentMeta.startAt) {
     const tfCount = await prisma.teamFormationRequest.count({
       where: {
-        ownerId: assignment.course.dosenId,
-        createdAt: { gte: assignment.startAt },
+        ownerId: assignmentMeta.course.dosenId,
+        createdAt: { gte: assignmentMeta.startAt },
         status: { in: ['PROCESSING', 'COMPLETED'] },
       },
     });
     teamsFormed = tfCount > 0;
   }
 
-  return { mbti, gender, skills, topicPreferences, teamsFormed };
+  return {
+    mbti,
+    gender,
+    skills,
+    topicPreferences,
+    teamsFormed,
+    quizSubmissions: quizSubmissionCount,
+    chartReady,
+  };
 }

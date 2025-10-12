@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 
 interface SkillTestInstructionModalProps {
@@ -13,12 +14,14 @@ export default function SkillTestInstructionModal({
   isOpen,
   onCloseAction,
 }: SkillTestInstructionModalProps) {
+  const t = useTranslations('dashboard.assignments.quiz.instructions');
+
   const likertScale = [
-    { icon: 'Novice', label: 'Pemula' },
-    { icon: 'Advanced-Beginner', label: 'Pemula\nLanjut' },
-    { icon: 'Competent', label: 'Kompeten' },
-    { icon: 'Proficient', label: 'Mahir' },
-    { icon: 'Expert', label: 'Jago\nBanget' },
+    { icon: 'Novice', label: t('skillLevels.novice') },
+    { icon: 'Advanced-Beginner', label: t('skillLevels.advancedBeginner') },
+    { icon: 'Competent', label: t('skillLevels.competent') },
+    { icon: 'Proficient', label: t('skillLevels.proficient') },
+    { icon: 'Expert', label: t('skillLevels.expert') },
   ];
 
   return (
@@ -58,22 +61,12 @@ export default function SkillTestInstructionModal({
             >
               <div className='text-center mb-8'>
                 <h1 className='text-3xl font-bold text-black mb-6'>
-                  Instruksi Pengerjaan Tes Keahlian
+                  {t('skillsTitle')}
                 </h1>
                 <div className='text-left space-y-4 text-black leading-relaxed font-medium text-xl'>
-                  <p>
-                    1. Pilih jawaban yang paling sesuai dengan kondisi dan
-                    pengalamanmu saat ini, mulai dari yang paling sesuai hingga
-                    yang tidak sesuai.
-                  </p>
-                  <p>
-                    2. Jawablah setiap pertanyaan dengan jujur. Setiap soal
-                    hanya bisa dijawab satu kali, jadi pastikan kamu memilih
-                    jawaban dengan hati-hati.
-                  </p>
-                  <p>
-                    3. Sesuaikan jawaban kamu dengan parameter jawaban berikut:
-                  </p>
+                  <p>1. {t('skillsStep1')}</p>
+                  <p>2. {t('skillsStep2')}</p>
+                  <p>3. {t('skillsStep3')}</p>
                 </div>
               </div>
 
@@ -111,7 +104,7 @@ export default function SkillTestInstructionModal({
                   onClick={onCloseAction}
                   className='text-lg font-semibold'
                 >
-                  Mulai Sekarang
+                  {t('startNow')}
                 </Button>
               </div>
             </motion.div>

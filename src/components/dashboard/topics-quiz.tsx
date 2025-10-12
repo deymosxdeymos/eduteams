@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MessageSquareWarning } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface TopicsQuizProps {
   topics: string[];
@@ -17,12 +18,23 @@ export default function TopicsQuiz({
   hasError = false,
   answers,
 }: TopicsQuizProps) {
+  const t = useTranslations('dashboard.assignments.quiz');
   const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nTertarik', value: 1 },
-    { icon: 'Disagree', label: 'Tidak Tertarik', value: 2 },
-    { icon: 'Neutral', label: 'Netral', value: 3 },
-    { icon: 'Agree', label: 'Tertarik', value: 4 },
-    { icon: 'Strongly-Agree', label: 'Sangat Tertarik', value: 5 },
+    {
+      icon: 'Strongly-Disagree',
+      label: t('topicLevels.stronglyDisagree'),
+      value: 1,
+      size: 64,
+    },
+    { icon: 'Disagree', label: t('topicLevels.disagree'), value: 2, size: 56 },
+    { icon: 'Neutral', label: t('topicLevels.neutral'), value: 3, size: 48 },
+    { icon: 'Agree', label: t('topicLevels.agree'), value: 4, size: 56 },
+    {
+      icon: 'Strongly-Agree',
+      label: t('topicLevels.stronglyAgree'),
+      value: 5,
+      size: 64,
+    },
   ];
 
   const handleSelection = (topicIndex: number, value: number) => {
@@ -44,73 +56,65 @@ export default function TopicsQuiz({
             >
               <div className='text-center mb-6'>
                 <p className='text-md font-normal text-black'>
-                  Seberapa Tertarik Anda dengan topik{' '}
-                  <strong>
-                    #{topicIndex + 1}: {topic}
-                  </strong>
-                  ?
+                  {t('topicQuestion', { number: topicIndex + 1, topic })}
                 </p>
               </div>
 
-              <div className='flex items-center justify-between relative px-8 max-w-4xl mx-auto'>
-                <div className='text-center text-md text-red-400 font-light'>
-                  Sangat Tidak
-                  <br />
-                  Tertarik
-                </div>
-
-                <div className='flex items-start justify-between relative flex-1 mx-8'>
-                  {likertScale.map(item => (
+              <div className='flex items-start justify-center max-w-5xl mx-auto'>
+                {likertScale.map((item, index) => (
+                  <div key={item.value} className='flex items-start'>
                     <motion.div
-                      key={item.value}
-                      className='relative z-10 flex flex-col items-center space-y-3 cursor-pointer'
+                      className='flex flex-col items-center space-y-3 cursor-pointer'
                       onClick={() => handleSelection(topicIndex, item.value)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       animate={{
-                        scale:
-                          answers[topicIndex] === item.value ? [1, 1.15] : 1,
+                        scale: answers[topicIndex] === item.value ? 1.1 : 1,
                         y: answers[topicIndex] === item.value ? -5 : 0,
                       }}
                       transition={{
-                        duration: 0.15,
-                        ease: 'easeOut',
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 25,
                       }}
                     >
-                      <div className='w-16 h-16 bg-white flex items-center justify-center'>
+                      <div
+                        style={{ height: '64px' }}
+                        className='flex items-center justify-center'
+                      >
                         <Image
                           src={`/mbti-test/${item.icon}${answers[topicIndex] === item.value ? '' : '-not-active'}.svg`}
-                          width={48}
-                          height={48}
+                          width={item.size}
+                          height={item.size}
                           alt={item.label}
                           className='object-contain'
                         />
                       </div>
+                      <div className='text-center'>
+                        <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
+                          {item.label}
+                        </div>
+                      </div>
                     </motion.div>
-                  ))}
-
-                  <div className='absolute top-8 left-0 right-0 h-1 bg-gray-300 z-[1]' />
-                </div>
-
-                <div className='text-md text-green-400 font-light'>
-                  Sangat
-                  <br />
-                  Tertarik
-                </div>
+                    {index < likertScale.length - 1 && (
+                      <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
+                    )}
+                  </div>
+                ))}
               </div>
 
               {hasError && !answers[topicIndex] && (
                 <motion.div
                   key={`error-${topicIndex}`}
-                  initial={{ opacity: 0, height: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{
                     opacity: 1,
-                    height: 'auto',
                     y: 0,
                   }}
                   transition={{
-                    duration: 0.3,
-                    ease: 'easeOut',
+                    type: 'spring',
+                    stiffness: 400,
+                    damping: 30,
                   }}
                   className='overflow-hidden'
                 >
@@ -119,10 +123,9 @@ export default function TopicsQuiz({
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{
-                        duration: 0.4,
                         type: 'spring',
-                        stiffness: 200,
-                        damping: 10,
+                        stiffness: 300,
+                        damping: 25,
                       }}
                     >
                       <MessageSquareWarning className='w-4 h-4 mr-2' />
@@ -131,13 +134,13 @@ export default function TopicsQuiz({
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
-                        duration: 0.3,
-                        delay: 0.1,
-                        ease: 'easeOut',
+                        type: 'spring',
+                        stiffness: 400,
+                        damping: 30,
                       }}
                       className='text-sm font-normal'
                     >
-                      Pertanyaan ini wajib diisi
+                      {t('required')}
                     </motion.span>
                   </div>
                 </motion.div>

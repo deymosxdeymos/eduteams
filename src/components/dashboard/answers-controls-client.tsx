@@ -7,6 +7,7 @@ import {
   User as UserIcon,
 } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +36,7 @@ export function AnswersControlsClient({
   currentIndex,
   baseHref,
 }: AnswersControlsClientProps) {
+  const t = useTranslations('dashboard.answers');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -72,7 +74,7 @@ export function AnswersControlsClient({
         className='inline-flex items-center gap-2 text-sm text-neutral-700 hover:text-black'
       >
         <ArrowLeft className='w-4 h-4' />
-        <span className='font-bold'>Kembali</span>
+        <span className='font-bold'>{t('back')}</span>
       </a>
 
       <div className='flex items-center gap-3'>
@@ -86,7 +88,7 @@ export function AnswersControlsClient({
           <ChevronLeft className='w-4 h-4' />
         </Button>
         <div className='text-sm text-neutral-700 min-w-[80px] text-center'>
-          {total > 0 ? `${index + 1} of ${total}` : '0 of 0'}
+          {total > 0 ? `${index + 1} ${t('of')} ${total}` : `0 ${t('of')} 0`}
         </div>
         <Button
           variant='ghost'
@@ -106,12 +108,12 @@ export function AnswersControlsClient({
             disabled={total === 0}
           >
             <SelectTrigger className='!h-9 !min-h-[2.25rem] w-[16rem] rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20'>
-              <SelectValue placeholder='Pilih Mahasiswa' />
+              <SelectValue placeholder={t('studentSelect')} />
             </SelectTrigger>
             <SelectContent className='max-h-64'>
               {students.map(s => (
                 <SelectItem key={s.id} value={s.id}>
-                  {s.name || 'Mahasiswa'}
+                  {s.name || t('student')}
                 </SelectItem>
               ))}
             </SelectContent>

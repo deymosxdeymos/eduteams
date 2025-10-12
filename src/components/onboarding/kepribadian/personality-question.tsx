@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { MessageSquareWarning } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
 
 interface PersonalityQuestionProps {
   question: string;
@@ -20,25 +19,22 @@ export default function PersonalityQuestion({
   questionId,
   initialValue,
 }: PersonalityQuestionProps) {
-  const [selectedValue, setSelectedValue] = useState<number | null>(
-    initialValue || null
-  );
-  const [previousValue, setPreviousValue] = useState<number | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const selectedValue = typeof initialValue === 'number' ? initialValue : null;
 
   const likertScale = [
-    { icon: 'Strongly-Disagree', label: 'Sangat Tidak\nSetuju', value: 1 },
-    { icon: 'Disagree', label: 'Tidak Setuju', value: 2 },
-    { icon: 'Neutral', label: 'Netral', value: 3 },
-    { icon: 'Agree', label: 'Setuju', value: 4 },
-    { icon: 'Strongly-Agree', label: 'Sangat Setuju', value: 5 },
+    {
+      icon: 'Strongly-Disagree',
+      label: 'Sangat Tidak\nSetuju',
+      value: 1,
+      size: 64,
+    },
+    { icon: 'Disagree', label: 'Tidak Setuju', value: 2, size: 56 },
+    { icon: 'Neutral', label: 'Netral', value: 3, size: 48 },
+    { icon: 'Agree', label: 'Setuju', value: 4, size: 56 },
+    { icon: 'Strongly-Agree', label: 'Sangat Setuju', value: 5, size: 64 },
   ];
 
   const handleSelection = (value: number) => {
-    if (isAnimating) return; // Prevent clicks during animation
-    setIsAnimating(true);
-    setPreviousValue(selectedValue);
-    setSelectedValue(value);
     onAnswerAction(value);
   };
 
@@ -56,69 +52,53 @@ export default function PersonalityQuestion({
             <p className='text-md font-normal text-black'>{question}</p>
           </div>
 
-          <div className='flex items-center justify-between relative px-8 max-w-4xl mx-auto'>
-            <div className='text-center text-md text-red-400 font-light'>
-              Tidak <br />
-              Setuju
-            </div>
-
-            <div className='flex items-start justify-between relative flex-1 mx-8'>
-              {likertScale.map(item => (
+          <div className='flex items-center justify-center max-w-5xl mx-auto'>
+            {likertScale.map((item, index) => (
+              <div key={item.value} className='flex items-center'>
                 <motion.div
-                  key={item.value}
-                  className='relative z-10 flex flex-col items-center space-y-3 cursor-pointer'
+                  className='flex flex-col items-center space-y-3 cursor-pointer'
                   onClick={() => handleSelection(item.value)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   animate={{
-                    scale:
-                      selectedValue === item.value
-                        ? [1, 1.15]
-                        : previousValue === item.value
-                          ? [1.15, 1]
-                          : 1,
+                    scale: selectedValue === item.value ? 1.1 : 1,
                     y: selectedValue === item.value ? -5 : 0,
                   }}
                   transition={{
-                    duration: 0.15,
-                    ease: 'easeOut',
-                    delay: previousValue === item.value ? 0 : 0.05,
-                  }}
-                  onAnimationComplete={() => {
-                    if (selectedValue === item.value) {
-                      setIsAnimating(false);
-                    }
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 25,
                   }}
                 >
-                  <div className='w-16 h-16 bg-white flex items-center justify-center'>
-                    <Image
-                      src={`/mbti-test/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
-                      width={48}
-                      height={48}
-                      alt={item.label}
-                      className='object-contain'
-                    />
+                  <Image
+                    src={`/mbti-test/${item.icon}${selectedValue === item.value ? '' : '-not-active'}.svg`}
+                    width={item.size}
+                    height={item.size}
+                    alt={item.label}
+                    className='object-contain'
+                  />
+                  <div className='text-xs font-medium text-gray-700 whitespace-pre-line text-center'>
+                    {item.label}
                   </div>
                 </motion.div>
-              ))}
-
-              <div className='absolute top-8 left-0 right-0 h-1 bg-gray-300 z-[1]' />
-            </div>
-
-            <div className='text-md text-green-400 font-light'>Setuju</div>
+                {index < likertScale.length - 1 && (
+                  <div className='h-1 w-16 bg-gray-300 mx-4' />
+                )}
+              </div>
+            ))}
           </div>
 
           <motion.div
             key={hasError ? `error-${Date.now()}` : 'no-error'}
-            initial={{ opacity: 0, height: 0, y: -10 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{
               opacity: hasError ? 1 : 0,
-              height: hasError ? 'auto' : 0,
               y: hasError ? 0 : -10,
             }}
             transition={{
-              duration: 0.3,
-              ease: 'easeOut',
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
             }}
             className='overflow-hidden'
           >
@@ -127,10 +107,9 @@ export default function PersonalityQuestion({
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{
-                  duration: 0.4,
                   type: 'spring',
-                  stiffness: 200,
-                  damping: 10,
+                  stiffness: 300,
+                  damping: 25,
                 }}
               >
                 <MessageSquareWarning className='w-4 h-4 mr-2' />
@@ -139,9 +118,9 @@ export default function PersonalityQuestion({
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{
-                  duration: 0.3,
-                  delay: 0.1,
-                  ease: 'easeOut',
+                  type: 'spring',
+                  stiffness: 400,
+                  damping: 30,
                 }}
                 className='text-sm font-normal'
               >
