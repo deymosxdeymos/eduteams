@@ -22,9 +22,9 @@ export function ClassGrid({
   }
 
   return (
-    <div className='h-full flex flex-col pt-4 pb-6'>
+    <div className='flex h-full flex-col pt-4 pb-6'>
       <div
-        className='grid grid-cols-4 gap-6 overflow-y-auto flex-1'
+        className='grid flex-1 grid-cols-1 gap-6 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-3'
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#cbd5e1 transparent',

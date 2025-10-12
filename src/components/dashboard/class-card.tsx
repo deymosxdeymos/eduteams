@@ -59,17 +59,17 @@ export function ClassCard({
     <div
       role='button'
       tabIndex={0}
-      className='bg-white border border-gray-200 rounded-2xl p-6 w-[380px] h-46 shadow-sm hover:shadow-md transition-shadow cursor-pointer text-left active:opacity-95'
+      className='group flex h-full w-full cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70 active:opacity-95 md:px-5 md:py-4'
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
-      <div className='flex flex-col h-full'>
-        <div className='flex justify-between items-start mb-4'>
-          <div className='flex gap-2'>
+      <div className='flex h-full flex-col gap-2'>
+        <div className='flex items-start justify-between'>
+          <div className='flex flex-wrap gap-2'>
             {classCode !== 'tanpa-kelas' && (
               <Badge
                 variant='destructive'
-                className={`${badgeColors.bg} ${badgeColors.text} text-xs`}
+                className={`${badgeColors.bg} ${badgeColors.text} text-xs font-medium transition-colors group-hover:brightness-95`}
               >
                 <div
                   className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
@@ -79,17 +79,19 @@ export function ClassCard({
             )}
             <Badge
               variant='default'
-              className='rounded-2xl font-normal text-xs text-sky-900 bg-sky-50'
+              className='rounded-2xl bg-sky-50 text-xs font-medium text-sky-900'
             >
               {studentCount} mahasiswa
             </Badge>
           </div>
         </div>
-        <h3 className='font-semibold text-gray-800 text-2xl line-clamp-2 leading-tight flex-1'>
+        <h3 className='min-h-[3.6rem] text-[1.35rem] font-semibold leading-tight text-gray-800 line-clamp-2 md:min-h-[3.75rem] md:text-[1.65rem]'>
           {title}
         </h3>
-        <div className='mt-auto'>
-          <p className='text-gray-600 text-sm'>{academicYear}</p>
+        <div className='mt-auto pt-1'>
+          <p className='text-xs font-medium tracking-wide text-gray-500 md:text-sm md:tracking-normal'>
+            {academicYear}
+          </p>
         </div>
       </div>
     </div>

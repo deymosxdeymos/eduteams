@@ -82,6 +82,7 @@ mock.module('framer-motion', () => {
       }
     ),
     animate: () => ({ stop: () => {} }),
+    useReducedMotion: () => false,
   };
 });
 
