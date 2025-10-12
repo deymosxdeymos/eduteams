@@ -1,8 +1,8 @@
 'use client';
 
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useQueryState } from 'nuqs';
-import { useMemo } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useMemo, useRef } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CHART_DIMENSIONS, getMBTIColorScheme } from '@/lib/utils/mbti-colors';
@@ -10,6 +10,7 @@ import {
   buildRadarData,
   computeAllDimensionMetrics,
 } from '@/lib/utils/mbti-dimension';
+import { ChartTypeTabs } from './chart-type-tabs';
 import { MetricBar } from './metric-bar';
 import { PersonalityRadarChart } from './personality-radar-chart';
 
@@ -27,6 +28,15 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
     shallow: true,
   });
 
+  const prevChartTypeRef = useRef<ChartType>(chartType);
+  const directionRef = useRef<number>(1);
+
+  if (prevChartTypeRef.current !== chartType) {
+    directionRef.current =
+      prevChartTypeRef.current === 'bar' && chartType === 'radar' ? 1 : -1;
+    prevChartTypeRef.current = chartType;
+  }
+
   const { dimensionMetrics, radarData } = useMemo(() => {
     const metrics = computeAllDimensionMetrics(user);
     const byKey = {
@@ -39,77 +49,122 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
       dimensionMetrics: metrics,
       radarData: buildRadarData(byKey),
     };
-  }, [user.ei, user.sn, user.tf, user.pj]);
+  }, [user]);
+
+  const shouldReduceMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const chartVariants = {
+    initial: (custom: number) => ({
+      transform: shouldReduceMotion
+        ? 'translateX(0)'
+        : `translateX(${100 * custom}%)`,
+      filter: shouldReduceMotion ? 'blur(0)' : 'blur(3px)',
+      opacity: shouldReduceMotion ? 1 : 0,
+    }),
+    animate: {
+      transform: 'translateX(0)',
+      filter: 'blur(0)',
+      opacity: 1,
+    },
+    exit: (custom: number) => ({
+      transform: shouldReduceMotion
+        ? 'translateX(0)'
+        : `translateX(${-100 * custom}%)`,
+      filter: shouldReduceMotion ? 'blur(0)' : 'blur(3px)',
+      opacity: shouldReduceMotion ? 1 : 0,
+    }),
+  };
 
   return (
-    <Tabs
-      value={chartType}
-      onValueChange={value => setChartType(value as ChartType)}
-      className='flex flex-1 flex-col gap-4'
-    >
-      <TabsList className='w-full p-0'>
-        <TabsTrigger
-          value='bar'
-          className='flex-1'
-          style={{
-            backgroundColor:
-              chartType === 'bar' ? colorScheme.gradientToOklch : undefined,
-            color: chartType === 'bar' ? 'white' : undefined,
-          }}
-        >
-          Bar Chart
-        </TabsTrigger>
-        <TabsTrigger
-          value='radar'
-          className='flex-1'
-          style={{
-            backgroundColor:
-              chartType === 'radar' ? colorScheme.gradientToOklch : undefined,
-            color: chartType === 'radar' ? 'white' : undefined,
-          }}
-        >
-          Radar Chart
-        </TabsTrigger>
-      </TabsList>
+    <div className='flex flex-1 flex-col gap-4'>
+      <ChartTypeTabs
+        value={chartType}
+        onChange={setChartType}
+        colorScheme={colorScheme}
+        options={[
+          { value: 'bar', label: 'Bar Chart' },
+          { value: 'radar', label: 'Radar Chart' },
+        ]}
+      />
 
-      <TabsContent
-        value='bar'
+      <div
         className={cn(
-          'rounded-xl p-4 shadow-glow bg-white border',
+          'rounded-xl p-4 bg-white border shadow-glow relative',
           colorScheme.lightBorder,
           colorScheme.lightShadow
         )}
-        style={{ minHeight: `${CHART_DIMENSIONS.minContentHeight}px` }}
+        style={{
+          minHeight: `${CHART_DIMENSIONS.minContentHeight}px`,
+          overflow: 'clip',
+        }}
       >
-        <div className='space-y-6'>
-          {dimensionMetrics.map(dimension => (
-            <MetricBar
-              key={dimension.key}
-              leftLabel={dimension.leftLabel}
-              rightLabel={dimension.rightLabel}
-              percentage={dimension.percentage}
-              isRightAligned={dimension.isRightAligned}
-              colorScheme={colorScheme}
-            />
-          ))}
-        </div>
-      </TabsContent>
+        <MotionConfig
+          transition={{
+            duration: 0.25,
+            ease: [0.77, 0, 0.175, 1],
+          }}
+        >
+          <AnimatePresence
+            mode='wait'
+            initial={false}
+            custom={directionRef.current}
+          >
+            {chartType === 'bar' && (
+              <motion.div
+                key='bar-chart'
+                variants={chartVariants}
+                initial='initial'
+                animate='animate'
+                exit='exit'
+                custom={directionRef.current}
+                style={{
+                  willChange: shouldReduceMotion
+                    ? 'auto'
+                    : 'transform, opacity, filter',
+                }}
+              >
+                <div className='space-y-6'>
+                  {dimensionMetrics.map(dimension => (
+                    <MetricBar
+                      key={dimension.key}
+                      leftLabel={dimension.leftLabel}
+                      rightLabel={dimension.rightLabel}
+                      percentage={dimension.percentage}
+                      isRightAligned={dimension.isRightAligned}
+                      colorScheme={colorScheme}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
-      <TabsContent
-        value='radar'
-        className={cn(
-          'flex items-center justify-center rounded-xl p-4 shadow-glow bg-white border',
-          colorScheme.lightBorder,
-          colorScheme.lightShadow
-        )}
-        style={{ minHeight: `${CHART_DIMENSIONS.minContentHeight}px` }}
-      >
-        <PersonalityRadarChart
-          data={radarData}
-          colorScheme={colorScheme}
-          maxWidth={CHART_DIMENSIONS.radarMaxWidth}
-        />
-      </TabsContent>
-    </Tabs>
+            {chartType === 'radar' && (
+              <motion.div
+                key='radar-chart'
+                variants={chartVariants}
+                initial='initial'
+                animate='animate'
+                exit='exit'
+                custom={directionRef.current}
+                className='flex items-center justify-center'
+                style={{
+                  willChange: shouldReduceMotion
+                    ? 'auto'
+                    : 'transform, opacity, filter',
+                }}
+              >
+                <PersonalityRadarChart
+                  data={radarData}
+                  colorScheme={colorScheme}
+                  maxWidth={CHART_DIMENSIONS.radarMaxWidth}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </MotionConfig>
+      </div>
+    </div>
   );
 }

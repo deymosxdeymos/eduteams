@@ -1,10 +1,7 @@
+import type { TooltipProps } from 'recharts';
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
 import type { ChartConfig } from '@/components/ui/chart';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import type { ColorScheme } from '@/lib/utils/mbti-colors';
 import type { RadarDatum } from '@/lib/utils/mbti-dimension';
 
@@ -14,33 +11,37 @@ interface PersonalityRadarChartProps {
   maxWidth?: number;
 }
 
-function formatRadarTooltip(value: unknown, item: unknown) {
-  if (!item || typeof item !== 'object') {
+function CustomTooltipContent({
+  active,
+  payload,
+  colorScheme,
+}: TooltipProps<number, string> & { colorScheme: ColorScheme }) {
+  if (!active || !payload?.length) {
     return null;
   }
 
-  const payload =
-    'payload' in item && item.payload && typeof item.payload === 'object'
-      ? (item.payload as RadarDatum)
-      : null;
-
-  if (!payload) {
-    return null;
-  }
-
-  const traitPercentage =
-    typeof value === 'number'
-      ? Math.round(value)
-      : Math.round(payload.traitPercentage);
+  const data = payload[0].payload as RadarDatum;
+  const traitName = data.traitLabel.replace(/\s*\([A-Z]\)/, '');
+  const score = Math.round(data.score);
 
   return (
-    <div className='flex flex-col gap-1'>
-      <span className='font-medium text-foreground'>
-        {payload.traitLabel}: {traitPercentage}%
-      </span>
-      <span className='text-foreground/70 text-xs'>
-        {payload.complementLabel}: {Math.round(payload.complementPercentage)}%
-      </span>
+    <div className='border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl'>
+      <div className='grid gap-1.5'>
+        <div className='flex w-full flex-wrap items-stretch gap-2'>
+          <div
+            className='w-1 shrink-0 rounded-[2px]'
+            style={{
+              backgroundColor: colorScheme.chartColor,
+            }}
+          />
+          <div className='flex flex-1 justify-between leading-none items-center'>
+            <span className='text-muted-foreground'>{traitName}</span>
+            <span className='text-foreground font-mono font-medium tabular-nums'>
+              {score}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -52,7 +53,7 @@ export function PersonalityRadarChart({
 }: PersonalityRadarChartProps) {
   const radarConfig: ChartConfig = {
     score: {
-      label: 'Preferred Trait',
+      label: 'Score',
       color: colorScheme.chartColor,
     },
   };
@@ -67,8 +68,7 @@ export function PersonalityRadarChart({
       <RadarChart data={data} startAngle={90} endAngle={-270}>
         <ChartTooltip
           cursor={false}
-          content={<ChartTooltipContent className='min-w-[12rem]' />}
-          formatter={formatRadarTooltip}
+          content={<CustomTooltipContent colorScheme={colorScheme} />}
         />
         <PolarGrid
           className='opacity-20'
