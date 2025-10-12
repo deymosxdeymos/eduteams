@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import Logo from '@/components/logo';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface Course {
 }
 
 export function JoinClassClient({ user, token }: JoinClassClientProps) {
+  const t = useTranslations('joinClass');
   const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,15 +35,13 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
   const handleJoinClass = async () => {
     // Check if user is a student
     if (user.role !== 'mahasiswa') {
-      setError(
-        'Only students can join classes. Please log in with a student account.'
-      );
+      setError(t('errors.studentsOnly'));
       return;
     }
 
     // Check if user has completed onboarding
     if (!user.isOnboarded) {
-      setError('Please complete your profile setup before joining a class.');
+      setError(t('errors.completeProfile'));
       setTimeout(() => {
         router.push('/onboarding/role');
       }, 3000);
@@ -63,7 +63,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to join class');
+        throw new Error(data.error || t('errors.joinFailed'));
       }
 
       setSuccess(data.message);
@@ -74,9 +74,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
         router.push('/dashboard');
       }, 3000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unexpected error occurred'
-      );
+      setError(err instanceof Error ? err.message : t('errors.unexpected'));
     } finally {
       setIsJoining(false);
     }
@@ -96,22 +94,20 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
         <div className='text-center'>
           <Logo color='black' className='justify-center mb-8' />
           <h2 className='mt-6 text-3xl font-extrabold text-accent-foreground'>
-            Join Class
+            {t('title')}
           </h2>
-          <p className='mt-2 text-sm text-muted-foreground'>
-            You&apos;ve been invited to join a class
-          </p>
+          <p className='mt-2 text-sm text-muted-foreground'>{t('invited')}</p>
         </div>
 
         <div className='bg-white p-8 rounded-lg shadow-md'>
           {/* User info */}
           <div className='mb-6 p-4 bg-blue-50 rounded-lg'>
             <p className='text-sm text-gray-700'>
-              <span className='font-medium'>Logged in as:</span> {user.name}
+              <span className='font-medium'>{t('loggedInAs')}</span> {user.name}
             </p>
             <p className='text-sm text-gray-600'>
-              <span className='font-medium'>Role:</span>{' '}
-              {user.role === 'mahasiswa' ? 'Student' : user.role}
+              <span className='font-medium'>{t('role')}</span>{' '}
+              {user.role === 'mahasiswa' ? t('roleStudent') : user.role}
             </p>
           </div>
 
@@ -127,14 +123,14 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
                     size='sm'
                     className='w-full'
                   >
-                    Login with Student Account
+                    {t('loginStudentAccount')}
                   </Button>
                 </div>
               )}
               {!user.isOnboarded && (
                 <div className='mt-3'>
                   <p className='text-xs text-red-600'>
-                    Redirecting to profile setup in 3 seconds...
+                    {t('redirectingProfile')}
                   </p>
                 </div>
               )}
@@ -147,24 +143,27 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
               <p className='text-sm text-blue-700 font-medium'>{success}</p>
               <div className='mt-3 space-y-1'>
                 <p className='text-sm text-gray-700'>
-                  <span className='font-medium'>Course:</span>{' '}
+                  <span className='font-medium'>{t('courseInfo.course')}</span>{' '}
                   {course.namaMataKuliah}
                 </p>
                 <p className='text-sm text-gray-700'>
-                  <span className='font-medium'>Class:</span> {course.kelas}
+                  <span className='font-medium'>{t('courseInfo.class')}</span>{' '}
+                  {course.kelas}
                 </p>
                 <p className='text-sm text-gray-700'>
-                  <span className='font-medium'>Instructor:</span>{' '}
+                  <span className='font-medium'>
+                    {t('courseInfo.instructor')}
+                  </span>{' '}
                   {course.dosen.name}
                 </p>
                 <p className='text-sm text-gray-700'>
-                  <span className='font-medium'>Period:</span>{' '}
+                  <span className='font-medium'>{t('courseInfo.period')}</span>{' '}
                   {course.tahunAwalPeriode}/{course.tahunAkhirPeriode}
                 </p>
               </div>
               <div className='mt-3'>
                 <p className='text-xs text-blue-600'>
-                  Redirecting to dashboard in 3 seconds...
+                  {t('redirectingDashboard')}
                 </p>
               </div>
             </div>
@@ -183,10 +182,10 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
                 {isJoining ? (
                   <>
                     <LoadingSpinner size='sm' className='mr-2' />
-                    Joining Class...
+                    {t('joiningClass')}
                   </>
                 ) : (
-                  'Join Class'
+                  t('title')
                 )}
               </Button>
             )}
@@ -198,7 +197,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
                 className='w-full'
                 size='lg'
               >
-                Go to Dashboard
+                {t('goToDashboard')}
               </Button>
             )}
 
@@ -209,7 +208,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
                 className='w-full'
                 size='lg'
               >
-                Cancel
+                {t('cancel')}
               </Button>
             )}
           </div>
@@ -217,7 +216,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
           {/* Token info for debugging */}
           <div className='mt-6 pt-4 border-t border-gray-200'>
             <p className='text-xs text-gray-500'>
-              <span className='font-medium'>Invitation Token:</span>{' '}
+              <span className='font-medium'>{t('invitationToken')}</span>{' '}
               <code className='bg-blue-50 px-1 rounded'>{token}</code>
             </p>
           </div>

@@ -21,7 +21,13 @@ type SubmittedView = {
 type SubmittedData = { hasSubmitted: true; view: SubmittedView };
 type UnsubmittedData = {
   hasSubmitted: false;
-  assignment: { id: string; title: string; skills: string[]; topics: string[] };
+  assignment: {
+    id: string;
+    title: string;
+    skills: string[];
+    topics: string[];
+    hasTopics: boolean;
+  };
 };
 type AssignmentData = SubmittedData | UnsubmittedData;
 
@@ -131,24 +137,23 @@ async function getAssignmentData(
   // For now, parse skills and topics from description or use defaults
   let skills: string[] = [];
   let topics: string[] = [];
+  let hasTopics = false;
 
   try {
     if (assignment.description) {
       const parsed = JSON.parse(assignment.description);
-      if (parsed.skills) skills = parsed.skills;
-      if (parsed.topics) topics = parsed.topics;
+      if (Array.isArray(parsed.skills)) skills = parsed.skills;
+      if (Array.isArray(parsed.topics)) topics = parsed.topics;
     }
   } catch {
     // If parsing fails, use empty arrays
   }
 
-  // Temporary fallback for testing - use sample data if no skills/topics
+  // Temporary fallback for testing - seed sample skills if none are provided
   if (skills.length === 0) {
     skills = ['UI/UX Design', 'Frontend Development', 'Backend Development'];
   }
-  if (topics.length === 0) {
-    topics = ['Kesehatan', 'Politik', 'Makanan'];
-  }
+  hasTopics = topics.length > 0;
 
   return {
     hasSubmitted: false as const,
@@ -157,6 +162,7 @@ async function getAssignmentData(
       title: assignment.title,
       skills,
       topics,
+      hasTopics,
     },
   };
 }
