@@ -3,6 +3,7 @@ import { Geist_Mono, Plus_Jakarta_Sans } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { routing } from '@/i18n/routing';
 import { SWRProvider } from '@/lib/swr-provider';
 import '../globals.css';
@@ -47,7 +48,9 @@ export default async function RootLayout({
         className={`${plusJakartaSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          <SWRProvider>{children}</SWRProvider>
+          <SWRProvider>
+            <NuqsAdapter>{children}</NuqsAdapter>
+          </SWRProvider>
         </NextIntlClientProvider>
       </body>
     </html>
