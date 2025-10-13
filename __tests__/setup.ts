@@ -86,6 +86,12 @@ mock.module('framer-motion', () => {
   };
 });
 
+mock.module('next/cache', () => ({
+  unstable_cache: (fn: any) => fn,
+  revalidateTag: () => {},
+  revalidatePath: () => {},
+}));
+
 // Mock next-intl routing
 mock.module('@/i18n/routing', () => ({
   routing: {

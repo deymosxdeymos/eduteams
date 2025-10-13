@@ -1,4 +1,7 @@
+import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
+
+export const DASHBOARD_STATISTICS_TAG = 'dashboard:statistics';
 
 export interface DashboardStatistics {
   totalAssignments: number;
@@ -24,7 +27,7 @@ export const EMPTY_DASHBOARD_STATISTICS: DashboardStatistics = {
   },
 };
 
-export async function getDashboardStatisticsForUser(
+async function fetchDashboardStatistics(
   userId: string
 ): Promise<DashboardStatistics> {
   const [totalAssignments, totalTeams, qualityAggregates] = await Promise.all([
@@ -77,4 +80,18 @@ export async function getDashboardStatisticsForUser(
       n: qualityCount,
     },
   };
+}
+
+const getDashboardStatisticsCached = unstable_cache(
+  fetchDashboardStatistics,
+  ['dashboard:statistics'],
+  {
+    tags: [DASHBOARD_STATISTICS_TAG],
+  }
+);
+
+export async function getDashboardStatisticsForUser(
+  userId: string
+): Promise<DashboardStatistics> {
+  return getDashboardStatisticsCached(userId);
 }

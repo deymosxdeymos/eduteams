@@ -1,7 +1,9 @@
+import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Prisma } from '@/generated/prisma';
 import { handleApiError, withRole } from '@/lib/api-utils';
+import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
 import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
 import prisma from '@/lib/prisma';
 import { ValidationError } from '@/lib/utils/errors';
@@ -400,6 +402,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         // Optional field; ignore if not present in schema
       }
 
+      revalidateTag(DASHBOARD_STATISTICS_TAG);
       return NextResponse.json({
         success: true,
         data: { requestId: created.id },

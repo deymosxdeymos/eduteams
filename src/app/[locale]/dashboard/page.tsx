@@ -5,6 +5,10 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
 import { canAccessDosenFeatures } from '@/lib/authorization';
 import {
+  type DosenCourseSummary,
+  getCoursesForDosen,
+} from '@/lib/dashboard/courses';
+import {
   EMPTY_DASHBOARD_STATISTICS,
   getDashboardStatisticsForUser,
 } from '@/lib/dashboard/statistics';
@@ -30,9 +34,15 @@ export default async function Dashboard({
   const isFirstVisit = params.firstVisit === 'true';
   const shouldShowSplash = isFirstVisit && !user.hasSeenWelcomeSplash;
 
-  const statistics = canAccessDosenFeatures(user)
-    ? await getDashboardStatisticsForUser(user.id)
-    : EMPTY_DASHBOARD_STATISTICS;
+  let statistics = EMPTY_DASHBOARD_STATISTICS;
+  let courses: DosenCourseSummary[] = [];
+
+  if (canAccessDosenFeatures(user)) {
+    [statistics, courses] = await Promise.all([
+      getDashboardStatisticsForUser(user.id),
+      getCoursesForDosen(user.id),
+    ]);
+  }
 
   if (shouldShowSplash) {
     await updateWelcomeSplashStatus();
@@ -44,7 +54,11 @@ export default async function Dashboard({
       isFirstVisit={isFirstVisit}
     >
       <Suspense fallback={<div>Loading dashboard...</div>}>
-        <DashboardLayout user={user} statistics={statistics} />
+        <DashboardLayout
+          user={user}
+          statistics={statistics}
+          courses={courses}
+        />
       </Suspense>
     </DashboardClient>
   );

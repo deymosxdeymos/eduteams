@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import {
@@ -10,6 +11,7 @@ import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
+import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
 import prisma from '@/lib/prisma';
 import { AssignmentCreateSchema } from '@/lib/validation/assignments';
 
@@ -138,6 +140,8 @@ export const POST = withAuth<{ id: string }>(
           status: true,
         },
       });
+
+      revalidateTag(DASHBOARD_STATISTICS_TAG);
       return NextResponse.json(
         {
           success: true,

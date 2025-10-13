@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
 import {
   createApiResponse,
@@ -5,6 +6,10 @@ import {
   withAuth,
   withValidation,
 } from '@/lib/api-utils';
+import {
+  DASHBOARD_COURSES_TAG,
+  getCoursesForDosen,
+} from '@/lib/dashboard/courses';
 import prisma from '@/lib/prisma';
 import { getCurrentAcademicYear } from '@/lib/utils/period';
 import {
@@ -54,6 +59,8 @@ export const POST = withAuth(
         },
       });
 
+      revalidateTag(DASHBOARD_COURSES_TAG);
+
       return createApiResponse(course);
     }
   )
@@ -65,45 +72,7 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
     return createErrorResponse('Only dosen can view courses', 403);
   }
 
-  const rows = await prisma.course.findMany({
-    where: { dosenId: user?.id },
-    select: {
-      id: true,
-      namaMataKuliah: true,
-      kelas: true,
-      tahunAwalPeriode: true,
-      tahunAkhirPeriode: true,
-      periode: true,
-      dosenId: true,
-      shareToken: true,
-      createdAt: true,
-      updatedAt: true,
-      dosen: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      _count: { select: { enrollments: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  const courses = rows.map(r => ({
-    id: r.id,
-    namaMataKuliah: r.namaMataKuliah,
-    kelas: r.kelas,
-    tahunAwalPeriode: r.tahunAwalPeriode,
-    tahunAkhirPeriode: r.tahunAkhirPeriode,
-    periode: r.periode,
-    dosenId: r.dosenId,
-    shareToken: r.shareToken,
-    createdAt: r.createdAt,
-    updatedAt: r.updatedAt,
-    dosen: r.dosen,
-    studentCount: r._count.enrollments,
-  }));
+  const courses = await getCoursesForDosen(user.id);
 
   return createApiResponse(courses);
 });

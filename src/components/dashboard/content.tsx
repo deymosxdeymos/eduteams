@@ -1,74 +1,133 @@
 'use client';
 
-import { useState } from 'react';
-import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { DosenCourseSummary } from '@/lib/dashboard/courses';
 import type { DashboardStatistics } from '@/lib/dashboard/statistics';
-import type { CourseWithEnrollments } from '@/lib/types';
 import type { Class } from '@/types/dashboard';
 import { ClassGrid } from './class-grid';
 import { EmptyClassState } from './empty-class-state';
 import { SearchInput } from './search-input';
 import { StatisticsCards } from './statistics-cards';
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
-};
-
 interface ContentProps {
   statistics: DashboardStatistics;
+  courses: DosenCourseSummary[];
 }
 
-export default function Content({ statistics }: ContentProps) {
-  const { data, error, mutate } = useSWR('/api/courses', fetcher);
-  const [searchValue, setSearchValue] = useState('');
+type RawCourse = Partial<DosenCourseSummary> & {
+  enrollments?: unknown[];
+  _count?: { enrollments?: number };
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
 
-  // The API returns a list with studentCount; in some code paths we may also
-  // have an enrollments array. Support both to avoid showing 0 by mistake.
-  type DosenCourseListItem = Pick<
-    CourseWithEnrollments,
-    'id' | 'namaMataKuliah' | 'kelas' | 'tahunAwalPeriode' | 'tahunAkhirPeriode'
-  > & {
-    studentCount?: number;
-    enrollments?: unknown[];
-  };
-
-  const courses = (data?.data as DosenCourseListItem[]) || [];
-
-  // Convert Course data to Class format expected by ClassGrid
-  const classes: Class[] = courses.map(course => ({
-    id: course.id,
-    title: course.namaMataKuliah,
-    academicYear: `T.A ${course.tahunAwalPeriode}/${course.tahunAkhirPeriode}`,
-    studentCount:
-      typeof course.studentCount === 'number'
-        ? course.studentCount
-        : Array.isArray(course.enrollments)
-          ? course.enrollments.length
-          : 0,
-    classCode: course.kelas,
-  }));
-
-  // Filter classes based on search
-  const filteredClasses = searchValue
-    ? classes.filter(
-        classItem =>
-          classItem.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-          classItem.classCode.toLowerCase().includes(searchValue.toLowerCase())
-      )
-    : classes;
-
-  const handleClassCreated = () => {
-    // Refresh data after new class is created
-    mutate();
-  };
-
-  if (error) {
-    console.error('Failed to load courses:', error);
+function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
+  if (!course || typeof course !== 'object') {
+    return null;
   }
 
-  const hasClasses = classes.length > 0;
+  const data = course as RawCourse;
+  if (typeof data.id !== 'string') {
+    return null;
+  }
+
+  const studentCount =
+    typeof data.studentCount === 'number'
+      ? data.studentCount
+      : Array.isArray(data.enrollments)
+        ? data.enrollments.length
+        : typeof data._count?.enrollments === 'number'
+          ? data._count.enrollments
+          : 0;
+
+  const createdAt =
+    data.createdAt instanceof Date
+      ? data.createdAt
+      : new Date(data.createdAt ?? Date.now());
+  const updatedAt =
+    data.updatedAt instanceof Date
+      ? data.updatedAt
+      : new Date(data.updatedAt ?? Date.now());
+
+  return {
+    id: data.id,
+    namaMataKuliah: data.namaMataKuliah ?? '',
+    kelas: data.kelas ?? 'tanpa-kelas',
+    tahunAwalPeriode: data.tahunAwalPeriode ?? 0,
+    tahunAkhirPeriode: data.tahunAkhirPeriode ?? 0,
+    periode: data.periode ?? null,
+    dosenId: data.dosenId ?? data.dosen?.id ?? '',
+    shareToken: data.shareToken ?? null,
+    createdAt,
+    updatedAt,
+    studentCount,
+    dosen: {
+      id: data.dosen?.id ?? data.dosenId ?? '',
+      name: data.dosen?.name ?? null,
+      email: data.dosen?.email ?? null,
+    },
+  };
+}
+
+export default function Content({ statistics, courses }: ContentProps) {
+  const router = useRouter();
+  const [courseList, setCourseList] = useState<DosenCourseSummary[]>(courses);
+  const [searchValue, setSearchValue] = useState('');
+
+  useEffect(() => {
+    setCourseList(courses);
+  }, [courses]);
+
+  const classes: Class[] = useMemo(
+    () =>
+      courseList.map(course => ({
+        id: course.id,
+        title: course.namaMataKuliah,
+        academicYear: `T.A ${course.tahunAwalPeriode}/${course.tahunAkhirPeriode}`,
+        studentCount: course.studentCount,
+        classCode: course.kelas,
+      })),
+    [courseList]
+  );
+
+  const filteredClasses = useMemo(() => {
+    if (!searchValue) {
+      return classes;
+    }
+
+    const query = searchValue.toLowerCase();
+    return classes.filter(
+      classItem =>
+        classItem.title.toLowerCase().includes(query) ||
+        classItem.classCode.toLowerCase().includes(query)
+    );
+  }, [classes, searchValue]);
+
+  const handleClassCreated = useCallback(
+    (course?: unknown) => {
+      if (course) {
+        const normalized = normalizeCourseSummary(course);
+        if (normalized) {
+          setCourseList(prev => {
+            const existingIndex = prev.findIndex(
+              item => item.id === normalized.id
+            );
+            if (existingIndex !== -1) {
+              const next = [...prev];
+              next[existingIndex] = normalized;
+              return next;
+            }
+            return [normalized, ...prev];
+          });
+        }
+      }
+      router.refresh();
+    },
+    [router]
+  );
+
+  const hasClasses = courseList.length > 0;
   const showNoResults = searchValue.length > 0 && filteredClasses.length === 0;
 
   return (
