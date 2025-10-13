@@ -2,65 +2,48 @@
 
 import { ChevronDown, ChevronUp, Dot } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
-import useSWR from 'swr';
+import {
+  type DashboardStatistics,
+  EMPTY_DASHBOARD_STATISTICS,
+} from '@/lib/dashboard/statistics';
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
-};
+interface StatisticsCardsProps {
+  statistics?: DashboardStatistics;
+}
 
-export function StatisticsCards() {
+export function StatisticsCards({
+  statistics = EMPTY_DASHBOARD_STATISTICS,
+}: StatisticsCardsProps) {
   const t = useTranslations('dashboard.statistics');
 
-  const { data, error } = useSWR('/api/dashboard/statistics', fetcher);
-
-  const statistics = data?.data || {
-    totalAssignments: 0,
-    totalTeams: 0,
-    avgTeamQuality: 0,
-    qualitySummary: { min: null, max: null, mean: null, n: 0 },
-  };
-
-  const { min, max, mean } = statistics.qualitySummary ?? {
+  const { qualitySummary, totalAssignments, totalTeams } = statistics;
+  const { min, max, mean, n } = qualitySummary ?? {
     min: null,
     max: null,
     mean: null,
+    n: 0,
   };
 
-  const hasQualityData = (statistics.qualitySummary?.n ?? 0) > 0;
+  const hasQualityData = n > 0;
 
-  const formatPercent = useMemo(() => {
-    return (value: number | null | undefined) => {
-      if (!hasQualityData || value === null || value === undefined) {
-        return 'N/A';
-      }
-      const pct = Math.round(value * 100);
-      return `${pct}%`;
-    };
-  }, [hasQualityData]);
-
-  if (error) {
-    if (process.env.NODE_ENV !== 'test') {
-      console.error('Failed to load statistics:', error);
+  const formatPercent = (value: number | null | undefined) => {
+    if (!hasQualityData || value === null || value === undefined) {
+      return 'N/A';
     }
-  }
+    const pct = Math.round(value * 100);
+    return `${pct}%`;
+  };
 
   return (
     <div className='flex gap-4'>
       <div className='px-10 py-6 flex-1 bg-blue-100 rounded-3xl'>
-        <h1 className='text-6xl font-bold text-sky-700'>
-          {statistics.totalAssignments}
-        </h1>
+        <h1 className='text-6xl font-bold text-sky-700'>{totalAssignments}</h1>
         <p className='text-sky-900 text-base font-medium pt-4'>
           {t('totalAssignments')}
         </p>
       </div>
       <div className='px-10 py-6 flex-1 bg-emerald-100 rounded-3xl'>
-        <h1 className='text-6xl font-bold text-emerald-700'>
-          {statistics.totalTeams}
-        </h1>
+        <h1 className='text-6xl font-bold text-emerald-700'>{totalTeams}</h1>
         <p className='text-emerald-900 text-base font-medium pt-4'>
           {t('totalTeams')}
         </p>

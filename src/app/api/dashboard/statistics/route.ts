@@ -6,7 +6,7 @@ import {
   withAuth,
 } from '@/lib/api-utils';
 import { canAccessDosenFeatures } from '@/lib/authorization';
-import prisma from '@/lib/prisma';
+import { getDashboardStatisticsForUser } from '@/lib/dashboard/statistics';
 import type { ExtendedUser } from '@/lib/types';
 
 // Prisma requires Node.js runtime
@@ -22,64 +22,7 @@ export const GET = withAuth(
         return createErrorResponse('Access denied', 403);
       }
 
-      // Count total assignments created by this dosen across all their courses
-      const totalAssignments = await prisma.assignment.count({
-        where: {
-          createdById: user.id,
-        },
-      });
-
-      // Count total teams formed (for future use)
-      const totalTeams = await prisma.team.count({
-        where: {
-          teamFormationRequest: {
-            ownerId: user.id,
-          },
-        },
-      });
-
-      const qualityAggregates = await prisma.team.aggregate({
-        where: {
-          teamFormationRequest: {
-            ownerId: user.id,
-          },
-          quality: {
-            not: null,
-          },
-        },
-        _avg: {
-          quality: true,
-        },
-        _min: {
-          quality: true,
-        },
-        _max: {
-          quality: true,
-        },
-      });
-
-      const qualityCount = await prisma.team.count({
-        where: {
-          teamFormationRequest: {
-            ownerId: user.id,
-          },
-          quality: {
-            not: null,
-          },
-        },
-      });
-
-      const statistics = {
-        totalAssignments,
-        totalTeams,
-        avgTeamQuality: qualityAggregates._avg.quality ?? 0,
-        qualitySummary: {
-          min: qualityAggregates._min.quality ?? null,
-          max: qualityAggregates._max.quality ?? null,
-          mean: qualityAggregates._avg.quality ?? null,
-          n: qualityCount,
-        },
-      };
+      const statistics = await getDashboardStatisticsForUser(user.id);
 
       return createApiResponse(statistics);
     } catch (error) {

@@ -173,7 +173,7 @@ export function StudentClassGrid({
                 onClick={() => handleClassClick(classItem.id)}
                 onKeyDown={e => handleKeyDown(e, classItem.id)}
               >
-                <div className='flex items-start justify-between'>
+                <div className='flex items-start justify-between mb-4'>
                   <div className='flex flex-wrap gap-2'>
                     {classItem.kelas !== 'tanpa-kelas' && (
                       <Badge

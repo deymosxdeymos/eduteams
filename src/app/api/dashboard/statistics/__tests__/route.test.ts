@@ -18,6 +18,7 @@ const prismaMock: any = {
       _avg: { quality: 0.5 },
       _min: { quality: 0.1 },
       _max: { quality: 0.9 },
+      _count: { _all: 12 },
     })),
   },
 };

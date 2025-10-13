@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import type { DashboardStatistics } from '@/lib/dashboard/statistics';
 import type { CourseWithEnrollments } from '@/lib/types';
 import type { Class } from '@/types/dashboard';
 import { ClassGrid } from './class-grid';
@@ -15,7 +16,11 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-export default function Content() {
+interface ContentProps {
+  statistics: DashboardStatistics;
+}
+
+export default function Content({ statistics }: ContentProps) {
   const { data, error, mutate } = useSWR('/api/courses', fetcher);
   const [searchValue, setSearchValue] = useState('');
 
@@ -68,7 +73,7 @@ export default function Content() {
 
   return (
     <div className='h-full flex flex-col gap-4'>
-      <StatisticsCards />
+      <StatisticsCards statistics={statistics} />
       <div className='bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden'>
         {hasClasses && (
           <div className='p-6 pb-0'>

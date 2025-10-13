@@ -69,7 +69,7 @@ export function ClassCard({
             {classCode !== 'tanpa-kelas' && (
               <Badge
                 variant='destructive'
-                className={`${badgeColors.bg} ${badgeColors.text} text-xs font-medium transition-colors group-hover:brightness-95`}
+                className={`${badgeColors.bg} ${badgeColors.text} text-xs font-medium`}
               >
                 <div
                   className={`h-2 w-2 rounded-full ${badgeColors.dot}`}
