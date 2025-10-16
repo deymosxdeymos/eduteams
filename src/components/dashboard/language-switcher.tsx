@@ -25,7 +25,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       variant='outline'
       size='sm'
       className={cn(
-        'px-2 py-3 sm:px-3 sm:py-4 lg:px-6 lg:py-7 rounded-full gap-x-1 sm:gap-x-2 lg:gap-x-4 min-w-fit overflow-hidden',
+        'px-2 py-3 sm:px-3 sm:py-4 lg:px-6 lg:py-7 rounded-full gap-x-1 sm:gap-x-2 lg:gap-x-4 min-w-fit cursor-pointer overflow-hidden',
         className
       )}
       disabled={isPending}

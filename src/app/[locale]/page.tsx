@@ -5,6 +5,7 @@ import { LoginButton } from '@/components/auth/login-button';
 import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
 import Logo from '@/components/logo';
 import { HighlightText } from '@/components/ui/highlight-text';
+import { ScrollToTopButton } from '@/components/ui/scroll-to-top-button';
 import { SkipLink } from '@/components/ui/skip-link';
 import { SmoothScrollLink } from '@/components/ui/smooth-scroll-link';
 import { SocialRow } from '@/components/ui/social-row';
@@ -17,26 +18,25 @@ export default async function Home() {
     <>
       <div style={{ position: 'absolute', left: '-10000px' }} />
       <SkipLink href={`#${mainContentId}`}>Skip to content</SkipLink>
-      <main id={mainContentId} className='overflow-x-hidden'>
-        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-8 overflow-x-hidden relative'>
-          <div className='flex items-center justify-between px-20 max-w-full min-h-fit overflow-hidden'>
-            <Logo
-              href='/'
-              imageSize='w-8 h-8 md:w-12 md:h-12'
-              size='text-xl sm:text-2xl md:text-3xl'
-              className='justify-center animate-logo-welcome'
-            />
-            <div className='flex items-center font-medium text-base gap-x-6'>
-              <div className='flex text-background items-center gap-x-4 animate-hero-delay-700'>
-                <SmoothScrollLink href='#tentang'>Tentang</SmoothScrollLink>
-                <SmoothScrollLink href='#masalah'>Masalah</SmoothScrollLink>
-                <SmoothScrollLink href='#solusi'>Solusi</SmoothScrollLink>
-                <SmoothScrollLink href='#manfaat'>Manfaat</SmoothScrollLink>
-              </div>
-              <LanguageSwitcher className='animate-hero-delay-800' />
-            </div>
+      <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-20 py-4 bg-gradient-to-b from-blue-background via-blue-background/80 to-transparent'>
+        <Logo
+          href='/'
+          imageSize='w-8 h-8 md:w-12 md:h-12'
+          size='text-xl sm:text-2xl md:text-3xl'
+          className='justify-center animate-logo-welcome'
+        />
+        <div className='flex items-center font-medium text-base gap-x-6'>
+          <div className='flex text-background items-center gap-x-4 animate-hero-delay-700'>
+            <SmoothScrollLink href='#tentang'>Tentang</SmoothScrollLink>
+            <SmoothScrollLink href='#masalah'>Masalah</SmoothScrollLink>
+            <SmoothScrollLink href='#solusi'>Solusi</SmoothScrollLink>
+            <SmoothScrollLink href='#manfaat'>Manfaat</SmoothScrollLink>
           </div>
-
+          <LanguageSwitcher className='animate-hero-delay-800' />
+        </div>
+      </nav>
+      <main id={mainContentId} className='overflow-x-hidden'>
+        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-32 overflow-x-hidden relative'>
           <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
             <div className='text-center'>
               <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight  animate-hero-delay-600'>
@@ -512,6 +512,7 @@ export default async function Home() {
           />
         </footer>
       </main>
+      <ScrollToTopButton />
     </>
   );
 }

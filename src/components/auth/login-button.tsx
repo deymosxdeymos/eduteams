@@ -32,7 +32,7 @@ export function LoginButton({ className }: LoginButtonProps) {
     <Button
       variant='outline'
       className={cn(
-        'w-fit rounded-full text-sm sm:text-lg py-8 px-10 transition-all duration-200 ease-out disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95',
+        'w-fit rounded-full text-sm sm:text-lg py-8 px-10 cursor-pointer transition-all duration-200 ease-out disabled:scale-100 motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95',
         className
       )}
       onClick={signIn}

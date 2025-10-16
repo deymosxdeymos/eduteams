@@ -242,4 +242,35 @@ body {
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
+  .scroll-top-button {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.08),
+      0px 2px 2px rgba(0, 0, 0, 0.04);
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .scroll-top-button svg:first-child {
+    transform: translateY(calc(-50% + 20px));
+  }
+  .scroll-top-button svg:nth-child(2) {
+    transform: translateY(100%);
+  }
+
+  .scroll-top-button svg {
+    transition: transform 220ms ease-in-out;
+  }
+
+  .scroll-top-button:hover svg:first-child {
+    transform: translateY(-100%);
+  }
+
+  .scroll-top-button:hover svg:nth-child(2) {
+    transform: translateY(calc(-50% - 1px));
+  }
 }
