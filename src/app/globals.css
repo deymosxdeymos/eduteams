@@ -167,6 +167,9 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
 }
 
 .animate-mascot {

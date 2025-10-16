@@ -17,6 +17,7 @@
     "db:seed": "bun run prisma/seed.ts",
     "db:reset": "prisma migrate reset --force && bun run db:seed",
     "assets:normalize-mbti": "bun run scripts/normalize-mbti-svgs.ts",
+    "reports:generate": "bun run scripts/generate-test-report.ts",
     "prepare": "husky"
   },
   "dependencies": {

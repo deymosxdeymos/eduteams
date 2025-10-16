@@ -6,6 +6,7 @@ import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
 import Logo from '@/components/logo';
 import { HighlightText } from '@/components/ui/highlight-text';
 import { SkipLink } from '@/components/ui/skip-link';
+import { SmoothScrollLink } from '@/components/ui/smooth-scroll-link';
 import { SocialRow } from '@/components/ui/social-row';
 
 export default async function Home() {
@@ -17,14 +18,21 @@ export default async function Home() {
       <div style={{ position: 'absolute', left: '-10000px' }} />
       <SkipLink href={`#${mainContentId}`}>Skip to content</SkipLink>
       <main id={mainContentId} className='overflow-x-hidden'>
-        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-8 sm:pt-14 overflow-x-hidden relative'>
-          <div className='flex items-center justify-between lg:justify-center px-4 max-w-full min-h-fit overflow-hidden'>
+        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-8 overflow-x-hidden relative'>
+          <div className='flex items-center justify-between px-20 max-w-full min-h-fit overflow-hidden'>
             <Logo
+              href='/'
               imageSize='w-8 h-8 md:w-12 md:h-12'
               size='text-xl sm:text-2xl md:text-3xl'
               className='justify-center animate-logo-welcome'
             />
-            <div className='absolute right-4 sm:right-24'>
+            <div className='flex items-center font-medium text-base gap-x-6'>
+              <div className='flex text-background items-center gap-x-4 animate-hero-delay-700'>
+                <SmoothScrollLink href='#tentang'>Tentang</SmoothScrollLink>
+                <SmoothScrollLink href='#masalah'>Masalah</SmoothScrollLink>
+                <SmoothScrollLink href='#solusi'>Solusi</SmoothScrollLink>
+                <SmoothScrollLink href='#manfaat'>Manfaat</SmoothScrollLink>
+              </div>
               <LanguageSwitcher className='animate-hero-delay-800' />
             </div>
           </div>
@@ -66,7 +74,11 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className='relative bg-white -mt-56 sm:mt-0 animate-hills'>
+        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
+        <section
+          id='tentang'
+          className='relative bg-white -mt-56 sm:mt-0 animate-hills'
+        >
           <div className='absolute inset-x-0 -top-6 sm:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
             <Image
               src='/landing/Subtract.svg'
@@ -102,7 +114,11 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className='bg-accent min-h-screen flex flex-col items-center justify-center px-12 py-14 lg:p-10 overflow-x-hidden z-0'>
+        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
+        <section
+          id='masalah'
+          className='bg-accent min-h-screen flex flex-col items-center justify-center px-12 py-14 lg:p-10 overflow-x-hidden z-0'
+        >
           <h2 className='text-black text-4xl sm:text-5xl text-center font-semibold sm:font-bold tracking-tight mb-4'>
             {t('homepage.problems.title')}
           </h2>
@@ -156,7 +172,11 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className='bg-white min-h-screen flex flex-col items-center justify-center px-8 lg:px-10 py-18 overflow-x-hidden'>
+        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
+        <section
+          id='solusi'
+          className='bg-white min-h-screen flex flex-col items-center justify-center px-8 lg:px-10 py-18 overflow-x-hidden'
+        >
           <h2 className='text-blue-background text-5xl sm:text-5xl tracking-tighter sm:tracking-normal font-semibold sm:font-bold mt-2'>
             {t('homepage.solution.title')}
           </h2>
@@ -328,7 +348,11 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        <section className='bg-blue-background min-h-screen flex flex-col items-center px-4 sm:px-6 py-18 overflow-x-hidden'>
+        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
+        <section
+          id='manfaat'
+          className='bg-blue-background min-h-screen flex flex-col items-center px-4 sm:px-6 py-18 overflow-x-hidden'
+        >
           <h2 className='text-white text-center text-5xl font-bold mt-2'>
             {t('homepage.benefits.title')}
           </h2>
@@ -424,11 +448,19 @@ export default async function Home() {
             </p>
           </div>
         </section>
-        <footer className='bg-blue-background min-h-screen flex flex-col items-start gap-8 sm:gap-16 lg:gap-32 p-4 sm:p-8 lg:p-32 relative max-w-full overflow-hidden'>
+        <footer className='bg-blue-background min-h-screen flex flex-col items-start gap-8 sm:gap-16 lg:gap-28 p-4 sm:p-8 lg:p-32 relative max-w-full overflow-hidden'>
           <h2 className='text-white text-4xl sm:text-6xl lg:text-9xl font-normal z-10'>
             {t('homepage.footer.title')}
           </h2>{' '}
-          <div className='flex flex-col lg:flex-row items-start justify-start gap-8 lg:gap-48 text-start whitespace-pre-line z-10 w-full'>
+          <div className='flex flex-col lg:flex-row items-center justify-between z-10 w-full'>
+            <Logo
+              imageSize='w-8 h-8 md:w-24 md:h-24'
+              size='text-xl sm:text-2xl md:text-5xl'
+              className='justify-center'
+            />
+            <LoginButton />
+          </div>
+          <div className='flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-48 text-start whitespace-pre-line z-10 w-full'>
             <h2 className='text-white text-3xl font-semibold mt-2 max-w-lg'>
               {t('homepage.footer.description')}
             </h2>
@@ -460,13 +492,10 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between text-start gap-6 mt-8 lg:mt-20 max-w-6xl z-10 w-full'>
-            <Logo
-              size='text-lg sm:text-2xl md:text-3xl lg:text-4xl'
-              imageSize='w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14'
-              className='min-w-0'
-            />
-            <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
+          <div className='flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-48 text-start mt-8 lg:mt-20 z-10 w-full'>
+            <div className='max-w-lg' />
+            <div className='max-w-4xl' />
+            <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-4xl'>
               <p className='text-white text-sm sm:text-lg font-normal whitespace-pre-line mt-2'>
                 {t('homepage.footer.copyright')}
               </p>
