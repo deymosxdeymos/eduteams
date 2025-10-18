@@ -174,12 +174,12 @@ function toLikert(n?: number | null) {
 
 function getLikertValue(
   personalityAnswers: Record<string, unknown>,
-  q: { id: string; order?: number },
+  q: { id: string; orderHint?: number },
   i: number
 ): number | undefined {
   const byId = (personalityAnswers as Record<string, unknown>)[q.id];
   const byOrder = (personalityAnswers as Record<string, unknown>)[
-    String(q.order ?? i + 1)
+    String(q.orderHint ?? i + 1)
   ];
   const raw = byId ?? byOrder;
   return typeof raw === 'string'
@@ -366,7 +366,7 @@ export default async function AssignmentAnswersPage({
                               {toLikert(
                                 getLikertValue(
                                   personalityAnswers as Record<string, unknown>,
-                                  q as { id: string; order?: number },
+                                  q as { id: string; orderHint?: number },
                                   i
                                 )
                               )}

@@ -258,7 +258,7 @@ export default async function AssignmentQuizPage({
     ): number | undefined => {
       const byId = (answersById as Record<string, unknown>)[q.id];
       const byOrder = (answersById as Record<string, unknown>)[
-        String(q.order ?? i + 1)
+        String((q as { orderHint?: number }).orderHint ?? i + 1)
       ];
       const raw = byId ?? byOrder;
       return typeof raw === 'string'
@@ -294,7 +294,7 @@ export default async function AssignmentQuizPage({
         mbtiQuestions[0]
           ? {
               id: mbtiQuestions[0].id,
-              order: mbtiQuestions[0].order,
+              orderHint: mbtiQuestions[0].orderHint,
               text: mbtiQuestions[0].text,
             }
           : null
