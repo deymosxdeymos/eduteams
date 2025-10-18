@@ -1,11 +1,16 @@
 import { getMessages } from 'next-intl/server';
 import PersonalityTestClient from '@/components/onboarding/kepribadian/personality-test-client';
-import { getMBTIQuestions } from '@/lib/mbti-questions-simple';
+import { ensurePersonalitySession } from '@/lib/actions/personality';
 
 export const dynamic = 'force-dynamic';
 
-export default async function KepribadianPage() {
-  const questions = await getMBTIQuestions();
+export default async function KepribadianPage({
+  params,
+}: {
+  params: { locale: string };
+}) {
+  const { locale } = await params;
+  const session = await ensurePersonalitySession(locale);
   const messages = (await getMessages()) as {
     onboarding: {
       kepribadian: {
@@ -34,5 +39,5 @@ export default async function KepribadianPage() {
     };
   };
 
-  return <PersonalityTestClient questions={questions} dict={messages} />;
+  return <PersonalityTestClient session={session} dict={messages} />;
 }

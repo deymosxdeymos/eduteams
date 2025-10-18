@@ -3,31 +3,39 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Logo from '@/components/logo';
 import RoleFormClient from '@/components/onboarding/role/role-form-client';
-import { getCurrentUserRole } from '@/lib/actions/role';
 import { isInstitutionalEmail } from '@/lib/email';
+import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
+import { protectOnboardingPage } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RolePage() {
   const t = await getTranslations('onboarding.role');
-  const currentUserData = await getCurrentUserRole();
+  const user = await protectOnboardingPage();
 
-  // If user already has a role and has progressed past role selection, redirect to next step
-  if (
-    currentUserData?.role &&
-    currentUserData.onboardingStep &&
-    currentUserData.onboardingStep !== 'role'
-  ) {
-    redirect(`/onboarding/data-diri/${currentUserData.role}`);
+  if (user.role === 'dosen' && isInstitutionalEmail(user.email)) {
+    if (!user.nimNpm) {
+      redirect('/onboarding/data-diri/dosen');
+    }
+    redirect('/dashboard?firstVisit=true');
   }
 
-  // If user selected dosen and is still on role step, auto-advance if email is institutional
-  if (
-    currentUserData?.role === 'dosen' &&
-    currentUserData.onboardingStep === 'role' &&
-    isInstitutionalEmail(currentUserData.email)
-  ) {
-    redirect('/onboarding/data-diri/dosen');
+  if (user.role === 'mahasiswa') {
+    if (!user.nimNpm) {
+      redirect('/onboarding/data-diri/mahasiswa');
+    }
+
+    const sessionStatus = await getUserPersonalitySessionStatus(user.id);
+
+    if (!sessionStatus) {
+      redirect('/onboarding/kepribadian');
+    }
+
+    if (sessionStatus.status === 'completed_valid') {
+      redirect('/dashboard?firstVisit=true');
+    }
+
+    redirect('/onboarding/kepribadian');
   }
 
   return (
@@ -47,8 +55,8 @@ export default async function RolePage() {
       </div>
 
       <RoleFormClient
-        initialRole={currentUserData?.role as 'dosen' | 'mahasiswa' | undefined}
-        hasInstitutionalEmail={isInstitutionalEmail(currentUserData?.email)}
+        initialRole={user.role as 'dosen' | 'mahasiswa' | undefined}
+        hasInstitutionalEmail={isInstitutionalEmail(user.email)}
       />
     </main>
   );

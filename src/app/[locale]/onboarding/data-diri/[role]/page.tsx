@@ -8,6 +8,7 @@ import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form
 import { Button } from '@/components/ui/button';
 import { getDataDiri } from '@/lib/actions/data-diri';
 import { isInstitutionalEmail } from '@/lib/email';
+import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
 import { protectOnboardingPage } from '@/lib/server-auth';
 
 interface DataDiriPageProps {
@@ -53,11 +54,29 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
   // Protect the onboarding page
   const user = await protectOnboardingPage();
 
+  if (user.role && user.role !== role) {
+    redirect(`/onboarding/data-diri/${user.role}`);
+  }
+
   // For dosen, ensure institutional email domain
   if (role === 'dosen') {
     if (!isInstitutionalEmail(user.email)) {
       redirect('/onboarding/role?err=dosen_email');
     }
+  }
+
+  if (role === 'mahasiswa' && user.nimNpm) {
+    const sessionStatus = await getUserPersonalitySessionStatus(user.id);
+
+    if (!sessionStatus) {
+      redirect('/dashboard?firstVisit=true');
+    }
+
+    if (sessionStatus.status === 'completed_valid') {
+      redirect('/dashboard?firstVisit=true');
+    }
+
+    redirect('/onboarding/kepribadian');
   }
 
   let initialData: {
