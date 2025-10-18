@@ -1,41 +1,42 @@
 import { describe, expect, it } from 'bun:test';
-import type { ExtendedUser } from '../types';
 import {
+  canAccessAdminFeatures,
   canAccessDashboard,
+  canAccessDosenFeatures,
+  canAccessMahasiswaFeatures,
   canAccessOnboarding,
   canAccessRole,
-  canAccessMahasiswaFeatures,
-  canAccessDosenFeatures,
-  canAccessAdminFeatures,
   canModifyUser,
   canViewUserProfile,
-  isCompleteProfile,
-  needsOnboarding,
-  needsRoleSelection,
-  needsDataDiri,
-  needsKepribadianTest,
   getNextOnboardingStep,
   getRedirectPath,
+  isCompleteProfile,
+  needsDataDiri,
+  needsKepribadianTest,
+  needsOnboarding,
+  needsRoleSelection,
 } from '../authorization';
+import type { ExtendedUser } from '../types';
 
 // Mock user data for testing
-const createMockUser = (overrides: any = {}): ExtendedUser => ({
-  // Basic PrismaUser properties (assuming these exist)
-  id: 'user-123',
-  name: 'Test User',
-  email: 'test@example.com',
-  // ExtendedUser properties
-  role: 'mahasiswa' as const,
-  isOnboarded: false,
-  nimNpm: '123456789',
-  onboardingStep: null,
-  mbtiType: null,
-  ei: null,
-  sn: null,
-  tf: null,
-  pj: null,
-  ...overrides,
-} as ExtendedUser);
+const createMockUser = (overrides: any = {}): ExtendedUser =>
+  ({
+    // Basic PrismaUser properties (assuming these exist)
+    id: 'user-123',
+    name: 'Test User',
+    email: 'test@example.com',
+    // ExtendedUser properties
+    role: 'mahasiswa' as const,
+    isOnboarded: false,
+    nimNpm: '123456789',
+    onboardingStep: null,
+    mbtiType: null,
+    ei: null,
+    sn: null,
+    tf: null,
+    pj: null,
+    ...overrides,
+  }) as ExtendedUser;
 
 describe('Authorization Functions', () => {
   describe('canAccessDashboard', () => {
@@ -305,14 +306,16 @@ describe('Authorization Functions', () => {
   });
 
   describe('getNextOnboardingStep', () => {
-    it('returns role selection for user without role', () => {
+    it('returns resume page for user without role', () => {
       const user = createMockUser({ role: undefined });
-      expect(getNextOnboardingStep(user)).toBe('/onboarding/role');
+      expect(getNextOnboardingStep(user)).toBe('/onboarding/resume');
     });
 
     it('returns data-diri for mahasiswa without nimNpm', () => {
       const user = createMockUser({ role: 'mahasiswa', nimNpm: undefined });
-      expect(getNextOnboardingStep(user)).toBe('/onboarding/data-diri/mahasiswa');
+      expect(getNextOnboardingStep(user)).toBe(
+        '/onboarding/data-diri/mahasiswa'
+      );
     });
 
     it('returns data-diri for dosen without nimNpm', () => {
@@ -360,7 +363,7 @@ describe('Authorization Functions', () => {
   describe('getRedirectPath', () => {
     it('returns next onboarding step when available', () => {
       const user = createMockUser({ role: undefined });
-      expect(getRedirectPath(user)).toBe('/onboarding/role');
+      expect(getRedirectPath(user)).toBe('/onboarding/resume');
     });
 
     it('returns dashboard when no next step', () => {

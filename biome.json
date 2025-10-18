@@ -30,9 +30,6 @@
       "!**/dist",
       "!**/build",
       "!**/coverage",
-      "!__tests__/**/*",
-      "!**/*.test.*",
-      "!**/*.spec.*",
       "!types/bun-test.d.ts"
     ]
   },
