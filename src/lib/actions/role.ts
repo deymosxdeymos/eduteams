@@ -83,9 +83,12 @@ export async function getCurrentUserRole(getCurrentUserImpl = getCurrentUser) {
     const currentUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: {
+        id: true,
         role: true,
         onboardingStep: true,
         email: true,
+        nimNpm: true,
+        isOnboarded: true,
       },
     });
 
@@ -93,5 +96,43 @@ export async function getCurrentUserRole(getCurrentUserImpl = getCurrentUser) {
   } catch (error) {
     console.error('Error fetching user role:', error);
     return null;
+  }
+}
+
+export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
+  try {
+    const user = await getCurrentUserImpl();
+    if (!user) {
+      throw new AuthError('Authentication required');
+    }
+
+    const role = isInstitutionalEmail(user.email) ? 'dosen' : 'mahasiswa';
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        role,
+        onboardingStep: 'role',
+      },
+    });
+
+    redirect(`/onboarding/data-diri/${role}`);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      throw error;
+    }
+
+    if (
+      error &&
+      typeof error === 'object' &&
+      'digest' in error &&
+      typeof error.digest === 'string' &&
+      error.digest.includes('NEXT_REDIRECT')
+    ) {
+      throw error;
+    }
+
+    console.error('Error auto-assigning role:', error);
+    throw new Error('Failed to auto-assign role');
   }
 }

@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
+import { getActivePersonalityBank } from '@/lib/mbti-questions-simple';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
 // Prisma requires Node.js runtime
@@ -31,12 +32,29 @@ export const POST = withAuth(
 
       // If user is mahasiswa and provided answers, calculate personality scores
       if (currentUser.role === 'mahasiswa' && answers) {
-        const numericAnswers: Record<number, number> = {};
-        for (const [key, value] of Object.entries(answers)) {
-          numericAnswers[parseInt(key, 10)] = value;
+        const bank = await getActivePersonalityBank();
+        if (!bank) {
+          return createApiResponse(null, 'Personality bank unavailable', 400);
         }
+        const normalizedAnswers: Record<string, number> = {};
+        for (const [key, value] of Object.entries(answers)) {
+          if (typeof value === 'number') {
+            normalizedAnswers[key] = value;
+          }
+        }
+        bank.questions.forEach((question, index) => {
+          const ordinalKey = String(index + 1);
+          const byId = normalizedAnswers[question.id];
+          const byOrder = normalizedAnswers[ordinalKey];
+          if (byId !== undefined && byOrder === undefined) {
+            normalizedAnswers[ordinalKey] = byId;
+          } else if (byId === undefined && byOrder !== undefined) {
+            normalizedAnswers[question.id] = byOrder;
+          }
+        });
 
-        const scores = calculatePersonalityScores(numericAnswers);
+        const questions = bank.questions.filter(q => !q.isAttentionCheck);
+        const scores = calculatePersonalityScores(normalizedAnswers, questions);
         const mbtiType = getMBTIType(scores) as MBTIType;
         updateData.ei = scores.ei;
         updateData.sn = scores.sn;
@@ -44,7 +62,7 @@ export const POST = withAuth(
         updateData.pj = scores.pj;
         updateData.mbtiType = mbtiType;
         updateData.personalityData = {
-          answers, // numeric-keyed strings "1".."24"
+          answers: normalizedAnswers,
           scores,
           metadata: { completedAt: new Date().toISOString() },
         } as unknown as PrismaNS.InputJsonValue;

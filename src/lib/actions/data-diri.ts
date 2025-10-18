@@ -56,7 +56,7 @@ export async function submitDataDiri(
         role,
         gender,
         isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
-        onboardingStep: 'data-diri',
+        onboardingStep: role === 'mahasiswa' ? 'kepribadian' : null,
       },
     });
 

@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createErrorResponse, getCurrentUser } from '@/lib/api-utils';
+import {
+  getUserPersonalitySessionStatus,
+  type UserPersonalitySessionStatus,
+} from '@/lib/personality-session';
 
 export const GET = async () => {
   try {
@@ -9,33 +13,51 @@ export const GET = async () => {
     }
 
     let redirectUrl: string | null = null;
+    let sessionStatus: UserPersonalitySessionStatus | null = null;
+
+    if (user.role === 'mahasiswa') {
+      sessionStatus = await getUserPersonalitySessionStatus(user.id);
+    }
+
     if (!user.isOnboarded) {
-      switch (user.onboardingStep) {
-        case 'role':
-          redirectUrl = user.role
-            ? `/onboarding/data-diri/${user.role}`
-            : '/onboarding/role';
-          break;
-        case 'data-diri':
-          redirectUrl = user.role
-            ? user.role === 'mahasiswa'
-              ? '/onboarding/kepribadian'
-              : '/dashboard?firstVisit=true'
-            : '/onboarding/role';
-          break;
-        case 'kepribadian':
+      if (!user.role) {
+        redirectUrl = '/onboarding/resume';
+      } else if (!user.nimNpm && ['mahasiswa', 'dosen'].includes(user.role)) {
+        redirectUrl = `/onboarding/data-diri/${user.role}`;
+      } else if (user.role === 'mahasiswa') {
+        if (!sessionStatus || sessionStatus.status === 'completed_valid') {
           redirectUrl = '/dashboard?firstVisit=true';
-          break;
-        default:
-          redirectUrl = '/onboarding/role';
+        } else {
+          redirectUrl = '/onboarding/kepribadian';
+        }
+      } else {
+        redirectUrl = '/dashboard?firstVisit=true';
       }
     }
+
+    const personality = sessionStatus
+      ? {
+          bankVersion: sessionStatus.bankVersion,
+          locale: sessionStatus.locale,
+          status: sessionStatus.status,
+          sessionId: sessionStatus.sessionId ?? null,
+          attentionPassed: sessionStatus.attentionPassed ?? null,
+          durationMs: sessionStatus.durationMs ?? null,
+          submittedAt: sessionStatus.submittedAt ?? null,
+          hasActiveSession: sessionStatus.status === 'in_progress',
+          canStartNew:
+            sessionStatus.status === 'not_started' ||
+            sessionStatus.status === 'completed_attention_failed' ||
+            sessionStatus.status === 'completed_speeding',
+        }
+      : null;
 
     return NextResponse.json({
       onboardingStep: user.onboardingStep,
       isOnboarded: user.isOnboarded,
       role: user.role,
       redirectUrl,
+      personality,
     });
   } catch {
     return createErrorResponse('Internal server error', 500);
