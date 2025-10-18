@@ -1,11 +1,13 @@
-import prisma from '../src/lib/prisma';
 import { randomUUID } from 'crypto';
+import prisma from '../src/lib/prisma';
 
-type MBTIQuestionData = {
+type PersonalityQuestionSeed = {
   text: string;
   dimension: 'ei' | 'sn' | 'tf' | 'pj';
-  order: number;
+  orderHint: number;
   reversed?: boolean;
+  isAttentionCheck?: boolean;
+  locale?: string;
 };
 
 const withTimestamps = <T extends object>(data: T) => ({
@@ -14,108 +16,252 @@ const withTimestamps = <T extends object>(data: T) => ({
   updatedAt: new Date(),
 });
 
-const mbtiQuestions: MBTIQuestionData[] = [
-  // EI 1-6
+const ACTIVE_BANK_VERSION = 1;
+const DEFAULT_LOCALE = 'id-ID';
+
+const personalityBank: PersonalityQuestionSeed[] = [
+  // EI (positive toward E; reversed items favor I)
   {
-    text: 'Kamu lebih suka kelompok daripada individu.',
+    text: 'Saya berenergi saat berada di keramaian.',
     dimension: 'ei',
-    order: 1,
+    orderHint: 1,
   },
-  { text: 'Kamu lebih suka bersosialisasi.', dimension: 'ei', order: 2 },
-  { text: 'Kamu ekspresif.', dimension: 'ei', order: 3 },
   {
-    text: 'Kamu belajar lebih baik dengan mendengarkan.',
+    text: 'Saya cepat akrab dengan orang baru.',
     dimension: 'ei',
-    order: 4,
+    orderHint: 2,
+  },
+  {
+    text: 'Saya nyaman memimpin diskusi.',
+    dimension: 'ei',
+    orderHint: 3,
+  },
+  {
+    text: 'Saya sering berpikir sambil berbicara.',
+    dimension: 'ei',
+    orderHint: 4,
+  },
+  {
+    text: 'Saya butuh waktu sendiri untuk mengisi ulang.',
+    dimension: 'ei',
+    orderHint: 5,
     reversed: true,
   },
-  { text: 'Kamu banyak bicara.', dimension: 'ei', order: 5 },
-  { text: 'Kamu senang bertemu orang baru.', dimension: 'ei', order: 6 },
-  // SN 7-12
   {
-    text: 'Kamu lebih suka mata pelajaran teoritis.',
+    text: 'Saya lebih suka percakapan satu lawan satu.',
+    dimension: 'ei',
+    orderHint: 6,
+    reversed: true,
+  },
+  {
+    text: 'Saya menulis dulu sebelum bicara dalam rapat.',
+    dimension: 'ei',
+    orderHint: 7,
+    reversed: true,
+  },
+  {
+    text: 'Saya memilih mengamati sebelum ikut terlibat.',
+    dimension: 'ei',
+    orderHint: 8,
+    reversed: true,
+  },
+  // SN (positive toward S; reversed favor N)
+  {
+    text: 'Saya fokus pada fakta yang bisa diamati.',
     dimension: 'sn',
-    order: 7,
+    orderHint: 9,
   },
   {
-    text: 'Kamu lebih suka yang baru daripada yang tradisional.',
+    text: 'Instruksi langkah demi langkah membantu saya.',
     dimension: 'sn',
-    order: 8,
+    orderHint: 10,
   },
   {
-    text: 'Kamu lebih suka menjadi penasaran.',
+    text: 'Saya mempercayai pengalaman langsung.',
     dimension: 'sn',
-    order: 9,
-    reversed: true,
+    orderHint: 11,
   },
   {
-    text: 'Kamu lebih suka abstrak daripada spesifik.',
+    text: 'Saya teliti pada detail teknis.',
     dimension: 'sn',
-    order: 10,
+    orderHint: 12,
   },
   {
-    text: 'Kamu memperhatikan pola lebih daripada detail.',
+    text: 'Saya melihat pola besar lebih dari detail.',
     dimension: 'sn',
-    order: 11,
-    reversed: true,
-  },
-  { text: 'Kamu lebih suka tugas konseptual.', dimension: 'sn', order: 12 },
-  // TF 13-18
-  {
-    text: 'Kamu berpikir hakim harus bermurah hati.',
-    dimension: 'tf',
-    order: 13,
-  },
-  {
-    text: 'Kamu cenderung diplomatis.',
-    dimension: 'tf',
-    order: 14,
+    orderHint: 13,
     reversed: true,
   },
   {
-    text: 'Kamu mengandalkan empati saat memutuskan.',
-    dimension: 'tf',
-    order: 15,
+    text: 'Saya menikmati ide dan kemungkinan.',
+    dimension: 'sn',
+    orderHint: 14,
     reversed: true,
   },
   {
-    text: 'Kamu memprioritaskan keadilan daripada harmoni.',
-    dimension: 'tf',
-    order: 16,
-  },
-  {
-    text: 'Kamu menghargai logika daripada emosi.',
-    dimension: 'tf',
-    order: 17,
+    text: 'Saya tertarik pada teori dibanding contoh konkret.',
+    dimension: 'sn',
+    orderHint: 15,
     reversed: true,
   },
   {
-    text: 'Kamu mempertimbangkan perasaan orang lain saat menghakimi.',
-    dimension: 'tf',
-    order: 18,
+    text: 'Saya suka membayangkan seperti apa masa depan.',
+    dimension: 'sn',
+    orderHint: 16,
+    reversed: true,
   },
-  // PJ 19-24
-  { text: 'Kamu sistematis dalam rutinitas.', dimension: 'pj', order: 19 },
+  // TF (positive toward T; reversed favor F)
   {
-    text: 'Kamu lebih suka rutinitas daripada variasi.',
+    text: 'Saya mengutamakan logika saat mengambil keputusan.',
+    dimension: 'tf',
+    orderHint: 17,
+  },
+  {
+    text: 'Kritik langsung itu bermanfaat.',
+    dimension: 'tf',
+    orderHint: 18,
+  },
+  {
+    text: 'Aturan membantu keputusan menjadi adil.',
+    dimension: 'tf',
+    orderHint: 19,
+  },
+  {
+    text: 'Saya memisahkan fakta dari perasaan ketika menilai.',
+    dimension: 'tf',
+    orderHint: 20,
+  },
+  {
+    text: 'Saya mempertimbangkan dampak pada orang lain.',
+    dimension: 'tf',
+    orderHint: 21,
+    reversed: true,
+  },
+  {
+    text: 'Keharmonisan tim lebih penting daripada “siapa benar”.',
+    dimension: 'tf',
+    orderHint: 22,
+    reversed: true,
+  },
+  {
+    text: 'Keputusan terasa salah jika melukai seseorang.',
+    dimension: 'tf',
+    orderHint: 23,
+    reversed: true,
+  },
+  {
+    text: 'Saya peka terhadap emosi orang di sekitar.',
+    dimension: 'tf',
+    orderHint: 24,
+    reversed: true,
+  },
+  // PJ (positive toward P; reversed favor J)
+  {
+    text: 'Saya fleksibel terhadap rencana.',
     dimension: 'pj',
-    order: 20,
+    orderHint: 25,
+  },
+  {
+    text: 'Saya nyaman dengan perubahan mendadak.',
+    dimension: 'pj',
+    orderHint: 26,
+  },
+  {
+    text: 'Saya menunda keputusan sampai informasi cukup.',
+    dimension: 'pj',
+    orderHint: 27,
+  },
+  {
+    text: 'Saya mengeksplor beberapa opsi sebelum memilih.',
+    dimension: 'pj',
+    orderHint: 28,
+  },
+  {
+    text: 'Saya suka jadwal yang jelas.',
+    dimension: 'pj',
+    orderHint: 29,
     reversed: true,
   },
   {
-    text: 'Kamu bekerja lebih baik di bawah tekanan.',
+    text: 'Saya menutup tugas jauh sebelum tenggat.',
     dimension: 'pj',
-    order: 21,
-  },
-  { text: 'Kamu metodis.', dimension: 'pj', order: 22, reversed: true },
-  {
-    text: 'Kamu lebih suka aktivitas terbuka.',
-    dimension: 'pj',
-    order: 23,
+    orderHint: 30,
     reversed: true,
   },
-  { text: 'Kamu suka merencanakan ke depan.', dimension: 'pj', order: 24 },
+  {
+    text: 'Saya membuat daftar tugas dan mengikutinya.',
+    dimension: 'pj',
+    orderHint: 31,
+    reversed: true,
+  },
+  {
+    text: 'Saya tidak nyaman ketika rencana berubah.',
+    dimension: 'pj',
+    orderHint: 32,
+    reversed: true,
+  },
+  // Attention check (excluded from scoring; instructs respondent to choose "Setuju")
+  {
+    text: 'Untuk kualitas data, pilih jawaban "Setuju" untuk pernyataan ini.',
+    dimension: 'ei',
+    orderHint: 33,
+    isAttentionCheck: true,
+  },
 ];
+
+const DIMENSION_MAP: Record<
+  PersonalityQuestionSeed['dimension'],
+  'EI' | 'SN' | 'TF' | 'PJ'
+> = {
+  ei: 'EI',
+  sn: 'SN',
+  tf: 'TF',
+  pj: 'PJ',
+};
+
+function validatePersonalityBank(items: PersonalityQuestionSeed[]): void {
+  const perAxis: Record<
+    'ei' | 'sn' | 'tf' | 'pj',
+    { total: number; reversed: number }
+  > = {
+    ei: { total: 0, reversed: 0 },
+    sn: { total: 0, reversed: 0 },
+    tf: { total: 0, reversed: 0 },
+    pj: { total: 0, reversed: 0 },
+  };
+  let attentionChecks = 0;
+
+  for (const item of items) {
+    if (item.isAttentionCheck) {
+      attentionChecks += 1;
+      continue;
+    }
+    const bucket = perAxis[item.dimension];
+    bucket.total += 1;
+    if (item.reversed) bucket.reversed += 1;
+  }
+
+  for (const [axis, bucket] of Object.entries(perAxis) as Array<
+    [keyof typeof perAxis, { total: number; reversed: number }]
+  >) {
+    if (bucket.total !== 8) {
+      throw new Error(
+        `Axis ${axis.toUpperCase()} must have exactly 8 scored items; found ${bucket.total}`
+      );
+    }
+    if (bucket.reversed !== 4) {
+      throw new Error(
+        `Axis ${axis.toUpperCase()} must have 4 reversed items; found ${bucket.reversed}`
+      );
+    }
+  }
+
+  if (attentionChecks !== 1) {
+    throw new Error(
+      `Expected exactly 1 attention check item, found ${attentionChecks}`
+    );
+  }
+}
 
 async function seedMBTIQuestions() {
   console.log('🌱 Starting MBTI questions seeding...');
@@ -132,6 +278,8 @@ async function seedMBTIQuestions() {
       throw new Error('Prisma client not generated for PersonalityQuestion');
     }
 
+    validatePersonalityBank(personalityBank);
+
     await prisma.$transaction(async (tx: any) => {
       // Clear existing MBTI questions from the dedicated table
       await (
@@ -141,16 +289,25 @@ async function seedMBTIQuestions() {
       console.log('✅ Cleared existing MBTI questions (personality_questions)');
 
       // Seed into PersonalityQuestion table (not Skills) - using Indonesian questions
-      const creations = mbtiQuestions.map(q =>
+      const creations = personalityBank.map(q =>
         (tx as unknown as Record<string, any>).personalityQuestion.create({
           data: withTimestamps({
             id: randomUUID(),
+            bankVersion: ACTIVE_BANK_VERSION,
+            status: 'ACTIVE',
             text: q.text,
-            dimension: q.dimension,
-            order: q.order,
+            dimension: DIMENSION_MAP[q.dimension],
+            orderHint: q.orderHint,
             reversed: q.reversed ?? false,
+            isAttentionCheck: q.isAttentionCheck ?? false,
+            locale: q.locale ?? DEFAULT_LOCALE,
           }),
-          select: { id: true, text: true, order: true },
+          select: {
+            id: true,
+            text: true,
+            orderHint: true,
+            isAttentionCheck: true,
+          },
         })
       );
 
@@ -161,7 +318,7 @@ async function seedMBTIQuestions() {
     console.log('🎉 MBTI questions seeding completed successfully!');
     console.log('\n📊 Seeding Summary:');
     console.log(
-      `   • ${mbtiQuestions.length} MBTI questions created (Indonesian)`
+      `   • ${personalityBank.length} personality items created (Indonesian, bank v${ACTIVE_BANK_VERSION})`
     );
     console.log(
       '\n💡 Questions are now stored in personality_questions, not skills.'
