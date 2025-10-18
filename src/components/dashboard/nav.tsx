@@ -30,9 +30,11 @@ export default function Nav({
       <div className='flex gap-x-10'>
         <Image
           src='/mascot-yellow-head.svg'
-          width={50}
-          height={50}
+          width={52}
+          height={56}
           alt='mascot'
+          className='h-12 w-auto'
+          style={{ width: 'auto' }}
         />
         <div className='leading-loose flex items-center'>
           {className ? (

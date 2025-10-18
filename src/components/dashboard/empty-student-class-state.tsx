@@ -17,9 +17,12 @@ export function EmptyStudentClassState({
     <div className='flex flex-col items-center justify-center gap-y-4 mx-auto h-full'>
       <Image
         src='/belum-kelas.svg'
-        width={180}
-        height={180}
+        width={165}
+        height={161}
         alt='belum kelas'
+        className='w-[180px] h-auto'
+        style={{ height: 'auto' }}
+        priority
       />
       <div className='text-center'>
         <h1 className='text-3xl font-semibold text-gray-800 tracking-tight pb-2'>
