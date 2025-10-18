@@ -1,19 +1,39 @@
 'use server';
+'use server';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 
 import { getCurrentUser } from '@/lib/api-utils';
 import { logger } from '@/lib/logger';
-import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
-import prisma from '@/lib/prisma';
+import {
+  createPersonalitySessionForUser,
+  getUserPersonalitySessionStatus,
+  submitPersonalitySession,
+} from '@/lib/personality-session';
 import { AuthError, ValidationError } from '@/lib/types';
 
 const personalitySubmissionSchema = z.object({
-  answers: z.record(z.string(), z.number().min(1).max(5)),
+  sessionId: z.string().uuid(),
+  answers: z.record(z.string(), z.number().int().min(1).max(5)),
 });
+
+export async function ensurePersonalitySession(locale?: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new AuthError('Authentication required');
+  }
+  const session = await createPersonalitySessionForUser(user, locale);
+  if (!session) {
+    const status = await getUserPersonalitySessionStatus(user.id, locale);
+    if (status?.status === 'completed_valid') {
+      redirect('/dashboard?firstVisit=true');
+    }
+    throw new ValidationError('Personality questionnaire is not available');
+  }
+  return session;
+}
 
 export async function submitPersonalityTest(
   formData: FormData,
@@ -26,40 +46,37 @@ export async function submitPersonalityTest(
       throw new AuthError('Authentication required');
     }
 
-    const answersJson = formData.get('answers') as string;
-    if (!answersJson) {
-      throw new ValidationError('Answers are required');
+    const answersJson = formData.get('answers');
+    const sessionId = formData.get('sessionId');
+
+    if (typeof answersJson !== 'string' || typeof sessionId !== 'string') {
+      throw new ValidationError('Jawaban dan sesi wajib diisi');
     }
 
     const parsedData = personalitySubmissionSchema.parse({
+      sessionId,
       answers: JSON.parse(answersJson),
     });
 
-    const { answers } = parsedData;
-
-    // answers are numeric-keyed (as strings). Use numeric-based scorer
-    const scores = calculatePersonalityScores(answers);
-    const mbtiType = getMBTIType(scores);
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        ei: scores.ei,
-        sn: scores.sn,
-        tf: scores.tf,
-        pj: scores.pj,
-        mbtiType: mbtiType as MBTIType,
-        isOnboarded: true,
-        personalityData: {
-          // overwrite with latest submission snapshot
-          answers,
-          scores,
-          metadata: {
-            completedAt: new Date().toISOString(),
-          },
-        } as unknown as PrismaNS.InputJsonValue,
-      },
+    const result = await submitPersonalitySession({
+      sessionId: parsedData.sessionId,
+      userId: user.id,
+      answers: parsedData.answers,
     });
+
+    if (result.status === 'attention_check_failed') {
+      throw new ValidationError(
+        'Tes perhatian tidak lolos. Ikuti instruksi dan coba lagi.'
+      );
+    }
+    if (result.status === 'speeding') {
+      throw new ValidationError(
+        'Waktu pengerjaan terlalu singkat. Mohon isi dengan lebih teliti.'
+      );
+    }
+    if (result.status === 'incomplete') {
+      throw new ValidationError('Lengkapi semua pernyataan sebelum mengirim.');
+    }
 
     revalidatePath('/dashboard');
     redirect('/dashboard');
@@ -68,7 +85,6 @@ export async function submitPersonalityTest(
       throw error;
     }
 
-    // Don't catch redirect errors - let them bubble up
     if (
       error &&
       typeof error === 'object' &&
