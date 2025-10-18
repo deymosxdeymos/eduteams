@@ -25,6 +25,7 @@
       "*.js",
       "*.jsx",
       "*.json",
+      "*.md",
       "!src/generated",
       "!**/*.generated.*",
       "!**/node_modules",
