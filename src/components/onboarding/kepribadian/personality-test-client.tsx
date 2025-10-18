@@ -10,7 +10,10 @@ import PersonalityQuestion from '@/components/onboarding/kepribadian/personality
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { submitPersonalityTest } from '@/lib/actions/personality';
-import type { MBTIQuestion } from '@/lib/mbti-questions-simple';
+import type {
+  CreatePersonalitySessionResult,
+  SessionQuestionPayload,
+} from '@/lib/personality-session';
 import {
   convertAnswersForSubmission,
   getQuestionsForPage,
@@ -21,7 +24,7 @@ import {
 } from '@/lib/personality-test-utils';
 
 interface PersonalityTestClientProps {
-  questions: MBTIQuestion[];
+  session: CreatePersonalitySessionResult;
   dict: {
     onboarding: {
       kepribadian: {
@@ -52,7 +55,7 @@ interface PersonalityTestClientProps {
 }
 
 export default function PersonalityTestClient({
-  questions,
+  session,
   dict,
 }: PersonalityTestClientProps) {
   const router = useRouter();
@@ -62,6 +65,7 @@ export default function PersonalityTestClient({
     initialPersonalityTestState
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const questions = session.questions;
 
   const questionsPerPage = 6;
   const totalPages = Math.ceil(questions.length / questionsPerPage);
@@ -127,6 +131,7 @@ export default function PersonalityTestClient({
 
     const formData = new FormData();
     formData.append('answers', JSON.stringify(numericAnswers));
+    formData.append('sessionId', session.sessionId);
     try {
       await submitPersonalityTest(formData);
     } catch (err) {
@@ -140,6 +145,11 @@ export default function PersonalityTestClient({
 
       // Log and reset submitting state on regular errors
       console.error('Error completing kepribadian:', err);
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : 'Gagal menyimpan jawaban. Coba lagi.';
+      window.alert(message);
     } finally {
       dispatch({ type: 'SET_SUBMITTING', payload: false });
     }

@@ -92,6 +92,10 @@ export default function DataDiriFormClient({
 }: DataDiriFormClientProps) {
   const formId = 'data-diri-form';
   const genderLabelId = useId();
+  const namaLengkapId = useId();
+  const nimFieldId = useId();
+  const npmFieldId = useId();
+  const nimNpmFieldId = role === 'mahasiswa' ? nimFieldId : npmFieldId;
   const [isPending, startTransition] = useTransition();
   const formSchema = createFormSchema(role, dict);
   type FormData = z.infer<typeof formSchema>;
@@ -167,75 +171,69 @@ export default function DataDiriFormClient({
         <FormField
           control={form.control}
           name='namaLengkap'
-          render={({ field }) => {
-            const fieldId = `namaLengkap-${Math.random().toString(36).substring(2, 11)}`;
-            return (
-              <FormItem>
-                <FormLabel
-                  htmlFor={fieldId}
-                  className='text-black text-xl font-normal'
-                >
-                  {dict.onboarding.dataDiri.namaLengkap}
-                </FormLabel>
-                <FormControl>
-                  <div className='relative'>
-                    <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black z-10' />
-                    <InputRounded
-                      id={fieldId}
-                      placeholder={
-                        dict.onboarding.dataDiri.namaLengkapPlaceholder
-                      }
-                      {...field}
-                      className='pl-10'
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel
+                htmlFor={namaLengkapId}
+                className='text-black text-xl font-normal'
+              >
+                {dict.onboarding.dataDiri.namaLengkap}
+              </FormLabel>
+              <FormControl>
+                <div className='relative'>
+                  <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black z-10' />
+                  <InputRounded
+                    id={namaLengkapId}
+                    placeholder={
+                      dict.onboarding.dataDiri.namaLengkapPlaceholder
+                    }
+                    {...field}
+                    className='pl-10'
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         <FormField
           control={form.control}
           name={role === 'mahasiswa' ? 'nim' : 'npm'}
-          render={({ field }) => {
-            const fieldId = `${role === 'mahasiswa' ? 'nim' : 'npm'}-${Math.random().toString(36).substring(2, 11)}`;
-            return (
-              <FormItem>
-                <FormLabel
-                  htmlFor={fieldId}
-                  className='text-black text-xl font-normal'
-                >
-                  {role === 'mahasiswa'
-                    ? dict.onboarding.dataDiri.nim
-                    : dict.onboarding.dataDiri.npm}
-                </FormLabel>
-                <FormControl>
-                  <div className='relative'>
-                    <Image
-                      src='/icons/nim.svg'
-                      alt={`${role === 'mahasiswa' ? 'NIM' : 'NPM'} icon`}
-                      width={16}
-                      height={16}
-                      className='absolute left-3 top-1/2 -translate-y-1/2 z-10'
-                    />
-                    <InputRounded
-                      id={fieldId}
-                      placeholder={
-                        role === 'mahasiswa'
-                          ? dict.onboarding.dataDiri.nimPlaceholder
-                          : dict.onboarding.dataDiri.npmPlaceholder
-                      }
-                      {...field}
-                      className='pl-10'
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel
+                htmlFor={nimNpmFieldId}
+                className='text-black text-xl font-normal'
+              >
+                {role === 'mahasiswa'
+                  ? dict.onboarding.dataDiri.nim
+                  : dict.onboarding.dataDiri.npm}
+              </FormLabel>
+              <FormControl>
+                <div className='relative'>
+                  <Image
+                    src='/icons/nim.svg'
+                    alt={`${role === 'mahasiswa' ? 'NIM' : 'NPM'} icon`}
+                    width={16}
+                    height={16}
+                    className='absolute left-3 top-1/2 -translate-y-1/2 z-10'
+                  />
+                  <InputRounded
+                    id={nimNpmFieldId}
+                    placeholder={
+                      role === 'mahasiswa'
+                        ? dict.onboarding.dataDiri.nimPlaceholder
+                        : dict.onboarding.dataDiri.npmPlaceholder
+                    }
+                    {...field}
+                    className='pl-10'
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         <FormField
@@ -253,7 +251,7 @@ export default function DataDiriFormClient({
                 <div
                   className='flex gap-x-4 items-start'
                   role='radiogroup'
-                  aria-labelledby='gender-label'
+                  aria-labelledby={genderLabelId}
                 >
                   <motion.button
                     type='button'
