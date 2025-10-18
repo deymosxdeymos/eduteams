@@ -69,7 +69,7 @@ export function needsKepribadianTest(user: ExtendedUser): boolean {
 
 export function getNextOnboardingStep(user: ExtendedUser): string | null {
   if (!user.role) {
-    return '/onboarding/role';
+    return '/onboarding/resume';
   }
 
   if (!user.nimNpm && ['mahasiswa', 'dosen'].includes(user.role)) {
