@@ -21,7 +21,7 @@ export default async function Home() {
       <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-20 py-4 bg-gradient-to-b from-blue-background via-blue-background/80 to-transparent'>
         <Logo
           href='/'
-          imageSize='w-8 h-8 md:w-12 md:h-12'
+          imageClassName='h-8 w-auto md:h-12'
           size='text-xl sm:text-2xl md:text-3xl'
           className='justify-center animate-logo-welcome'
         />
@@ -454,7 +454,7 @@ export default async function Home() {
           </h2>{' '}
           <div className='flex flex-col lg:flex-row items-center justify-between z-10 w-full'>
             <Logo
-              imageSize='w-8 h-8 md:w-24 md:h-24'
+              imageClassName='h-8 w-auto md:h-24'
               size='text-xl sm:text-2xl md:text-5xl'
               className='justify-center'
             />
