@@ -1,3 +1,5 @@
+import type { PersonalityQuestionRecord } from '@/lib/mbti-questions-simple';
+
 export interface PersonalityScores {
   ei: number;
   sn: number;
@@ -9,17 +11,6 @@ export interface AnswerRecord {
   [questionId: string]: number;
 }
 
-// Keep this list in sync with prisma/seed.ts and mbti-questions.ts static fallback
-// EI: 4, SN: 9,11, TF: 14,15,17, PJ: 20,22,23
-const REVERSED_QUESTIONS = new Set([4, 9, 11, 14, 15, 17, 20, 22, 23]);
-
-const DIMENSION_RANGES = [
-  { key: 'ei' as const, start: 1, end: 6 },
-  { key: 'sn' as const, start: 7, end: 12 },
-  { key: 'tf' as const, start: 13, end: 18 },
-  { key: 'pj' as const, start: 19, end: 24 },
-] as const;
-
 const MBTI_LETTERS = [
   ['I', 'E'] as const,
   ['S', 'N'] as const,
@@ -27,7 +18,7 @@ const MBTI_LETTERS = [
   ['J', 'P'] as const,
 ] as const;
 
-const scoresCache = new Map<string, PersonalityScores>();
+const AXES: Array<keyof PersonalityScores> = ['ei', 'sn', 'tf', 'pj'];
 
 export function isValidAnswerRecord(obj: unknown): obj is AnswerRecord {
   if (typeof obj !== 'object' || obj === null) return false;
@@ -51,9 +42,9 @@ export function isValidPersonalityScores(
 ): obj is PersonalityScores {
   if (typeof obj !== 'object' || obj === null) return false;
 
-  const scores = obj as Record<string, unknown>;
+  const scores = obj as Record<keyof PersonalityScores, unknown>;
 
-  for (const { key } of DIMENSION_RANGES) {
+  for (const key of AXES) {
     if (!(key in scores)) return false;
     const value = scores[key];
     if (typeof value !== 'number' || value < -1 || value > 1) return false;
@@ -62,55 +53,22 @@ export function isValidPersonalityScores(
   return true;
 }
 
-function validateAnswers(answers: AnswerRecord): void {
+export function calculatePersonalityScores(
+  answers: AnswerRecord,
+  questions: Array<
+    Pick<
+      PersonalityQuestionRecord,
+      'id' | 'dimension' | 'reversed' | 'isAttentionCheck'
+    >
+  >
+): PersonalityScores {
   if (!isValidAnswerRecord(answers)) {
     throw new Error('Invalid answer record format');
   }
-}
-
-function calculateDimensionScore(
-  answers: AnswerRecord,
-  start: number,
-  end: number
-): number {
-  let total = 0;
-  let count = 0;
-
-  for (let i = start; i <= end; i++) {
-    const key = i.toString();
-    const answer = answers[key];
-
-    if (answer !== undefined) {
-      const score = REVERSED_QUESTIONS.has(i) ? 6 - answer : answer;
-      total += (score - 3) / 2;
-      count++;
-    }
-  }
-
-  const average = count > 0 ? total / count : 0;
-  return Math.max(-1, Math.min(1, average));
-}
-
-export function calculatePersonalityScores(
-  answers: AnswerRecord
-): PersonalityScores {
-  validateAnswers(answers);
-
-  const cacheKey = JSON.stringify(answers);
-  const cached = scoresCache.get(cacheKey);
-  if (cached) return cached;
-
-  const scores: PersonalityScores = {} as PersonalityScores;
-
-  for (const { key, start, end } of DIMENSION_RANGES) {
-    scores[key] = calculateDimensionScore(answers, start, end);
-  }
-
+  const scores = calculatePersonalityScoresFromQuestions(answers, questions);
   if (!isValidPersonalityScores(scores)) {
     throw new Error('Calculated scores are invalid');
   }
-
-  scoresCache.set(cacheKey, scores);
   return scores;
 }
 
@@ -127,12 +85,17 @@ export function getMBTIType(scores: PersonalityScores): string {
 }
 
 export function clearPersonalityCache(): void {
-  scoresCache.clear();
+  // no-op retained for backwards compatibility; cache removed with v1 bank
 }
 
 export function calculatePersonalityScoresFromQuestions(
   answersById: Record<string, number>,
-  questions: Array<{ id: string; dimension: string; reversed?: boolean }>
+  questions: Array<
+    Pick<
+      PersonalityQuestionRecord,
+      'id' | 'dimension' | 'reversed' | 'isAttentionCheck'
+    >
+  >
 ): PersonalityScores {
   const totals: Record<
     'ei' | 'sn' | 'tf' | 'pj',
@@ -148,6 +111,7 @@ export function calculatePersonalityScoresFromQuestions(
     const dim = q.dimension.toLowerCase();
     if (!(dim === 'ei' || dim === 'sn' || dim === 'tf' || dim === 'pj'))
       continue;
+    if (q.isAttentionCheck) continue;
     // Accept either question id keys or ordinal number keys ("1".."24")
     // Many clients submit numeric keys by display order rather than db id
     let raw: number | undefined = answersById[q.id];

@@ -1,4 +1,4 @@
-import type { MBTIQuestion } from '@/lib/mbti-questions-simple';
+import type { SessionQuestionPayload } from '@/lib/personality-session';
 
 export interface PersonalityTestState {
   currentPage: number;
@@ -83,16 +83,16 @@ export function personalityTestReducer(
 }
 
 export function getQuestionsForPage(
-  questions: MBTIQuestion[],
+  questions: SessionQuestionPayload[],
   page: number,
   questionsPerPage: number
-): MBTIQuestion[] {
+): SessionQuestionPayload[] {
   const startIndex = (page - 1) * questionsPerPage;
   return questions.slice(startIndex, startIndex + questionsPerPage);
 }
 
 export function validateCurrentPageQuestions(
-  questions: MBTIQuestion[],
+  questions: SessionQuestionPayload[],
   answers: Record<string, number>
 ): string[] {
   return questions.filter(q => !answers[q.id]).map(q => q.id);
@@ -109,16 +109,14 @@ export function scrollToFirstError(unansweredQuestions: string[]): void {
 }
 
 export function convertAnswersForSubmission(
-  questions: MBTIQuestion[],
+  questions: SessionQuestionPayload[],
   answers: Record<string, number>
 ): Record<string, number> {
-  // Convert to numeric keys based on the questions array order (1-indexed)
   const convertedAnswers: Record<string, number> = {};
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
-    const value = answers[q.id];
+  for (const question of questions) {
+    const value = answers[question.id];
     if (typeof value === 'number') {
-      convertedAnswers[String(i + 1)] = value;
+      convertedAnswers[question.id] = value;
     }
   }
   return convertedAnswers;
