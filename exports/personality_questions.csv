@@ -1,0 +1,34 @@
+id,bankVersion,locale,status,dimension,reversed,isAttentionCheck,orderHint,text
+225b7c38-34ee-4879-a4b4-28e07ca25cbc,1,id-ID,ACTIVE,ei,f,f,1,Saya berenergi saat berada di keramaian.
+c7875686-e5b6-4714-bb7f-b1130d497b1f,1,id-ID,ACTIVE,ei,f,f,2,Saya cepat akrab dengan orang baru.
+b2874be3-7b30-4d92-bfad-af7264d174cb,1,id-ID,ACTIVE,ei,f,f,3,Saya nyaman memimpin diskusi.
+1a4e26fb-097c-4d4b-b272-b16d528a16c0,1,id-ID,ACTIVE,ei,f,f,4,Saya sering berpikir sambil berbicara.
+2158aca2-34cd-4906-885e-19d3867e8328,1,id-ID,ACTIVE,ei,t,f,5,Saya butuh waktu sendiri untuk mengisi ulang.
+5a3c5d44-c3af-4ddf-b50a-e9b5be7246e8,1,id-ID,ACTIVE,ei,t,f,6,Saya lebih suka percakapan satu lawan satu.
+7d46ca32-7e9c-4665-8983-d1dbc38b7208,1,id-ID,ACTIVE,ei,t,f,7,Saya menulis dulu sebelum bicara dalam rapat.
+75b3d0dc-1943-46b3-8914-f4f5fd40bda4,1,id-ID,ACTIVE,ei,t,f,8,Saya memilih mengamati sebelum ikut terlibat.
+f1927c69-80fc-4e48-a972-30de423dcf11,1,id-ID,ACTIVE,sn,f,f,9,Saya fokus pada fakta yang bisa diamati.
+96d3be66-c884-4213-8cb0-2e53eab9cb5c,1,id-ID,ACTIVE,sn,f,f,10,Instruksi langkah demi langkah membantu saya.
+5474c79f-18d8-4098-a3a7-43f0cfc48ef8,1,id-ID,ACTIVE,sn,f,f,11,Saya mempercayai pengalaman langsung.
+37b78919-374a-4299-bac9-8bccb35d3149,1,id-ID,ACTIVE,sn,f,f,12,Saya teliti pada detail teknis.
+ec99db7d-fa2f-45ad-9b46-6c0446072918,1,id-ID,ACTIVE,sn,t,f,13,Saya melihat pola besar lebih dari detail.
+9d89cdd4-d816-4449-8654-6729a0697901,1,id-ID,ACTIVE,sn,t,f,14,Saya menikmati ide dan kemungkinan.
+f8336477-6b09-4f69-b190-80976061b5cc,1,id-ID,ACTIVE,sn,t,f,15,Saya tertarik pada teori dibanding contoh konkret.
+fbbe10c1-8c33-4fb6-9240-46098168d815,1,id-ID,ACTIVE,sn,t,f,16,Saya suka membayangkan seperti apa masa depan.
+73b94ced-850b-471b-b87b-6f37cc51f514,1,id-ID,ACTIVE,tf,f,f,17,Saya mengutamakan logika saat mengambil keputusan.
+34440dbb-f3d1-4d69-91e9-edd26ec1b3de,1,id-ID,ACTIVE,tf,f,f,18,Kritik langsung itu bermanfaat.
+2c4419e9-ac35-4e5a-beb2-d82147902608,1,id-ID,ACTIVE,tf,f,f,19,Aturan membantu keputusan menjadi adil.
+2298bcfc-9ec6-44ce-914f-285df55c3fdd,1,id-ID,ACTIVE,tf,f,f,20,Saya memisahkan fakta dari perasaan ketika menilai.
+12cdeff3-5a55-48b7-b7e3-74efa595f613,1,id-ID,ACTIVE,tf,t,f,21,Saya mempertimbangkan dampak pada orang lain.
+d307fcec-39ca-4d4d-94b0-e38c68b9c4ae,1,id-ID,ACTIVE,tf,t,f,22,Keharmonisan tim lebih penting daripada “siapa benar”.
+7e94195b-14e1-417f-aefc-bc807820b9d3,1,id-ID,ACTIVE,tf,t,f,23,Keputusan terasa salah jika melukai seseorang.
+d9becdb2-90ad-47ef-b721-f33a8422ad9b,1,id-ID,ACTIVE,tf,t,f,24,Saya peka terhadap emosi orang di sekitar.
+20db4087-40e2-4eaa-a155-947593ecc984,1,id-ID,ACTIVE,pj,f,f,25,Saya fleksibel terhadap rencana.
+691e824b-698d-409e-a183-a1e92ec03d23,1,id-ID,ACTIVE,pj,f,f,26,Saya nyaman dengan perubahan mendadak.
+d8fff866-2f71-4ac6-8757-5b33e976704c,1,id-ID,ACTIVE,pj,f,f,27,Saya menunda keputusan sampai informasi cukup.
+1cc3f16f-dc55-4514-a9e4-42cc450053ff,1,id-ID,ACTIVE,pj,f,f,28,Saya mengeksplor beberapa opsi sebelum memilih.
+012e40bd-c8f5-4499-b79f-fd0183758e88,1,id-ID,ACTIVE,pj,t,f,29,Saya suka jadwal yang jelas.
+1bcba191-7b07-4657-b2f0-e320e03c8ea5,1,id-ID,ACTIVE,pj,t,f,30,Saya menutup tugas jauh sebelum tenggat.
+a2774a1d-728a-4d66-80c3-d9af11527109,1,id-ID,ACTIVE,pj,t,f,31,Saya membuat daftar tugas dan mengikutinya.
+540d11c6-2dc7-4bb1-b3cf-67a648ad4d5c,1,id-ID,ACTIVE,pj,t,f,32,Saya tidak nyaman ketika rencana berubah.
+a4b2fb16-ce98-4559-a7f1-f3f343776201,1,id-ID,ACTIVE,ei,f,t,33,"Untuk kualitas data, pilih jawaban ""Setuju"" untuk pernyataan ini."

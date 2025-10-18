@@ -18,6 +18,8 @@
       "messages/**/*",
       "prisma/**/*",
       "!prisma/migrations/**/*",
+      "docs/**/*",
+      "scripts/**/*",
       "*.ts",
       "*.tsx",
       "*.js",
