@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/error.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/global-error.tsx",
+        "src/app/**/route.ts",
+        "__tests__/setup.ts",
+        "__tests__/dom-setup.ts",
+        "scripts/psychometrics/analyze.ts"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx}",
+        "scripts/**/*.ts",
+        "types/**/*.d.ts",
+        "prisma/**/*.ts"
+      ],
+      "ignoreFiles": ["src/generated/**", ".next/**"],
+      "ignoreDependencies": ["tailwindcss", "tw-animate-css"]
+    }
+  }
+}
