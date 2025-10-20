@@ -10,10 +10,7 @@ import PersonalityQuestion from '@/components/onboarding/kepribadian/personality
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { submitPersonalityTest } from '@/lib/actions/personality';
-import type {
-  CreatePersonalitySessionResult,
-  SessionQuestionPayload,
-} from '@/lib/personality-session';
+import type { CreatePersonalitySessionResult } from '@/lib/personality-session';
 import {
   convertAnswersForSubmission,
   getQuestionsForPage,

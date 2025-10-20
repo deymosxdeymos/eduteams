@@ -24,7 +24,8 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
   const colorScheme = getMBTIColorScheme(user.mbtiType);
   const [chartType, setChartType] = useQueryState<ChartType>('chart', {
     defaultValue: 'bar',
-    parse: (value): ChartType => (value === 'radar' ? 'radar' : 'bar'),
+    parse: (value: string | null): ChartType =>
+      value === 'radar' ? 'radar' : 'bar',
     shallow: true,
   });
 
@@ -51,9 +52,11 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
     };
   }, [user]);
 
-  const shouldReduceMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mediaQueryList =
+    typeof window === 'undefined'
+      ? undefined
+      : window.matchMedia('(prefers-reduced-motion: reduce)');
+  const shouldReduceMotion = mediaQueryList?.matches ?? false;
 
   const chartVariants = {
     initial: (custom: number) => ({

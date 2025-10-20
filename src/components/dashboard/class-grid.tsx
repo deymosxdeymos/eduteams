@@ -1,5 +1,17 @@
-import type { ClassGridProps } from '@/types/dashboard';
 import { ClassCard } from './class-card';
+
+export interface ClassSummary {
+  id: string;
+  title: string;
+  academicYear: string;
+  studentCount: number;
+  classCode: string;
+}
+
+interface ClassGridProps {
+  classes: ClassSummary[];
+  showNoResults?: boolean;
+}
 
 export function ClassGrid({
   classes = [],

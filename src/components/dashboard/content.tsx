@@ -4,8 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DosenCourseSummary } from '@/lib/dashboard/courses';
 import type { DashboardStatistics } from '@/lib/dashboard/statistics';
-import type { Class } from '@/types/dashboard';
-import { ClassGrid } from './class-grid';
+import { ClassGrid, type ClassSummary } from './class-grid';
 import { EmptyClassState } from './empty-class-state';
 import { SearchInput } from './search-input';
 import { StatisticsCards } from './statistics-cards';
@@ -79,7 +78,7 @@ export default function Content({ statistics, courses }: ContentProps) {
     setCourseList(courses);
   }, [courses]);
 
-  const classes: Class[] = useMemo(
+  const classes: ClassSummary[] = useMemo(
     () =>
       courseList.map(course => ({
         id: course.id,
