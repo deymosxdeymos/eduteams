@@ -73,32 +73,6 @@ export async function submitRole(
   }
 }
 
-export async function getCurrentUserRole(getCurrentUserImpl = getCurrentUser) {
-  try {
-    const user = await getCurrentUserImpl();
-    if (!user) {
-      return null;
-    }
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        role: true,
-        onboardingStep: true,
-        email: true,
-        nimNpm: true,
-        isOnboarded: true,
-      },
-    });
-
-    return currentUser;
-  } catch (error) {
-    console.error('Error fetching user role:', error);
-    return null;
-  }
-}
-
 export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
   try {
     const user = await getCurrentUserImpl();

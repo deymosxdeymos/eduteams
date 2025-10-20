@@ -11,9 +11,8 @@ function normalize(url: string | null | undefined): string {
   }
 }
 
-export function getAllowedOrigin(): string {
-  return normalize(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
-}
+const getAllowedOrigin = () =>
+  normalize(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
 
 export function isSameOrigin(request: NextRequest): boolean {
   const origin = normalize(request.headers.get('origin'));

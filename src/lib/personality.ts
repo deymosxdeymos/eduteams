@@ -84,10 +84,6 @@ export function getMBTIType(scores: PersonalityScores): string {
     .join('');
 }
 
-export function clearPersonalityCache(): void {
-  // no-op retained for backwards compatibility; cache removed with v1 bank
-}
-
 export function calculatePersonalityScoresFromQuestions(
   answersById: Record<string, number>,
   questions: Array<

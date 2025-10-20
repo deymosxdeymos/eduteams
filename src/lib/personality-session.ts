@@ -1,4 +1,4 @@
-import { randomInt, randomUUID } from 'crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import type { MBTIType, Prisma } from '@/generated/prisma';
 import {
   type ActivePersonalityBank,
@@ -15,7 +15,7 @@ import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
 const ATTENTION_CHECK_EXPECTED = 4;
-export const SPEEDER_THRESHOLD_MS = 60_000;
+const SPEEDER_THRESHOLD_MS = 60_000;
 const ATTENTION_INSERT_MIN = 20; // 1-indexed
 const ATTENTION_INSERT_MAX = 28; // 1-indexed
 
