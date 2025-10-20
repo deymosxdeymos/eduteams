@@ -14,10 +14,5 @@
     "__tests__/**/*.ts",
     "__tests__/**/*.tsx"
   ],
-  "exclude": [
-    "node_modules",
-    "**/.next/**",
-    "coverage/**"
-  ]
+  "exclude": ["node_modules", "**/.next/**", "coverage/**"]
 }
-

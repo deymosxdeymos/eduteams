@@ -25,4 +25,3 @@ describe('validation/course', () => {
     ).toThrow();
   });
 });
-

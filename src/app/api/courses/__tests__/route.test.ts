@@ -25,21 +25,43 @@ mock.module('@/lib/prisma', () => ({
       findUnique: mock(async ({ where }: any) => {
         if (where.id === 'u1')
           return {
-            id: 'u1', name: 'Test User', email: 'test@example.com',
-            role: 'dosen', isOnboarded: true,
-            createdAt: new Date(), updatedAt: new Date(),
-            nimNpm: null, gender: 'laki-laki', hasSeenWelcomeSplash: false,
-            onboardingStep: null, onboardingData: null,
-            mbtiType: null, ei: 0, sn: 0, tf: 0, pj: 0,
+            id: 'u1',
+            name: 'Test User',
+            email: 'test@example.com',
+            role: 'dosen',
+            isOnboarded: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            nimNpm: null,
+            gender: 'laki-laki',
+            hasSeenWelcomeSplash: false,
+            onboardingStep: null,
+            onboardingData: null,
+            mbtiType: null,
+            ei: 0,
+            sn: 0,
+            tf: 0,
+            pj: 0,
           };
         if (where.id === 'u2')
           return {
-            id: 'u2', name: 'Mahasiswa', email: 'student@example.com',
-            role: 'mahasiswa', isOnboarded: true,
-            createdAt: new Date(), updatedAt: new Date(),
-            nimNpm: '12345', gender: 'perempuan', hasSeenWelcomeSplash: false,
-            onboardingStep: null, onboardingData: null,
-            mbtiType: null, ei: 0, sn: 0, tf: 0, pj: 0,
+            id: 'u2',
+            name: 'Mahasiswa',
+            email: 'student@example.com',
+            role: 'mahasiswa',
+            isOnboarded: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            nimNpm: '12345',
+            gender: 'perempuan',
+            hasSeenWelcomeSplash: false,
+            onboardingStep: null,
+            onboardingData: null,
+            mbtiType: null,
+            ei: 0,
+            sn: 0,
+            tf: 0,
+            pj: 0,
           };
         return null;
       }),
@@ -54,22 +76,24 @@ mock.module('@/lib/prisma', () => ({
         shareToken: null,
         dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
       })),
-      findMany: mock(async () => [{
-        id: 'c1',
-        namaMataKuliah: 'Test Course',
-        kelas: 'A',
-        tahunAwalPeriode: 2025,
-        tahunAkhirPeriode: 2025,
-        periode: 'ganjil',
-        dosenId: 'u1',
-        shareToken: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
-        _count: { enrollments: 3 },
-      }]),
+      findMany: mock(async () => [
+        {
+          id: 'c1',
+          namaMataKuliah: 'Test Course',
+          kelas: 'A',
+          tahunAwalPeriode: 2025,
+          tahunAkhirPeriode: 2025,
+          periode: 'ganjil',
+          dosenId: 'u1',
+          shareToken: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
+          _count: { enrollments: 3 },
+        },
+      ]),
     },
-  }
+  },
 }));
 
 describe('courses API', () => {
@@ -149,7 +173,10 @@ describe('courses API', () => {
       },
     }));
     const { GET } = await import('../route');
-    const res = await GET(new Request('http://localhost/api/courses') as any, undefined as any);
+    const res = await GET(
+      new Request('http://localhost/api/courses') as any,
+      undefined as any
+    );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(Array.isArray(json.data)).toBe(true);
@@ -178,7 +205,10 @@ describe('courses API', () => {
     }));
 
     const { GET } = await import('../route');
-    const res = await GET(new Request('http://localhost/api/courses') as any, undefined as any);
+    const res = await GET(
+      new Request('http://localhost/api/courses') as any,
+      undefined as any
+    );
     expect(res.status).toBe(403);
   });
 });

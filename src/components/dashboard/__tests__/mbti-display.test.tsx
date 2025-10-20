@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
 import { describe, expect, it, mock } from 'bun:test';
+import { render, screen } from '@testing-library/react';
 import { MBTIDisplay } from '@/components/dashboard/mbti-display';
 
 const baseUser: any = {

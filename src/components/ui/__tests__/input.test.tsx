@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'bun:test';
+import { render, screen } from '@testing-library/react';
 import { Input } from '@/components/ui/input';
 
 describe('Input', () => {
@@ -13,14 +13,14 @@ describe('Input', () => {
   });
 
   it('renders with custom type', () => {
-    render(<Input type="email" />);
+    render(<Input type='email' />);
 
     const input = screen.getByRole('textbox');
     expect(input.getAttribute('type')).toBe('email');
   });
 
   it('renders with custom className', () => {
-    render(<Input className="custom-class" />);
+    render(<Input className='custom-class' />);
 
     const input = screen.getByRole('textbox');
     expect(input.className).toContain('custom-class');
@@ -28,14 +28,14 @@ describe('Input', () => {
   });
 
   it('renders with placeholder', () => {
-    render(<Input placeholder="Enter text" />);
+    render(<Input placeholder='Enter text' />);
 
     const input = screen.getByPlaceholderText('Enter text');
     expect(input).toBeTruthy();
   });
 
   it('renders with value', () => {
-    render(<Input value="test value" onChange={() => {}} />);
+    render(<Input value='test value' onChange={() => {}} />);
 
     const input = screen.getByDisplayValue('test value');
     expect(input).toBeTruthy();
@@ -68,7 +68,7 @@ describe('Input', () => {
   });
 
   it('forwards other props', () => {
-    render(<Input data-testid="custom-input" name="test-input" />);
+    render(<Input data-testid='custom-input' name='test-input' />);
 
     const input = screen.getByTestId('custom-input');
     expect(input.getAttribute('name')).toBe('test-input');

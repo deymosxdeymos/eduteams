@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'bun:test';
+import { render, screen } from '@testing-library/react';
 import Nav from '@/components/dashboard/nav';
 
 const baseUser: any = {

@@ -9,7 +9,14 @@ const prismaMock: any = {
     findUnique: mock(async (_args: any) => {
       // Default assignment metadata
       return {
-        description: JSON.stringify({ skills: ['UI/UX Design', 'Frontend Development', 'Backend Development'], topics: ['Topic A', 'Topic B'] }),
+        description: JSON.stringify({
+          skills: [
+            'UI/UX Design',
+            'Frontend Development',
+            'Backend Development',
+          ],
+          topics: ['Topic A', 'Topic B'],
+        }),
         startAt: new Date('2025-01-01T00:00:00Z'),
         course: { dosenId: 'd1' },
       };
@@ -49,7 +56,10 @@ describe('lib/stats/getAssignmentStats', () => {
     prismaMock.assignment.findUnique.mockImplementation(async (args: any) => {
       // Respect the selected fields
       const base = {
-        description: JSON.stringify({ skills: ['Skill A', 'Skill B'], topics: ['Topic A', 'Topic B'] }),
+        description: JSON.stringify({
+          skills: ['Skill A', 'Skill B'],
+          topics: ['Topic A', 'Topic B'],
+        }),
         startAt: new Date('2025-01-01T00:00:00Z'),
         course: { dosenId: 'd1' },
       };
@@ -63,7 +73,9 @@ describe('lib/stats/getAssignmentStats', () => {
       { id: 't1', name: 'Topic A' },
       { id: 't2', name: 'Topic B' },
     ]);
-    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(async () => []);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => []
+    );
     prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 0);
 
     const stats = await getAssignmentStats('a1', 'c1');
@@ -108,7 +120,10 @@ describe('lib/stats/getAssignmentStats', () => {
     // Assignment config declares skills & topics
     prismaMock.assignment.findUnique.mockImplementation(async (args: any) => {
       const base = {
-        description: JSON.stringify({ skills: ['Frontend Development', 'Backend Development'], topics: ['AI', 'DB'] }),
+        description: JSON.stringify({
+          skills: ['Frontend Development', 'Backend Development'],
+          topics: ['AI', 'DB'],
+        }),
         startAt: new Date('2025-01-01T00:00:00Z'),
         course: { dosenId: 'd1' },
       };
@@ -137,11 +152,13 @@ describe('lib/stats/getAssignmentStats', () => {
       { id: 'tAI', name: 'AI' },
       { id: 'tDB', name: 'DB' },
     ]);
-    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(async () => [
-      { assignmentTopicId: 'tAI', preference: 0.7 },
-      { assignmentTopicId: 'tAI', preference: 0.5 },
-      { assignmentTopicId: 'tDB', preference: 0.4 },
-    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => [
+        { assignmentTopicId: 'tAI', preference: 0.7 },
+        { assignmentTopicId: 'tAI', preference: 0.5 },
+        { assignmentTopicId: 'tDB', preference: 0.4 },
+      ]
+    );
 
     // Team formation after startAt
     prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 2);
@@ -150,12 +167,16 @@ describe('lib/stats/getAssignmentStats', () => {
     const stats = await getAssignmentStats('a2', 'courseX');
 
     // MBTI counts
-    const mbtiMap = new Map(stats.mbti.map(m => [m.kategori, m.jumlah] as const));
+    const mbtiMap = new Map(
+      stats.mbti.map(m => [m.kategori, m.jumlah] as const)
+    );
     expect(mbtiMap.get('ENFP')).toBe(2);
     expect(mbtiMap.get('INTJ')).toBe(1);
 
     // Gender counts
-    const genderMap = new Map(stats.gender.map(g => [g.name, g.value] as const));
+    const genderMap = new Map(
+      stats.gender.map(g => [g.name, g.value] as const)
+    );
     expect(genderMap.get('laki')).toBe(2);
     expect(genderMap.get('perempuan')).toBe(1);
 

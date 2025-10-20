@@ -2,15 +2,15 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
 import {
+  type Edu2comParameters,
   edu2comParametersSchema,
   edu2comTeamsResponseSchema,
-  type Edu2comParameters,
 } from '@/lib/edu2com/contract';
 import {
-  createBasePayload,
-  createPerson,
   EDU2COM_BASE_SIMILARITIES as BASE_SIMILARITIES,
   EDU2COM_BASE_SKILLS as BASE_SKILLS,
+  createBasePayload,
+  createPerson,
 } from '@/lib/edu2com/fixtures';
 
 const basePayload = () => createBasePayload();
@@ -92,36 +92,48 @@ const validPayloads: Array<{
       payload.people = payload.people.map((person, index, array) => {
         const enhancedSkills =
           index < 2
-            ? [
-                ...person.skills,
-                { id: BASE_SKILLS.devops, level: 0.45 },
-              ]
+            ? [...person.skills, { id: BASE_SKILLS.devops, level: 0.45 }]
             : person.skills;
+        const nextPerson = array[(index + 1) % array.length];
         return {
           ...person,
           skills: enhancedSkills,
-          preferences: [
-            {
-              personId: array[(index + 1) % array.length]!.id,
-              preference: 0.8,
-            },
+          preferences: nextPerson
+            ? [
+                {
+                  personId: nextPerson.id,
+                  preference: 0.8,
+                },
+              ]
+            : [],
+        };
+      });
+      payload.tasks = payload.tasks.map(task => {
+        const [firstPerson, secondPerson] = payload.people;
+        const preferences = [
+          ...(firstPerson
+            ? [{ personId: firstPerson.id, preference: 0.9 }]
+            : []),
+          ...(secondPerson
+            ? [{ personId: secondPerson.id, preference: 0.6 }]
+            : []),
+        ];
+        return {
+          ...task,
+          preferences,
+          skills: [
+            ...task.skills,
+            { id: BASE_SKILLS.devops, level: 0.3, importance: 1 },
           ],
         };
       });
-      payload.tasks = payload.tasks.map((task) => ({
-        ...task,
-        preferences: [
-          { personId: payload.people[0]!.id, preference: 0.9 },
-          { personId: payload.people[1]!.id, preference: 0.6 },
-        ],
-        skills: [
-          ...task.skills,
-          { id: BASE_SKILLS.devops, level: 0.3, importance: 1 },
-        ],
-      }));
       payload.similarities = [
         ...BASE_SIMILARITIES,
-        { sourceId: BASE_SKILLS.frontend, targetId: BASE_SKILLS.devops, similarity: 0.4 },
+        {
+          sourceId: BASE_SKILLS.frontend,
+          targetId: BASE_SKILLS.devops,
+          similarity: 0.4,
+        },
       ];
       return payload;
     })(),
@@ -182,7 +194,10 @@ const validPayloads: Array<{
   },
 ];
 
-const invalidPayloads: Array<{ name: string; payload: Partial<Edu2comParameters> }> = [
+const invalidPayloads: Array<{
+  name: string;
+  payload: Partial<Edu2comParameters>;
+}> = [
   {
     name: 'less than two people',
     payload: (() => {
@@ -195,7 +210,10 @@ const invalidPayloads: Array<{ name: string; payload: Partial<Edu2comParameters>
     name: 'team size smaller than two',
     payload: (() => {
       const payload = structuredClone(basePayload());
-      payload.tasks[0]!.teamSize = 1;
+      const [firstTask] = payload.tasks;
+      if (firstTask) {
+        firstTask.teamSize = 1;
+      }
       return payload;
     })(),
   },
@@ -211,7 +229,9 @@ const invalidPayloads: Array<{ name: string; payload: Partial<Edu2comParameters>
     name: 'person without skills',
     payload: (() => {
       const payload = structuredClone(basePayload());
-      payload.people[0]!.skills = [];
+      if (payload.people[0]) {
+        payload.people[0].skills = [];
+      }
       return payload;
     })(),
   },
@@ -219,7 +239,10 @@ const invalidPayloads: Array<{ name: string; payload: Partial<Edu2comParameters>
     name: 'tasks missing skills',
     payload: (() => {
       const payload = structuredClone(basePayload());
-      payload.tasks[0]!.skills = [];
+      const [firstTask] = payload.tasks;
+      if (firstTask) {
+        firstTask.skills = [];
+      }
       return payload;
     })(),
   },
@@ -249,7 +272,9 @@ describeIntegration('Edu2Com live integration', () => {
     globalThis.fetch = originalFetch;
   });
 
-  const successScenarios = validPayloads.filter((item) => item.includeInIntegration);
+  const successScenarios = validPayloads.filter(
+    item => item.includeInIntegration
+  );
 
   for (const scenario of successScenarios) {
     it(`returns teams successfully: ${scenario.name}`, async () => {
@@ -293,7 +318,9 @@ describeIntegration('Edu2Com live integration', () => {
 
   for (const scenario of failureScenarios) {
     it(`surfaces API error: ${scenario.name}`, async () => {
-      const run = callEdu2comTeamFormation(scenario.payload, { timeoutMs: 10_000 });
+      const run = callEdu2comTeamFormation(scenario.payload, {
+        timeoutMs: 10_000,
+      });
       await expect(run).rejects.toThrowError(scenario.expectedMessageFragment);
     });
   }
@@ -315,7 +342,9 @@ describeIntegration('Edu2Com live integration', () => {
       return base;
     })();
 
-    const response = await callEdu2comTeamFormation(payload, { timeoutMs: 10_000 });
+    const response = await callEdu2comTeamFormation(payload, {
+      timeoutMs: 10_000,
+    });
     expect(response.teams.length).toBeLessThan(payload.tasks.length);
   });
 });

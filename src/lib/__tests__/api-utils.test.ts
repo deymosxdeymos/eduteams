@@ -5,22 +5,46 @@ import { NextResponse } from 'next/server';
 const prismaMock: any = {
   user: {
     findUnique: mock(async ({ where }: any) => {
-      if (where.id === 'u1') return {
-        id: 'u1', name: 'U', email: 'u@example.com',
-        role: 'dosen', isOnboarded: true,
-        createdAt: new Date(), updatedAt: new Date(),
-        nimNpm: null, gender: 'MALE', hasSeenWelcomeSplash: false,
-        onboardingStep: null, onboardingData: null,
-        mbtiType: null, ei: 0, sn: 0, tf: 0, pj: 0,
-      };
-      if (where.id === 'u2') return {
-        id: 'u2', name: 'U2', email: 'u2@example.com',
-        role: 'mahasiswa', isOnboarded: false,
-        createdAt: new Date(), updatedAt: new Date(),
-        nimNpm: '12345', gender: 'FEMALE', hasSeenWelcomeSplash: false,
-        onboardingStep: null, onboardingData: null,
-        mbtiType: null, ei: 0, sn: 0, tf: 0, pj: 0,
-      };
+      if (where.id === 'u1')
+        return {
+          id: 'u1',
+          name: 'U',
+          email: 'u@example.com',
+          role: 'dosen',
+          isOnboarded: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          nimNpm: null,
+          gender: 'MALE',
+          hasSeenWelcomeSplash: false,
+          onboardingStep: null,
+          onboardingData: null,
+          mbtiType: null,
+          ei: 0,
+          sn: 0,
+          tf: 0,
+          pj: 0,
+        };
+      if (where.id === 'u2')
+        return {
+          id: 'u2',
+          name: 'U2',
+          email: 'u2@example.com',
+          role: 'mahasiswa',
+          isOnboarded: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          nimNpm: '12345',
+          gender: 'FEMALE',
+          hasSeenWelcomeSplash: false,
+          onboardingStep: null,
+          onboardingData: null,
+          mbtiType: null,
+          ei: 0,
+          sn: 0,
+          tf: 0,
+          pj: 0,
+        };
       return null;
     }),
   },
@@ -43,9 +67,9 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u1',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
@@ -53,7 +77,10 @@ describe('api-utils', () => {
       const handler = withAuth(async (_req, ctx) => {
         return NextResponse.json({ success: true, userId: ctx.user.id });
       });
-      const res = await handler(new Request('http://localhost/x') as any, undefined as any);
+      const res = await handler(
+        new Request('http://localhost/x') as any,
+        undefined as any
+      );
       expect(res.status).toBe(200);
       const json = (await res.json()) as any;
       expect(json.userId).toBe('u1');
@@ -63,14 +90,17 @@ describe('api-utils', () => {
       mock.module('@/lib/auth', () => ({
         auth: {
           api: {
-            getSession: async () => null
-          }
+            getSession: async () => null,
+          },
         },
       }));
 
       const { withAuth } = await import('@/lib/api-utils');
       const handler = withAuth(async () => NextResponse.json({ ok: true }));
-      const res = await handler(new Request('http://localhost/x') as any, undefined as any);
+      const res = await handler(
+        new Request('http://localhost/x') as any,
+        undefined as any
+      );
       expect(res.status).toBe(401);
     });
   });
@@ -89,9 +119,9 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u1',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
@@ -99,7 +129,10 @@ describe('api-utils', () => {
       const handler = withRole('dosen', async (_req, ctx) => {
         return NextResponse.json({ success: true, role: ctx.user.role });
       });
-      const res = await handler(new Request('http://localhost/x') as any, undefined as any);
+      const res = await handler(
+        new Request('http://localhost/x') as any,
+        undefined as any
+      );
       expect(res.status).toBe(200);
       const json = (await res.json()) as any;
       expect(json.role).toBe('dosen');
@@ -118,15 +151,20 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u2',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
       const { withRole } = await import('@/lib/api-utils');
-      const handler = withRole('dosen', async () => NextResponse.json({ ok: true }));
-      const res = await handler(new Request('http://localhost/x') as any, undefined as any);
+      const handler = withRole('dosen', async () =>
+        NextResponse.json({ ok: true })
+      );
+      const res = await handler(
+        new Request('http://localhost/x') as any,
+        undefined as any
+      );
       expect(res.status).toBe(403);
     });
   });
@@ -145,17 +183,23 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u1',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
       const { withOnboarded } = await import('@/lib/api-utils');
       const handler = withOnboarded(async (_req, ctx) => {
-        return NextResponse.json({ success: true, onboarded: ctx.user.isOnboarded });
+        return NextResponse.json({
+          success: true,
+          onboarded: ctx.user.isOnboarded,
+        });
       });
-      const res = await handler(new Request('http://localhost/x') as any, undefined as any);
+      const res = await handler(
+        new Request('http://localhost/x') as any,
+        undefined as any
+      );
       expect(res.status).toBe(200);
       const json = (await res.json()) as any;
       expect(json.onboarded).toBe(true);
@@ -174,15 +218,20 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u2',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
       const { withOnboarded } = await import('@/lib/api-utils');
-      const handler = withOnboarded(async () => NextResponse.json({ ok: true }));
-      const res = await handler(new Request('http://localhost/x') as any, undefined as any);
+      const handler = withOnboarded(async () =>
+        NextResponse.json({ ok: true })
+      );
+      const res = await handler(
+        new Request('http://localhost/x') as any,
+        undefined as any
+      );
       expect(res.status).toBe(403);
     });
   });
@@ -201,9 +250,9 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u1',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
@@ -215,11 +264,20 @@ describe('api-utils', () => {
       };
       const route = withAuth(
         withValidation(schema, async (_req, ctx) => {
-          return NextResponse.json({ ok: true, name: (ctx as any).validatedData.name });
+          return NextResponse.json({
+            ok: true,
+            name: (ctx as any).validatedData.name,
+          });
         })
       );
 
-      const res = await route(new Request('http://localhost/y', { method: 'POST', body: JSON.stringify({ name: 'A' }) }) as any, undefined as any);
+      const res = await route(
+        new Request('http://localhost/y', {
+          method: 'POST',
+          body: JSON.stringify({ name: 'A' }),
+        }) as any,
+        undefined as any
+      );
       expect(res.status).toBe(200);
       const json = (await res.json()) as any;
       expect(json.name).toBe('A');
@@ -238,9 +296,9 @@ describe('api-utils', () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 userId: 'u1',
-              }
-            })
-          }
+              },
+            }),
+          },
         },
       }));
 
@@ -254,7 +312,13 @@ describe('api-utils', () => {
         withValidation(schema, async () => NextResponse.json({ ok: true }))
       );
 
-      const res = await route(new Request('http://localhost/y', { method: 'POST', body: '{}' }) as any, undefined as any);
+      const res = await route(
+        new Request('http://localhost/y', {
+          method: 'POST',
+          body: '{}',
+        }) as any,
+        undefined as any
+      );
       expect(res.status).toBe(400);
     });
   });
@@ -284,7 +348,11 @@ describe('api-utils', () => {
   describe('createErrorResponse', () => {
     it('returns error JSON', async () => {
       const { createErrorResponse } = await import('@/lib/api-utils');
-      const res = createErrorResponse('Something went wrong', 400, 'BAD_REQUEST');
+      const res = createErrorResponse(
+        'Something went wrong',
+        400,
+        'BAD_REQUEST'
+      );
       expect(res.status).toBe(400);
       const json = (await res.json()) as any;
       expect(json.success).toBe(false);
@@ -332,7 +400,9 @@ describe('api-utils', () => {
       const { requireAuth } = await import('@/lib/api-utils');
       const { AuthError } = await import('@/lib/utils/errors');
       expect(() => requireAuth()).toThrow(AuthError);
-      expect(() => requireAuth()).toThrow('This function must be called within an authenticated context');
+      expect(() => requireAuth()).toThrow(
+        'This function must be called within an authenticated context'
+      );
     });
   });
 
@@ -347,15 +417,21 @@ describe('api-utils', () => {
       const { requireRole } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: 'mahasiswa' as const, isOnboarded: true };
-      expect(() => requireRole('dosen', user as any)).toThrow(AuthorizationError);
-      expect(() => requireRole('dosen', user as any)).toThrow('Insufficient permissions');
+      expect(() => requireRole('dosen', user as any)).toThrow(
+        AuthorizationError
+      );
+      expect(() => requireRole('dosen', user as any)).toThrow(
+        'Insufficient permissions'
+      );
     });
 
     it('throws when user has no role', async () => {
       const { requireRole } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: null, isOnboarded: true };
-      expect(() => requireRole('dosen', user as any)).toThrow(AuthorizationError);
+      expect(() => requireRole('dosen', user as any)).toThrow(
+        AuthorizationError
+      );
     });
   });
 
@@ -371,7 +447,9 @@ describe('api-utils', () => {
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: 'dosen' as const, isOnboarded: false };
       expect(() => requireOnboarded(user as any)).toThrow(AuthorizationError);
-      expect(() => requireOnboarded(user as any)).toThrow('User must complete onboarding first');
+      expect(() => requireOnboarded(user as any)).toThrow(
+        'User must complete onboarding first'
+      );
     });
   });
 });

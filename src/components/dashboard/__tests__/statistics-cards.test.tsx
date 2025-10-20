@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'bun:test';
+import { render, screen } from '@testing-library/react';
 import {
-  EMPTY_DASHBOARD_STATISTICS,
   type DashboardStatistics,
+  EMPTY_DASHBOARD_STATISTICS,
 } from '@/lib/dashboard/statistics';
 import { StatisticsCards } from '../statistics-cards';
 
@@ -18,7 +18,9 @@ describe('StatisticsCards', () => {
       'N/A',
       'N/A',
     ]);
-    expect(screen.getByText('dashboard.statistics.totalAssignments')).toBeTruthy();
+    expect(
+      screen.getByText('dashboard.statistics.totalAssignments')
+    ).toBeTruthy();
     expect(screen.getByText('dashboard.statistics.totalTeams')).toBeTruthy();
     expect(screen.getByText('dashboard.statistics.qualityTitle')).toBeTruthy();
   });

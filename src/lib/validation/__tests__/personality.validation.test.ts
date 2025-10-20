@@ -15,7 +15,9 @@ describe('validation/personality', () => {
     // Partial scores should fail
     expect(() => UserPersonalityUpdateSchema.parse({ ei: 0.1 })).toThrow();
     // MBTI without full scores should fail
-    expect(() => UserPersonalityUpdateSchema.parse({ mbtiType: 'ENFP' })).toThrow();
+    expect(() =>
+      UserPersonalityUpdateSchema.parse({ mbtiType: 'ENFP' })
+    ).toThrow();
     // Full scores with MBTI should pass
     const ok = UserPersonalityUpdateSchema.parse({
       ei: 0.2,
@@ -27,4 +29,3 @@ describe('validation/personality', () => {
     expect(ok).toBeTruthy();
   });
 });
-

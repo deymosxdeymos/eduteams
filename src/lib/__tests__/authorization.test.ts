@@ -18,25 +18,51 @@ import {
 } from '../authorization';
 import type { ExtendedUser } from '../types';
 
+const baseUser: ExtendedUser = {
+  id: 'user-123',
+  name: 'Test User',
+  email: 'test@example.com',
+  emailVerified: false,
+  image: null,
+  createdAt: new Date('2024-01-01T00:00:00Z'),
+  updatedAt: new Date('2024-01-01T00:00:00Z'),
+  isOnboarded: false,
+  hasSeenWelcomeSplash: false,
+  role: 'mahasiswa',
+  nimNpm: '123456789',
+  onboardingData: null,
+  onboardingStep: null,
+  mbtiType: null,
+  ei: null,
+  sn: null,
+  tf: null,
+  pj: null,
+  gender: null,
+  personalityData: null,
+  personalitySessions: [],
+  accounts: [],
+  personPreferences: [],
+  preferredBy: [],
+  personSkills: [],
+  sessions: [],
+  taskPreferences: [],
+  ownedTeamRequests: [],
+  teamMemberships: [],
+  courses: [],
+  courseEnrollments: [],
+  dosenTokenUsages: [],
+  createdAssignments: [],
+  assignmentSubmissions: [],
+  AssignmentTopicPreference: [],
+};
+
 // Mock user data for testing
-const createMockUser = (overrides: any = {}): ExtendedUser =>
-  ({
-    // Basic PrismaUser properties (assuming these exist)
-    id: 'user-123',
-    name: 'Test User',
-    email: 'test@example.com',
-    // ExtendedUser properties
-    role: 'mahasiswa' as const,
-    isOnboarded: false,
-    nimNpm: '123456789',
-    onboardingStep: null,
-    mbtiType: null,
-    ei: null,
-    sn: null,
-    tf: null,
-    pj: null,
-    ...overrides,
-  }) as ExtendedUser;
+const createMockUser = (
+  overrides: Partial<ExtendedUser> = {}
+): ExtendedUser => ({
+  ...structuredClone(baseUser),
+  ...overrides,
+});
 
 describe('Authorization Functions', () => {
   describe('canAccessDashboard', () => {

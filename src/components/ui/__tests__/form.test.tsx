@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'bun:test';
+import { render, screen } from '@testing-library/react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   Form,
@@ -25,12 +25,12 @@ function TestForm() {
     <Form {...form}>
       <FormField
         control={form.control}
-        name="email"
+        name='email'
         render={({ field }) => (
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <input {...field} type="email" />
+              <input {...field} type='email' />
             </FormControl>
             <FormDescription>Enter your email address</FormDescription>
             <FormMessage />
@@ -39,12 +39,12 @@ function TestForm() {
       />
       <FormField
         control={form.control}
-        name="password"
+        name='password'
         render={({ field }) => (
           <FormItem>
             <FormLabel>Password</FormLabel>
             <FormControl>
-              <input {...field} type="password" />
+              <input {...field} type='password' />
             </FormControl>
             <FormDescription>Enter your password</FormDescription>
             <FormMessage />
@@ -78,7 +78,9 @@ describe('Form Components', () => {
     render(<TestForm />);
 
     const inputs = screen.getAllByDisplayValue('');
-    const emailInput = inputs.find(input => input.getAttribute('type') === 'email') as HTMLInputElement;
+    const emailInput = inputs.find(
+      input => input.getAttribute('type') === 'email'
+    ) as HTMLInputElement;
     expect(emailInput).toBeTruthy();
     expect(emailInput.getAttribute('data-slot')).toBe('form-control');
     expect(emailInput.getAttribute('type')).toBe('email');
@@ -110,12 +112,12 @@ describe('Form Components', () => {
         <Form {...form}>
           <FormField
             control={form.control}
-            name="email"
+            name='email'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <input {...field} type="email" />
+                  <input {...field} type='email' />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -141,9 +143,9 @@ describe('Form Components', () => {
     );
 
     // Should have multiple form items with different IDs
-    const formItems = screen.getAllByRole('generic', { hidden: true }).filter(
-      el => el.getAttribute('data-slot') === 'form-item'
-    );
+    const formItems = screen
+      .getAllByRole('generic', { hidden: true })
+      .filter(el => el.getAttribute('data-slot') === 'form-item');
     expect(formItems.length).toBeGreaterThan(1);
   });
 });

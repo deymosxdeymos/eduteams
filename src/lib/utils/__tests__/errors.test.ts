@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  HttpError,
   AuthError,
   AuthorizationError,
+  HttpError,
   NotFoundError,
   ValidationError,
 } from '../errors';

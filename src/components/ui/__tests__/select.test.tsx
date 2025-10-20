@@ -1,14 +1,14 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, expect, it, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
-  SelectSeparator,
 } from '../select';
 
 describe('Select Components', () => {
@@ -21,10 +21,10 @@ describe('Select Components', () => {
       render(
         <Select>
           <SelectTrigger>
-            <SelectValue placeholder="Select an option" />
+            <SelectValue placeholder='Select an option' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="option1">Option 1</SelectItem>
+            <SelectItem value='option1'>Option 1</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -36,13 +36,13 @@ describe('Select Components', () => {
 
     it('handles controlled value', () => {
       render(
-        <Select value="option1">
+        <Select value='option1'>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="option1">Option 1</SelectItem>
-            <SelectItem value="option2">Option 2</SelectItem>
+            <SelectItem value='option1'>Option 1</SelectItem>
+            <SelectItem value='option2'>Option 2</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -54,14 +54,18 @@ describe('Select Components', () => {
     it('handles onValueChange callback', async () => {
       let selectedValue = '';
 
+      const handleValueChange = (value: string) => {
+        selectedValue = value;
+      };
+
       render(
-        <Select onValueChange={(value: string) => (selectedValue = value)}>
+        <Select onValueChange={handleValueChange}>
           <SelectTrigger>
-            <SelectValue placeholder="Select an option" />
+            <SelectValue placeholder='Select an option' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="option1">Option 1</SelectItem>
-            <SelectItem value="option2">Option 2</SelectItem>
+            <SelectItem value='option1'>Option 1</SelectItem>
+            <SelectItem value='option2'>Option 2</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -83,7 +87,7 @@ describe('Select Components', () => {
       render(
         <Select>
           <SelectTrigger>
-            <SelectValue placeholder="Select option" />
+            <SelectValue placeholder='Select option' />
           </SelectTrigger>
         </Select>
       );
@@ -96,8 +100,8 @@ describe('Select Components', () => {
     it('renders with small size', () => {
       render(
         <Select>
-          <SelectTrigger size="sm">
-            <SelectValue placeholder="Select option" />
+          <SelectTrigger size='sm'>
+            <SelectValue placeholder='Select option' />
           </SelectTrigger>
         </Select>
       );
@@ -110,8 +114,8 @@ describe('Select Components', () => {
     it('renders with custom className', () => {
       render(
         <Select>
-          <SelectTrigger className="custom-class">
-            <SelectValue placeholder="Select option" />
+          <SelectTrigger className='custom-class'>
+            <SelectValue placeholder='Select option' />
           </SelectTrigger>
         </Select>
       );
@@ -124,7 +128,7 @@ describe('Select Components', () => {
       render(
         <Select disabled>
           <SelectTrigger>
-            <SelectValue placeholder="Select option" />
+            <SelectValue placeholder='Select option' />
           </SelectTrigger>
         </Select>
       );
@@ -138,7 +142,7 @@ describe('Select Components', () => {
       render(
         <Select>
           <SelectTrigger aria-invalid>
-            <SelectValue placeholder="Select option" />
+            <SelectValue placeholder='Select option' />
           </SelectTrigger>
         </Select>
       );
@@ -153,7 +157,7 @@ describe('Select Components', () => {
       render(
         <Select>
           <SelectTrigger>
-            <SelectValue placeholder="Choose an option" />
+            <SelectValue placeholder='Choose an option' />
           </SelectTrigger>
         </Select>
       );
@@ -167,7 +171,7 @@ describe('Select Components', () => {
       render(
         <Select>
           <SelectTrigger>
-            <SelectValue placeholder="Custom placeholder" />
+            <SelectValue placeholder='Custom placeholder' />
           </SelectTrigger>
         </Select>
       );
@@ -185,7 +189,7 @@ describe('Select Components', () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="test">Test Item</SelectItem>
+            <SelectItem value='test'>Test Item</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -202,8 +206,8 @@ describe('Select Components', () => {
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value="test">Test Item</SelectItem>
+          <SelectContent position='popper'>
+            <SelectItem value='test'>Test Item</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -220,8 +224,8 @@ describe('Select Components', () => {
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="custom-content">
-            <SelectItem value="test">Test Item</SelectItem>
+          <SelectContent className='custom-content'>
+            <SelectItem value='test'>Test Item</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -241,7 +245,7 @@ describe('Select Components', () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="item1">Item 1</SelectItem>
+            <SelectItem value='item1'>Item 1</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -260,7 +264,9 @@ describe('Select Components', () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="item1" className="custom-item">Item 1</SelectItem>
+            <SelectItem value='item1' className='custom-item'>
+              Item 1
+            </SelectItem>
           </SelectContent>
         </Select>
       );
@@ -278,7 +284,9 @@ describe('Select Components', () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="item1" disabled>Disabled Item</SelectItem>
+            <SelectItem value='item1' disabled>
+              Disabled Item
+            </SelectItem>
           </SelectContent>
         </Select>
       );
@@ -300,7 +308,7 @@ describe('Select Components', () => {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="item1">Item 1</SelectItem>
+              <SelectItem value='item1'>Item 1</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -323,7 +331,7 @@ describe('Select Components', () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Group Label</SelectLabel>
-              <SelectItem value="item1">Item 1</SelectItem>
+              <SelectItem value='item1'>Item 1</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -344,8 +352,8 @@ describe('Select Components', () => {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel className="custom-label">Group Label</SelectLabel>
-              <SelectItem value="item1">Item 1</SelectItem>
+              <SelectLabel className='custom-label'>Group Label</SelectLabel>
+              <SelectItem value='item1'>Item 1</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -366,9 +374,9 @@ describe('Select Components', () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="item1">Item 1</SelectItem>
-            <SelectSeparator data-testid="separator" />
-            <SelectItem value="item2">Item 2</SelectItem>
+            <SelectItem value='item1'>Item 1</SelectItem>
+            <SelectSeparator data-testid='separator' />
+            <SelectItem value='item2'>Item 2</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -387,9 +395,12 @@ describe('Select Components', () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="item1">Item 1</SelectItem>
-            <SelectSeparator className="custom-separator" data-testid="separator" />
-            <SelectItem value="item2">Item 2</SelectItem>
+            <SelectItem value='item1'>Item 1</SelectItem>
+            <SelectSeparator
+              className='custom-separator'
+              data-testid='separator'
+            />
+            <SelectItem value='item2'>Item 2</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -401,18 +412,16 @@ describe('Select Components', () => {
     });
   });
 
-
-
   describe('Integration tests', () => {
     it('handles keyboard navigation', async () => {
       render(
         <Select>
           <SelectTrigger>
-            <SelectValue placeholder="Select option" />
+            <SelectValue placeholder='Select option' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="option1">Option 1</SelectItem>
-            <SelectItem value="option2">Option 2</SelectItem>
+            <SelectItem value='option1'>Option 1</SelectItem>
+            <SelectItem value='option2'>Option 2</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -431,13 +440,13 @@ describe('Select Components', () => {
         <div>
           <Select>
             <SelectTrigger>
-              <SelectValue placeholder="Select option" />
+              <SelectValue placeholder='Select option' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="option1">Option 1</SelectItem>
+              <SelectItem value='option1'>Option 1</SelectItem>
             </SelectContent>
           </Select>
-          <div data-testid="outside">Outside element</div>
+          <div data-testid='outside'>Outside element</div>
         </div>
       );
 

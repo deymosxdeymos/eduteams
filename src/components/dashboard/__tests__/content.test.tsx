@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'bun:test';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { DosenCourseSummary } from '@/lib/dashboard/courses';
 import { EMPTY_DASHBOARD_STATISTICS } from '@/lib/dashboard/statistics';
 import Content from '../content';

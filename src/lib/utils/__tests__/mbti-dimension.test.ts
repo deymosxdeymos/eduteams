@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import type { ExtendedUser } from '@/lib/types';
 import {
-  DIMENSION_CONFIG,
-  RADAR_AXIS_ORDER,
   buildRadarData,
   computeAllDimensionMetrics,
   computeDimensionMetrics,
+  DIMENSION_CONFIG,
   getDimensionScore,
+  RADAR_AXIS_ORDER,
 } from '@/lib/utils/mbti-dimension';
 
 describe('computeDimensionMetrics', () => {

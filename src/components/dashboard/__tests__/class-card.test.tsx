@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, mock } from 'bun:test';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { ClassCard } from '@/components/dashboard/class-card';
 
 describe('ClassCard', () => {
@@ -8,9 +8,11 @@ describe('ClassCard', () => {
     // Override next/navigation for this test to capture push
     mock.module('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
+    const classId = `class-${Math.random().toString(36).slice(2)}`;
+
     render(
       <ClassCard
-        id='c123'
+        id={classId}
         title='Algoritma'
         academicYear='2024/2025'
         studentCount={12}
@@ -25,7 +27,7 @@ describe('ClassCard', () => {
 
     const card = screen.getByRole('button');
     fireEvent.click(card);
-    expect(push).toHaveBeenCalledWith('/dashboard/class/c123');
+    expect(push).toHaveBeenCalledWith(`/dashboard/class/${classId}`);
 
     // Snapshot removed to avoid interactive updates in CI
   });
@@ -34,9 +36,11 @@ describe('ClassCard', () => {
     const push = mock(() => {});
     mock.module('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
+    const classId = `class-${Math.random().toString(36).slice(2)}`;
+
     render(
       <ClassCard
-        id='c123'
+        id={classId}
         title='Algoritma'
         academicYear='2024/2025'
         studentCount={12}
@@ -46,6 +50,6 @@ describe('ClassCard', () => {
 
     const card = screen.getByRole('button');
     fireEvent.keyDown(card, { key: 'Enter', code: 'Enter' });
-    expect(push).toHaveBeenCalledWith('/dashboard/class/c123');
+    expect(push).toHaveBeenCalledWith(`/dashboard/class/${classId}`);
   });
 });

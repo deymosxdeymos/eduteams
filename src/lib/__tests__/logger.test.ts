@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 
 // Since we have global mocks that disable logging in test environment,
 // we'll test the logger's internal logic by temporarily overriding the environment
