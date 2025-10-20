@@ -21,7 +21,7 @@ export type ColorScheme = {
   borderColorOklch: string;
 };
 
-export const MBTI_CATEGORIES: Record<MBTIType, PersonalityCategory> = {
+const MBTI_CATEGORIES: Record<MBTIType, PersonalityCategory> = {
   INFJ: 'diplomats',
   INFP: 'diplomats',
   ENFJ: 'diplomats',
@@ -40,7 +40,7 @@ export const MBTI_CATEGORIES: Record<MBTIType, PersonalityCategory> = {
   ESFJ: 'sentinels',
 };
 
-export const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
+const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
   diplomats: {
     primaryBg: 'bg-emerald-500',
     primaryText: 'text-emerald-500',
