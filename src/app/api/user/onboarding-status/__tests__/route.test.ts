@@ -39,7 +39,7 @@ describe('GET /api/user/onboarding-status', () => {
   it('routes mahasiswa with pending session to kepribadian and returns session metadata', async () => {
     sessionStatusMock.mockResolvedValueOnce({
       bankVersion: 1,
-      locale: 'id-ID',
+      locale: 'en-US',
       status: 'in_progress',
       sessionId: 'sess-1',
       presentedOrder: ['q1'],
@@ -66,7 +66,7 @@ describe('GET /api/user/onboarding-status', () => {
 
     sessionStatusMock.mockResolvedValueOnce({
       bankVersion: 1,
-      locale: 'id-ID',
+      locale: 'en-US',
       status: 'not_started',
     });
 
@@ -82,7 +82,7 @@ describe('GET /api/user/onboarding-status', () => {
   it('sends completed mahasiswa to dashboard when session is valid', async () => {
     sessionStatusMock.mockResolvedValueOnce({
       bankVersion: 1,
-      locale: 'id-ID',
+      locale: 'en-US',
       status: 'completed_valid',
       sessionId: 'sess-2',
       attentionPassed: true,

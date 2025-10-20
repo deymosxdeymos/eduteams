@@ -11,12 +11,12 @@ mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 mock.module('@/lib/mbti-questions-simple', () => ({
   getActivePersonalityBank: async () => ({
     bankVersion: 1,
-    locale: 'id-ID',
+    locale: 'en-US',
     questions: [
       {
         id: 'q1',
         bankVersion: 1,
-        locale: 'id-ID',
+        locale: 'en-US',
         text: 'q1',
         dimension: 'ei',
         orderHint: 1,
@@ -26,7 +26,7 @@ mock.module('@/lib/mbti-questions-simple', () => ({
       {
         id: 'q2',
         bankVersion: 1,
-        locale: 'id-ID',
+        locale: 'en-US',
         text: 'q2',
         dimension: 'sn',
         orderHint: 2,
@@ -36,7 +36,7 @@ mock.module('@/lib/mbti-questions-simple', () => ({
       {
         id: 'q3',
         bankVersion: 1,
-        locale: 'id-ID',
+        locale: 'en-US',
         text: 'q3',
         dimension: 'tf',
         orderHint: 3,
@@ -46,7 +46,7 @@ mock.module('@/lib/mbti-questions-simple', () => ({
       {
         id: 'q4',
         bankVersion: 1,
-        locale: 'id-ID',
+        locale: 'en-US',
         text: 'q4',
         dimension: 'pj',
         orderHint: 4,

@@ -455,6 +455,10 @@ docker build -t eduteams .
 docker run -p 3000:3000 eduteams
 ```
 
+## Acknowledgements
+
+- Personality assessment items are adapted from the [Open Extended Jungian Type Scales 1.2](https://openpsychometrics.org/tests/OJTS/development/OEJTS1.2.pdf) by Eric Jorgenson, used under the [CC BY-NC-SA 4.0](http://creativecommons.org/licenses/by-nc-sa/4.0/) license.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

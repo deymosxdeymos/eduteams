@@ -19,7 +19,7 @@ export interface ActivePersonalityBank {
   questions: PersonalityQuestionRecord[];
 }
 
-const DEFAULT_LOCALE = 'id-ID';
+const DEFAULT_LOCALE = 'en-US';
 
 export async function getActivePersonalityBank(
   locale: string = DEFAULT_LOCALE

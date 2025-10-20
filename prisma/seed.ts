@@ -17,198 +17,204 @@ const withTimestamps = <T extends object>(data: T) => ({
   updatedAt: new Date(),
 });
 
-const ACTIVE_BANK_VERSION = 1;
-const DEFAULT_LOCALE = 'id-ID';
+const ACTIVE_BANK_VERSION = 2;
+const DEFAULT_LOCALE = 'en-US';
 
 const personalityBank: PersonalityQuestionSeed[] = [
-  // EI (positive toward E; reversed items favor I)
+  // Questions adapted from the Open Extended Jungian Type Scales 1.2 (CC BY-NC-SA).
   {
-    text: 'Saya berenergi saat berada di keramaian.',
-    dimension: 'ei',
+    text: 'I rely on memory instead of making lists.',
+    dimension: 'pj',
     orderHint: 1,
   },
   {
-    text: 'Saya cepat akrab dengan orang baru.',
-    dimension: 'ei',
+    text: 'I want to believe what people tell me.',
+    dimension: 'tf',
     orderHint: 2,
+    reversed: true,
   },
   {
-    text: 'Saya nyaman memimpin diskusi.',
+    text: 'I need time alone to recharge.',
     dimension: 'ei',
     orderHint: 3,
+    reversed: true,
   },
   {
-    text: 'Saya sering berpikir sambil berbicara.',
-    dimension: 'ei',
+    text: 'I feel unsatisfied with the way things are.',
+    dimension: 'sn',
     orderHint: 4,
   },
   {
-    text: 'Saya butuh waktu sendiri untuk mengisi ulang.',
-    dimension: 'ei',
+    text: 'I tend to put things wherever instead of keeping a tidy room.',
+    dimension: 'pj',
     orderHint: 5,
-    reversed: true,
   },
   {
-    text: 'Saya lebih suka percakapan satu lawan satu.',
-    dimension: 'ei',
+    text: 'I strive to have a mechanical, logical mind.',
+    dimension: 'tf',
     orderHint: 6,
-    reversed: true,
   },
   {
-    text: 'Saya menulis dulu sebelum bicara dalam rapat.',
+    text: 'I am more mellow than energetic.',
     dimension: 'ei',
     orderHint: 7,
     reversed: true,
   },
   {
-    text: 'Saya memilih mengamati sebelum ikut terlibat.',
-    dimension: 'ei',
+    text: 'I prefer essay questions over multiple choice tests.',
+    dimension: 'sn',
     orderHint: 8,
+  },
+  {
+    text: 'I keep things organized rather than chaotic.',
+    dimension: 'pj',
+    orderHint: 9,
     reversed: true,
   },
-  // SN (positive toward S; reversed favor N)
   {
-    text: 'Saya fokus pada fakta yang bisa diamati.',
-    dimension: 'sn',
-    orderHint: 9,
-  },
-  {
-    text: 'Instruksi langkah demi langkah membantu saya.',
-    dimension: 'sn',
+    text: 'I am thick-skinned.',
+    dimension: 'tf',
     orderHint: 10,
   },
   {
-    text: 'Saya mempercayai pengalaman langsung.',
-    dimension: 'sn',
+    text: 'I work best alone.',
+    dimension: 'ei',
     orderHint: 11,
+    reversed: true,
   },
   {
-    text: 'Saya teliti pada detail teknis.',
+    text: 'I focus on the future more than the present.',
     dimension: 'sn',
     orderHint: 12,
   },
   {
-    text: 'Saya melihat pola besar lebih dari detail.',
-    dimension: 'sn',
+    text: 'I plan at the last minute.',
+    dimension: 'pj',
     orderHint: 13,
-    reversed: true,
   },
   {
-    text: 'Saya menikmati ide dan kemungkinan.',
-    dimension: 'sn',
+    text: 'I care more about being loved than being respected.',
+    dimension: 'tf',
     orderHint: 14,
     reversed: true,
   },
   {
-    text: 'Saya tertarik pada teori dibanding contoh konkret.',
-    dimension: 'sn',
+    text: 'Parties energize me.',
+    dimension: 'ei',
     orderHint: 15,
-    reversed: true,
   },
   {
-    text: 'Saya suka membayangkan seperti apa masa depan.',
+    text: 'I like to stand out rather than fit in.',
     dimension: 'sn',
     orderHint: 16,
+  },
+  {
+    text: 'I commit quickly instead of keeping my options open.',
+    dimension: 'pj',
+    orderHint: 17,
     reversed: true,
   },
-  // TF (positive toward T; reversed favor F)
   {
-    text: 'Saya mengutamakan logika saat mengambil keputusan.',
-    dimension: 'tf',
-    orderHint: 17,
-  },
-  {
-    text: 'Kritik langsung itu bermanfaat.',
+    text: 'I want to be good at fixing people more than fixing things.',
     dimension: 'tf',
     orderHint: 18,
+    reversed: true,
   },
   {
-    text: 'Aturan membantu keputusan menjadi adil.',
-    dimension: 'tf',
+    text: 'I listen more than I talk.',
+    dimension: 'ei',
     orderHint: 19,
+    reversed: true,
   },
   {
-    text: 'Saya memisahkan fakta dari perasaan ketika menilai.',
-    dimension: 'tf',
+    text: 'When I describe an event, I explain what it meant to me.',
+    dimension: 'sn',
     orderHint: 20,
   },
   {
-    text: 'Saya mempertimbangkan dampak pada orang lain.',
-    dimension: 'tf',
+    text: 'I tend to procrastinate.',
+    dimension: 'pj',
     orderHint: 21,
-    reversed: true,
   },
   {
-    text: 'Keharmonisan tim lebih penting daripada “siapa benar”.',
+    text: 'I follow my head more than my heart.',
     dimension: 'tf',
     orderHint: 22,
-    reversed: true,
   },
   {
-    text: 'Keputusan terasa salah jika melukai seseorang.',
-    dimension: 'tf',
+    text: 'I enjoy going out on the town.',
+    dimension: 'ei',
     orderHint: 23,
-    reversed: true,
   },
   {
-    text: 'Saya peka terhadap emosi orang di sekitar.',
-    dimension: 'tf',
+    text: 'I want the details more than the big picture.',
+    dimension: 'sn',
     orderHint: 24,
     reversed: true,
   },
-  // PJ (positive toward P; reversed favor J)
   {
-    text: 'Saya fleksibel terhadap rencana.',
+    text: 'I prefer to prepare rather than improvise.',
     dimension: 'pj',
     orderHint: 25,
-  },
-  {
-    text: 'Saya nyaman dengan perubahan mendadak.',
-    dimension: 'pj',
-    orderHint: 26,
-  },
-  {
-    text: 'Saya menunda keputusan sampai informasi cukup.',
-    dimension: 'pj',
-    orderHint: 27,
-  },
-  {
-    text: 'Saya mengeksplor beberapa opsi sebelum memilih.',
-    dimension: 'pj',
-    orderHint: 28,
-  },
-  {
-    text: 'Saya suka jadwal yang jelas.',
-    dimension: 'pj',
-    orderHint: 29,
     reversed: true,
   },
   {
-    text: 'Saya menutup tugas jauh sebelum tenggat.',
+    text: 'I base morality on compassion.',
+    dimension: 'tf',
+    orderHint: 26,
+    reversed: true,
+  },
+  {
+    text: 'Calling out to people from far away comes naturally to me.',
+    dimension: 'ei',
+    orderHint: 27,
+  },
+  {
+    text: 'I am more empirical than theoretical.',
+    dimension: 'sn',
+    orderHint: 28,
+    reversed: true,
+  },
+  {
+    text: 'I like to play hard when the work is done.',
     dimension: 'pj',
+    orderHint: 29,
+  },
+  {
+    text: 'I value emotions, even when they are intense.',
+    dimension: 'tf',
     orderHint: 30,
     reversed: true,
   },
   {
-    text: 'Saya membuat daftar tugas dan mengikutinya.',
-    dimension: 'pj',
+    text: 'I avoid speaking in front of large groups.',
+    dimension: 'ei',
     orderHint: 31,
     reversed: true,
   },
   {
-    text: 'Saya tidak nyaman ketika rencana berubah.',
-    dimension: 'pj',
+    text: 'I want to know why things happen.',
+    dimension: 'sn',
     orderHint: 32,
-    reversed: true,
   },
-  // Attention check (excluded from scoring; instructs respondent to choose "Setuju")
+  // Attention check (excluded from scoring; instructs respondent to choose "Agree")
   {
-    text: 'Untuk kualitas data, pilih jawaban "Setuju" untuk pernyataan ini.',
+    text: 'For quality control, please choose "Agree" for this statement.',
     dimension: 'ei',
     orderHint: 33,
     isAttentionCheck: true,
   },
 ];
+
+const EXPECTED_REVERSED_COUNTS: Record<
+  PersonalityQuestionSeed['dimension'],
+  number
+> = {
+  ei: 5,
+  sn: 2,
+  tf: 5,
+  pj: 3,
+};
 
 const DIMENSION_MAP: Record<
   PersonalityQuestionSeed['dimension'],
@@ -250,9 +256,10 @@ function validatePersonalityBank(items: PersonalityQuestionSeed[]): void {
         `Axis ${axis.toUpperCase()} must have exactly 8 scored items; found ${bucket.total}`
       );
     }
-    if (bucket.reversed !== 4) {
+    const expectedReversed = EXPECTED_REVERSED_COUNTS[axis];
+    if (bucket.reversed !== expectedReversed) {
       throw new Error(
-        `Axis ${axis.toUpperCase()} must have 4 reversed items; found ${bucket.reversed}`
+        `Axis ${axis.toUpperCase()} must have ${expectedReversed} reversed items; found ${bucket.reversed}`
       );
     }
   }
@@ -285,7 +292,7 @@ async function seedMBTIQuestions() {
 
       console.log('✅ Cleared existing MBTI questions (personality_questions)');
 
-      // Seed into PersonalityQuestion table (not Skills) - using Indonesian questions
+      // Seed into PersonalityQuestion table (not Skills) - using OEJTS 1.2 English items
       const creations = personalityBank.map(q =>
         tx.personalityQuestion.create({
           data: withTimestamps({
@@ -315,7 +322,7 @@ async function seedMBTIQuestions() {
     console.log('🎉 MBTI questions seeding completed successfully!');
     console.log('\n📊 Seeding Summary:');
     console.log(
-      `   • ${personalityBank.length} personality items created (Indonesian, bank v${ACTIVE_BANK_VERSION})`
+      `   • ${personalityBank.length} personality items created (English, bank v${ACTIVE_BANK_VERSION})`
     );
     console.log(
       '\n💡 Questions are now stored in personality_questions, not skills.'
