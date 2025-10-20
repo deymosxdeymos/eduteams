@@ -7,5 +7,6 @@ export const routing = defineRouting({
   localePrefix: 'as-needed',
 });
 
-export const { Link, redirect, usePathname, useRouter, getPathname } =
-  createNavigation(routing);
+const navigation = createNavigation(routing);
+
+export const { usePathname, useRouter } = navigation;

@@ -126,95 +126,68 @@ export const messages = {
       },
       contact: {
         title: 'Contact',
-        phone: '(0721) 8030188',
-        email: 'informatika@itera.ac.id',
-      },
-      copyright: 'Copyright © 2025 EquiTeam\nAll rights reserved.',
-    },
-  },
-
-  // Onboarding translations
-  onboarding: {
-    role: {
-      title: 'Choose your role!',
-      dosen: 'Lecturer',
-      mahasiswa: 'Student',
-      institutionalEmailRequired: 'Institutional email required',
-      continue: 'Continue',
-      loading: 'Loading...',
-    },
-    dataDiri: {
-      title: 'Fill in your personal data',
-      namaLengkap: 'Full Name',
-      namaLengkapPlaceholder: 'Enter full name',
-      nim: 'Student ID Number (NIM)',
-      nimPlaceholder: 'Enter NIM',
-      npm: 'Employee ID Number (NPM)',
-      npmPlaceholder: 'Enter NPM',
-      jenisKelamin: 'Gender',
-      lakiLaki: 'Male',
-      perempuan: 'Female',
-      continue: 'Continue',
-      saving: 'Saving...',
-      validation: {
-        namaLengkapMin: 'Full name must be at least 2 characters',
-        nimMin: 'NIM must be at least 8 characters',
-        nimMax: 'NIM must be at most 15 characters',
-        npmMin: 'NPM must be at least 8 characters',
-        npmMax: 'NPM must be at most 15 characters',
-        jenisKelaminRequired: 'Please select gender',
-      },
-    },
-    kepribadian: {
-      title: 'Personality Test',
-      description:
-        'Answer the following questions honestly 😬 the results will be used to form the most suitable study team for you!',
-      pageOf: 'Page {current} of {total}',
-      sending: 'Sending...',
-      selesai: 'Finish',
-      lanjut: 'Continue',
-      instructions: {
-        title: 'Personality Test Instructions',
-        step1:
-          'Choose the answer that is most suitable until the one that is not suitable with your current condition.',
-        step2:
-          'Find the most comfortable position and make sure there are no other activities you are doing when answering the test.',
-        step3:
-          'Answer each question honestly. Each question in this test can only be done once, so do it carefully.',
-        step4:
-          'Adjust your answers according to the following answer parameters:',
-        likertScale: {
-          stronglyDisagree: 'Strongly\nDisagree',
-          disagree: 'Disagree',
-          neutral: 'Neutral',
-          agree: 'Agree',
-          stronglyAgree: 'Strongly\nAgree',
-        },
-        startNow: 'Start Now',
+        text: '+62 857-666-422-12',
       },
     },
   },
 
-  // Dashboard translations
   dashboard: {
-    statistics: {
-      totalAssignments: 'Total assignments created',
-      totalTeams: 'Total teams successfully formed',
-      avgTeamQuality: 'Average team quality score',
+    greeting: 'Hi, {name} 👋',
+    onboardingReminder:
+      'Complete your onboarding first before accessing the dashboard.',
+    searchPlaceholder: 'Search in dashboard...',
+    searchAriaLabel: 'Search dashboard',
+    manageClasses: 'Manage Classes',
+    createClass: 'Create Class',
+    joinClass: 'Join Class',
+    dashboardTitle: 'Class Overview',
+    emptyState: {
+      title: "You haven't created any classes yet",
+      createPrompt: 'Click the button below to create a new class',
+      or: 'or',
+      joinPrompt: 'join a class with a code from your lecturer',
     },
-    search: {
-      placeholder: 'Search for something?',
+    stats: {
+      totalStudents: 'Total Students',
+      totalClasses: 'Total Classes',
+      totalTeams: 'Teams Formed',
+      totalAssignments: 'Assignments',
+      completionRate: 'Completion Rate',
+      responseRate: 'Response Rate',
+      pendingReviews: 'Pending Reviews',
+      activeCourses: 'Active Courses',
     },
-    emptyStates: {
-      dosen: {
-        title: "You haven't created any classes yet",
-        description: 'Create a class to start team formation',
-      },
-      student: {
-        title: "You don't have any classes yet",
-        description:
-          'Enter the class token provided by your lecturer to join a class',
-      },
+    statsDescription:
+      'Comprehensive overview of your class performance and student progress.',
+    quickActions: {
+      title: 'Quick Actions',
+      createAssignment: 'Create Assignment',
+      viewAllClasses: 'View All Classes',
+      viewStudents: 'View Students',
+      manageSettings: 'Manage Settings',
+    },
+    recentActivity: {
+      title: 'Recent Activity',
+      description: 'Track the latest activities and updates from your classes.',
+      noActivity: 'No recent activity',
+    },
+    classOverview: {
+      title: 'Class Overview',
+      description:
+        'Summary of your classes, student participation, and team formation status.',
+    },
+    classCard: {
+      students: 'Students',
+      teamStatus: '{formed} of {total} teams formed',
+      noAssignments: 'No assignments yet',
+      lastUpdated: 'Last updated {time}',
+      classActions: 'Class Actions',
+      viewClass: 'View class',
+    },
+    topClasses: {
+      title: 'Top Performing Classes',
+      description:
+        'Classes with the highest participation and assignment completion rates.',
     },
     modals: {
       createClass: {

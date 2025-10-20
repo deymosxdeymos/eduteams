@@ -129,94 +129,66 @@ export const messages = {
       },
       contact: {
         title: 'Kontak',
-        phone: '(0721) 8030188',
-        email: 'informatika@itera.ac.id',
-      },
-      copyright: 'Copyright © 2025 EquiTeam\nSemua hak dilindungi.',
-    },
-  },
-
-  // Onboarding translations
-  onboarding: {
-    role: {
-      title: 'Pilih role kamu!',
-      dosen: 'Dosen',
-      mahasiswa: 'Mahasiswa',
-      institutionalEmailRequired: 'Email institusi diperlukan',
-      continue: 'Lanjut',
-      loading: 'Loading...',
-    },
-    dataDiri: {
-      title: 'Isi data diri',
-      namaLengkap: 'Nama Lengkap',
-      namaLengkapPlaceholder: 'Masukkan nama lengkap',
-      nim: 'Nomor Induk Mahasiswa (NIM)',
-      nimPlaceholder: 'Masukkan NIM',
-      npm: 'Nomor Pokok Pegawai (NPM)',
-      npmPlaceholder: 'Masukkan NPM',
-      jenisKelamin: 'Jenis Kelamin',
-      lakiLaki: 'Laki-laki',
-      perempuan: 'Perempuan',
-      continue: 'Lanjut',
-      saving: 'Saving...',
-      validation: {
-        namaLengkapMin: 'Nama lengkap minimal 2 karakter',
-        nimMin: 'NIM minimal 8 karakter',
-        nimMax: 'NIM maksimal 15 karakter',
-        npmMin: 'NPM minimal 8 karakter',
-        npmMax: 'NPM maksimal 15 karakter',
-        jenisKelaminRequired: 'Pilih jenis kelamin',
-      },
-    },
-    kepribadian: {
-      title: 'Tes Kepribadian',
-      description:
-        'Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan untuk membentuk tim belajar yang paling cocok buat kamu!',
-      pageOf: 'Halaman {current} dari {total}',
-      sending: 'Mengirim...',
-      selesai: 'Selesai',
-      lanjut: 'Lanjut',
-      instructions: {
-        title: 'Instruksi Pengerjaan Tes Kepribadian',
-        step1:
-          'Pilihlah jawaban yang paling sesuai hingga yang tidak sesuai dengan kondisimu saat ini.',
-        step2:
-          'Temukan posisi senyaman mungkin dan pastikan tidak ada kegiatan lain yang sedang kamu lakukan saat menjawab tes.',
-        step3:
-          'Jawablah setiap pertanyaan dengan jujur. Setiap soal dalam tes ini hanya bisa satu kali, jadi kerjakanlah dengan teliti.',
-        step4: 'Sesuaikan jawaban kamu dengan parameter jawaban berikut:',
-        likertScale: {
-          stronglyDisagree: 'Sangat Tidak\nSetuju',
-          disagree: 'Tidak Setuju',
-          neutral: 'Netral',
-          agree: 'Setuju',
-          stronglyAgree: 'Sangat Setuju',
-        },
-        startNow: 'Mulai Sekarang',
+        text: '+62 857-666-422-12',
       },
     },
   },
 
-  // Dashboard translations
   dashboard: {
-    statistics: {
-      totalAssignments: 'Total tugas telah dibuat',
-      totalTeams: 'Total kelompok berhasil dibentuk',
-      avgTeamQuality: 'Rata-rata skor kualitas kelompok',
+    greeting: 'Hai, {name} 👋',
+    onboardingReminder:
+      'Selesaikan onboarding terlebih dahulu sebelum mengakses dashboard.',
+    searchPlaceholder: 'Cari di dashboard...',
+    searchAriaLabel: 'Cari dashboard',
+    manageClasses: 'Kelola Kelas',
+    createClass: 'Buat Kelas',
+    joinClass: 'Masuk Kelas',
+    dashboardTitle: 'Ringkasan Kelas',
+    emptyState: {
+      title: 'Kamu belum membuat kelas',
+      createPrompt: 'Klik tombol di bawah untuk membuat kelas baru',
+      or: 'atau',
+      joinPrompt: 'masuk ke kelas dengan kode dari dosenmu',
     },
-    search: {
-      placeholder: 'Mencari sesuatu?',
+    stats: {
+      totalStudents: 'Total Mahasiswa',
+      totalClasses: 'Total Kelas',
+      totalTeams: 'Kelompok Terbentuk',
+      totalAssignments: 'Tugas',
+      completionRate: 'Tingkat Penyelesaian',
+      responseRate: 'Tingkat Respon',
+      pendingReviews: 'Menunggu Review',
+      activeCourses: 'Kelas Aktif',
     },
-    emptyStates: {
-      dosen: {
-        title: 'Anda belum membuat kelas',
-        description: 'Buat kelas untuk memulai pembagian kelompok',
-      },
-      student: {
-        title: 'Anda belum memiliki kelas',
-        description:
-          'Masukkan token kelas yang diberikan oleh dosen untuk bergabung ke kelas',
-      },
+    statsDescription: 'Ikhtisar lengkap performa kelas dan progres mahasiswa.',
+    quickActions: {
+      title: 'Aksi Cepat',
+      createAssignment: 'Buat Tugas',
+      viewAllClasses: 'Lihat Semua Kelas',
+      viewStudents: 'Lihat Mahasiswa',
+      manageSettings: 'Pengaturan',
+    },
+    recentActivity: {
+      title: 'Aktivitas Terbaru',
+      description: 'Pantau aktivitas dan pembaruan terbaru di kelas Anda.',
+      noActivity: 'Belum ada aktivitas terbaru',
+    },
+    classOverview: {
+      title: 'Ringkasan Kelas',
+      description:
+        'Ringkasan kelas, partisipasi mahasiswa, dan status pembentukan tim.',
+    },
+    classCard: {
+      students: 'Mahasiswa',
+      teamStatus: '{formed} dari {total} tim terbentuk',
+      noAssignments: 'Belum ada tugas',
+      lastUpdated: 'Terakhir diperbarui {time}',
+      classActions: 'Aksi Kelas',
+      viewClass: 'Lihat kelas',
+    },
+    topClasses: {
+      title: 'Kelas Terbaik',
+      description: 'Kelas dengan partisipasi dan penyelesaian tugas tertinggi.',
     },
     modals: {
       createClass: {
