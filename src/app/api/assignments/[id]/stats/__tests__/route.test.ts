@@ -2,7 +2,11 @@ import { describe, expect, it, mock } from 'bun:test';
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 'u1', role: 'dosen', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    })),
   },
   assignment: {
     findUnique: mock(async (args: any) =>
@@ -56,7 +60,9 @@ describe('GET /api/assignments/[id]/stats', () => {
     }));
     const { GET } = await import('../route');
     const res = await GET(
-      new Request('http://localhost/api/assignments/a1/stats?zeroIfNoTeams=1') as any,
+      new Request(
+        'http://localhost/api/assignments/a1/stats?zeroIfNoTeams=1'
+      ) as any,
       { params: Promise.resolve({ id: 'a1' }) } as any
     );
     expect(res.status).toBe(200);

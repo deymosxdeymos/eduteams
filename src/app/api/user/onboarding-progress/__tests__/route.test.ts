@@ -57,4 +57,3 @@ describe('POST /api/user/onboarding-progress', () => {
     expect(res.status).toBe(401);
   });
 });
-

@@ -2,7 +2,11 @@ import { describe, expect, it, mock } from 'bun:test';
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 'u1', role: 'dosen', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    })),
   },
   course: {
     findFirst: mock(async (args: any) =>
@@ -38,7 +42,11 @@ const prismaMock: any = {
               shareToken: null,
               createdAt: new Date('2025-01-01T00:00:00Z'),
               updatedAt: new Date('2025-01-02T00:00:00Z'),
-              dosen: { id: 'u2', name: 'Other Dosen', email: 'other@example.com' },
+              dosen: {
+                id: 'u2',
+                name: 'Other Dosen',
+                email: 'other@example.com',
+              },
             },
           }
         : null
@@ -68,7 +76,11 @@ describe('GET /api/courses/[id]', () => {
 
   it('mahasiswa can get enrolled course', async () => {
     // Auth session: mahasiswa s1
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true }));
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    }));
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
@@ -86,7 +98,11 @@ describe('GET /api/courses/[id]', () => {
 
   it('returns 403 if role lacks access', async () => {
     // Auth session: admin (not dosen/mahasiswa-onboarded path)
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({ id: 'a1', role: 'admin', isOnboarded: true }));
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 'a1',
+      role: 'admin',
+      isOnboarded: true,
+    }));
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'a1' } }) } },
     }));
@@ -99,4 +115,3 @@ describe('GET /api/courses/[id]', () => {
     expect(res.status).toBe(403);
   });
 });
-

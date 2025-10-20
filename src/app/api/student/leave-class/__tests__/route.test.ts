@@ -5,7 +5,11 @@ mock.module('@/lib/csrf', () => ({ isSameOrigin: () => true }));
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    })),
   },
   courseEnrollment: {
     findUnique: mock(async (args: any) =>
@@ -13,7 +17,12 @@ const prismaMock: any = {
         ? {
             courseId: 'c1',
             studentId: 's1',
-            course: { id: 'c1', namaMataKuliah: 'Algoritma', kelas: 'RA', dosenId: 'u1' },
+            course: {
+              id: 'c1',
+              namaMataKuliah: 'Algoritma',
+              kelas: 'RA',
+              dosenId: 'u1',
+            },
           }
         : null
     ),
@@ -31,7 +40,10 @@ describe('POST /api/student/leave-class', () => {
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/student/leave-class', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-forwarded-host': 'localhost' },
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-host': 'localhost',
+      },
       body: JSON.stringify({ courseId: 'c1' }),
     });
     const res = await POST(req as any, undefined as any);
@@ -42,18 +54,22 @@ describe('POST /api/student/leave-class', () => {
   });
 
   it('returns 404 when not enrolled', async () => {
-    prismaMock.courseEnrollment.findUnique.mockImplementationOnce(async () => null);
+    prismaMock.courseEnrollment.findUnique.mockImplementationOnce(
+      async () => null
+    );
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/student/leave-class', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-forwarded-host': 'localhost' },
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-host': 'localhost',
+      },
       body: JSON.stringify({ courseId: 'cX' }),
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(404);
   });
 });
-

@@ -2,12 +2,21 @@ import { describe, expect, it, mock } from 'bun:test';
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 'u1', role: 'dosen', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    })),
   },
   assignment: {
     findUnique: mock(async (args: any) =>
       args?.where?.id === 'a1'
-        ? { id: 'a1', courseId: 'c1', course: { dosenId: 'u1' }, description: null }
+        ? {
+            id: 'a1',
+            courseId: 'c1',
+            course: { dosenId: 'u1' },
+            description: null,
+          }
         : null
     ),
     update: mock(async () => ({})),
@@ -16,10 +25,50 @@ const prismaMock: any = {
     findMany: mock(async (args: any) => {
       if (args?.where?.courseId !== 'c1') return [];
       return [
-        { student: { id: 's1', gender: 'MALE', ei: 0, sn: 0, tf: 0, pj: 0, personSkills: [{ skillId: 'sk1', level: 0.8 }] } },
-        { student: { id: 's2', gender: 'FEMALE', ei: 0, sn: 0, tf: 0, pj: 0, personSkills: [{ skillId: 'sk1', level: 0.6 }] } },
-        { student: { id: 's3', gender: 'MALE', ei: 0, sn: 0, tf: 0, pj: 0, personSkills: [{ skillId: 'sk1', level: 0.7 }] } },
-        { student: { id: 's4', gender: 'FEMALE', ei: 0, sn: 0, tf: 0, pj: 0, personSkills: [{ skillId: 'sk1', level: 0.5 }] } },
+        {
+          student: {
+            id: 's1',
+            gender: 'MALE',
+            ei: 0,
+            sn: 0,
+            tf: 0,
+            pj: 0,
+            personSkills: [{ skillId: 'sk1', level: 0.8 }],
+          },
+        },
+        {
+          student: {
+            id: 's2',
+            gender: 'FEMALE',
+            ei: 0,
+            sn: 0,
+            tf: 0,
+            pj: 0,
+            personSkills: [{ skillId: 'sk1', level: 0.6 }],
+          },
+        },
+        {
+          student: {
+            id: 's3',
+            gender: 'MALE',
+            ei: 0,
+            sn: 0,
+            tf: 0,
+            pj: 0,
+            personSkills: [{ skillId: 'sk1', level: 0.7 }],
+          },
+        },
+        {
+          student: {
+            id: 's4',
+            gender: 'FEMALE',
+            ei: 0,
+            sn: 0,
+            tf: 0,
+            pj: 0,
+            personSkills: [{ skillId: 'sk1', level: 0.5 }],
+          },
+        },
       ];
     }),
   },
@@ -47,10 +96,12 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
     }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => ({ teams: [
-        { quality: 0.9, people: [{ id: 's1', skillIds: ['sk1'] }] },
-        { quality: 0.8, people: [{ id: 's2', skillIds: ['sk1'] }] },
-      ] }),
+      callEdu2comTeamFormation: async () => ({
+        teams: [
+          { quality: 0.9, people: [{ id: 's1', skillIds: ['sk1'] }] },
+          { quality: 0.8, people: [{ id: 's2', skillIds: ['sk1'] }] },
+        ],
+      }),
     }));
 
     const { POST } = await import('../route');
@@ -59,7 +110,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
@@ -69,7 +123,9 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('rejects when less than 2 students', async () => {
-    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [{ student: { id: 's1', personSkills: [] } }]);
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
+      { student: { id: 's1', personSkills: [] } },
+    ]);
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
     }));
@@ -79,7 +135,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 1 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
   });
 
@@ -88,12 +147,18 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
     }));
     const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/assignments/nonexistent/form-teams', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
-    });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'nonexistent' }) } as any);
+    const req = new Request(
+      'http://localhost/api/assignments/nonexistent/form-teams',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+      }
+    );
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'nonexistent' }) } as any
+    );
     expect(res.status).toBe(404);
     const json = await res.json();
     expect(json.success).toBe(false);
@@ -102,10 +167,16 @@ describe('POST /api/assignments/[id]/form-teams', () => {
 
   it('returns 403 when user is not the owner', async () => {
     // Mock assignment with different owner
-    prismaMock.assignment.findUnique.mockImplementationOnce(async (args: any) =>
-      args?.where?.id === 'a1'
-        ? { id: 'a1', courseId: 'c1', course: { dosenId: 'different-user' }, description: null }
-        : null
+    prismaMock.assignment.findUnique.mockImplementationOnce(
+      async (args: any) =>
+        args?.where?.id === 'a1'
+          ? {
+              id: 'a1',
+              courseId: 'c1',
+              course: { dosenId: 'different-user' },
+              description: null,
+            }
+          : null
     );
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
@@ -116,7 +187,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(403);
     const json = await res.json();
     expect(json.success).toBe(false);
@@ -128,8 +202,28 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     prismaMock.skill.findMany.mockImplementationOnce(async () => []);
     // Mock students with no skills
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
-      { student: { id: 's1', gender: 'MALE', ei: 0, sn: 0, tf: 0, pj: 0, personSkills: [] } },
-      { student: { id: 's2', gender: 'FEMALE', ei: 0, sn: 0, tf: 0, pj: 0, personSkills: [] } },
+      {
+        student: {
+          id: 's1',
+          gender: 'MALE',
+          ei: 0,
+          sn: 0,
+          tf: 0,
+          pj: 0,
+          personSkills: [],
+        },
+      },
+      {
+        student: {
+          id: 's2',
+          gender: 'FEMALE',
+          ei: 0,
+          sn: 0,
+          tf: 0,
+          pj: 0,
+          personSkills: [],
+        },
+      },
     ]);
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
@@ -140,7 +234,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.success).toBe(false);
@@ -157,7 +254,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 10 }), // Too many groups for 4 students
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.success).toBe(false);
@@ -174,7 +274,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_MHS_PER_KELOMPOK', value: 1 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.success).toBe(false);
@@ -186,10 +289,24 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
     }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => ({ teams: [
-        { quality: 0.9, people: [{ id: 's1', skillIds: ['sk1'] }, { id: 's2', skillIds: ['sk1'] }] },
-        { quality: 0.8, people: [{ id: 's3', skillIds: ['sk1'] }, { id: 's4', skillIds: ['sk1'] }] },
-      ] }),
+      callEdu2comTeamFormation: async () => ({
+        teams: [
+          {
+            quality: 0.9,
+            people: [
+              { id: 's1', skillIds: ['sk1'] },
+              { id: 's2', skillIds: ['sk1'] },
+            ],
+          },
+          {
+            quality: 0.8,
+            people: [
+              { id: 's3', skillIds: ['sk1'] },
+              { id: 's4', skillIds: ['sk1'] },
+            ],
+          },
+        ],
+      }),
     }));
 
     const { POST } = await import('../route');
@@ -198,7 +315,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_MHS_PER_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
@@ -220,7 +340,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.success).toBe(false);
@@ -245,7 +368,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ invalid: 'data' }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
   });
 
@@ -255,20 +381,36 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       { id: 't1', name: 'Topic 1' },
       { id: 't2', name: 'Topic 2' },
     ]);
-    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(async () => [
-      { assignmentTopicId: 't1', personId: 's1', preference: 0.8 },
-      { assignmentTopicId: 't1', personId: 's2', preference: 0.6 },
-      { assignmentTopicId: 't2', personId: 's3', preference: 0.9 },
-    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => [
+        { assignmentTopicId: 't1', personId: 's1', preference: 0.8 },
+        { assignmentTopicId: 't1', personId: 's2', preference: 0.6 },
+        { assignmentTopicId: 't2', personId: 's3', preference: 0.9 },
+      ]
+    );
 
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
     }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => ({ teams: [
-        { quality: 0.9, people: [{ id: 's1', skillIds: ['sk1'] }, { id: 's2', skillIds: ['sk1'] }] },
-        { quality: 0.8, people: [{ id: 's3', skillIds: ['sk1'] }, { id: 's4', skillIds: ['sk1'] }] },
-      ] }),
+      callEdu2comTeamFormation: async () => ({
+        teams: [
+          {
+            quality: 0.9,
+            people: [
+              { id: 's1', skillIds: ['sk1'] },
+              { id: 's2', skillIds: ['sk1'] },
+            ],
+          },
+          {
+            quality: 0.8,
+            people: [
+              { id: 's3', skillIds: ['sk1'] },
+              { id: 's4', skillIds: ['sk1'] },
+            ],
+          },
+        ],
+      }),
     }));
 
     const { POST } = await import('../route');
@@ -277,7 +419,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
@@ -297,10 +442,24 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       callEdu2comTeamFormation: async (payload: any) => {
         captured = payload;
         // Return any valid teams structure
-        return { teams: [
-          { quality: 0.9, people: [{ id: 's1', skillIds: ['sk1'] }, { id: 's2', skillIds: ['sk1'] }] },
-          { quality: 0.8, people: [{ id: 's3', skillIds: ['sk1'] }, { id: 's4', skillIds: ['sk1'] }] },
-        ] };
+        return {
+          teams: [
+            {
+              quality: 0.9,
+              people: [
+                { id: 's1', skillIds: ['sk1'] },
+                { id: 's2', skillIds: ['sk1'] },
+              ],
+            },
+            {
+              quality: 0.8,
+              people: [
+                { id: 's3', skillIds: ['sk1'] },
+                { id: 's4', skillIds: ['sk1'] },
+              ],
+            },
+          ],
+        };
       },
     }));
 
@@ -314,7 +473,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(200);
     expect(captured).toBeTruthy();
     const ids = captured.tasks.map((t: any) => t.id);
@@ -333,7 +495,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       headers: { 'content-type': 'application/json' },
       body: 'invalid json',
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'a1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
   });
 });

@@ -3,11 +3,16 @@ import { describe, expect, it, mock } from 'bun:test';
 // Prisma mock with minimal methods used in the route
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    })),
   },
   courseEnrollment: {
     findUnique: mock(async (args: any) =>
-      args?.where?.courseId_studentId?.studentId === 's1' && args?.where?.courseId_studentId?.courseId === 'c1'
+      args?.where?.courseId_studentId?.studentId === 's1' &&
+      args?.where?.courseId_studentId?.courseId === 'c1'
         ? { courseId: 'c1', studentId: 's1' }
         : null
     ),
@@ -15,7 +20,14 @@ const prismaMock: any = {
   assignment: {
     findUnique: mock(async (args: any) =>
       args?.where?.id === 'a1' && args?.where?.courseId === 'c1'
-        ? { id: 'a1', courseId: 'c1', description: JSON.stringify({ skills: ['Frontend'], topics: ['Topic1'] }) }
+        ? {
+            id: 'a1',
+            courseId: 'c1',
+            description: JSON.stringify({
+              skills: ['Frontend'],
+              topics: ['Topic1'],
+            }),
+          }
         : null
     ),
   },
@@ -72,15 +84,21 @@ describe('POST /api/courses/[id]/assignments/[assignmentId]/submit', () => {
     }));
 
     const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses/c1/assignments/a1/submit', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        skills: [{ name: 'Frontend', level: 0.9 }],
-        topics: [{ name: 'Topic1', preference: 0.8 }],
-      }),
-    });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any);
+    const req = new Request(
+      'http://localhost/api/courses/c1/assignments/a1/submit',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          skills: [{ name: 'Frontend', level: 0.9 }],
+          topics: [{ name: 'Topic1', preference: 0.8 }],
+        }),
+      }
+    );
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any
+    );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
@@ -88,28 +106,44 @@ describe('POST /api/courses/[id]/assignments/[assignmentId]/submit', () => {
 
   it('rejects duplicate submissions', async () => {
     // Mark an existing submission
-    prismaMock.assignmentSubmission.findUnique.mockImplementationOnce(async () => ({ id: 'sub1' }));
+    prismaMock.assignmentSubmission.findUnique.mockImplementationOnce(
+      async () => ({ id: 'sub1' })
+    );
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
     const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses/c1/assignments/a1/submit', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ skills: [], topics: [] }),
-    });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any);
+    const req = new Request(
+      'http://localhost/api/courses/c1/assignments/a1/submit',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ skills: [], topics: [] }),
+      }
+    );
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any
+    );
     expect(res.status).toBe(400);
   });
 
   it('rejects when not enrolled', async () => {
-    prismaMock.courseEnrollment.findUnique.mockImplementationOnce(async () => null);
+    prismaMock.courseEnrollment.findUnique.mockImplementationOnce(
+      async () => null
+    );
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
     const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses/c1/assignments/a1/submit', { method: 'POST' });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any);
+    const req = new Request(
+      'http://localhost/api/courses/c1/assignments/a1/submit',
+      { method: 'POST' }
+    );
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any
+    );
     expect(res.status).toBe(403);
   });
 
@@ -119,9 +153,14 @@ describe('POST /api/courses/[id]/assignments/[assignmentId]/submit', () => {
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
     const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses/c1/assignments/ax/submit', { method: 'POST' });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'c1', assignmentId: 'ax' }) } as any);
+    const req = new Request(
+      'http://localhost/api/courses/c1/assignments/ax/submit',
+      { method: 'POST' }
+    );
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1', assignmentId: 'ax' }) } as any
+    );
     expect(res.status).toBe(404);
   });
 });
-

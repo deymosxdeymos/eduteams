@@ -5,7 +5,11 @@ mock.module('@/lib/csrf', () => ({ isSameOrigin: () => true }));
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    })),
   },
   course: {
     findUnique: mock(async (args: any) =>
@@ -39,7 +43,10 @@ describe('POST /api/student/join-class', () => {
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/student/join-class', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-forwarded-host': 'localhost' },
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-host': 'localhost',
+      },
       body: JSON.stringify({ token: 'token123' }),
     });
     const res = await POST(req as any, undefined as any);
@@ -56,11 +63,13 @@ describe('POST /api/student/join-class', () => {
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/student/join-class', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-forwarded-host': 'localhost' },
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-host': 'localhost',
+      },
       body: JSON.stringify({ token: 'bad' }),
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(404);
   });
 });
-

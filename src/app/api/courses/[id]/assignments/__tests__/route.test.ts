@@ -2,7 +2,11 @@ import { describe, expect, it, mock } from 'bun:test';
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 'u1', role: 'dosen', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    })),
   },
   course: {
     findFirst: mock(async (args: any) =>
@@ -21,20 +25,21 @@ const prismaMock: any = {
   },
   assignment: {
     findMany: mock(async (args: any) => {
-      const isSelectingSubmissions = args?.select?.submissions && args.select.submissions !== false;
+      const isSelectingSubmissions =
+        args?.select?.submissions && args.select.submissions !== false;
       return [
-      {
-        id: 'a1',
-        courseId: 'c1',
-        title: 'Tugas 1',
-        description: null,
-        startAt: new Date('2025-01-01T00:00:00Z'),
-        createdAt: new Date('2025-01-02T00:00:00Z'),
-        status: 'BELUM_ISI',
-        _count: { submissions: 2 },
-        ...(isSelectingSubmissions ? { submissions: [{ id: 'sub1' }] } : {}),
-      },
-    ];
+        {
+          id: 'a1',
+          courseId: 'c1',
+          title: 'Tugas 1',
+          description: null,
+          startAt: new Date('2025-01-01T00:00:00Z'),
+          createdAt: new Date('2025-01-02T00:00:00Z'),
+          status: 'BELUM_ISI',
+          _count: { submissions: 2 },
+          ...(isSelectingSubmissions ? { submissions: [{ id: 'sub1' }] } : {}),
+        },
+      ];
     }),
     create: mock(async (args: any) => ({
       id: 'a2',
@@ -68,7 +73,11 @@ describe('courses/[id]/assignments API', () => {
 
   it('GET returns assignments for mahasiswa with submittedByMe', async () => {
     // Auth: mahasiswa s1
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true }));
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    }));
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
@@ -113,7 +122,10 @@ describe('courses/[id]/assignments API', () => {
         topics: ['Topic1', ' Topic2 '],
       }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'c1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1' }) } as any
+    );
     expect(res.status).toBe(201);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
@@ -123,7 +135,11 @@ describe('courses/[id]/assignments API', () => {
 
   it('POST denies mahasiswa', async () => {
     // Auth: mahasiswa s1
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true }));
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    }));
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
@@ -134,7 +150,10 @@ describe('courses/[id]/assignments API', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ title: 'T', skills: [], topics: [] }),
     });
-    const res = await POST(req as any, { params: Promise.resolve({ id: 'c1' }) } as any);
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1' }) } as any
+    );
     expect(res.status).toBe(403);
   });
 });

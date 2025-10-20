@@ -59,7 +59,9 @@ mock.module('@/lib/mbti-questions-simple', () => ({
 
 describe('POST /api/user/complete-onboarding', () => {
   it('calculates personality for mahasiswa answers', async () => {
-    mock.module('@/lib/auth', () => ({ auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } } }));
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    }));
     const { POST } = await import('../route');
     const answers: Record<string, number> = {};
     for (let i = 1; i <= 4; i++) answers[String(i)] = 3;

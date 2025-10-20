@@ -2,7 +2,11 @@ import { describe, expect, it, mock } from 'bun:test';
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 's1', role: 'mahasiswa', isOnboarded: true })),
+    findUnique: mock(async () => ({
+      id: 's1',
+      role: 'mahasiswa',
+      isOnboarded: true,
+    })),
   },
   courseEnrollment: {
     findMany: mock(async () => [
@@ -31,11 +35,13 @@ describe('GET /api/student/classes', () => {
       auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
     }));
     const { GET } = await import('../route');
-    const res = await GET(new Request('http://localhost/api/student/classes') as any, undefined as any);
+    const res = await GET(
+      new Request('http://localhost/api/student/classes') as any,
+      undefined as any
+    );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(Array.isArray(json.data)).toBe(true);
     expect(json.data[0].studentCount).toBe(3);
   });
 });
-

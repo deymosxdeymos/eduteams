@@ -28,7 +28,10 @@ describe('POST /api/user/personality', () => {
     const req = new Request('http://localhost/api/user/personality', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionId: '11111111-1111-4111-8111-111111111111', answers: { q1: 3 } }),
+      body: JSON.stringify({
+        sessionId: '11111111-1111-4111-8111-111111111111',
+        answers: { q1: 3 },
+      }),
     });
 
     const res = await POST(req as any);
@@ -56,7 +59,10 @@ describe('POST /api/user/personality', () => {
     const req = new Request('http://localhost/api/user/personality', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sessionId: '11111111-1111-4111-8111-111111111111', answers: { q1: 3 } }),
+      body: JSON.stringify({
+        sessionId: '11111111-1111-4111-8111-111111111111',
+        answers: { q1: 3 },
+      }),
     });
 
     const res = await POST(req as any);
