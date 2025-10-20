@@ -23,7 +23,7 @@ export default async function Home() {
           href='/'
           imageClassName='h-8 w-auto md:h-12'
           size='text-xl sm:text-2xl md:text-3xl'
-          className='justify-center animate-logo-welcome'
+          className='justify-center animate-hero-delay-800'
         />
         <div className='flex items-center font-medium text-base gap-x-6'>
           <div className='flex text-background items-center gap-x-4 animate-hero-delay-700'>

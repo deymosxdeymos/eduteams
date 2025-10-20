@@ -65,19 +65,6 @@ body {
   }
 }
 
-@keyframes logo-welcome {
-  0% {
-    transform: translateY(250px) scale(2);
-    filter: blur(10px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-    opacity: 1;
-  }
-}
-
 @keyframes content-fade {
   0% {
     transform: var(--welcome-transform-from, scale(0.9));
@@ -188,47 +175,38 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .animate-logo-welcome {
-    animation-name: logo-welcome;
-    animation-duration: 0.6s;
-    animation-delay: 0.2s;
-    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
-    animation-fill-mode: both;
-    will-change: transform, opacity, filter;
-  }
-
   .animate-hero-delay-600 {
     animation-name: content-fade;
-    animation-duration: 0.35s;
-    animation-delay: 0.6s;
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-duration: 0.3s;
+    animation-delay: 0.2s;
+    animation-timing-function: var(--ease-out-cubic);
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
 
   .animate-hero-delay-700 {
     animation-name: content-fade;
-    animation-duration: 0.35s;
-    animation-delay: 0.7s;
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-duration: 0.3s;
+    animation-delay: 0.3s;
+    animation-timing-function: var(--ease-out-cubic);
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
 
   .animate-hero-delay-800 {
     animation-name: content-fade;
-    animation-duration: 0.35s;
-    animation-delay: 0.8s;
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-duration: 0.3s;
+    animation-delay: 0.4s;
+    animation-timing-function: var(--ease-out-cubic);
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
 
   .animate-mascot {
     animation-name: content-fade;
-    animation-duration: 0.4s;
-    animation-delay: 0.9s;
-    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+    animation-duration: 0.3s;
+    animation-delay: 0.5s;
+    animation-timing-function: var(--ease-out-cubic);
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
@@ -236,9 +214,9 @@ body {
   .animate-hills,
   .animate-hills-content {
     animation-name: content-fade;
-    animation-duration: 0.5s;
-    animation-delay: 1s;
-    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+    animation-duration: 0.3s;
+    animation-delay: 0.6s;
+    animation-timing-function: var(--ease-out-cubic);
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
