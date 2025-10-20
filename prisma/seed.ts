@@ -1,4 +1,5 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
+import type { Prisma } from '@/generated/prisma';
 import prisma from '../src/lib/prisma';
 
 type PersonalityQuestionSeed = {
@@ -268,9 +269,7 @@ async function seedMBTIQuestions() {
 
   try {
     // Verify the new model exists on the client (ensure you ran prisma generate after schema change)
-    const hasPQ = Boolean(
-      (prisma as unknown as Record<string, any>).personalityQuestion
-    );
+    const hasPQ = Boolean(prisma.personalityQuestion);
     if (!hasPQ) {
       console.error(
         '❌ prisma.personalityQuestion is undefined. Run `bun prisma generate` (and migrate) to update the client.'
@@ -280,17 +279,15 @@ async function seedMBTIQuestions() {
 
     validatePersonalityBank(personalityBank);
 
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Clear existing MBTI questions from the dedicated table
-      await (
-        tx as unknown as Record<string, any>
-      ).personalityQuestion?.deleteMany?.({});
+      await tx.personalityQuestion.deleteMany({});
 
       console.log('✅ Cleared existing MBTI questions (personality_questions)');
 
       // Seed into PersonalityQuestion table (not Skills) - using Indonesian questions
       const creations = personalityBank.map(q =>
-        (tx as unknown as Record<string, any>).personalityQuestion.create({
+        tx.personalityQuestion.create({
           data: withTimestamps({
             id: randomUUID(),
             bankVersion: ACTIVE_BANK_VERSION,
@@ -333,13 +330,13 @@ async function seedDosenTokens() {
   console.log('🌱 Starting dosen token seeding...');
 
   try {
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Clear existing dosen tokens and usage records
       try {
         await tx.dosenTokenUsage.deleteMany({});
         await tx.dosenToken.deleteMany({});
         console.log('✅ Cleared existing dosen tokens and usage records');
-      } catch (error) {
+      } catch (_error) {
         // Tables might not exist yet, that's okay
         console.log('✅ No existing dosen tokens to clear (tables may be new)');
       }
@@ -388,9 +385,13 @@ async function main() {
   }
 }
 
-// Run if called directly
-if ((require as any).main === module) {
-  main();
+const isDirectExecution =
+  typeof require !== 'undefined' &&
+  typeof module !== 'undefined' &&
+  require.main === module;
+
+if (isDirectExecution) {
+  void main();
 }
 
 export { seedMBTIQuestions, seedDosenTokens };

@@ -520,7 +520,7 @@ function buildAnalysis(
       responsesBySession.set(response.sessionId, new Map());
     }
 
-    responsesBySession.get(response.sessionId)!.set(response.questionId, score);
+    responsesBySession.get(response.sessionId)?.set(response.questionId, score);
   }
 
   const itemsByAxis: Record<PersonalityAxisKey, QuestionRecord[]> = {
@@ -541,13 +541,6 @@ function buildAnalysis(
     tf: [],
     pj: [],
   };
-  const axisItemStats: Record<PersonalityAxisKey, AxisItemStat[]> = {
-    ei: [],
-    sn: [],
-    tf: [],
-    pj: [],
-  };
-
   const axisTotalsBySession = new Map<
     string,
     Record<PersonalityAxisKey, number>
@@ -707,7 +700,9 @@ function computeTestRetest(
     if (!sessionsByUser.has(session.userId)) {
       sessionsByUser.set(session.userId, []);
     }
-    sessionsByUser.get(session.userId)!.push(session);
+    const sessionList = sessionsByUser.get(session.userId);
+    if (!sessionList) continue;
+    sessionList.push(session);
   }
 
   const pairedScores: Record<
