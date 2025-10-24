@@ -2,13 +2,13 @@
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useReducer, useRef, useState } from 'react';
 import Logo from '@/components/logo';
 import InstructionModal from '@/components/onboarding/kepribadian/instruction-modal';
 import PersonalityQuestion from '@/components/onboarding/kepribadian/personality-question';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useRouter } from '@/i18n/routing';
 import { submitPersonalityTest } from '@/lib/actions/personality';
 import type { CreatePersonalitySessionResult } from '@/lib/personality-session';
 import {
@@ -22,6 +22,7 @@ import {
 
 interface PersonalityTestClientProps {
   session: CreatePersonalitySessionResult;
+  userRole: 'dosen' | 'mahasiswa';
   dict: {
     onboarding: {
       kepribadian: {
@@ -46,6 +47,12 @@ interface PersonalityTestClientProps {
           };
           startNow: string;
         };
+        alerts: {
+          submitFailed: string;
+        };
+        errors: {
+          questionRequired: string;
+        };
       };
     };
   };
@@ -53,6 +60,7 @@ interface PersonalityTestClientProps {
 
 export default function PersonalityTestClient({
   session,
+  userRole,
   dict,
 }: PersonalityTestClientProps) {
   const router = useRouter();
@@ -63,6 +71,10 @@ export default function PersonalityTestClient({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const questions = session.questions;
+  const likertLabels = dict.onboarding.kepribadian.instructions.likertScale;
+  const submitFailedMessage = dict.onboarding.kepribadian.alerts.submitFailed;
+  const questionRequiredMessage =
+    dict.onboarding.kepribadian.errors.questionRequired;
 
   const questionsPerPage = 6;
   const totalPages = Math.ceil(questions.length / questionsPerPage);
@@ -112,7 +124,7 @@ export default function PersonalityTestClient({
     if (state.currentPage > 1) {
       dispatch({ type: 'PREV_PAGE' });
     } else {
-      router.push('/onboarding/data-diri/mahasiswa');
+      router.push(`/onboarding/data-diri/${userRole}?edit=true`);
     }
   };
 
@@ -143,9 +155,7 @@ export default function PersonalityTestClient({
       // Log and reset submitting state on regular errors
       console.error('Error completing kepribadian:', err);
       const message =
-        err instanceof Error && err.message
-          ? err.message
-          : 'Gagal menyimpan jawaban. Coba lagi.';
+        err instanceof Error && err.message ? err.message : submitFailedMessage;
       window.alert(message);
     } finally {
       dispatch({ type: 'SET_SUBMITTING', payload: false });
@@ -206,6 +216,8 @@ export default function PersonalityTestClient({
               hasError={state.validationErrors.has(question.id)}
               initialValue={state.answers[question.id]}
               onAnswerAction={value => handleAnswer(question.id, value)}
+              likertScale={likertLabels}
+              requiredMessage={questionRequiredMessage}
             />
           ))}
         </div>

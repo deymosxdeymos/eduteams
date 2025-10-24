@@ -10,6 +10,14 @@ interface PersonalityQuestionProps {
   hasError?: boolean;
   questionId?: number | string;
   initialValue?: number;
+  likertScale?: {
+    stronglyDisagree: string;
+    disagree: string;
+    neutral: string;
+    agree: string;
+    stronglyAgree: string;
+  };
+  requiredMessage?: string;
 }
 
 export default function PersonalityQuestion({
@@ -18,20 +26,35 @@ export default function PersonalityQuestion({
   hasError = false,
   questionId,
   initialValue,
+  likertScale,
+  requiredMessage,
 }: PersonalityQuestionProps) {
   const selectedValue = typeof initialValue === 'number' ? initialValue : null;
 
-  const likertScale = [
+  const likertLabels = likertScale ?? {
+    stronglyDisagree: 'Sangat Tidak\nSetuju',
+    disagree: 'Tidak Setuju',
+    neutral: 'Netral',
+    agree: 'Setuju',
+    stronglyAgree: 'Sangat Setuju',
+  };
+
+  const likertOptions = [
     {
       icon: 'Strongly-Disagree',
-      label: 'Sangat Tidak\nSetuju',
+      label: likertLabels.stronglyDisagree,
       value: 1,
       size: 64,
     },
-    { icon: 'Disagree', label: 'Tidak Setuju', value: 2, size: 56 },
-    { icon: 'Neutral', label: 'Netral', value: 3, size: 48 },
-    { icon: 'Agree', label: 'Setuju', value: 4, size: 56 },
-    { icon: 'Strongly-Agree', label: 'Sangat Setuju', value: 5, size: 64 },
+    { icon: 'Disagree', label: likertLabels.disagree, value: 2, size: 56 },
+    { icon: 'Neutral', label: likertLabels.neutral, value: 3, size: 48 },
+    { icon: 'Agree', label: likertLabels.agree, value: 4, size: 56 },
+    {
+      icon: 'Strongly-Agree',
+      label: likertLabels.stronglyAgree,
+      value: 5,
+      size: 64,
+    },
   ];
 
   const handleSelection = (value: number) => {
@@ -53,7 +76,7 @@ export default function PersonalityQuestion({
           </div>
 
           <div className='flex items-center justify-center max-w-5xl mx-auto'>
-            {likertScale.map((item, index) => (
+            {likertOptions.map((item, index) => (
               <div key={item.value} className='flex items-center'>
                 <motion.div
                   className='flex flex-col items-center space-y-3 cursor-pointer'
@@ -81,7 +104,7 @@ export default function PersonalityQuestion({
                     {item.label}
                   </div>
                 </motion.div>
-                {index < likertScale.length - 1 && (
+                {index < likertOptions.length - 1 && (
                   <div className='h-1 w-16 bg-gray-300 mx-4' />
                 )}
               </div>
@@ -124,7 +147,7 @@ export default function PersonalityQuestion({
                 }}
                 className='text-sm font-normal'
               >
-                Pertanyaan ini wajib diisi
+                {requiredMessage ?? 'Pertanyaan ini wajib diisi'}
               </motion.span>
             </div>
           </motion.div>

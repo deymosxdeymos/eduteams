@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { UserRound } from 'lucide-react';
 import Image from 'next/image';
-import { useId, useTransition } from 'react';
+import { useId, useRef, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import {
@@ -42,10 +42,14 @@ interface DataDiriFormClientProps {
         saving: string;
         validation: {
           namaLengkapMin: string;
+          namaLengkapMax: string;
+          namaLengkapPattern: string;
           nimMin: string;
           nimMax: string;
+          nimPattern: string;
           npmMin: string;
           npmMax: string;
+          npmPattern: string;
           jenisKelaminRequired: string;
         };
       };
@@ -60,7 +64,12 @@ const createFormSchema = (
   const baseSchema = {
     namaLengkap: z
       .string()
-      .min(2, dict.onboarding.dataDiri.validation.namaLengkapMin),
+      .min(2, dict.onboarding.dataDiri.validation.namaLengkapMin)
+      .max(100, dict.onboarding.dataDiri.validation.namaLengkapMax)
+      .regex(
+        /^[\p{L}\p{M}\s\-.']+$/u,
+        dict.onboarding.dataDiri.validation.namaLengkapPattern
+      ),
     jenisKelamin: z
       .string()
       .min(1, dict.onboarding.dataDiri.validation.jenisKelaminRequired),
@@ -72,7 +81,8 @@ const createFormSchema = (
       nim: z
         .string()
         .min(8, dict.onboarding.dataDiri.validation.nimMin)
-        .max(15, dict.onboarding.dataDiri.validation.nimMax),
+        .max(15, dict.onboarding.dataDiri.validation.nimMax)
+        .regex(/^\d+$/, dict.onboarding.dataDiri.validation.nimPattern),
     });
   } else {
     return z.object({
@@ -80,7 +90,8 @@ const createFormSchema = (
       npm: z
         .string()
         .min(8, dict.onboarding.dataDiri.validation.npmMin)
-        .max(15, dict.onboarding.dataDiri.validation.npmMax),
+        .max(15, dict.onboarding.dataDiri.validation.npmMax)
+        .regex(/^\d+$/, dict.onboarding.dataDiri.validation.npmPattern),
     });
   }
 };
@@ -96,12 +107,15 @@ export default function DataDiriFormClient({
   const nimFieldId = useId();
   const npmFieldId = useId();
   const nimNpmFieldId = role === 'mahasiswa' ? nimFieldId : npmFieldId;
+  const namaWrapperRef = useRef<HTMLDivElement>(null);
+  const nimNpmWrapperRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const formSchema = createFormSchema(role, dict);
   type FormData = z.infer<typeof formSchema>;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    mode: 'onBlur',
     defaultValues: {
       namaLengkap: initialData?.namaLengkap || '',
       jenisKelamin: initialData?.jenisKelamin || '',
@@ -171,7 +185,7 @@ export default function DataDiriFormClient({
         <FormField
           control={form.control}
           name='namaLengkap'
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel
                 htmlFor={namaLengkapId}
@@ -180,7 +194,11 @@ export default function DataDiriFormClient({
                 {dict.onboarding.dataDiri.namaLengkap}
               </FormLabel>
               <FormControl>
-                <div className='relative'>
+                <motion.div
+                  ref={namaWrapperRef}
+                  className='relative'
+                  initial={false}
+                >
                   <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black z-10' />
                   <InputRounded
                     id={namaLengkapId}
@@ -188,9 +206,11 @@ export default function DataDiriFormClient({
                       dict.onboarding.dataDiri.namaLengkapPlaceholder
                     }
                     {...field}
+                    aria-invalid={!!fieldState.error}
+                    animationTargetRef={namaWrapperRef}
                     className='pl-10'
                   />
-                </div>
+                </motion.div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -200,7 +220,7 @@ export default function DataDiriFormClient({
         <FormField
           control={form.control}
           name={role === 'mahasiswa' ? 'nim' : 'npm'}
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel
                 htmlFor={nimNpmFieldId}
@@ -211,7 +231,11 @@ export default function DataDiriFormClient({
                   : dict.onboarding.dataDiri.npm}
               </FormLabel>
               <FormControl>
-                <div className='relative'>
+                <motion.div
+                  ref={nimNpmWrapperRef}
+                  className='relative'
+                  initial={false}
+                >
                   <Image
                     src='/icons/nim.svg'
                     alt={`${role === 'mahasiswa' ? 'NIM' : 'NPM'} icon`}
@@ -227,9 +251,11 @@ export default function DataDiriFormClient({
                         : dict.onboarding.dataDiri.npmPlaceholder
                     }
                     {...field}
+                    aria-invalid={!!fieldState.error}
+                    animationTargetRef={nimNpmWrapperRef}
                     className='pl-10'
                   />
-                </div>
+                </motion.div>
               </FormControl>
               <FormMessage />
             </FormItem>
