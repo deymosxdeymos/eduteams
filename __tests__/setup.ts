@@ -11,9 +11,16 @@ afterEach(() => {
 // Ensure a consistent timezone across environments
 process.env.TZ = 'Etc/UTC';
 
-// Mock next/image to a simple img to avoid Next.js internals in tests
+// Mock next/image to strip Next-specific props while rendering a basic img
 mock.module('next/image', () => ({
-  default: (props: any) => React.createElement('img', props),
+  default: ({
+    priority: _priority,
+    fill: _fill,
+    loader: _loader,
+    blurDataURL: _blurDataURL,
+    placeholder: _placeholder,
+    ...props
+  }: any) => React.createElement('img', props),
 }));
 
 // Mock next/navigation hooks used in client components
