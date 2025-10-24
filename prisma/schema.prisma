@@ -386,6 +386,22 @@ enum PersonalityAxis {
   SN @map("sn")
   TF @map("tf")
   PJ @map("pj")
+  I  @map("i")
+  E  @map("e")
+  S  @map("s")
+  N  @map("n")
+  F  @map("f")
+  T  @map("t")
+  J  @map("j")
+  P  @map("p")
+  NJ @map("nj")
+  NP @map("np")
+  SJ @map("sj")
+  SP @map("sp")
+  EF @map("ef")
+  ET @map("et")
+  IF @map("if")
+  IT @map("it")
 }
 
 enum PersonalityBankStatus {
