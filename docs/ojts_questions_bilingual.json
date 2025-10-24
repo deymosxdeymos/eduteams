@@ -1,0 +1,291 @@
+{
+  "metadata": {
+    "name": "OJTS v2.1 (Open Jungian Type Scales)",
+    "version": "2.1",
+    "totalQuestions": 40,
+    "source": "openpsychometrics.org",
+    "description": "40 Likert items: Q1-Q24 measure base dimensions (I/E, S/N, F/T, J/P), Q25-Q40 measure interaction terms (NJ, NP, SJ, SP, EF, ET, IF, IT)"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "dimension": "I",
+      "reversed": false,
+      "en": "I enjoy large social events",
+      "idText": "Saya suka acara kumpul-kumpul yang ramai"
+    },
+    {
+      "id": 2,
+      "dimension": "I",
+      "reversed": false,
+      "en": "I am the first to act",
+      "idText": "Saya orang yang pertama bertindak"
+    },
+    {
+      "id": 3,
+      "dimension": "I",
+      "reversed": false,
+      "en": "I express my views with confidence",
+      "idText": "Saya ungkapkan pendapat dengan percaya diri"
+    },
+    {
+      "id": 4,
+      "dimension": "I",
+      "reversed": false,
+      "en": "I want a huge social circle",
+      "idText": "Saya ingin punya banyak teman"
+    },
+    {
+      "id": 5,
+      "dimension": "I",
+      "reversed": false,
+      "en": "I am the life of the party",
+      "idText": "Saya adalah pusat perhatian di acara kumpul-kumpul"
+    },
+    {
+      "id": 6,
+      "dimension": "I",
+      "reversed": false,
+      "en": "I make lots of noise",
+      "idText": "Saya orangnya ramai"
+    },
+    {
+      "id": 7,
+      "dimension": "S",
+      "reversed": false,
+      "en": "I focus on the here-and-now",
+      "idText": "Saya fokus pada saat ini"
+    },
+    {
+      "id": 8,
+      "dimension": "S",
+      "reversed": false,
+      "en": "I am a concrete thinker",
+      "idText": "Saya berpikir secara konkret"
+    },
+    {
+      "id": 9,
+      "dimension": "S",
+      "reversed": false,
+      "en": "I focus on the details",
+      "idText": "Saya fokus pada detailnya"
+    },
+    {
+      "id": 10,
+      "dimension": "S",
+      "reversed": false,
+      "en": "I am a down-to-earth person",
+      "idText": "Saya orang yang realistis"
+    },
+    {
+      "id": 11,
+      "dimension": "S",
+      "reversed": false,
+      "en": "I prefer routine to variety",
+      "idText": "Saya lebih suka rutinitas daripada variasi"
+    },
+    {
+      "id": 12,
+      "dimension": "S",
+      "reversed": false,
+      "en": "I am a practical person",
+      "idText": "Saya orang yang praktis"
+    },
+    {
+      "id": 13,
+      "dimension": "F",
+      "reversed": false,
+      "en": "I sympathize with the homeless",
+      "idText": "Saya simpatik dengan tunawisma"
+    },
+    {
+      "id": 14,
+      "dimension": "F",
+      "reversed": false,
+      "en": "I believe that people are good",
+      "idText": "Saya percaya bahwa orang itu baik"
+    },
+    {
+      "id": 15,
+      "dimension": "F",
+      "reversed": false,
+      "en": "I am a romantic",
+      "idText": "Saya orang yang romantis"
+    },
+    {
+      "id": 16,
+      "dimension": "F",
+      "reversed": false,
+      "en": "I value feelings over logic",
+      "idText": "Saya lebih menghargai perasaan daripada logika"
+    },
+    {
+      "id": 17,
+      "dimension": "F",
+      "reversed": false,
+      "en": "I cry during movies",
+      "idText": "Saya menangis saat nonton film"
+    },
+    {
+      "id": 18,
+      "dimension": "F",
+      "reversed": false,
+      "en": "I avoid stepping on bugs",
+      "idText": "Saya hindari menginjak serangga"
+    },
+    {
+      "id": 19,
+      "dimension": "J",
+      "reversed": false,
+      "en": "I like order",
+      "idText": "Saya suka keteraturan"
+    },
+    {
+      "id": 20,
+      "dimension": "J",
+      "reversed": false,
+      "en": "I follow a schedule",
+      "idText": "Saya ikuti jadwal"
+    },
+    {
+      "id": 21,
+      "dimension": "J",
+      "reversed": false,
+      "en": "I am always prepared",
+      "idText": "Saya selalu siap"
+    },
+    {
+      "id": 22,
+      "dimension": "J",
+      "reversed": false,
+      "en": "I get things done right away",
+      "idText": "Saya langsung selesaikan sesuatu"
+    },
+    {
+      "id": 23,
+      "dimension": "J",
+      "reversed": false,
+      "en": "I make plans and stick to them",
+      "idText": "Saya buat rencana dan patuhi rencana itu"
+    },
+    {
+      "id": 24,
+      "dimension": "J",
+      "reversed": false,
+      "en": "I like things settled",
+      "idText": "Saya suka hal yang sudah jelas"
+    },
+    {
+      "id": 25,
+      "dimension": "NJ",
+      "reversed": false,
+      "en": "I think about the future",
+      "idText": "Saya berpikir tentang masa depan"
+    },
+    {
+      "id": 26,
+      "dimension": "NJ",
+      "reversed": false,
+      "en": "I like to set long-term goals",
+      "idText": "Saya suka membuat tujuan jangka panjang"
+    },
+    {
+      "id": 27,
+      "dimension": "NP",
+      "reversed": false,
+      "en": "I see the big picture",
+      "idText": "Saya lihat gambaran besarnya"
+    },
+    {
+      "id": 28,
+      "dimension": "NP",
+      "reversed": false,
+      "en": "I think anything is possible",
+      "idText": "Saya pikir semuanya mungkin terjadi"
+    },
+    {
+      "id": 29,
+      "dimension": "SJ",
+      "reversed": false,
+      "en": "I like established ways of doing things",
+      "idText": "Saya suka cara yang sudah mapan"
+    },
+    {
+      "id": 30,
+      "dimension": "SJ",
+      "reversed": false,
+      "en": "I respect traditions",
+      "idText": "Saya menghormati tradisi"
+    },
+    {
+      "id": 31,
+      "dimension": "SP",
+      "reversed": false,
+      "en": "I enjoy the moment",
+      "idText": "Saya nikmati momen saat ini"
+    },
+    {
+      "id": 32,
+      "dimension": "SP",
+      "reversed": false,
+      "en": "I am spontaneous",
+      "idText": "Saya spontan"
+    },
+    {
+      "id": 33,
+      "dimension": "EF",
+      "reversed": false,
+      "en": "I have a big heart",
+      "idText": "Saya punya hati yang besar"
+    },
+    {
+      "id": 34,
+      "dimension": "EF",
+      "reversed": false,
+      "en": "I show my feelings",
+      "idText": "Saya tunjukkan perasaan saya"
+    },
+    {
+      "id": 35,
+      "dimension": "ET",
+      "reversed": false,
+      "en": "I am assertive",
+      "idText": "Saya tegas"
+    },
+    {
+      "id": 36,
+      "dimension": "ET",
+      "reversed": false,
+      "en": "I take charge",
+      "idText": "Saya ambil kendali"
+    },
+    {
+      "id": 37,
+      "dimension": "IF",
+      "reversed": false,
+      "en": "I listen to my conscience",
+      "idText": "Saya dengarkan hati nurani"
+    },
+    {
+      "id": 38,
+      "dimension": "IF",
+      "reversed": false,
+      "en": "I think about others' feelings",
+      "idText": "Saya pikirkan perasaan orang lain"
+    },
+    {
+      "id": 39,
+      "dimension": "IT",
+      "reversed": false,
+      "en": "I analyze problems",
+      "idText": "Saya analisis masalah"
+    },
+    {
+      "id": 40,
+      "dimension": "IT",
+      "reversed": false,
+      "en": "I think before I speak",
+      "idText": "Saya berpikir sebelum bicara"
+    }
+  ]
+}
