@@ -146,10 +146,14 @@
       "saving": "Saving...",
       "validation": {
         "namaLengkapMin": "Full name must be at least 2 characters",
+        "namaLengkapMax": "Full name must be at most 100 characters",
+        "namaLengkapPattern": "Full name can only contain letters, spaces, and basic punctuation",
         "nimMin": "NIM must be at least 8 characters",
         "nimMax": "NIM must be at most 15 characters",
+        "nimPattern": "NIM can only contain numbers",
         "npmMin": "NPM must be at least 8 characters",
         "npmMax": "NPM must be at most 15 characters",
+        "npmPattern": "NPM can only contain numbers",
         "jenisKelaminRequired": "Please select gender"
       }
     },
@@ -174,6 +178,12 @@
           "stronglyAgree": "Strongly\nAgree"
         },
         "startNow": "Start Now"
+      },
+      "alerts": {
+        "submitFailed": "Failed to save your answers. Please try again."
+      },
+      "errors": {
+        "questionRequired": "This question is required"
       }
     }
   },

@@ -146,10 +146,14 @@
       "saving": "Saving...",
       "validation": {
         "namaLengkapMin": "Nama lengkap minimal 2 karakter",
+        "namaLengkapMax": "Nama lengkap maksimal 100 karakter",
+        "namaLengkapPattern": "Nama lengkap hanya boleh mengandung huruf, spasi, dan tanda baca dasar",
         "nimMin": "NIM minimal 8 karakter",
         "nimMax": "NIM maksimal 15 karakter",
+        "nimPattern": "NIM hanya boleh mengandung angka",
         "npmMin": "NPM minimal 8 karakter",
         "npmMax": "NPM maksimal 15 karakter",
+        "npmPattern": "NPM hanya boleh mengandung angka",
         "jenisKelaminRequired": "Pilih jenis kelamin"
       }
     },
@@ -174,6 +178,12 @@
           "stronglyAgree": "Sangat Setuju"
         },
         "startNow": "Mulai Sekarang"
+      },
+      "alerts": {
+        "submitFailed": "Gagal menyimpan jawaban. Coba lagi."
+      },
+      "errors": {
+        "questionRequired": "Pertanyaan ini wajib diisi"
       }
     }
   },
