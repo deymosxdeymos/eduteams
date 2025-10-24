@@ -17,6 +17,9 @@ const sessionStatusMock = mock(async () => null);
 mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 mock.module('@/lib/personality-session', () => ({
   getUserPersonalitySessionStatus: sessionStatusMock,
+  submitPersonalitySession: async () => {
+    throw new Error('submitPersonalitySession mock not implemented');
+  },
 }));
 
 describe('GET /api/user/onboarding-status', () => {

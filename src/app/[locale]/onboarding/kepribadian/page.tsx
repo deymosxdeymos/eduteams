@@ -1,6 +1,7 @@
 import { getMessages } from 'next-intl/server';
 import PersonalityTestClient from '@/components/onboarding/kepribadian/personality-test-client';
 import { ensurePersonalitySession } from '@/lib/actions/personality';
+import { protectOnboardingPage } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export default async function KepribadianPage({
   params: { locale: string };
 }) {
   const { locale } = await params;
+  const user = await protectOnboardingPage();
   const session = await ensurePersonalitySession(locale);
   const messages = (await getMessages()) as {
     onboarding: {
@@ -35,9 +37,25 @@ export default async function KepribadianPage({
           };
           startNow: string;
         };
+        alerts: {
+          submitFailed: string;
+        };
+        errors: {
+          questionRequired: string;
+        };
       };
     };
   };
 
-  return <PersonalityTestClient session={session} dict={messages} />;
+  // Admin users shouldn't reach onboarding, but handle gracefully
+  const userRole =
+    user.role === 'admin' ? 'mahasiswa' : user.role || 'mahasiswa';
+
+  return (
+    <PersonalityTestClient
+      session={session}
+      userRole={userRole}
+      dict={messages}
+    />
+  );
 }

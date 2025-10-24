@@ -7,7 +7,12 @@ import SessionClearClient from './session-clear-client';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ResumePage() {
+export default async function ResumePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const user = await getCurrentUser();
 
   if (!user) {
@@ -36,7 +41,7 @@ export default async function ResumePage() {
 
   const sessionStatus =
     targetRole === 'mahasiswa'
-      ? await getUserPersonalitySessionStatus(user.id)
+      ? await getUserPersonalitySessionStatus(user.id, locale)
       : null;
 
   console.log('Resume page - User data:', {

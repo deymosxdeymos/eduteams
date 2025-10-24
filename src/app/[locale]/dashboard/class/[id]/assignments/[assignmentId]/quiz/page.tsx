@@ -170,7 +170,7 @@ async function getAssignmentData(
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string; assignmentId: string }>;
+  params: Promise<{ locale: string; id: string; assignmentId: string }>;
 }): Promise<Metadata> {
   const { assignmentId } = await params;
 
@@ -187,14 +187,14 @@ export async function generateMetadata({
 }
 
 interface AssignmentQuizPageProps {
-  params: Promise<{ id: string; assignmentId: string }>;
+  params: Promise<{ locale: string; id: string; assignmentId: string }>;
 }
 
 export default async function AssignmentQuizPage({
   params,
 }: AssignmentQuizPageProps) {
   const user = await protectDashboard();
-  const { id: classId, assignmentId } = await params;
+  const { locale, id: classId, assignmentId } = await params;
 
   const isMahasiswa = canAccessMahasiswaFeatures(user);
   if (!isMahasiswa) notFound();
@@ -267,7 +267,7 @@ export default async function AssignmentQuizPage({
     };
 
     // Personality QA: fetch questions + user answers
-    const mbtiQuestions = await getMBTIQuestions();
+    const mbtiQuestions = await getMBTIQuestions(locale);
     const userRecord = await prisma.user.findUnique({
       where: { id: user.id },
       select: { personalityData: true },

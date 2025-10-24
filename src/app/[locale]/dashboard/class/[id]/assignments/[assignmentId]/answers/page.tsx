@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string; assignmentId: string }>;
+  params: Promise<{ locale: string; id: string; assignmentId: string }>;
 }): Promise<Metadata> {
   const { assignmentId } = await params;
   const assignment = await prisma.assignment.findUnique({
@@ -188,7 +188,7 @@ function getLikertValue(
 }
 
 interface AnswersPageProps {
-  params: Promise<{ id: string; assignmentId: string }>;
+  params: Promise<{ locale: string; id: string; assignmentId: string }>;
   searchParams: Promise<{ studentId?: string }>;
 }
 
@@ -197,7 +197,7 @@ export default async function AssignmentAnswersPage({
   searchParams,
 }: AnswersPageProps) {
   const user = await protectDashboard();
-  const { id: classId, assignmentId } = await params;
+  const { locale, id: classId, assignmentId } = await params;
   const isDosen = canAccessDosenFeatures(user);
   if (!isDosen) notFound();
 
@@ -265,7 +265,7 @@ export default async function AssignmentAnswersPage({
   const selectedUser = selected as unknown as ExtendedUser;
 
   const answersView = await getAssignmentAnswersView(assignmentId, selected.id);
-  const mbtiQuestions = await getMBTIQuestions();
+  const mbtiQuestions = await getMBTIQuestions(locale);
   const personalityJson = selected.personalityData as unknown as {
     answers?: Record<string, number>;
   } | null;

@@ -9,7 +9,12 @@ import { protectOnboardingPage } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
-export default async function RolePage() {
+export default async function RolePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations('onboarding.role');
   const user = await protectOnboardingPage();
 
@@ -25,7 +30,10 @@ export default async function RolePage() {
       redirect('/onboarding/data-diri/mahasiswa');
     }
 
-    const sessionStatus = await getUserPersonalitySessionStatus(user.id);
+    const sessionStatus = await getUserPersonalitySessionStatus(
+      user.id,
+      locale
+    );
 
     if (!sessionStatus) {
       redirect('/onboarding/kepribadian');

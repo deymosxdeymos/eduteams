@@ -13,12 +13,17 @@ import { protectOnboardingPage } from '@/lib/server-auth';
 
 interface DataDiriPageProps {
   params: Promise<{
+    locale: string;
     role: 'dosen' | 'mahasiswa';
   }>;
 }
 
-export default async function DataDiriPage({ params }: DataDiriPageProps) {
-  const { role } = await params;
+export default async function DataDiriPage({
+  params,
+  searchParams,
+}: DataDiriPageProps & { searchParams: Promise<{ edit?: string }> }) {
+  const { locale, role } = await params;
+  const { edit } = await searchParams;
   const messages = (await getMessages()) as {
     onboarding: {
       dataDiri: {
@@ -36,10 +41,14 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
         saving: string;
         validation: {
           namaLengkapMin: string;
+          namaLengkapMax: string;
+          namaLengkapPattern: string;
           nimMin: string;
           nimMax: string;
+          nimPattern: string;
           npmMin: string;
           npmMax: string;
+          npmPattern: string;
           jenisKelaminRequired: string;
         };
       };
@@ -65,8 +74,11 @@ export default async function DataDiriPage({ params }: DataDiriPageProps) {
     }
   }
 
-  if (role === 'mahasiswa' && user.nimNpm) {
-    const sessionStatus = await getUserPersonalitySessionStatus(user.id);
+  if (role === 'mahasiswa' && user.nimNpm && edit !== 'true') {
+    const sessionStatus = await getUserPersonalitySessionStatus(
+      user.id,
+      locale
+    );
 
     if (!sessionStatus) {
       redirect('/dashboard?firstVisit=true');
