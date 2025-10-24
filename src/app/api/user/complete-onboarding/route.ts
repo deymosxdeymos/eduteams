@@ -2,7 +2,10 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
-import { getActivePersonalityBank } from '@/lib/mbti-questions-simple';
+import {
+  type ActivePersonalityBank,
+  getActivePersonalityBank,
+} from '@/lib/mbti-questions-simple';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
 // Prisma requires Node.js runtime
@@ -11,6 +14,53 @@ export const runtime = 'nodejs';
 const completeOnboardingSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)).optional(),
 });
+
+function hasNonNumericAnswerKeys(answers: Record<string, number>): boolean {
+  return Object.keys(answers).some(key => !/^\d+$/.test(key));
+}
+
+async function resolveBankForAnswers(
+  answers: Record<string, number>
+): Promise<ActivePersonalityBank | null> {
+  if (Object.keys(answers).length === 0) {
+    return getActivePersonalityBank();
+  }
+
+  const needsIdMatch = hasNonNumericAnswerKeys(answers);
+  const localesToTry: Array<string | undefined> = [undefined];
+  if (needsIdMatch) {
+    localesToTry.push('en-US');
+  }
+  if (!localesToTry.includes('id-ID')) {
+    localesToTry.push('id-ID');
+  }
+
+  const seen = new Set<string | undefined>();
+  let firstBank: ActivePersonalityBank | null = null;
+
+  for (const locale of localesToTry) {
+    if (seen.has(locale)) continue;
+    seen.add(locale);
+
+    const bank = await getActivePersonalityBank(locale);
+    if (!bank) continue;
+    if (!firstBank) firstBank = bank;
+
+    if (!needsIdMatch) {
+      return bank;
+    }
+
+    const matches = bank.questions.some(question =>
+      Object.hasOwn(answers, question.id)
+    );
+
+    if (matches) {
+      return bank;
+    }
+  }
+
+  return needsIdMatch ? null : firstBank;
+}
 
 export const POST = withAuth(
   withValidation(
@@ -32,7 +82,7 @@ export const POST = withAuth(
 
       // If user is mahasiswa and provided answers, calculate personality scores
       if (currentUser.role === 'mahasiswa' && answers) {
-        const bank = await getActivePersonalityBank();
+        const bank = await resolveBankForAnswers(answers);
         if (!bank) {
           return createApiResponse(null, 'Personality bank unavailable', 400);
         }
@@ -52,6 +102,22 @@ export const POST = withAuth(
             normalizedAnswers[question.id] = byOrder;
           }
         });
+
+        const hasAnyMatch = bank.questions.some((question, index) => {
+          const ordinalKey = String(index + 1);
+          return (
+            normalizedAnswers[question.id] !== undefined ||
+            normalizedAnswers[ordinalKey] !== undefined
+          );
+        });
+
+        if (!hasAnyMatch) {
+          return createApiResponse(
+            null,
+            'No answers matched the current question bank',
+            400
+          );
+        }
 
         const questions = bank.questions.filter(q => !q.isAttentionCheck);
         const scores = calculatePersonalityScores(normalizedAnswers, questions);
