@@ -103,26 +103,63 @@ export function calculatePersonalityScoresFromQuestions(
     pj: { sum: 0, count: 0 },
   };
 
+  const INTERACTION_WEIGHT = 0.35;
+
   for (const q of questions) {
     const dim = q.dimension.toLowerCase();
-    if (!(dim === 'ei' || dim === 'sn' || dim === 'tf' || dim === 'pj'))
-      continue;
     if (q.isAttentionCheck) continue;
-    // Accept either question id keys or ordinal number keys ("1".."24")
-    // Many clients submit numeric keys by display order rather than db id
+
     let raw: number | undefined = answersById[q.id];
     if (raw === undefined) {
-      // Fallback: try by 1-based order derived from the question's position
-      // We assume input keys are simple strings like "1", "2", ...
       const index = questions.indexOf(q);
       const ordinalKey = (index + 1).toString();
       raw = answersById[ordinalKey];
     }
     if (raw === undefined) continue;
-    const answer = q.reversed ? 6 - raw : raw; // 1..5 Likert
-    const normalized = (answer - 3) / 2; // -> [-1,1]
-    totals[dim].sum += normalized;
-    totals[dim].count += 1;
+
+    const answer = q.reversed ? 6 - raw : raw;
+    const norm = (answer - 3) / 2;
+
+    if (dim === 'ei' || dim === 'sn' || dim === 'tf' || dim === 'pj') {
+      totals[dim].sum += norm;
+      totals[dim].count += 1;
+    } else if (dim === 'i') {
+      totals.ei.sum += norm;
+      totals.ei.count += 1;
+    } else if (dim === 's') {
+      totals.sn.sum -= norm;
+      totals.sn.count += 1;
+    } else if (dim === 'f') {
+      totals.tf.sum += norm;
+      totals.tf.count += 1;
+    } else if (dim === 'j') {
+      totals.pj.sum -= norm;
+      totals.pj.count += 1;
+    } else if (dim === 'nj') {
+      totals.sn.sum += INTERACTION_WEIGHT * norm;
+      totals.pj.sum += -INTERACTION_WEIGHT * norm;
+    } else if (dim === 'np') {
+      totals.sn.sum += INTERACTION_WEIGHT * norm;
+      totals.pj.sum += INTERACTION_WEIGHT * norm;
+    } else if (dim === 'sj') {
+      totals.sn.sum += -INTERACTION_WEIGHT * norm;
+      totals.pj.sum += -INTERACTION_WEIGHT * norm;
+    } else if (dim === 'sp') {
+      totals.sn.sum += -INTERACTION_WEIGHT * norm;
+      totals.pj.sum += INTERACTION_WEIGHT * norm;
+    } else if (dim === 'ef') {
+      totals.ei.sum += INTERACTION_WEIGHT * norm;
+      totals.tf.sum += INTERACTION_WEIGHT * norm;
+    } else if (dim === 'et') {
+      totals.ei.sum += INTERACTION_WEIGHT * norm;
+      totals.tf.sum += -INTERACTION_WEIGHT * norm;
+    } else if (dim === 'if') {
+      totals.ei.sum += -INTERACTION_WEIGHT * norm;
+      totals.tf.sum += INTERACTION_WEIGHT * norm;
+    } else if (dim === 'it') {
+      totals.ei.sum += -INTERACTION_WEIGHT * norm;
+      totals.tf.sum += -INTERACTION_WEIGHT * norm;
+    }
   }
 
   const mk = (sum: number, count: number) =>

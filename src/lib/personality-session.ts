@@ -187,12 +187,25 @@ async function rebuildScoresFromResponses(
         : question.dimension;
     const dimension = dimensionValue as PersonalityQuestionRecord['dimension'];
 
-    if (
-      dimension !== 'ei' &&
-      dimension !== 'sn' &&
-      dimension !== 'tf' &&
-      dimension !== 'pj'
-    ) {
+    const validDimensions = [
+      'ei',
+      'sn',
+      'tf',
+      'pj',
+      'i',
+      's',
+      'f',
+      'j',
+      'nj',
+      'np',
+      'sj',
+      'sp',
+      'ef',
+      'et',
+      'if',
+      'it',
+    ];
+    if (!validDimensions.includes(dimension)) {
       continue;
     }
 
@@ -462,12 +475,25 @@ export async function submitPersonalitySession(options: {
     const dimensionValue =
       typeof q.dimension === 'string' ? q.dimension.toLowerCase() : q.dimension;
     const dimension = dimensionValue as PersonalityQuestionRecord['dimension'];
-    if (
-      dimension !== 'ei' &&
-      dimension !== 'sn' &&
-      dimension !== 'tf' &&
-      dimension !== 'pj'
-    ) {
+    const validDimensions = [
+      'ei',
+      'sn',
+      'tf',
+      'pj',
+      'i',
+      's',
+      'f',
+      'j',
+      'nj',
+      'np',
+      'sj',
+      'sp',
+      'ef',
+      'et',
+      'if',
+      'it',
+    ];
+    if (!validDimensions.includes(dimension)) {
       throw new Error(`Invalid dimension ${q.dimension} for question ${id}`);
     }
     return {
