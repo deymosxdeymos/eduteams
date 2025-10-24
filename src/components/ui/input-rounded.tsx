@@ -3,7 +3,7 @@
 import type { Easing } from 'framer-motion';
 import { AnimatePresence, animate, motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps, ReactNode, RefObject } from 'react';
 import {
   forwardRef,
   useCallback,
@@ -48,6 +48,7 @@ interface InputRoundedProps extends NativeInputProps {
   lockWhileSuccess?: boolean;
   clearOnSuccess?: boolean;
   validationTriggerKey?: unknown;
+  animationTargetRef?: RefObject<HTMLElement | null>;
 }
 
 const MotionDiv = motion.div;
@@ -92,6 +93,7 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
       lockWhileSuccess = false,
       clearOnSuccess = false,
       validationTriggerKey,
+      animationTargetRef,
       readOnly,
       onChange,
       ...rest
@@ -120,11 +122,28 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
       (target: HTMLElement) => {
         setValidationState('error');
         setHintVisible(false);
-        animate(
-          target,
-          { x: [-24, 24, -24, 24, 0] },
-          { duration: 0.3, ease: shakeEase }
-        );
+
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReducedMotion) {
+          animate(target, { opacity: [1, 0.7, 1] }, { duration: 0.3 });
+        } else {
+          animate(
+            target,
+            {
+              transform: [
+                'translateX(-24px)',
+                'translateX(24px)',
+                'translateX(-24px)',
+                'translateX(24px)',
+                'translateX(0px)',
+              ],
+            },
+            { duration: 0.3, ease: shakeEase }
+          );
+        }
 
         if (hint && hintWhenInvalid) {
           if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
@@ -166,7 +185,8 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
 
-        const animationTarget = getAnimationTarget(element);
+        const animationTarget =
+          animationTargetRef?.current ?? getAnimationTarget(element);
 
         if (invalid && !prevInvalid) {
           runErrorAnimation(animationTarget);
@@ -174,7 +194,19 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
         } else if (!invalid && prevInvalid) {
           setValidationState('success');
           setHintVisible(false);
-          animate(animationTarget, { x: 0 }, successTransition);
+
+          const prefersReducedMotion =
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+          if (!prefersReducedMotion) {
+            animate(
+              animationTarget,
+              { transform: 'translateX(0px)' },
+              successTransition
+            );
+          }
+
           onValidationChange?.(true);
 
           timeoutRef.current = setTimeout(() => {
@@ -195,13 +227,15 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
       resetDelay,
       runErrorAnimation,
       clearOnSuccess,
+      animationTargetRef,
     ]);
 
     useEffect(() => {
       const element = internalRef.current;
       if (!element) return;
 
-      const animationTarget = getAnimationTarget(element);
+      const animationTarget =
+        animationTargetRef?.current ?? getAnimationTarget(element);
 
       if (
         validationTriggerKey !== lastTriggerRef.current &&
@@ -217,6 +251,7 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
       onValidationChange,
       runErrorAnimation,
       validationTriggerKey,
+      animationTargetRef,
     ]);
 
     const isSuccess = validationState === 'success';

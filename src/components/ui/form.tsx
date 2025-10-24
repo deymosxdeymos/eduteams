@@ -2,6 +2,7 @@
 
 import type * as LabelPrimitive from '@radix-ui/react-label';
 import { Slot } from '@radix-ui/react-slot';
+import { AnimatePresence, motion } from 'framer-motion';
 import * as React from 'react';
 import {
   Controller,
@@ -90,13 +91,12 @@ function FormLabel({
   className,
   ...props
 }: React.ComponentProps<typeof LabelPrimitive.Root>) {
-  const { error, formItemId } = useFormField();
+  const { formItemId } = useFormField();
 
   return (
     <Label
       data-slot='form-label'
-      data-error={!!error}
-      className={cn('data-[error=true]:text-destructive', className)}
+      className={cn(className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -133,23 +133,63 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
   );
 }
 
+const MotionP = motion.p;
+
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message ?? '') : props.children;
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   if (!body) {
     return null;
   }
 
+  const animationProps = prefersReducedMotion
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.2 },
+      }
+    : {
+        initial: { opacity: 0, y: -4 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -4 },
+        transition: {
+          type: 'spring' as const,
+          stiffness: 500,
+          damping: 30,
+        },
+      };
+
   return (
-    <p
-      data-slot='form-message'
-      id={formMessageId}
-      className={cn('text-destructive text-sm', className)}
-      {...props}
-    >
-      {body}
-    </p>
+    <AnimatePresence mode='wait'>
+      {body ? (
+        <MotionP
+          key={String(body)}
+          data-slot='form-message'
+          id={formMessageId}
+          role='alert'
+          aria-live='polite'
+          className={cn('text-destructive text-sm', className)}
+          {...animationProps}
+        >
+          {body}
+        </MotionP>
+      ) : null}
+    </AnimatePresence>
   );
 }
 
