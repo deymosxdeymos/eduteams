@@ -18,7 +18,7 @@ export default async function Home() {
     <>
       <div style={{ position: 'absolute', left: '-10000px' }} />
       <SkipLink href={`#${mainContentId}`}>Skip to content</SkipLink>
-      <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-20 py-4 bg-gradient-to-b from-blue-background via-blue-background/80 to-transparent'>
+      <nav className='fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-20 py-4 bg-linear-to-b from-blue-background via-blue-background/80 to-transparent'>
         <Logo
           href='/'
           imageClassName='h-8 w-auto md:h-12'
@@ -126,7 +126,7 @@ export default async function Home() {
             {t('homepage.problems.description')}
           </p>
           <div className='w-full max-w-5xl mx-auto mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch'>
-            <div className='bg-gradient-to-b from-white to-lime-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+            <div className='bg-linear-to-b from-white to-lime-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
               <h3 className='text-emerald-900 font-bold text-5xl mb-1'>
                 {t('homepage.problems.problem1')}
               </h3>
@@ -140,7 +140,7 @@ export default async function Home() {
                 style={{ width: 'auto', height: 'auto' }}
               />
             </div>
-            <div className='bg-gradient-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+            <div className='bg-linear-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
               <h3 className='text-orange-900 font-bold text-5xl mb-1'>
                 {t('homepage.problems.problem2')}
               </h3>
@@ -153,7 +153,7 @@ export default async function Home() {
                 className='ml-auto w-auto h-auto max-w-[150px] lg:max-w-[200px]'
               />
             </div>
-            <div className='bg-gradient-to-b from-white to-indigo-200 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
+            <div className='bg-linear-to-b from-white to-indigo-200 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
               <h3 className='text-violet-900 font-bold text-5xl mb-1'>
                 {t('homepage.problems.problem3')}
               </h3>
