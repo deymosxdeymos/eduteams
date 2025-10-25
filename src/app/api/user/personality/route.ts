@@ -12,88 +12,65 @@ const personalitySchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)),
 });
 
-type PersonalityDeps = {
-  submitSession: typeof submitPersonalitySession;
-  getSession: typeof auth.api.getSession;
-};
-
-export function buildPersonalityHandler({
-  submitSession,
-  getSession,
-}: PersonalityDeps) {
-  return async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
+  try {
+    // Parse body with explicit error mapping for tests
+    let body: unknown;
     try {
-      // Parse body with explicit error mapping for tests
-      let body: unknown;
-      try {
-        body = await request.json();
-      } catch {
-        return NextResponse.json(
-          { success: false, error: 'Failed to parse JSON' },
-          { status: 400 }
-        );
-      }
-
-      const { sessionId, answers } = personalitySchema.parse(body);
-
-      // Get session directly for better testability
-      const session =
-        process.env.NODE_ENV === 'test'
-          ? await getSession(
-              {} as unknown as {
-                headers: Awaited<ReturnType<typeof headers>>;
-                cookies: Awaited<ReturnType<typeof cookies>>;
-              }
-            )
-          : await getSession({
-              headers: await headers(),
-              cookies: await cookies(),
-            } as unknown as {
-              headers: Awaited<ReturnType<typeof headers>>;
-              cookies: Awaited<ReturnType<typeof cookies>>;
-            });
-
-      if (!session?.user) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 }
-        );
-      }
-
-      const result = await submitSession({
-        sessionId,
-        userId: session.user.id,
-        answers,
-      });
-
-      if (result.status !== 'completed' || !result.scores) {
-        const errorMessage =
-          result.status === 'attention_check_failed'
-            ? 'Tes perhatian tidak lolos.'
-            : result.status === 'speeding'
-              ? 'Waktu pengerjaan terlalu singkat.'
-              : 'Jawaban belum lengkap.';
-        return NextResponse.json(
-          { success: false, error: errorMessage },
-          { status: 400 }
-        );
-      }
-
-      return createApiResponse({
-        success: true,
-        scores: result.scores,
-        mbtiType: result.mbtiType,
-      });
-    } catch (e) {
-      const message =
-        e instanceof z.ZodError ? e.message : 'Internal server error';
-      const status = e instanceof z.ZodError ? 400 : 500;
-      return NextResponse.json({ success: false, error: message }, { status });
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Failed to parse JSON' },
+        { status: 400 }
+      );
     }
-  };
-}
 
-export const POST = buildPersonalityHandler({
-  submitSession: submitPersonalitySession,
-  getSession: auth.api.getSession,
-});
+    const { sessionId, answers } = personalitySchema.parse(body);
+
+    // Get session
+    const session = await auth.api.getSession({
+      headers: await headers(),
+      cookies: await cookies(),
+    } as unknown as {
+      headers: Awaited<ReturnType<typeof headers>>;
+      cookies: Awaited<ReturnType<typeof cookies>>;
+    });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const result = await submitPersonalitySession({
+      sessionId,
+      userId: session.user.id,
+      answers,
+    });
+
+    if (result.status !== 'completed' || !result.scores) {
+      const errorMessage =
+        result.status === 'attention_check_failed'
+          ? 'Tes perhatian tidak lolos.'
+          : result.status === 'speeding'
+            ? 'Waktu pengerjaan terlalu singkat.'
+            : 'Jawaban belum lengkap.';
+      return NextResponse.json(
+        { success: false, error: errorMessage },
+        { status: 400 }
+      );
+    }
+
+    return createApiResponse({
+      success: true,
+      scores: result.scores,
+      mbtiType: result.mbtiType,
+    });
+  } catch (e) {
+    const message =
+      e instanceof z.ZodError ? e.message : 'Internal server error';
+    const status = e instanceof z.ZodError ? 400 : 500;
+    return NextResponse.json({ success: false, error: message }, { status });
+  }
+}

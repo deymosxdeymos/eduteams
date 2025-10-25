@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export default async function KepribadianPage({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   const user = await protectOnboardingPage();
