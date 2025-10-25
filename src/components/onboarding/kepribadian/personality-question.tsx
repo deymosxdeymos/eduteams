@@ -99,6 +99,7 @@ export default function PersonalityQuestion({
                     height={item.size}
                     alt={item.label}
                     className='object-contain'
+                    style={{ width: 'auto', height: 'auto' }}
                   />
                   <div className='text-xs font-medium text-gray-700 whitespace-pre-line text-center'>
                     {item.label}

@@ -67,6 +67,7 @@ export default async function Home() {
                 sizes='(max-width: 640px) 450px, (max-width: 768px) 500px, (max-width: 1024px) 700px, 1000px'
                 alt='mascot'
                 className='w-auto h-auto max-w-[450px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20 animate-mascot'
+                style={{ width: 'auto', height: 'auto' }}
                 priority
               />
             </div>
@@ -86,7 +87,7 @@ export default async function Home() {
               sizes='100vw'
               alt='hills'
               className='w-full h-auto max-w-[1920px] animate-hills'
-              style={{ height: 'auto' }}
+              style={{ width: 'auto', height: 'auto' }}
               priority
             />
           </div>
@@ -136,6 +137,7 @@ export default async function Home() {
                 sizes='(max-width: 1024px) 150px, 200px'
                 alt='INFJ'
                 className='ml-auto w-auto h-auto max-w-[150px] lg:max-w-[200px]'
+                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
             <div className='bg-gradient-to-b from-white to-yellow-100 rounded-xl shadow-md p-6 pr-0 pb-0 flex flex-col text-start overflow-hidden h-full justify-between'>
