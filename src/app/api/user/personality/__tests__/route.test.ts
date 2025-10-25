@@ -19,7 +19,7 @@ beforeEach(() => {
 
 describe('POST /api/user/personality', () => {
   it('returns scores and type when submission succeeds', async () => {
-    const { buildPersonalityHandler } = await import('../route');
+    const { buildPersonalityHandler } = await import('../handler');
     const POST = buildPersonalityHandler({
       submitSession: submitMock,
       getSession: async () => ({ user: { id: 'u1' } }) as any,
@@ -50,7 +50,7 @@ describe('POST /api/user/personality', () => {
       attentionPassed: false,
     }));
 
-    const { buildPersonalityHandler } = await import('../route');
+    const { buildPersonalityHandler } = await import('../handler');
     const POST = buildPersonalityHandler({
       submitSession: submitMock,
       getSession: async () => ({ user: { id: 'u1' } }) as any,
