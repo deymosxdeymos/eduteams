@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Prisma } from '@/generated/prisma';
-import prisma from '../src/lib/prisma';
+import prisma from '@/lib/prisma';
 
 type PersonalityQuestionSeed = {
   text: string;
@@ -37,119 +37,7 @@ const withTimestamps = <T extends object>(data: T) => ({
   updatedAt: new Date(),
 });
 
-const _ACTIVE_BANK_VERSION = 2;
 const SUPPORTED_LOCALES = ['id-ID', 'en-US'] as const;
-
-type BasePersonalityQuestion = Omit<PersonalityQuestionSeed, 'text' | 'locale'>;
-
-const BASE_PERSONALITY_ITEMS: ReadonlyArray<BasePersonalityQuestion> = [
-  { dimension: 'pj', orderHint: 1 },
-  { dimension: 'tf', orderHint: 2 },
-  { dimension: 'ei', orderHint: 3, reversed: true },
-  { dimension: 'sn', orderHint: 4 },
-  { dimension: 'pj', orderHint: 5 },
-  { dimension: 'tf', orderHint: 6, reversed: true },
-  { dimension: 'ei', orderHint: 7, reversed: true },
-  { dimension: 'sn', orderHint: 8 },
-  { dimension: 'pj', orderHint: 9, reversed: true },
-  { dimension: 'tf', orderHint: 10, reversed: true },
-  { dimension: 'ei', orderHint: 11, reversed: true },
-  { dimension: 'sn', orderHint: 12 },
-  { dimension: 'pj', orderHint: 13 },
-  { dimension: 'tf', orderHint: 14 },
-  { dimension: 'ei', orderHint: 15 },
-  { dimension: 'sn', orderHint: 16 },
-  { dimension: 'pj', orderHint: 17, reversed: true },
-  { dimension: 'tf', orderHint: 18 },
-  { dimension: 'ei', orderHint: 19, reversed: true },
-  { dimension: 'sn', orderHint: 20 },
-  { dimension: 'pj', orderHint: 21 },
-  { dimension: 'tf', orderHint: 22, reversed: true },
-  { dimension: 'ei', orderHint: 23 },
-  { dimension: 'sn', orderHint: 24, reversed: true },
-  { dimension: 'pj', orderHint: 25, reversed: true },
-  { dimension: 'tf', orderHint: 26 },
-  { dimension: 'ei', orderHint: 27 },
-  { dimension: 'sn', orderHint: 28, reversed: true },
-  { dimension: 'pj', orderHint: 29 },
-  { dimension: 'tf', orderHint: 30 },
-  { dimension: 'ei', orderHint: 31, reversed: true },
-  { dimension: 'sn', orderHint: 32 },
-  { dimension: 'ei', orderHint: 33, isAttentionCheck: true },
-];
-
-const PERSONALITY_TRANSLATIONS: Record<string, readonly string[]> = {
-  'en-US': [
-    'I rely on memory instead of making lists.',
-    'I want to believe what people tell me.',
-    'I need time alone to recharge.',
-    'I feel unsatisfied with the way things are.',
-    'I tend to put things wherever instead of keeping a tidy room.',
-    'I strive to have a mechanical, logical mind.',
-    'I am more mellow than energetic.',
-    'I prefer essay questions over multiple choice tests.',
-    'I keep things organized rather than chaotic.',
-    'I am thick-skinned.',
-    'I work best alone.',
-    'I focus on the future more than the present.',
-    'I plan at the last minute.',
-    'I care more about being loved than being respected.',
-    'Parties energize me.',
-    'I like to stand out rather than fit in.',
-    'I commit quickly instead of keeping my options open.',
-    'I want to be good at fixing people more than fixing things.',
-    'I listen more than I talk.',
-    'When I describe an event, I explain what it meant to me.',
-    'I tend to procrastinate.',
-    'I follow my head more than my heart.',
-    'I enjoy going out on the town.',
-    'I want the details more than the big picture.',
-    'I prefer to prepare rather than improvise.',
-    'I base morality on compassion.',
-    'Calling out to people from far away comes naturally to me.',
-    'I am more empirical than theoretical.',
-    'I like to play hard when the work is done.',
-    'I value emotions, even when they are intense.',
-    'I avoid speaking in front of large groups.',
-    'I want to know why things happen.',
-    'For quality control, please choose "Agree" for this statement.',
-  ],
-  'id-ID': [
-    'Saya mengandalkan ingatan daripada bikin daftar.',
-    'Saya percaya apa yang orang bilang ke saya.',
-    'Saya butuh waktu sendiri untuk isi ulang energi.',
-    'Saya gak puas dengan keadaan yang ada.',
-    'Saya sering sembarangan letakin barang daripada jaga kamar tetap rapi.',
-    'Saya lebih berpikir logis dan mekanis.',
-    'Saya lebih santai daripada energik.',
-    'Saya lebih suka soal esai daripada tes pilihan ganda.',
-    'Saya selalu jaga barang tetap rapi daripada berantakan.',
-    'Saya gak mudah tersinggung.',
-    'Saya kerja paling baik pas sendirian.',
-    'Saya lebih fokus ke masa depan daripada sekarang.',
-    'Saya cenderung merencanakan di menit terakhir.',
-    'Saya lebih pengen dicintai daripada dihormati.',
-    'Pesta bikin saya excited.',
-    'Saya lebih suka menonjol daripada menyesuaikan diri.',
-    'Saya cepat berkomitmen daripada biarkan pilihan tetap terbuka.',
-    'Saya lebih pengen mahir bantu orang daripada perbaiki barang.',
-    'Saya lebih banyak dengarkan daripada bicara.',
-    'Waktu cerita kejadian, saya jelasin maknanya buat saya.',
-    'Saya cenderung menunda-nunda pekerjaan.',
-    'Saya lebih ikut logika daripada perasaan.',
-    'Saya suka keluar malam dan bergaul.',
-    'Saya lebih pengen detail daripada gambaran besarnya.',
-    'Saya lebih suka siap-siap daripada improvisasi.',
-    'Saya dasarkan moralitas dari rasa kasih sayang.',
-    'Saya gampang manggil orang dari jauh.',
-    'Saya lebih empiris daripada teoretis.',
-    'Saya kerja keras dan main keras setelah selesai.',
-    'Saya hargai emosi, bahkan kalo dia intense.',
-    'Saya hindari bicara depan kelompok besar.',
-    'Saya pengen tahu kenapa sesuatu terjadi.',
-    'Untuk kontrol kualitas, pilih "Setuju" untuk pernyataan ini ya.',
-  ],
-};
 
 type OJTSPersonalityQuestion = Omit<PersonalityQuestionSeed, 'text' | 'locale'>;
 
@@ -157,27 +45,27 @@ const OJTS_V21_ITEMS: ReadonlyArray<OJTSPersonalityQuestion> = [
   { dimension: 'i', orderHint: 1 },
   { dimension: 'i', orderHint: 2 },
   { dimension: 'i', orderHint: 3 },
-  { dimension: 'i', orderHint: 4 },
-  { dimension: 'i', orderHint: 5 },
-  { dimension: 'i', orderHint: 6 },
+  { dimension: 'i', orderHint: 4, reversed: true },
+  { dimension: 'i', orderHint: 5, reversed: true },
+  { dimension: 'i', orderHint: 6, reversed: true },
   { dimension: 's', orderHint: 7 },
   { dimension: 's', orderHint: 8 },
   { dimension: 's', orderHint: 9 },
-  { dimension: 's', orderHint: 10 },
-  { dimension: 's', orderHint: 11 },
-  { dimension: 's', orderHint: 12 },
+  { dimension: 's', orderHint: 10, reversed: true },
+  { dimension: 's', orderHint: 11, reversed: true },
+  { dimension: 's', orderHint: 12, reversed: true },
   { dimension: 'f', orderHint: 13 },
   { dimension: 'f', orderHint: 14 },
   { dimension: 'f', orderHint: 15 },
-  { dimension: 'f', orderHint: 16 },
-  { dimension: 'f', orderHint: 17 },
-  { dimension: 'f', orderHint: 18 },
+  { dimension: 'f', orderHint: 16, reversed: true },
+  { dimension: 'f', orderHint: 17, reversed: true },
+  { dimension: 'f', orderHint: 18, reversed: true },
   { dimension: 'j', orderHint: 19 },
   { dimension: 'j', orderHint: 20 },
   { dimension: 'j', orderHint: 21 },
-  { dimension: 'j', orderHint: 22 },
-  { dimension: 'j', orderHint: 23 },
-  { dimension: 'j', orderHint: 24 },
+  { dimension: 'j', orderHint: 22, reversed: true },
+  { dimension: 'j', orderHint: 23, reversed: true },
+  { dimension: 'j', orderHint: 24, reversed: true },
   { dimension: 'nj', orderHint: 25 },
   { dimension: 'nj', orderHint: 26 },
   { dimension: 'np', orderHint: 27 },
@@ -199,102 +87,96 @@ const OJTS_V21_ITEMS: ReadonlyArray<OJTSPersonalityQuestion> = [
 
 const OJTS_V21_TRANSLATIONS: Record<string, readonly string[]> = {
   'en-US': [
-    'I enjoy large social events',
-    'I am the first to act',
-    'I express my views with confidence',
+    "I don't like to draw attention to myself",
+    'I hate situations where people expect me to be funny',
+    'I hold back my opinions',
     'I want a huge social circle',
     'I am the life of the party',
     'I make lots of noise',
-    'I focus on the here-and-now',
-    'I am a concrete thinker',
-    'I focus on the details',
-    'I am a down-to-earth person',
-    'I prefer routine to variety',
-    'I am a practical person',
-    'I sympathize with the homeless',
-    'I believe that people are good',
-    'I am a romantic',
-    'I value feelings over logic',
-    'I cry during movies',
-    'I avoid stepping on bugs',
+    'I avoid philosophical discussions',
+    "I don't like to analyze literature",
+    'I am attached to conventional ways',
+    'I love to read challenging material',
+    'I look for hidden meanings in things',
+    'I am curious about everything',
+    'I want to experience passion and romance',
+    "I am deeply moved by others' misfortunes",
+    'I listen to my feelings when making important decisions',
+    'I prize logic above all else',
+    "I don't understand people who get emotional",
+    "I'd rather be feared than loved",
     'I like order',
-    'I follow a schedule',
+    'I do things according to a plan',
     'I am always prepared',
-    'I get things done right away',
-    'I make plans and stick to them',
-    'I like things settled',
-    'I think about the future',
-    'I like to set long-term goals',
-    'I see the big picture',
-    'I think anything is possible',
-    'I like established ways of doing things',
-    'I respect traditions',
-    'I enjoy the moment',
-    'I am spontaneous',
-    'I have a big heart',
-    'I show my feelings',
-    'I am assertive',
-    'I take charge',
-    'I listen to my conscience',
-    "I think about others' feelings",
-    'I analyze problems',
-    'I think before I speak',
+    'I often make last-minute plans',
+    'I do things for no apparent reason',
+    'It takes me days to do things that should take hours because I keep getting distracted',
+    'I work on improving myself',
+    'I always feel like I need to be doing something important',
+    'I have unusual beliefs about the world',
+    'I dislike routine',
+    'I try my best to follow the rules',
+    'I respect authority',
+    'I like to take it easy',
+    'I choose the easy way',
+    'I tell other people my secrets',
+    'I make big gestures of friendship to people',
+    'I enjoy challenges and competition',
+    'I have very high self-esteem',
+    'I get embarrassed easily',
+    'I become overwhelmed by events',
+    'I have difficulty expressing my feelings',
+    "I don't trust others easily",
     'For quality control, please choose "Agree" for this statement.',
   ],
   'id-ID': [
-    'Saya suka acara kumpul-kumpul yang ramai',
-    'Saya orang yang pertama bertindak',
-    'Saya ungkapkan pendapat dengan percaya diri',
-    'Saya ingin punya banyak teman',
-    'Saya adalah pusat perhatian di acara kumpul-kumpul',
-    'Saya orangnya ramai',
-    'Saya fokus pada saat ini',
-    'Saya berpikir secara konkret',
-    'Saya fokus pada detailnya',
-    'Saya orang yang realistis',
-    'Saya lebih suka rutinitas daripada variasi',
-    'Saya orang yang praktis',
-    'Saya simpatik dengan tunawisma',
-    'Saya percaya bahwa orang itu baik',
-    'Saya orang yang romantis',
-    'Saya lebih menghargai perasaan daripada logika',
-    'Saya menangis saat nonton film',
-    'Saya hindari menginjak serangga',
-    'Saya suka keteraturan',
-    'Saya ikuti jadwal',
-    'Saya selalu siap',
-    'Saya langsung selesaikan sesuatu',
-    'Saya buat rencana dan patuhi rencana itu',
-    'Saya suka hal yang sudah jelas',
-    'Saya berpikir tentang masa depan',
-    'Saya suka membuat tujuan jangka panjang',
-    'Saya lihat gambaran besarnya',
-    'Saya pikir semuanya mungkin terjadi',
-    'Saya suka cara yang sudah mapan',
-    'Saya menghormati tradisi',
-    'Saya nikmati momen saat ini',
-    'Saya spontan',
-    'Saya punya hati yang besar',
-    'Saya tunjukkan perasaan saya',
-    'Saya tegas',
-    'Saya ambil kendali',
-    'Saya dengarkan hati nurani',
-    'Saya pikirkan perasaan orang lain',
-    'Saya analisis masalah',
-    'Saya berpikir sebelum bicara',
-    'Untuk kontrol kualitas, pilih "Setuju" untuk pernyataan ini ya.',
+    'Saya tidak suka menjadi pusat perhatian',
+    'Saya tidak suka situasi dimana orang berharap saya lucu',
+    'Saya sering menahan pendapat saya',
+    'Saya ingin memiliki banyak teman',
+    'Saya sering menjadi pusat perhatian di pesta',
+    'Saya sering membuat keributan',
+    'Saya menghindari diskusi filosofis',
+    'Saya tidak suka menganalisis karya sastra',
+    'Saya lebih nyaman dengan cara-cara konvensional',
+    'Saya suka membaca bacaan yang menantang',
+    'Saya selalu mencari makna tersembunyi dari sesuatu',
+    'Saya penasaran dengan segala hal',
+    'Saya ingin merasakan gairah dan romansa',
+    'Saya sangat tersentuh melihat kesulitan orang lain',
+    'Saya mendengarkan perasaan saat mengambil keputusan penting',
+    'Saya mengutamakan logika di segala hal',
+    'Saya tidak mengerti orang yang mudah terbawa emosi',
+    'Lebih baik ditakuti daripada dicintai',
+    'Saya suka keadaan yang teratur',
+    'Saya melakukan sesuatu sesuai rencana',
+    'Saya selalu siap siaga',
+    'Saya sering membuat rencana mendadak',
+    'Saya kerap melakukan sesuatu tanpa alasan yang jelas',
+    'Saya butuh berhari-hari untuk menyelesaikan pekerjaan yang seharusnya selesai dalam sejam karena mudah kehilangan fokus.',
+    'Saya selalu berusaha untuk menjadi lebih baik',
+    'Saya selalu merasa harus melakukan sesuatu yang penting',
+    'Saya memiliki keyakinan yang tidak biasa tentang dunia',
+    'Saya tidak suka rutinitas',
+    'Saya berusaha sebaik mungkin untuk taat pada aturan',
+    'Saya menghormati pihak berwenang',
+    'Saya suka bersantai-santai',
+    'Saya memilih jalan termudah',
+    'Saya menceritakan rahasia saya pada orang lain',
+    'Saya menunjukkan persahabatan secara berlebihan',
+    'Saya menikmati tantangan dan persaingan',
+    'Saya memiliki percaya diri yang sangat tinggi',
+    'Saya mudah merasa malu',
+    'Saya mudah kewalahan menghadapi situasi',
+    'Saya kesulitan mengungkapkan perasaan',
+    'Saya tidak mudah percaya pada orang lain',
+    'Untuk kontrol kualitas, pilih "Setuju" untuk pernyataan ini.',
   ],
 };
 
-const EXPECTED_REVERSED_COUNTS: Partial<
-  Record<PersonalityQuestionSeed['dimension'], number>
-> = {
-  ei: 5,
-  sn: 2,
-  tf: 3,
-  pj: 3,
-};
-
+const OJTS_REQUIRED_REVERSED_ORDER_HINTS = new Set([
+  4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23, 24,
+]);
 const DIMENSION_MAP: Record<
   PersonalityQuestionSeed['dimension'],
   | 'EI'
@@ -339,56 +221,6 @@ const DIMENSION_MAP: Record<
   if: 'IF',
   it: 'IT',
 };
-
-function validatePersonalityBankStructure(
-  items: ReadonlyArray<BasePersonalityQuestion>
-): void {
-  const perAxis: Record<
-    'ei' | 'sn' | 'tf' | 'pj',
-    { total: number; reversed: number }
-  > = {
-    ei: { total: 0, reversed: 0 },
-    sn: { total: 0, reversed: 0 },
-    tf: { total: 0, reversed: 0 },
-    pj: { total: 0, reversed: 0 },
-  };
-  let attentionChecks = 0;
-
-  for (const item of items) {
-    if (item.isAttentionCheck) {
-      attentionChecks += 1;
-      continue;
-    }
-    if (item.dimension in perAxis) {
-      const bucket = perAxis[item.dimension as keyof typeof perAxis];
-      bucket.total += 1;
-      if (item.reversed) bucket.reversed += 1;
-    }
-  }
-
-  for (const [axis, bucket] of Object.entries(perAxis) as Array<
-    [keyof typeof perAxis, { total: number; reversed: number }]
-  >) {
-    if (bucket.total !== 8) {
-      throw new Error(
-        `Axis ${axis.toUpperCase()} must have exactly 8 scored items; found ${bucket.total}`
-      );
-    }
-    const expectedReversed = EXPECTED_REVERSED_COUNTS[axis];
-    if (bucket.reversed !== expectedReversed) {
-      throw new Error(
-        `Axis ${axis.toUpperCase()} must have ${expectedReversed} reversed items; found ${bucket.reversed}`
-      );
-    }
-  }
-
-  if (attentionChecks !== 1) {
-    throw new Error(
-      `Expected exactly 1 attention check item, found ${attentionChecks}`
-    );
-  }
-}
-
 function validateOJTSStructure(
   items: ReadonlyArray<OJTSPersonalityQuestion>
 ): void {
@@ -399,6 +231,14 @@ function validateOJTSStructure(
     if (item.isAttentionCheck) {
       attentionChecks += 1;
       continue;
+    }
+    if (
+      OJTS_REQUIRED_REVERSED_ORDER_HINTS.has(item.orderHint) &&
+      !item.reversed
+    ) {
+      throw new Error(
+        `OJTS item with orderHint ${item.orderHint} must be marked reversed`
+      );
     }
     perAxis[item.dimension] = (perAxis[item.dimension] || 0) + 1;
   }
@@ -428,26 +268,6 @@ function buildOJTSBank(locale: string): PersonalityQuestionSeed[] {
     locale,
   }));
 }
-
-function buildLocalizedBank(locale: string): PersonalityQuestionSeed[] {
-  const texts = PERSONALITY_TRANSLATIONS[locale];
-  if (!texts) {
-    throw new Error(`Missing translations for locale "${locale}"`);
-  }
-
-  if (texts.length !== BASE_PERSONALITY_ITEMS.length) {
-    throw new Error(
-      `Locale "${locale}" must provide ${BASE_PERSONALITY_ITEMS.length} translations, found ${texts.length}`
-    );
-  }
-
-  return BASE_PERSONALITY_ITEMS.map((item, index) => ({
-    ...item,
-    text: texts[index],
-    locale,
-  }));
-}
-
 async function seedMBTIQuestions() {
   console.log('🌱 Starting MBTI questions seeding...');
 
@@ -461,47 +281,26 @@ async function seedMBTIQuestions() {
       throw new Error('Prisma client not generated for PersonalityQuestion');
     }
 
-    validatePersonalityBankStructure(BASE_PERSONALITY_ITEMS);
     validateOJTSStructure(OJTS_V21_ITEMS);
 
     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.personalityQuestion.deleteMany({});
-
-      console.log('✅ Cleared existing MBTI questions (personality_questions)');
-
-      const v2Creations = SUPPORTED_LOCALES.flatMap(locale => {
-        const localizedBank = buildLocalizedBank(locale);
-        return localizedBank.map(q =>
-          tx.personalityQuestion.create({
-            data: withTimestamps({
-              id: randomUUID(),
-              bankVersion: 2,
-              status: 'ACTIVE',
-              text: q.text,
-              dimension: DIMENSION_MAP[q.dimension],
-              orderHint: q.orderHint,
-              reversed: q.reversed ?? false,
-              isAttentionCheck: q.isAttentionCheck ?? false,
-              locale: q.locale,
-            }),
-            select: {
-              id: true,
-              text: true,
-              orderHint: true,
-              locale: true,
-              isAttentionCheck: true,
-            },
-          })
-        );
+      const deleted = await tx.personalityQuestion.deleteMany({
+        where: { bankVersion: 4 },
       });
+      if (deleted > 0) {
+        console.log(
+          `ℹ️ Removed ${deleted} existing OJTS questions (bank v4) before reseeding`
+        );
+      }
 
-      const v3Creations = SUPPORTED_LOCALES.flatMap(locale => {
+      let createdCount = 0;
+      for (const locale of SUPPORTED_LOCALES) {
         const ojtsBank = buildOJTSBank(locale);
-        return ojtsBank.map(q =>
-          tx.personalityQuestion.create({
+        for (const q of ojtsBank) {
+          await tx.personalityQuestion.create({
             data: withTimestamps({
               id: randomUUID(),
-              bankVersion: 3,
+              bankVersion: 4,
               status: 'ACTIVE',
               text: q.text,
               dimension: DIMENSION_MAP[q.dimension],
@@ -510,29 +309,21 @@ async function seedMBTIQuestions() {
               isAttentionCheck: q.isAttentionCheck ?? false,
               locale: q.locale,
             }),
-            select: {
-              id: true,
-              text: true,
-              orderHint: true,
-              locale: true,
-              isAttentionCheck: true,
-            },
-          })
-        );
-      });
+          });
+          createdCount += 1;
+        }
+      }
 
-      const created = await Promise.all([...v2Creations, ...v3Creations]);
+      console.log('✅ Seeded OJTS personality bank (v4)');
       console.log(
-        `✅ Created ${created.length} MBTI questions across ${SUPPORTED_LOCALES.length} locales (v2 + v3)`
+        `✅ Created ${createdCount} MBTI questions across ${SUPPORTED_LOCALES.length} locales (v4)`
       );
     });
 
     console.log('🎉 MBTI questions seeding completed successfully!');
     console.log('\n📊 Seeding Summary:');
     for (const locale of SUPPORTED_LOCALES) {
-      console.log(
-        `   • ${locale}: ${BASE_PERSONALITY_ITEMS.length} items (bank v2), ${OJTS_V21_ITEMS.length} items (bank v3)`
-      );
+      console.log(`   • ${locale}: ${OJTS_V21_ITEMS.length} items (bank v4)`);
     }
     console.log(
       '\n💡 Questions are now stored in personality_questions, not skills.'
