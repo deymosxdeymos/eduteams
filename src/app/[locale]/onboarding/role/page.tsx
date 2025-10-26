@@ -18,32 +18,37 @@ export default async function RolePage({
   const t = await getTranslations('onboarding.role');
   const user = await protectOnboardingPage();
 
-  if (user.role === 'dosen' && isInstitutionalEmail(user.email)) {
-    if (!user.nimNpm) {
-      redirect('/onboarding/data-diri/dosen');
-    }
-    redirect('/dashboard?firstVisit=true');
-  }
+  // Skip completion check in development if flag is set
+  const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
 
-  if (user.role === 'mahasiswa') {
-    if (!user.nimNpm) {
-      redirect('/onboarding/data-diri/mahasiswa');
-    }
-
-    const sessionStatus = await getUserPersonalitySessionStatus(
-      user.id,
-      locale
-    );
-
-    if (!sessionStatus) {
-      redirect('/onboarding/kepribadian');
-    }
-
-    if (sessionStatus.status === 'completed_valid') {
+  if (!devDisableAutoRole) {
+    if (user.role === 'dosen' && isInstitutionalEmail(user.email)) {
+      if (!user.nimNpm) {
+        redirect('/onboarding/data-diri/dosen');
+      }
       redirect('/dashboard?firstVisit=true');
     }
 
-    redirect('/onboarding/kepribadian');
+    if (user.role === 'mahasiswa') {
+      if (!user.nimNpm) {
+        redirect('/onboarding/data-diri/mahasiswa');
+      }
+
+      const sessionStatus = await getUserPersonalitySessionStatus(
+        user.id,
+        locale
+      );
+
+      if (!sessionStatus) {
+        redirect('/onboarding/kepribadian');
+      }
+
+      if (sessionStatus.status === 'completed_valid') {
+        redirect('/dashboard?firstVisit=true');
+      }
+
+      redirect('/onboarding/kepribadian');
+    }
   }
 
   return (
@@ -63,7 +68,11 @@ export default async function RolePage({
       </div>
 
       <RoleFormClient
-        initialRole={user.role as 'dosen' | 'mahasiswa' | undefined}
+        initialRole={
+          devDisableAutoRole
+            ? undefined
+            : (user.role as 'dosen' | 'mahasiswa' | undefined)
+        }
         hasInstitutionalEmail={isInstitutionalEmail(user.email)}
       />
     </main>

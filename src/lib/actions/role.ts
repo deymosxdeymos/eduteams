@@ -80,6 +80,11 @@ export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
       throw new AuthError('Authentication required');
     }
 
+    // Skip auto-assignment in development if flag is set and send users to manual selection
+    if (process.env.DEV_DISABLE_AUTO_ROLE === 'true') {
+      redirect('/onboarding/role');
+    }
+
     const role = isInstitutionalEmail(user.email) ? 'dosen' : 'mahasiswa';
 
     await prisma.user.update({

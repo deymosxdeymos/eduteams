@@ -63,6 +63,9 @@ export default async function DataDiriPage({
   // Protect the onboarding page
   const user = await protectOnboardingPage();
 
+  // Check if auto-role is disabled (show back button) or enabled (hide back button)
+  const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
+
   if (user.role && user.role !== role) {
     redirect(`/onboarding/data-diri/${user.role}`);
   }
@@ -132,18 +135,20 @@ export default async function DataDiriPage({
         />
       </div>
       <div className='flex items-center justify-center gap-x-6'>
-        <Link href='/onboarding/role'>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='rounded-full w-14 h-14 border border-black'
-          >
-            <ArrowLeft
-              strokeWidth={3}
-              className='font-bold text-black text-lg'
-            />
-          </Button>
-        </Link>
+        {devDisableAutoRole && (
+          <Link href={user.role ? '/onboarding/role' : '/onboarding/resume'}>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='rounded-full w-14 h-14 border border-black'
+            >
+              <ArrowLeft
+                strokeWidth={3}
+                className='font-bold text-black text-lg'
+              />
+            </Button>
+          </Link>
+        )}
         <Button
           variant='onboarding'
           size='long'
