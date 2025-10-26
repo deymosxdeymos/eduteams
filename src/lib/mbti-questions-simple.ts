@@ -1,6 +1,7 @@
+import type { PersonalityAxis } from '@/generated/prisma';
 import prisma from '@/lib/prisma';
 
-export type PersonalityAxisKey = 'ei' | 'sn' | 'tf' | 'pj';
+export type PersonalityAxisKey = Lowercase<PersonalityAxis>;
 
 export interface PersonalityQuestionRecord {
   id: string;
@@ -18,6 +19,29 @@ export interface ActivePersonalityBank {
   locale: string;
   questions: PersonalityQuestionRecord[];
 }
+
+const DIMENSION_NORMALIZER: Record<PersonalityAxis, PersonalityAxisKey> = {
+  EI: 'ei',
+  SN: 'sn',
+  TF: 'tf',
+  PJ: 'pj',
+  I: 'i',
+  E: 'e',
+  S: 's',
+  N: 'n',
+  F: 'f',
+  T: 't',
+  J: 'j',
+  P: 'p',
+  NJ: 'nj',
+  NP: 'np',
+  SJ: 'sj',
+  SP: 'sp',
+  EF: 'ef',
+  ET: 'et',
+  IF: 'if',
+  IT: 'it',
+};
 
 const DEFAULT_LOCALE = 'id-ID';
 const FALLBACK_LOCALES = ['id-ID'];
@@ -88,7 +112,7 @@ async function loadBankForLocale(
     bankVersion: latest.bankVersion,
     locale,
     questions: questions.map(question => {
-      const dimension = question.dimension.toLowerCase() as PersonalityAxisKey;
+      const dimension = DIMENSION_NORMALIZER[question.dimension];
       return {
         id: question.id,
         bankVersion: question.bankVersion,

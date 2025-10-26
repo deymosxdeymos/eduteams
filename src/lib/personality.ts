@@ -124,16 +124,28 @@ export function calculatePersonalityScoresFromQuestions(
       totals[dim].sum += norm;
       totals[dim].count += 1;
     } else if (dim === 'i') {
+      totals.ei.sum -= norm;
+      totals.ei.count += 1;
+    } else if (dim === 'e') {
       totals.ei.sum += norm;
       totals.ei.count += 1;
     } else if (dim === 's') {
       totals.sn.sum -= norm;
       totals.sn.count += 1;
+    } else if (dim === 'n') {
+      totals.sn.sum += norm;
+      totals.sn.count += 1;
     } else if (dim === 'f') {
       totals.tf.sum += norm;
       totals.tf.count += 1;
+    } else if (dim === 't') {
+      totals.tf.sum -= norm;
+      totals.tf.count += 1;
     } else if (dim === 'j') {
       totals.pj.sum -= norm;
+      totals.pj.count += 1;
+    } else if (dim === 'p') {
+      totals.pj.sum += norm;
       totals.pj.count += 1;
     } else if (dim === 'nj') {
       totals.sn.sum += INTERACTION_WEIGHT * norm;
