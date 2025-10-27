@@ -287,7 +287,7 @@ async function seedMBTIQuestions() {
       const deleted = await tx.personalityQuestion.deleteMany({
         where: { bankVersion: 4 },
       });
-      if (deleted > 0) {
+      if (deleted.count > 0) {
         console.log(
           `ℹ️ Removed ${deleted} existing OJTS questions (bank v4) before reseeding`
         );
