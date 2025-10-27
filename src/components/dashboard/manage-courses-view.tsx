@@ -3,26 +3,25 @@
 import {
   ChevronDown,
   ChevronRight,
+  ExternalLink,
   EyeOff,
   Pencil,
   Search,
-  Share2,
   SortDesc,
   Trash2,
 } from 'lucide-react';
+import Link from 'next/link';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
-import { cn } from '@/lib/utils';
-import type { ManageCourseRow } from '@/types/manage';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { Separator } from '../ui/separator';
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -30,7 +29,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../ui/table';
+} from '@/components/ui/table';
+import { cn } from '@/lib/utils';
+import type { ManageCourseRow } from '@/types/manage';
 
 type SortKey = 'recent' | 'name-asc' | 'year-desc';
 
@@ -141,8 +142,10 @@ export function ManageCoursesView({
   const defaultActions = useCallback(
     (_course: ManageCourseRow) => (
       <div className='flex items-center justify-end gap-2'>
-        <Button variant='ghost' size='icon' aria-label='Bagikan kelas'>
-          <Share2 className='size-4' />
+        <Button asChild variant='ghost' size='icon' aria-label='Bagikan kelas'>
+          <Link href={`/dashboard/class/${_course.id}`}>
+            <ExternalLink className='size-4' />
+          </Link>
         </Button>
         <Button variant='ghost' size='icon' aria-label='Sembunyikan kelas'>
           <EyeOff className='size-4' />

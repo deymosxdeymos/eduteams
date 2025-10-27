@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ProfileLayout } from '@/components/dashboard/profile-layout';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { protectDashboard } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
