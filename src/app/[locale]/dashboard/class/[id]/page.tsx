@@ -21,6 +21,7 @@ type CourseResult = {
   periode: string;
   dosenId: string;
   shareToken: string | null;
+  archivedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   dosen?: {

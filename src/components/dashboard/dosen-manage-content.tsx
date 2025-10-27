@@ -1,3 +1,4 @@
+import { toggleCourseArchive } from '@/lib/actions/manage-courses';
 import type { ManageCourseRow } from '@/types/manage';
 import { ManageCoursesView } from './manage-courses-view';
 
@@ -6,6 +7,15 @@ interface DosenManageContentProps {
 }
 
 export function DosenManageContent({ courses }: DosenManageContentProps) {
+  async function handleArchiveToggle(course: ManageCourseRow) {
+    'use server';
+
+    await toggleCourseArchive({
+      courseId: course.id,
+      archive: !course.isManuallyArchived,
+    });
+  }
+
   return (
     <ManageCoursesView
       courses={courses}
@@ -13,6 +23,7 @@ export function DosenManageContent({ courses }: DosenManageContentProps) {
       archivedLabel='Kelas yang diarsipkan'
       emptyActiveMessage='Belum ada kelas aktif.'
       emptyArchivedMessage='Belum ada kelas yang diarsipkan.'
+      onArchiveToggle={handleArchiveToggle}
     />
   );
 }

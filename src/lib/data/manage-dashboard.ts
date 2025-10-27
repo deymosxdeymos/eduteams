@@ -72,6 +72,7 @@ export async function getManageCoursesForDosen(
       tahunAwalPeriode: true,
       tahunAkhirPeriode: true,
       periode: true,
+      archivedAt: true,
       createdAt: true,
       updatedAt: true,
       _count: { select: { assignments: true, enrollments: true } },
@@ -93,7 +94,9 @@ export async function getManageCoursesForDosen(
     semester: resolveSemester(course.periode),
     assignmentsCount: course._count.assignments,
     studentsCount: course._count.enrollments,
-    isArchived: isArchivedCourse(course, currentPeriod),
+    isManuallyArchived: Boolean(course.archivedAt),
+    isArchived:
+      Boolean(course.archivedAt) || isArchivedCourse(course, currentPeriod),
     updatedAt: course.updatedAt.toISOString(),
   }));
 }

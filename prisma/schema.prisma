@@ -282,6 +282,7 @@ model Course {
   periode           String
   dosenId           String
   shareToken        String?            @unique @default(cuid())
+  archivedAt        DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   dosen             User               @relation(fields: [dosenId], references: [id], onDelete: Cascade)
@@ -291,6 +292,7 @@ model Course {
   @@index([dosenId])
   @@index([tahunAwalPeriode, tahunAkhirPeriode])
   @@index([periode])
+  @@index([archivedAt])
   @@index([shareToken])
   @@map("courses")
 }

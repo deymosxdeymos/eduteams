@@ -9,5 +9,6 @@ export interface ManageCourseRow {
   assignmentsCount: number;
   studentsCount: number;
   isArchived: boolean;
+  isManuallyArchived: boolean;
   updatedAt: string;
 }

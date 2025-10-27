@@ -12,6 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +55,7 @@ interface ManageCoursesViewProps {
   emptyActiveMessage: string;
   emptyArchivedMessage: string;
   renderActions?: (course: ManageCourseRow) => ReactNode;
-  onArchiveToggle?: (course: ManageCourseRow) => void;
+  onArchiveToggle?: (course: ManageCourseRow) => Promise<void> | void;
 }
 
 function sortCourses(rows: ManageCourseRow[], key: SortKey) {
@@ -138,20 +139,41 @@ export function ManageCoursesView({
   renderActions,
   onArchiveToggle,
 }: ManageCoursesViewProps) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [showArchived, setShowArchived] = useState(false);
+  const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
   const handleArchiveToggle = useCallback(
-    (course: ManageCourseRow) => onArchiveToggle?.(course),
-    [onArchiveToggle]
+    (course: ManageCourseRow) => {
+      if (!onArchiveToggle) {
+        return;
+      }
+
+      setPendingCourseId(course.id);
+      void (async () => {
+        try {
+          await onArchiveToggle(course);
+          router.refresh();
+        } catch (error) {
+          console.error('Failed to toggle archive status', error);
+        } finally {
+          setPendingCourseId(current =>
+            current === course.id ? null : current
+          );
+        }
+      })();
+    },
+    [onArchiveToggle, router]
   );
 
   const defaultActions = useCallback(
     (course: ManageCourseRow) => {
-      const archiveLabel = course.isArchived
+      const archiveLabel = course.isManuallyArchived
         ? 'Tampilkan kelas'
         : 'Sembunyikan kelas';
-      const ArchiveIcon = course.isArchived ? Eye : EyeOff;
+      const ArchiveIcon = course.isManuallyArchived ? Eye : EyeOff;
+      const isPending = pendingCourseId === course.id;
 
       return (
         <div className='flex items-center justify-end gap-2'>
@@ -169,6 +191,8 @@ export function ManageCoursesView({
             variant='ghost'
             size='icon'
             aria-label={archiveLabel}
+            disabled={isPending}
+            aria-busy={isPending}
             onClick={() => handleArchiveToggle(course)}
           >
             <ArchiveIcon className='size-4' />
@@ -187,7 +211,7 @@ export function ManageCoursesView({
         </div>
       );
     },
-    [handleArchiveToggle]
+    [handleArchiveToggle, pendingCourseId]
   );
 
   const renderRowActions = renderActions ?? defaultActions;
