@@ -131,29 +131,29 @@ const OJTS_V21_TRANSLATIONS: Record<string, readonly string[]> = {
   ],
   'id-ID': [
     'Saya tidak suka menjadi pusat perhatian',
-    'Saya tidak suka situasi dimana orang berharap saya lucu',
-    'Saya sering menahan pendapat saya',
-    'Saya ingin memiliki banyak teman',
-    'Saya sering menjadi pusat perhatian di pesta',
-    'Saya sering membuat keributan',
+    'Saya benci situasi di mana orang berharap saya menjadi lucu atau menghibur',
+    'Saya jarang mengutarakan pendapat',
+    'Saya ingin memiliki pergaulan sosial yang luas',
+    'Saya yang menghidupkan suasana pesta',
+    'Saya orang yang berisik',
     'Saya menghindari diskusi filosofis',
-    'Saya tidak suka menganalisis karya sastra',
+    'Saya tidak suka menganalisis cerita atau bacaan',
     'Saya lebih nyaman dengan cara-cara konvensional',
-    'Saya suka membaca bacaan yang menantang',
-    'Saya selalu mencari makna tersembunyi dari sesuatu',
+    'Saya suka membaca materi yang menantang',
+    'Saya selalu mencari makna tersembunyi di balik sesuatu',
     'Saya penasaran dengan segala hal',
-    'Saya ingin merasakan gairah dan romansa',
-    'Saya sangat tersentuh melihat kesulitan orang lain',
+    'Saya ingin merasakan gairah dan percintaan',
+    'Saya sangat tergerak melihat penderitaan orang lain',
     'Saya mendengarkan perasaan saat mengambil keputusan penting',
-    'Saya mengutamakan logika di segala hal',
-    'Saya tidak mengerti orang yang mudah terbawa emosi',
-    'Lebih baik ditakuti daripada dicintai',
+    'Saya mengutamakan logika di atas segalanya',
+    'Saya tidak mengerti orang yang mudah emosional',
+    'Saya lebih memilih ditakuti daripada dicintai',
     'Saya suka keadaan yang teratur',
     'Saya melakukan sesuatu sesuai rencana',
     'Saya selalu siap siaga',
     'Saya sering membuat rencana mendadak',
-    'Saya kerap melakukan sesuatu tanpa alasan yang jelas',
-    'Saya butuh berhari-hari untuk menyelesaikan pekerjaan yang seharusnya selesai dalam sejam karena mudah kehilangan fokus.',
+    'Saya sering melakukan sesuatu tanpa alasan yang jelas',
+    'Saya butuh berhari-hari untuk menyelesaikan pekerjaan yang seharusnya cepat selesai karena mudah kehilangan fokus',
     'Saya selalu berusaha untuk menjadi lebih baik',
     'Saya selalu merasa harus melakukan sesuatu yang penting',
     'Saya memiliki keyakinan yang tidak biasa tentang dunia',
@@ -163,7 +163,7 @@ const OJTS_V21_TRANSLATIONS: Record<string, readonly string[]> = {
     'Saya suka bersantai-santai',
     'Saya memilih jalan termudah',
     'Saya menceritakan rahasia saya pada orang lain',
-    'Saya menunjukkan persahabatan secara berlebihan',
+    'Saya sering menunjukkan rasa persahabatan secara besar-besaran',
     'Saya menikmati tantangan dan persaingan',
     'Saya memiliki percaya diri yang sangat tinggi',
     'Saya mudah merasa malu',
@@ -289,7 +289,7 @@ async function seedMBTIQuestions() {
       });
       if (deleted.count > 0) {
         console.log(
-          `ℹ️ Removed ${deleted} existing OJTS questions (bank v4) before reseeding`
+          `i Removed ${deleted} existing OJTS questions (bank v4) before reseeding`
         );
       }
 
@@ -334,52 +334,6 @@ async function seedMBTIQuestions() {
   }
 }
 
-async function seedDosenTokens() {
-  console.log('🌱 Starting dosen token seeding...');
-
-  try {
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Clear existing dosen tokens and usage records
-      try {
-        await tx.dosenTokenUsage.deleteMany({});
-        await tx.dosenToken.deleteMany({});
-        console.log('✅ Cleared existing dosen tokens and usage records');
-      } catch (_error) {
-        // Tables might not exist yet, that's okay
-        console.log('✅ No existing dosen tokens to clear (tables may be new)');
-      }
-
-      // Create single shared token for all dosen
-      const sharedToken = `SONE-${Date.now()}`;
-
-      const createdToken = await tx.dosenToken.create({
-        data: withTimestamps({
-          id: randomUUID(),
-          token: sharedToken,
-          description: 'Shared token for all dosen verification',
-        }),
-        select: {
-          id: true,
-          token: true,
-          description: true,
-        },
-      });
-
-      console.log(`✅ Created shared dosen token`);
-
-      // Print token for admin reference
-      console.log('\n🔐 Generated Dosen Token:');
-      console.log(`   Token: ${createdToken.token}`);
-      console.log('   (This token can be used by multiple dosen)');
-    });
-
-    console.log('🎉 Dosen token seeding completed successfully!');
-  } catch (error) {
-    console.error('❌ Error seeding dosen token:', error);
-    throw error;
-  }
-}
-
 async function main() {
   try {
     await seedMBTIQuestions();
@@ -403,4 +357,4 @@ if (isDirectExecution) {
   void main();
 }
 
-export { seedMBTIQuestions, seedDosenTokens };
+export { seedMBTIQuestions };
