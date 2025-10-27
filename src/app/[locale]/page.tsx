@@ -87,7 +87,7 @@ export default async function Home() {
               sizes='100vw'
               alt='hills'
               className='w-full h-auto max-w-[1920px] animate-hills'
-              style={{ width: 'auto', height: 'auto' }}
+              // style={{ width: 'auto', height: 'auto' }}
               priority
             />
           </div>
