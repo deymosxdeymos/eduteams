@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  Eye,
   EyeOff,
   Pencil,
   Search,
@@ -53,6 +54,7 @@ interface ManageCoursesViewProps {
   emptyActiveMessage: string;
   emptyArchivedMessage: string;
   renderActions?: (course: ManageCourseRow) => ReactNode;
+  onArchiveToggle?: (course: ManageCourseRow) => void;
 }
 
 function sortCourses(rows: ManageCourseRow[], key: SortKey) {
@@ -134,36 +136,53 @@ export function ManageCoursesView({
   emptyActiveMessage,
   emptyArchivedMessage,
   renderActions,
+  onArchiveToggle,
 }: ManageCoursesViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [showArchived, setShowArchived] = useState(false);
+  const handleArchiveToggle = useCallback(
+    (course: ManageCourseRow) => onArchiveToggle?.(course),
+    [onArchiveToggle]
+  );
 
   const defaultActions = useCallback(
-    (_course: ManageCourseRow) => (
-      <div className='flex items-center justify-end gap-2'>
-        <Button asChild variant='ghost' size='icon' aria-label='Bagikan kelas'>
-          <Link href={`/dashboard/class/${_course.id}`}>
-            <ExternalLink className='size-4' />
-          </Link>
-        </Button>
-        <Button variant='ghost' size='icon' aria-label='Sembunyikan kelas'>
-          <EyeOff className='size-4' />
-        </Button>
-        <Button variant='ghost' size='icon' aria-label='Edit kelas'>
-          <Pencil className='size-4' />
-        </Button>
-        <Button
-          variant='ghost'
-          size='icon'
-          aria-label='Hapus kelas'
-          className='text-destructive hover:text-destructive'
-        >
-          <Trash2 className='size-4' />
-        </Button>
-      </div>
-    ),
-    []
+    (course: ManageCourseRow) => {
+      const archiveLabel = course.isArchived
+        ? 'Tampilkan kelas'
+        : 'Sembunyikan kelas';
+      const ArchiveIcon = course.isArchived ? Eye : EyeOff;
+
+      return (
+        <div className='flex items-center justify-end gap-2'>
+          <Button asChild variant='ghost' size='icon' aria-label='Bagikan kelas'>
+            <Link href={`/dashboard/class/${course.id}`}>
+              <ExternalLink className='size-4' />
+            </Link>
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            aria-label={archiveLabel}
+            onClick={() => handleArchiveToggle(course)}
+          >
+            <ArchiveIcon className='size-4' />
+          </Button>
+          <Button variant='ghost' size='icon' aria-label='Edit kelas'>
+            <Pencil className='size-4' />
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            aria-label='Hapus kelas'
+            className='text-destructive hover:text-destructive'
+          >
+            <Trash2 className='size-4' />
+          </Button>
+        </div>
+      );
+    },
+    [handleArchiveToggle]
   );
 
   const renderRowActions = renderActions ?? defaultActions;
