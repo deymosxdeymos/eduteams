@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
 import { canAccessDosenFeatures } from '@/lib/authorization';
 import {
@@ -53,7 +54,13 @@ export default async function Dashboard({
       shouldShowSplash={shouldShowSplash}
       isFirstVisit={isFirstVisit}
     >
-      <Suspense fallback={<div>Loading dashboard...</div>}>
+      <Suspense
+        fallback={
+          <div className='flex min-h-screen items-center justify-center'>
+            <LoadingSpinner size='lg' />
+          </div>
+        }
+      >
         <DashboardLayout
           user={user}
           statistics={statistics}

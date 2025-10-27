@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { AssignmentContent } from '@/components/dashboard/assignment-content';
 import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
@@ -198,7 +199,13 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   // For dosen, show the regular assignment page
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className='flex min-h-screen items-center justify-center'>
+            <LoadingSpinner size='lg' />
+          </div>
+        }
+      >
         <AssignmentLayout
           user={user}
           course={course}
