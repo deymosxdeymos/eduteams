@@ -155,7 +155,12 @@ export function ManageCoursesView({
 
       return (
         <div className='flex items-center justify-end gap-2'>
-          <Button asChild variant='ghost' size='icon' aria-label='Bagikan kelas'>
+          <Button
+            asChild
+            variant='ghost'
+            size='icon'
+            aria-label='Bagikan kelas'
+          >
             <Link href={`/dashboard/class/${course.id}`}>
               <ExternalLink className='size-4' />
             </Link>
