@@ -15,6 +15,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -187,16 +197,50 @@ export function ManageCoursesView({
               <ExternalLink className='size-4' />
             </Link>
           </Button>
-          <Button
-            variant='ghost'
-            size='icon'
-            aria-label={archiveLabel}
-            disabled={isPending}
-            aria-busy={isPending}
-            onClick={() => handleArchiveToggle(course)}
-          >
-            <ArchiveIcon className='size-4' />
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                aria-label={archiveLabel}
+                disabled={isPending}
+                aria-busy={isPending}
+              >
+                <ArchiveIcon className='size-4' />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className='rounded-2xl sm:max-w-[425px]'>
+              <DialogHeader>
+                <DialogTitle className='font-medium'>
+                  {course.isManuallyArchived
+                    ? 'Munculkan Tugas?'
+                    : 'Sembunyikan Kelas?'}
+                </DialogTitle>
+                <DialogDescription>
+                  {course.isManuallyArchived
+                    ? 'Tampilkan tugas untuk kelas ini agar mahasiswa dapat melihatnya'
+                    : 'Kelas yang disembunyikan tidak akan bisa diakses oleh mahasiswa'}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className='flex-col-reverse sm:flex-col-reverse'>
+                <DialogClose asChild>
+                  <Button variant='ghost' className='rounded-full'>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  variant='onboarding'
+                  className='h-12 text-sm rounded-full'
+                  aria-label={archiveLabel}
+                  disabled={isPending}
+                  aria-busy={isPending}
+                  onClick={() => handleArchiveToggle(course)}
+                >
+                  {course.isManuallyArchived ? 'Munculkan' : 'Sembunyikan'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button variant='ghost' size='icon' aria-label='Edit kelas'>
             <Pencil className='size-4' />
           </Button>
