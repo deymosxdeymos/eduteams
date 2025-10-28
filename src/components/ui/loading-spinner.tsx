@@ -79,6 +79,7 @@ export function LoadingPage() {
     <div className='flex min-h-screen items-center justify-center'>
       <div className='flex flex-col items-center space-y-4'>
         <LoadingSpinner size='lg' />
+        <span className='text-lg font-medium'>Loading...</span>
       </div>
     </div>
   );

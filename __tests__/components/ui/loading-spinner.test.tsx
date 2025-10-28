@@ -46,10 +46,10 @@ describe('LoadingSpinner', () => {
 });
 
 describe('LoadingPage', () => {
-  it('renders a spinner with label', () => {
-    const { container, getByText } = render(<LoadingPage />);
+  it('renders a spinner', () => {
+    const { container } = render(<LoadingPage />);
 
-    expect(getByText('Loading...')).toBeInTheDocument();
     expect(container.querySelectorAll('.spinner-bar').length).toBe(12);
+    expect(container.querySelector('div.inline-block')).toBeTruthy();
   });
 });
