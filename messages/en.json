@@ -232,6 +232,15 @@
           "even": "Even"
         }
       },
+      "editClass": {
+        "triggerLabel": "Edit class",
+        "title": "Edit Class",
+        "description": "Update your class details. Changes will appear immediately on the dashboard.",
+        "success": "Class updated successfully!",
+        "button": "Edit Class",
+        "saving": "Saving...",
+        "genericError": "Failed to update class. Please try again."
+      },
       "joinClass": {
         "button": "Join Class",
         "title": "Join Class",

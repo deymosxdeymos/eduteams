@@ -232,6 +232,15 @@
           "even": "Genap"
         }
       },
+      "editClass": {
+        "triggerLabel": "Edit kelas",
+        "title": "Edit Kelas",
+        "description": "Perbarui informasi kelas kamu. Perubahan akan langsung terlihat di dashboard.",
+        "success": "Kelas berhasil diperbarui!",
+        "button": "Edit Kelas",
+        "saving": "Menyimpan...",
+        "genericError": "Gagal memperbarui kelas. Silakan coba lagi."
+      },
       "joinClass": {
         "button": "Masuk Kelas",
         "title": "Masuk ke Kelas",

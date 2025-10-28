@@ -1,3 +1,4 @@
+import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
 import {
   createApiResponse,
@@ -8,7 +9,10 @@ import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
+import { CACHE_TAGS } from '@/lib/cache-tags';
+import { DASHBOARD_COURSES_TAG } from '@/lib/dashboard/courses';
 import prisma from '@/lib/prisma';
+import { courseUpdateSchema } from '@/lib/validation/course';
 
 // Cache for 10 minutes since course data doesn't change frequently
 export const revalidate = 600;
@@ -94,5 +98,85 @@ export const GET = withAuth<{ id: string }>(
     }
 
     return createApiResponse(course);
+  }
+);
+
+export const PATCH = withAuth<{ id: string }>(
+  async (request: NextRequest, { user, params }) => {
+    if (!canAccessDosenFeatures(user)) {
+      return createErrorResponse('Only dosen can update courses', 403);
+    }
+
+    const { id } = await params;
+
+    let payload: unknown;
+    try {
+      payload = await request.json();
+    } catch (_error) {
+      return createErrorResponse('Invalid JSON payload', 400);
+    }
+
+    const parsed = courseUpdateSchema.safeParse(payload);
+    if (!parsed.success) {
+      const message =
+        parsed.error.issues.map(issue => issue.message).join(', ') ||
+        'Invalid course data';
+      return createErrorResponse(message, 400);
+    }
+
+    const data = parsed.data;
+    const updateData: Record<string, unknown> = {};
+
+    if (data.namaMataKuliah !== undefined) {
+      updateData.namaMataKuliah = data.namaMataKuliah;
+    }
+    if (data.kelas !== undefined) {
+      updateData.kelas = data.kelas;
+    }
+    if (data.periode !== undefined) {
+      updateData.periode = data.periode;
+    }
+    if (data.tahunAwalPeriode !== undefined) {
+      updateData.tahunAwalPeriode = data.tahunAwalPeriode;
+    }
+    if (data.tahunAkhirPeriode !== undefined) {
+      updateData.tahunAkhirPeriode = data.tahunAkhirPeriode;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return createErrorResponse('No changes provided', 400);
+    }
+
+    const course = await prisma.course.findUnique({
+      where: { id },
+      select: { id: true, dosenId: true },
+    });
+
+    if (!course) {
+      return createErrorResponse('Course not found', 404);
+    }
+
+    if (course.dosenId !== user.id) {
+      return createErrorResponse('Access denied', 403);
+    }
+
+    const updatedCourse = await prisma.course.update({
+      where: { id },
+      data: updateData,
+      include: {
+        dosen: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    revalidateTag(DASHBOARD_COURSES_TAG);
+    revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
+
+    return createApiResponse(updatedCourse);
   }
 );
