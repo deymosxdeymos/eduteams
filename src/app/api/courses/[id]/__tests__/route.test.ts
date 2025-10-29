@@ -24,9 +24,7 @@ const prismaMock: any = {
   },
   course: {
     findFirst: mock(async (args: any) =>
-      args?.where?.dosenId === 'u1'
-        ? { ...baseCourse }
-        : null
+      args?.where?.dosenId === 'u1' ? { ...baseCourse } : null
     ),
     findUnique: mock(async (args: any) =>
       args?.where?.id === 'c1' ? { ...baseCourse } : null
@@ -68,7 +66,8 @@ const prismaMock: any = {
 const revalidateTagMock = mock(() => {});
 const unstableCacheMock = mock(
   (fn: (...args: any[]) => Promise<unknown> | unknown) =>
-    (...args: any[]) => fn(...args)
+    (...args: any[]) =>
+      fn(...args)
 );
 
 mock.module('next/cache', () => ({

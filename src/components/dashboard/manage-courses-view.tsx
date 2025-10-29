@@ -2,9 +2,9 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  Check,
   ChevronDown,
   ChevronRight,
-  Check,
   ExternalLink,
   Eye,
   EyeOff,
@@ -14,8 +14,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   type ReactNode,
   useCallback,
@@ -23,6 +23,7 @@ import {
   useState,
   useTransition,
 } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -62,10 +63,9 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import {
-  courseCreateInputSchema,
   type CourseCreateUserInput,
+  courseCreateInputSchema,
 } from '@/lib/validation/course';
-import { useForm } from 'react-hook-form';
 import type { ManageCourseRow } from '@/types/manage';
 
 type SortKey = 'recent' | 'name-asc' | 'year-desc';
@@ -163,9 +163,7 @@ function ManageTable({
   );
 }
 
-function mapCourseToFormValues(
-  course: ManageCourseRow
-): CourseCreateUserInput {
+function mapCourseToFormValues(course: ManageCourseRow): CourseCreateUserInput {
   return {
     namaMataKuliah: course.name,
     kelas: course.classCode as CourseCreateUserInput['kelas'],
@@ -220,7 +218,14 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
           body: JSON.stringify(values),
         });
 
-        let result: any = null;
+        let result: {
+          error?: string;
+          data?: Partial<{
+            namaMataKuliah: string;
+            kelas: CourseCreateUserInput['kelas'];
+            periode: CourseCreateUserInput['periode'];
+          }>;
+        } | null = null;
         try {
           result = await response.json();
         } catch (_error) {
@@ -229,8 +234,7 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
 
         if (!response.ok) {
           const message =
-            (result?.error as string | undefined) ||
-            tEdit('genericError');
+            (result?.error as string | undefined) || tEdit('genericError');
           throw new Error(message);
         }
 
@@ -242,8 +246,7 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
 
         if (updated) {
           form.reset({
-            namaMataKuliah:
-              updated.namaMataKuliah ?? values.namaMataKuliah,
+            namaMataKuliah: updated.namaMataKuliah ?? values.namaMataKuliah,
             kelas: updated.kelas ?? values.kelas,
             periode: updated.periode ?? values.periode,
           });
@@ -259,9 +262,7 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
           setOpen(false);
         }, 1200);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : tEdit('genericError')
-        );
+        setError(err instanceof Error ? err.message : tEdit('genericError'));
       }
     });
   };
@@ -332,7 +333,9 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                     >
                       <FormControl>
                         <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
-                          <SelectValue placeholder={tFields('classPlaceholder')} />
+                          <SelectValue
+                            placeholder={tFields('classPlaceholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -361,7 +364,9 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                     >
                       <FormControl>
                         <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
-                          <SelectValue placeholder={tFields('periodPlaceholder')} />
+                          <SelectValue
+                            placeholder={tFields('periodPlaceholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -395,11 +400,7 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                   disabled={isPending}
                 >
                   {isPending ? (
-                    <LoadingSpinner
-                      size='sm'
-                      color='white'
-                      className='mr-2'
-                    />
+                    <LoadingSpinner size='sm' color='white' className='mr-2' />
                   ) : (
                     <Pencil className='mr-2 h-4 w-4' strokeWidth={3} />
                   )}
