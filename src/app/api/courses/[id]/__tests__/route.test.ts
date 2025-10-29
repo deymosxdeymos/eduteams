@@ -1,4 +1,4 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const baseCourse = {
   id: 'c1',
@@ -35,6 +35,7 @@ const prismaMock: any = {
       updatedAt: new Date('2025-01-03T00:00:00Z'),
       dosen: baseCourse.dosen,
     })),
+    delete: mock(async () => ({ ...baseCourse })),
   },
   courseEnrollment: {
     findUnique: mock(async (args: any) =>
@@ -60,6 +61,7 @@ const prismaMock: any = {
           }
         : null
     ),
+    findMany: mock(async () => []),
   },
 };
 
@@ -133,6 +135,103 @@ describe('GET /api/courses/[id]', () => {
       { params: Promise.resolve({ id: 'cX' }) } as any
     );
     expect(res.status).toBe(403);
+  });
+});
+
+describe('DELETE /api/courses/[id]', () => {
+  beforeEach(() => {
+    revalidateTagMock.mockClear();
+    prismaMock.course.delete.mockClear();
+    prismaMock.courseEnrollment.findMany.mockClear();
+  });
+
+  it('dosen can delete their own course and revalidate caches', async () => {
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    }));
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
+      { studentId: 's1' },
+      { studentId: 's2' },
+      { studentId: 's1' },
+    ]);
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    }));
+
+    const { DELETE } = await import('../route');
+    const res = await DELETE(
+      new Request('http://localhost/api/courses/c1', {
+        method: 'DELETE',
+      }) as any,
+      { params: Promise.resolve({ id: 'c1' }) } as any
+    );
+
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as any;
+    expect(json.success).toBe(true);
+    expect(prismaMock.course.delete).toHaveBeenCalledWith({
+      where: { id: 'c1' },
+    });
+    expect(revalidateTagMock).toHaveBeenCalledTimes(4);
+    expect(revalidateTagMock.mock.calls.map(call => call[0])).toEqual([
+      'dashboard:courses',
+      'courses-u1',
+      'student-classes-s1',
+      'student-classes-s2',
+    ]);
+  });
+
+  it('returns 403 when deleting course not owned by dosen', async () => {
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    }));
+    prismaMock.course.findUnique.mockImplementationOnce(async () => ({
+      ...baseCourse,
+      dosenId: 'u2',
+    }));
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    }));
+
+    const { DELETE } = await import('../route');
+    const res = await DELETE(
+      new Request('http://localhost/api/courses/c1', {
+        method: 'DELETE',
+      }) as any,
+      { params: Promise.resolve({ id: 'c1' }) } as any
+    );
+
+    expect(res.status).toBe(403);
+    expect(prismaMock.course.delete).not.toHaveBeenCalled();
+    expect(revalidateTagMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when course is not found', async () => {
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 'u1',
+      role: 'dosen',
+      isOnboarded: true,
+    }));
+    prismaMock.course.findUnique.mockImplementationOnce(async () => null);
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    }));
+
+    const { DELETE } = await import('../route');
+    const res = await DELETE(
+      new Request('http://localhost/api/courses/c1', {
+        method: 'DELETE',
+      }) as any,
+      { params: Promise.resolve({ id: 'c1' }) } as any
+    );
+
+    expect(res.status).toBe(404);
+    expect(prismaMock.course.delete).not.toHaveBeenCalled();
+    expect(revalidateTagMock).not.toHaveBeenCalled();
   });
 });
 
