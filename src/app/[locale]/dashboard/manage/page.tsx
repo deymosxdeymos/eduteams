@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { ManageLayout } from '@/components/dashboard/manage-layout';
+import { CourseListSkeleton } from '@/components/ui/skeletons/course-list-skeleton';
 import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
@@ -27,7 +28,7 @@ export default async function ManagePage() {
 
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
-      <Suspense fallback={<div>Loading manage dashboard...</div>}>
+      <Suspense fallback={<CourseListSkeleton />}>
         <ManageLayout user={user} />
       </Suspense>
     </DashboardClient>

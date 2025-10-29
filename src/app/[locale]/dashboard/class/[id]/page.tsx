@@ -1,52 +1,23 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ClassPageLayout } from '@/components/dashboard/class-page-layout';
+import { Suspense } from 'react';
+import { ClassAssignmentsAsync } from '@/components/dashboard/async/class-assignments-async';
+import { StudentClassDataAsync } from '@/components/dashboard/async/student-class-data-async';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { StudentClassPageLayout } from '@/components/dashboard/student-class-page-layout';
+import { AssignmentListSkeleton } from '@/components/ui/skeletons/assignment-list-skeleton';
+import { StudentListSkeleton } from '@/components/ui/skeletons/student-list-skeleton';
 import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
+import { getStudentsData } from '@/lib/data/course-data';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 import type { ExtendedUser } from '@/lib/types';
-import type { AssignmentResponse } from '@/lib/validation/assignments';
-
-type CourseResult = {
-  id: string;
-  namaMataKuliah: string;
-  kelas: string;
-  tahunAwalPeriode: number;
-  tahunAkhirPeriode: number;
-  periode: string;
-  dosenId: string;
-  shareToken: string | null;
-  archivedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  dosen?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-};
-
-type StudentData = {
-  id: string;
-  name: string;
-  nim: string;
-  email: string;
-  mbtiType?: string | null;
-  ei?: number | null;
-  sn?: number | null;
-  tf?: number | null;
-  pj?: number | null;
-  enrolledAt: Date;
-};
 
 export const dynamic = 'force-dynamic';
 
-// Cache course data to avoid duplicate queries
+// Get full course data for rendering
 async function getCourseData(id: string, user: ExtendedUser) {
   const isDosen = canAccessDosenFeatures(user);
 
@@ -60,14 +31,10 @@ async function getCourseData(id: string, user: ExtendedUser) {
       },
     });
   }
-  return null;
-}
 
-// Optimized single query for mahasiswa to get course + enrollment in one go
-async function getCourseDataForMahasiswa(id: string, userId: string) {
   const enrollment = await prisma.courseEnrollment.findUnique({
     where: {
-      courseId_studentId: { courseId: id, studentId: userId },
+      courseId_studentId: { courseId: id, studentId: user.id },
     },
     include: {
       course: {
@@ -75,125 +42,37 @@ async function getCourseDataForMahasiswa(id: string, userId: string) {
           dosen: {
             select: { id: true, name: true, email: true },
           },
-          enrollments: {
-            select: {
-              enrolledAt: true,
-              student: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  nimNpm: true,
-                  mbtiType: true,
-                  ei: true,
-                  sn: true,
-                  tf: true,
-                  pj: true,
-                },
-              },
-            },
-            orderBy: { student: { name: 'asc' } },
-          },
         },
       },
     },
   });
 
-  if (!enrollment) return { course: null, students: [] };
-
-  const students = enrollment.course.enrollments.map(enroll => ({
-    id: enroll.student.id,
-    name: enroll.student.name || 'Unknown',
-    nim: enroll.student.nimNpm || 'N/A',
-    email: enroll.student.email || 'N/A',
-    mbtiType: enroll.student.mbtiType,
-    ei: enroll.student.ei,
-    sn: enroll.student.sn,
-    tf: enroll.student.tf,
-    pj: enroll.student.pj,
-    enrolledAt: enroll.enrolledAt,
-  }));
-
-  // Remove enrollments from course object to match CourseResult type
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { enrollments: _, ...course } = enrollment.course;
-
-  return { course, students };
+  return enrollment?.course ?? null;
 }
 
-// Parallel fetch students data
-async function getStudentsData(courseId: string): Promise<StudentData[]> {
-  const enrollments = await prisma.courseEnrollment.findMany({
-    where: { courseId },
-    select: {
-      enrolledAt: true,
-      student: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          nimNpm: true,
-          mbtiType: true,
-          ei: true,
-          sn: true,
-          tf: true,
-          pj: true,
-        },
-      },
-    },
-    orderBy: { student: { name: 'asc' } },
-  });
-
-  return enrollments.map(enrollment => ({
-    id: enrollment.student.id,
-    name: enrollment.student.name || 'Unknown',
-    nim: enrollment.student.nimNpm || 'N/A',
-    email: enrollment.student.email || 'N/A',
-    mbtiType: enrollment.student.mbtiType,
-    ei: enrollment.student.ei,
-    sn: enrollment.student.sn,
-    tf: enrollment.student.tf,
-    pj: enrollment.student.pj,
-    enrolledAt: enrollment.enrolledAt,
-  }));
-}
-
-async function getInitialAssignments(
-  courseId: string,
-  user: ExtendedUser
-): Promise<AssignmentResponse[]> {
+// Lightweight course check - only verifies access
+async function verifyCourseAccess(id: string, user: ExtendedUser) {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
-  if (!isDosen && !isMahasiswa) return [];
+  if (isDosen) {
+    return await prisma.course.findFirst({
+      where: { id, dosenId: user.id },
+      select: { id: true },
+    });
+  }
 
-  const rows = await prisma.assignment.findMany({
-    where: { courseId },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      courseId: true,
-      title: true,
-      description: true,
-      startAt: true,
-      createdAt: true,
-      status: true,
-      _count: { select: { submissions: true } },
-    },
-  });
+  if (isMahasiswa) {
+    const enrollment = await prisma.courseEnrollment.findUnique({
+      where: {
+        courseId_studentId: { courseId: id, studentId: user.id },
+      },
+      select: { courseId: true },
+    });
+    return enrollment ? { id: enrollment.courseId } : null;
+  }
 
-  return rows.map(r => ({
-    id: r.id,
-    courseId: r.courseId,
-    title: r.title,
-    description: r.description ?? undefined,
-    startAt: r.startAt,
-    createdAt: r.createdAt,
-    status: r.status,
-    skills: [],
-    topics: [],
-    submissionsCount: r._count.submissions,
-  }));
+  return null;
 }
 
 export async function generateMetadata({
@@ -235,51 +114,47 @@ export default async function ClassPage({ params }: ClassPageProps) {
     notFound();
   }
 
-  // Optimized data fetching based on user role
-  let course: CourseResult | null = null;
-  let studentsData: StudentData[] = [];
-  let initialAssignments: AssignmentResponse[] = [];
-
-  if (isDosen) {
-    // For dosen: fetch both course and students in parallel
-    [course, studentsData, initialAssignments] = await Promise.all([
-      getCourseData(id, user),
-      getStudentsData(id),
-      getInitialAssignments(id, user),
-    ]);
-  } else if (isMahasiswa) {
-    // For mahasiswa: single optimized query gets both course and students
-    const result = await getCourseDataForMahasiswa(id, user.id);
-    course = result.course;
-    studentsData = result.students;
-    initialAssignments = await getInitialAssignments(id, user);
+  // Quick access verification
+  const hasAccess = await verifyCourseAccess(id, user);
+  if (!hasAccess) {
+    notFound();
   }
 
+  // Fetch minimal course data needed for initial render
+  const course = await getCourseData(id, user);
   if (!course) {
     notFound();
   }
 
+  // Fetch students list (quick query for initial data)
+  const studentsData = await getStudentsData(id);
+
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
-      {isDosen && (
-        <ClassPageLayout
-          classId={id}
-          dosenId={user.id}
-          user={user}
-          course={course}
-          initialAssignments={initialAssignments}
-          studentsData={studentsData}
-        />
-      )}
-      {isMahasiswa && (
-        <StudentClassPageLayout
-          classId={id}
-          user={user}
-          course={course}
-          studentsData={studentsData} // Pass server-side data
-          initialAssignments={initialAssignments}
-        />
-      )}
+      <div className='space-y-6'>
+        {isDosen && (
+          <Suspense fallback={<StudentListSkeleton />}>
+            <ClassAssignmentsAsync
+              courseId={id}
+              classId={id}
+              dosenId={user.id}
+              user={user}
+              course={course}
+              studentsData={studentsData}
+            />
+          </Suspense>
+        )}
+        {isMahasiswa && (
+          <Suspense fallback={<AssignmentListSkeleton />}>
+            <StudentClassDataAsync
+              classId={id}
+              user={user}
+              course={course}
+              studentsData={studentsData}
+            />
+          </Suspense>
+        )}
+      </div>
     </DashboardClient>
   );
 }

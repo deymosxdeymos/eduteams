@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { ProfileLayout } from '@/components/dashboard/profile-layout';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { protectDashboard } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
@@ -19,15 +17,7 @@ export default async function ProfilePage() {
 
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
-      <Suspense
-        fallback={
-          <div className='flex min-h-screen items-center justify-center'>
-            <LoadingSpinner size='lg' />
-          </div>
-        }
-      >
-        <ProfileLayout user={user} />
-      </Suspense>
+      <ProfileLayout user={user} />
     </DashboardClient>
   );
 }

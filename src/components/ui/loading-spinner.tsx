@@ -22,7 +22,12 @@ export function LoadingSpinner({
 
 export function LoadingPage() {
   return (
-    <div className='flex min-h-screen items-center justify-center'>
+    <div
+      className='flex min-h-screen items-center justify-center'
+      role='status'
+      aria-live='polite'
+      aria-busy='true'
+    >
       <div className='flex flex-col items-center gap-4'>
         <LoadingSpinner size='lg' />
         <span className='text-lg font-medium'>Loading...</span>

@@ -1,17 +1,15 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { AssignmentContent } from '@/components/dashboard/assignment-content';
-import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
+import { AssignmentDetailAsync } from '@/components/dashboard/async/assignment-detail-async';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { AssignmentSkeleton } from '@/components/ui/skeletons/assignment-skeleton';
 import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
-import { getAssignmentStats } from '@/lib/stats/assignment';
 import type { Course, ExtendedUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -35,28 +33,9 @@ export async function generateMetadata({
   return { title, description };
 }
 
-async function getCourseAndStudents(
-  courseId: string,
-  user: ExtendedUser
-): Promise<{
-  course: Course | null;
-  students: Array<{
-    id: string;
-    name: string;
-    nim: string;
-    email: string;
-    mbtiType?: string | null;
-    ei?: number | null;
-    sn?: number | null;
-    tf?: number | null;
-    pj?: number | null;
-    enrolledAt: Date;
-  }>;
-}> {
+// Get full course and student data
+async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
   const isDosen = canAccessDosenFeatures(user);
-  const isMahasiswa = canAccessMahasiswaFeatures(user);
-
-  if (!isDosen && !isMahasiswa) return { course: null, students: [] };
 
   if (isDosen) {
     const [course, enrollments] = await Promise.all([
@@ -104,7 +83,6 @@ async function getCourseAndStudents(
     return { course: course as unknown as Course, students };
   }
 
-  // mahasiswa
   const enrollment = await prisma.courseEnrollment.findUnique({
     where: { courseId_studentId: { courseId, studentId: user.id } },
     include: {
@@ -134,6 +112,7 @@ async function getCourseAndStudents(
       },
     },
   });
+
   if (!enrollment) return { course: null, students: [] };
 
   const students = enrollment.course.enrollments.map(e => ({
@@ -162,70 +141,35 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   const user = await protectDashboard();
   const { id, assignmentId } = await params;
 
+  const isDosen = canAccessDosenFeatures(user);
+  const isMahasiswa = canAccessMahasiswaFeatures(user);
+
+  if (!isDosen && !isMahasiswa) {
+    notFound();
+  }
+
+  // Fetch course and students data
   const { course, students } = await getCourseAndStudents(id, user);
   if (!course) notFound();
 
-  const isMahasiswa = user.role === 'mahasiswa';
-  const isDosen = user.role === 'dosen' && user.id === course.dosenId;
+  // Verify user role matches course access
+  const isAuthorizedDosen = isDosen && user.id === course.dosenId;
+  if (!isAuthorizedDosen && !isMahasiswa) {
+    notFound();
+  }
 
-  // For mahasiswa, determine submission status (for CTA rendering only)
-  const hasSubmitted = isMahasiswa
-    ? !!(await prisma.assignmentSubmission.findUnique({
-        where: {
-          assignmentId_studentId: { assignmentId, studentId: user.id },
-        },
-      }))
-    : false;
-
-  // Fetch assignment title for breadcrumbs
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: { title: true },
-  });
-  const assignmentTitle = assignment?.title ?? 'Tugas';
-
-  // Stats for graphs (server-side). Start with zeros until teams are formed.
-  const stats = await getAssignmentStats(assignmentId, id);
-
-  // Determine submissions for this assignment among enrolled students (for dosen UI)
-  const submittedForAssignment = await prisma.assignmentSubmission.findMany({
-    where: { assignmentId: assignmentId },
-    select: { studentId: true },
-  });
-  const submittedStudentIds = new Set<string>(
-    submittedForAssignment.map(s => s.studentId)
-  );
-
-  // For dosen, show the regular assignment page
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
-      <Suspense
-        fallback={
-          <div className='flex min-h-screen items-center justify-center'>
-            <LoadingSpinner size='lg' />
-          </div>
-        }
-      >
-        <AssignmentLayout
+      <Suspense fallback={<AssignmentSkeleton />}>
+        <AssignmentDetailAsync
           user={user}
           course={course}
           classId={id}
           assignmentId={assignmentId}
           students={students}
-          canManage={isDosen}
-          hideStudentList={stats.teamsFormed}
-          assignmentTitle={assignmentTitle}
-          submittedStudentIds={Array.from(submittedStudentIds) as string[]}
-        >
-          <AssignmentContent
-            assignmentId={assignmentId}
-            classId={id}
-            canManage={isDosen}
-            isStudent={isMahasiswa}
-            hasSubmitted={hasSubmitted}
-            stats={stats}
-          />
-        </AssignmentLayout>
+          isDosen={isAuthorizedDosen}
+          isMahasiswa={isMahasiswa}
+        />
       </Suspense>
     </DashboardClient>
   );

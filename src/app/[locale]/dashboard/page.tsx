@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
+import { DashboardCoursesAsync } from '@/components/dashboard/async/dashboard-courses-async';
+import { getStatsOrEmpty } from '@/components/dashboard/async/dashboard-stats-async';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import Nav from '@/components/dashboard/nav';
+import Sidebar from '@/components/dashboard/sidebar';
+import { StudentDashboard } from '@/components/dashboard/student-dashboard';
+import { CourseListSkeleton } from '@/components/ui/skeletons/course-list-skeleton';
 import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
-import { canAccessDosenFeatures } from '@/lib/authorization';
 import {
-  type DosenCourseSummary,
-  getCoursesForDosen,
-} from '@/lib/dashboard/courses';
-import {
-  EMPTY_DASHBOARD_STATISTICS,
-  getDashboardStatisticsForUser,
-} from '@/lib/dashboard/statistics';
+  canAccessDosenFeatures,
+  canAccessMahasiswaFeatures,
+} from '@/lib/authorization';
 import { protectDashboard } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
@@ -25,48 +25,57 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Dashboard({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ firstVisit?: string }>;
 }) {
   const user = await protectDashboard();
-  const params = await searchParams;
+  await params;
+  const t = await getTranslations('dashboard.layout');
+  const searchParamsResolved = await searchParams;
 
-  const isFirstVisit = params.firstVisit === 'true';
+  const isFirstVisit = searchParamsResolved.firstVisit === 'true';
   const shouldShowSplash = isFirstVisit && !user.hasSeenWelcomeSplash;
 
-  let statistics = EMPTY_DASHBOARD_STATISTICS;
-  let courses: DosenCourseSummary[] = [];
+  const isDosen = canAccessDosenFeatures(user);
+  const isMahasiswa = canAccessMahasiswaFeatures(user);
 
-  if (canAccessDosenFeatures(user)) {
-    [statistics, courses] = await Promise.all([
-      getDashboardStatisticsForUser(user.id),
-      getCoursesForDosen(user.id),
-    ]);
-  }
+  // Get statistics synchronously for dosen
+  const statistics = isDosen ? await getStatsOrEmpty(user.id) : null;
 
   if (shouldShowSplash) {
     await updateWelcomeSplashStatus();
   }
+
   return (
     <DashboardClient
       user={user}
       shouldShowSplash={shouldShowSplash}
       isFirstVisit={isFirstVisit}
     >
-      <Suspense
-        fallback={
-          <div className='flex min-h-screen items-center justify-center'>
-            <LoadingSpinner size='lg' />
+      <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
+        <div className='mb-8'>
+          <Nav user={user} />
+        </div>
+        <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
+          <Sidebar />
+          <div className='px-8 pb-0 min-h-0'>
+            {isDosen && statistics && (
+              <Suspense fallback={<CourseListSkeleton />}>
+                <DashboardCoursesAsync user={user} statistics={statistics} />
+              </Suspense>
+            )}
+            {isMahasiswa && <StudentDashboard />}
+            {!isDosen && !isMahasiswa && (
+              <div className='flex items-center justify-center h-full'>
+                <p className='text-muted-foreground'>{t('unavailable')}</p>
+              </div>
+            )}
           </div>
-        }
-      >
-        <DashboardLayout
-          user={user}
-          statistics={statistics}
-          courses={courses}
-        />
-      </Suspense>
+        </div>
+      </main>
     </DashboardClient>
   );
 }
