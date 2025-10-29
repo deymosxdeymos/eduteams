@@ -487,14 +487,14 @@ function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
           <Trash2 className='size-4' />
         </Button>
       </DialogTrigger>
-      <DialogContent className='rounded-2xl sm:max-w-[425px]'>
+      <DialogContent className='rounded-2xl sm:max-w-[400px]'>
         <DialogHeader>
           <DialogTitle className='font-medium'>{tDelete('title')}</DialogTitle>
           <DialogDescription>{tDelete('description')}</DialogDescription>
         </DialogHeader>
 
         {success ? (
-          <div className='flex min-h-[10rem] flex-col items-center justify-center space-y-4 py-8 text-center'>
+          <div className='flex min-h-40 flex-col items-center justify-center space-y-4 py-8 text-center'>
             <div className='flex h-12 w-12 items-center justify-center rounded-full bg-green-100 shadow-[0_12px_32px_-20px_rgba(34,197,94,0.65)]'>
               <Check className='h-6 w-6 text-green-600' />
             </div>
@@ -508,7 +508,7 @@ function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
               </div>
             )}
 
-            <DialogFooter className='flex-col-reverse gap-2'>
+            <DialogFooter className='flex-col-reverse sm:flex-col-reverse gap-2'>
               <DialogClose asChild>
                 <Button variant='ghost' className='rounded-full'>
                   {tDelete('cancel')}
@@ -521,11 +521,6 @@ function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
                 disabled={isPending}
                 aria-busy={isPending}
               >
-                {isPending ? (
-                  <LoadingSpinner size='sm' color='white' className='mr-2' />
-                ) : (
-                  <Trash2 className='mr-2 h-4 w-4' strokeWidth={3} />
-                )}
                 {isPending ? tDelete('deleting') : tDelete('delete')}
               </Button>
             </DialogFooter>
