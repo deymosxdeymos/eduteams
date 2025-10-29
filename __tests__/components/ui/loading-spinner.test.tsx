@@ -3,53 +3,51 @@ import { render } from '@testing-library/react';
 import { LoadingPage, LoadingSpinner } from '@/components/ui/loading-spinner';
 
 describe('LoadingSpinner', () => {
-  it('renders 12 bars with default sizing and styling', () => {
+  it('renders with default sizing and styling', () => {
     const { container } = render(<LoadingSpinner />);
 
-    const wrapper = container.querySelector('div.inline-block') as HTMLElement;
-    const bars = container.querySelectorAll('.spinner-bar');
-
-    expect(wrapper).toBeTruthy();
-    expect(wrapper.style.height).toBe('20px');
-    expect(wrapper.style.width).toBe('20px');
-    expect(bars.length).toBe(12);
-    expect(bars[0]?.getAttribute('style')).toContain('background: white');
+    const spinner = container.querySelector('svg[role="status"]') as SVGElement;
+    
+    expect(spinner).toBeTruthy();
+    expect(spinner.getAttribute('aria-label')).toBe('Loading');
+    expect(spinner.classList.toString()).toContain('animate-spin');
   });
 
-  it('honors size variants for sm and lg', () => {
-    const variants: Array<{ size: 'sm' | 'lg'; dimension: number }> = [
-      { size: 'sm', dimension: 16 },
-      { size: 'lg', dimension: 28 },
+  it('honors size variants for sm, md, and lg', () => {
+    const variants: Array<{ size: 'sm' | 'md' | 'lg'; sizeClass: string }> = [
+      { size: 'sm', sizeClass: 'size-4' },
+      { size: 'md', sizeClass: 'size-5' },
+      { size: 'lg', sizeClass: 'size-7' },
     ];
 
-    for (const { size, dimension } of variants) {
+    for (const { size, sizeClass } of variants) {
       const { container, unmount } = render(<LoadingSpinner size={size} />);
-      const wrapper = container.querySelector('div.inline-block') as HTMLElement;
+      const spinner = container.querySelector('svg[role="status"]') as SVGElement;
 
-      expect(wrapper.style.height).toBe(`${dimension}px`);
-      expect(wrapper.style.width).toBe(`${dimension}px`);
+      expect(spinner.classList.toString()).toContain(sizeClass);
       unmount();
     }
   });
 
-  it('applies custom class names and colors', () => {
+  it('applies custom class names', () => {
     const { container } = render(
-      <LoadingSpinner className='text-gray-500' color='#333' />
+      <LoadingSpinner className='text-gray-500' />
     );
 
-    const wrapper = container.querySelector('div.inline-block') as HTMLElement;
-    const firstBar = container.querySelector('.spinner-bar');
+    const spinner = container.querySelector('svg[role="status"]') as SVGElement;
 
-    expect(wrapper.className).toContain('text-gray-500');
-    expect(firstBar?.getAttribute('style')).toContain('background: #333');
+    expect(spinner.classList.toString()).toContain('text-gray-500');
   });
 });
 
 describe('LoadingPage', () => {
-  it('renders a spinner', () => {
-    const { container } = render(<LoadingPage />);
+  it('renders a spinner with loading text', () => {
+    const { container, getByText } = render(<LoadingPage />);
 
-    expect(container.querySelectorAll('.spinner-bar').length).toBe(12);
-    expect(container.querySelector('div.inline-block')).toBeTruthy();
+    const spinner = container.querySelector('svg[role="status"]');
+    const loadingText = getByText('Loading...');
+
+    expect(spinner).toBeTruthy();
+    expect(loadingText).toBeTruthy();
   });
 });
