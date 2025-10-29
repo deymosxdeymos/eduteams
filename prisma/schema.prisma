@@ -235,6 +235,7 @@ model TeamFormationRequest {
 
   @@index([status, createdAt])
   @@index([ownerId])
+  @@index([createdAt])
   @@index([requestData], type: Gin)
   @@index([responseData], type: Gin)
   @@map("team_formation_requests")
@@ -254,6 +255,7 @@ model Team {
 
   @@index([teamFormationRequestId])
   @@index([taskId])
+  @@index([teamFormationRequestId, quality])
   @@map("teams")
 }
 
@@ -430,6 +432,7 @@ model Assignment {
   @@index([courseId])
   @@index([status])
   @@index([createdById])
+  @@index([startAt])
   @@map("assignments")
 }
 
@@ -444,6 +447,7 @@ model AssignmentSubmission {
   @@unique([assignmentId, studentId])
   @@index([assignmentId])
   @@index([studentId])
+  @@index([createdAt])
   @@map("assignment_submissions")
 }
 

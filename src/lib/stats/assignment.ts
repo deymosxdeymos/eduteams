@@ -19,29 +19,51 @@ export async function getAssignmentStats(
   assignmentId: string,
   courseId: string
 ): Promise<AssignmentStats> {
-  // Load enrollments with minimal selects
-  const [enrollments, assignmentMeta, quizSubmissionCount] = await Promise.all([
-    prisma.courseEnrollment.findMany({
-      where: { courseId },
-      select: {
-        studentId: true,
-        student: { select: { mbtiType: true, gender: true } },
-      },
-    }),
-    prisma.assignment.findUnique({
-      where: { id: assignmentId },
-      select: {
-        description: true,
-        startAt: true,
-        course: { select: { dosenId: true } },
-      },
-    }),
-    prisma.assignmentSubmission.count({
-      where: { assignmentId },
-    }),
-  ]);
+  // Load all data in a single optimized query batch
+  const [enrollmentsData, assignmentMeta, quizSubmissionCount] =
+    await Promise.all([
+      prisma.courseEnrollment.findMany({
+        where: { courseId },
+        select: {
+          studentId: true,
+          student: {
+            select: {
+              id: true,
+              mbtiType: true,
+              gender: true,
+              personSkills: {
+                select: {
+                  skillId: true,
+                  level: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.assignment.findUnique({
+        where: { id: assignmentId },
+        select: {
+          description: true,
+          startAt: true,
+          course: { select: { dosenId: true } },
+        },
+      }),
+      prisma.assignmentSubmission.count({
+        where: { assignmentId },
+      }),
+    ]);
 
   const chartReady = quizSubmissionCount > 0;
+
+  // Pre-extract student data for easier processing
+  const enrollments = enrollmentsData.map(e => ({
+    studentId: e.studentId,
+    student: {
+      mbtiType: e.student.mbtiType,
+      gender: e.student.gender,
+    },
+  }));
 
   // MBTI distribution
   const mbtiCountsMap = new Map<MBTIType, number>();
@@ -110,7 +132,8 @@ export async function getAssignmentStats(
       'Backend Development',
     ];
   }
-  // Fetch only declared skills
+
+  // Fetch skills and build personSkills data from the already loaded enrollments
   const skillRecords = skillNames.length
     ? await prisma.skill.findMany({
         where: { name: { in: skillNames } },
@@ -120,17 +143,14 @@ export async function getAssignmentStats(
   const skillIdByName = new Map<string, string>(
     skillRecords.map(s => [s.name, s.id])
   );
-  const studentIds = enrollments.map(e => e.studentId);
 
-  const personSkills = studentIds.length
-    ? await prisma.personSkill.findMany({
-        where: {
-          personId: { in: studentIds },
-          skillId: { in: skillRecords.map(s => s.id) },
-        },
-        select: { personId: true, skillId: true, level: true },
-      })
-    : [];
+  // Create a Set of skill IDs for O(1) lookup
+  const skillIds = new Set(skillRecords.map(sr => sr.id));
+
+  // Build personSkills from already loaded data instead of querying again
+  const personSkills = enrollmentsData.flatMap(e =>
+    (e.student.personSkills || []).filter(ps => skillIds.has(ps.skillId))
+  );
 
   const levelSums = new Map<string, { sum: number; count: number }>();
   for (const s of personSkills) {

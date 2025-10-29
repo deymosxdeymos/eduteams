@@ -110,11 +110,35 @@ describe('lib/stats/getAssignmentStats', () => {
   it('aggregates MBTI, gender, skills, topic prefs and team formation', async () => {
     const { getAssignmentStats } = await import('@/lib/stats/assignment');
 
-    // Enrollments with MBTI & gender
+    // Enrollments with MBTI, gender, and personSkills
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
-      { studentId: 's1', student: { mbtiType: 'ENFP', gender: 'MALE' } },
-      { studentId: 's2', student: { mbtiType: 'ENFP', gender: 'MALE' } },
-      { studentId: 's3', student: { mbtiType: 'INTJ', gender: 'FEMALE' } },
+      {
+        studentId: 's1',
+        student: {
+          id: 's1',
+          mbtiType: 'ENFP',
+          gender: 'MALE',
+          personSkills: [{ skillId: 'sf', level: 0.8 }],
+        },
+      },
+      {
+        studentId: 's2',
+        student: {
+          id: 's2',
+          mbtiType: 'ENFP',
+          gender: 'MALE',
+          personSkills: [{ skillId: 'sf', level: 0.6 }],
+        },
+      },
+      {
+        studentId: 's3',
+        student: {
+          id: 's3',
+          mbtiType: 'INTJ',
+          gender: 'FEMALE',
+          personSkills: [{ skillId: 'sb', level: 1.0 }],
+        },
+      },
     ]);
 
     // Assignment config declares skills & topics
@@ -138,13 +162,6 @@ describe('lib/stats/getAssignmentStats', () => {
     prismaMock.skill.findMany.mockImplementationOnce(async () => [
       { id: 'sf', name: 'Frontend Development' },
       { id: 'sb', name: 'Backend Development' },
-    ]);
-
-    // Person skills for enrolled students
-    prismaMock.personSkill.findMany.mockImplementationOnce(async () => [
-      { personId: 's1', skillId: 'sf', level: 0.8 },
-      { personId: 's2', skillId: 'sf', level: 0.6 },
-      { personId: 's3', skillId: 'sb', level: 1.0 },
     ]);
 
     // Topics and preferences

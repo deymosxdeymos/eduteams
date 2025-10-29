@@ -31,27 +31,27 @@ export async function GET(
 
     const { id: courseId } = await params;
 
-    // Verify access to the course
+    // Verify access to the course with a single optimized query
     let hasAccess = false;
 
     if (isDosen) {
-      // Dosen can access their own courses
-      const course = await prisma.course.findUnique({
+      // Dosen can access their own courses - check in the main query
+      const course = await prisma.course.findFirst({
         where: {
           id: courseId,
           dosenId: user.id,
         },
+        select: { id: true },
       });
       hasAccess = !!course;
     } else if (isMahasiswa) {
-      // Students can access courses they're enrolled in
-      const enrollment = await prisma.courseEnrollment.findUnique({
+      // Students can access courses they're enrolled in - check in the main query
+      const enrollment = await prisma.courseEnrollment.findFirst({
         where: {
-          courseId_studentId: {
-            courseId: courseId,
-            studentId: user.id,
-          },
+          courseId: courseId,
+          studentId: user.id,
         },
+        select: { id: true },
       });
       hasAccess = !!enrollment;
     }
@@ -60,12 +60,12 @@ export async function GET(
       throw new HttpError(404, 'Course not found or access denied');
     }
 
-    // Fetch all students enrolled in the course
+    // Fetch all students enrolled in the course with optimized select
     const enrollments = await prisma.courseEnrollment.findMany({
       where: {
         courseId: courseId,
       },
-      include: {
+      select: {
         student: {
           select: {
             id: true,
@@ -79,6 +79,7 @@ export async function GET(
             pj: true,
           },
         },
+        enrolledAt: true,
       },
       orderBy: {
         student: {

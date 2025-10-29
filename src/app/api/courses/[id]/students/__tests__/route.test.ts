@@ -14,9 +14,19 @@ const prismaMock: any = {
         ? { id: 'c1' }
         : null
     ),
+    findFirst: mock(async (args: any) =>
+      args?.where?.id === 'c1' && args?.where?.dosenId === 'u1'
+        ? { id: 'c1' }
+        : null
+    ),
   },
   courseEnrollment: {
     findUnique: mock(async () => ({ courseId: 'c1', studentId: 's1' })),
+    findFirst: mock(async () => ({
+      id: 'e1',
+      courseId: 'c1',
+      studentId: 's1',
+    })),
     findMany: mock(async () => [
       {
         enrolledAt: new Date('2025-01-10T00:00:00Z'),

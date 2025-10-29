@@ -125,7 +125,14 @@ export function StudentList({
     typeof submittedCount === 'number' &&
     typeof totalStudents === 'number';
 
-  const { badgeLabel, badgeClassName, badgeTextClassName } = (() => {
+  // Memoize submission set for efficient lookups
+  // When submittedStudentIds is not provided, default to treating all as submitted
+  const submittedSet = useMemo(
+    () => (submittedStudentIds ? new Set(submittedStudentIds) : null),
+    [submittedStudentIds]
+  );
+
+  const { badgeLabel, badgeClassName, badgeTextClassName } = useMemo(() => {
     const baseLabel =
       isSelectMode && canManage
         ? t('countSelected', { count: selectedStudentIds.size })
@@ -136,7 +143,7 @@ export function StudentList({
       badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
       badgeTextClassName: 'text-sm font-medium text-sky-900',
     } as const;
-  })();
+  }, [isSelectMode, canManage, selectedStudentIds.size, students.length, t]);
 
   const filteredStudents = useMemo(
     () =>
@@ -484,9 +491,9 @@ export function StudentList({
           <div className='space-y-3'>
             {filteredStudents.map(student => {
               const isCurrentUser = currentUserId === student.id;
-              const hasSubmitted = submittedStudentIds
-                ? submittedStudentIds.includes(student.id)
-                : true; // default true when context not provided
+              const hasSubmitted = submittedSet
+                ? submittedSet.has(student.id)
+                : true;
               return (
                 <motion.div
                   key={student.id}
