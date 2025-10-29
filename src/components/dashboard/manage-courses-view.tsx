@@ -415,6 +415,127 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
   );
 }
 
+function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
+  const router = useRouter();
+  const tDelete = useTranslations('dashboard.modals.deleteClass');
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isPending) {
+      return;
+    }
+
+    setOpen(newOpen);
+    if (!newOpen) {
+      setError(null);
+      setSuccess(false);
+    }
+  };
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      try {
+        setError(null);
+        setSuccess(false);
+
+        const response = await fetch(`/api/courses/${course.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        let result: { error?: string; success?: boolean } | null = null;
+        try {
+          result = await response.json();
+        } catch (_error) {
+          // Ignore JSON parsing errors
+        }
+
+        if (!response.ok) {
+          const message =
+            (result?.error as string | undefined) || tDelete('genericError');
+          throw new Error(message);
+        }
+
+        setSuccess(true);
+        router.refresh();
+
+        setTimeout(() => {
+          setSuccess(false);
+          setOpen(false);
+        }, 1200);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : tDelete('genericError'));
+      }
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button
+          variant='ghost'
+          size='icon'
+          aria-label={tDelete('triggerLabel')}
+          disabled={isPending}
+          className='text-destructive hover:text-destructive'
+        >
+          <Trash2 className='size-4' />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className='rounded-2xl sm:max-w-[425px]'>
+        <DialogHeader>
+          <DialogTitle className='font-medium'>{tDelete('title')}</DialogTitle>
+          <DialogDescription>{tDelete('description')}</DialogDescription>
+        </DialogHeader>
+
+        {success ? (
+          <div className='flex min-h-[10rem] flex-col items-center justify-center space-y-4 py-8 text-center'>
+            <div className='flex h-12 w-12 items-center justify-center rounded-full bg-green-100 shadow-[0_12px_32px_-20px_rgba(34,197,94,0.65)]'>
+              <Check className='h-6 w-6 text-green-600' />
+            </div>
+            <p className='font-medium text-green-600'>{tDelete('success')}</p>
+          </div>
+        ) : (
+          <>
+            {error && (
+              <div className='rounded-md border border-red-200 bg-red-50 p-3'>
+                <p className='text-sm text-red-600'>{error}</p>
+              </div>
+            )}
+
+            <DialogFooter className='flex-col-reverse gap-2'>
+              <DialogClose asChild>
+                <Button variant='ghost' className='rounded-full'>
+                  {tDelete('cancel')}
+                </Button>
+              </DialogClose>
+              <Button
+                variant='destructive'
+                className='h-12 text-sm rounded-full'
+                onClick={handleDelete}
+                disabled={isPending}
+                aria-busy={isPending}
+              >
+                {isPending ? (
+                  <LoadingSpinner size='sm' color='white' className='mr-2' />
+                ) : (
+                  <Trash2 className='mr-2 h-4 w-4' strokeWidth={3} />
+                )}
+                {isPending ? tDelete('deleting') : tDelete('delete')}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function ManageCoursesView({
   courses,
   searchPlaceholder,
@@ -517,14 +638,7 @@ export function ManageCoursesView({
             </DialogContent>
           </Dialog>
           <EditCourseDialog course={course} />
-          <Button
-            variant='ghost'
-            size='icon'
-            aria-label='Hapus kelas'
-            className='text-destructive hover:text-destructive'
-          >
-            <Trash2 className='size-4' />
-          </Button>
+          <DeleteCourseDialog course={course} />
         </div>
       );
     },

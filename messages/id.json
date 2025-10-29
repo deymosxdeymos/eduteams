@@ -241,6 +241,16 @@
         "saving": "Menyimpan...",
         "genericError": "Gagal memperbarui kelas. Silakan coba lagi."
       },
+      "deleteClass": {
+        "triggerLabel": "Hapus kelas",
+        "title": "Hapus kelas?",
+        "description": "Seluruh data Kelas akan hilang jika Anda menghapusnya. Yakin hapus?",
+        "success": "Kelas berhasil dihapus!",
+        "delete": "Hapus",
+        "cancel": "Batal",
+        "deleting": "Menghapus...",
+        "genericError": "Gagal menghapus kelas. Silakan coba lagi."
+      },
       "joinClass": {
         "button": "Masuk Kelas",
         "title": "Masuk ke Kelas",
