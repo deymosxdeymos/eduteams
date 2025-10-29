@@ -241,6 +241,16 @@
         "saving": "Saving...",
         "genericError": "Failed to update class. Please try again."
       },
+      "deleteClass": {
+        "triggerLabel": "Delete class",
+        "title": "Delete class?",
+        "description": "All class data will be lost if you delete it. Are you sure you want to delete?",
+        "success": "Class deleted successfully!",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "deleting": "Deleting...",
+        "genericError": "Failed to delete class. Please try again."
+      },
       "joinClass": {
         "button": "Join Class",
         "title": "Join Class",
