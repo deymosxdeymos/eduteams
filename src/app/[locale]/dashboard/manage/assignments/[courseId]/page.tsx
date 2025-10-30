@@ -3,8 +3,12 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { ManageAssignmentsLayout } from '@/components/dashboard/manage-assignments-layout';
+import { ManageAssignmentsView } from '@/components/dashboard/manage-assignments-view';
+import { StudentList } from '@/components/dashboard/student-list';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { canAccessDosenFeatures } from '@/lib/authorization';
+import { getStudentsData } from '@/lib/data/course-data';
+import { getManageAssignmentsForCourse } from '@/lib/data/manage-assignments';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 
@@ -70,6 +74,9 @@ export default async function ManageAssignmentsPage({
     notFound();
   }
 
+  const assignments = await getManageAssignmentsForCourse(courseId, user.id);
+  const students = await getStudentsData(courseId);
+
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
       <Suspense
@@ -79,7 +86,23 @@ export default async function ManageAssignmentsPage({
           </div>
         }
       >
-        <ManageAssignmentsLayout user={user} course={course} />
+        <ManageAssignmentsLayout user={user} course={course}>
+          <div className='grid grid-cols-[1fr_400px] h-full min-h-0'>
+            <ManageAssignmentsView
+              assignments={assignments}
+              courseId={courseId}
+              searchPlaceholder='Cari tugas…'
+              emptyActiveMessage='Belum ada tugas aktif'
+              emptyArchivedMessage='Belum ada tugas yang diarsipkan'
+            />
+            <StudentList
+              classId={courseId}
+              initialData={students}
+              currentUserId={user.id}
+              canManage
+            />
+          </div>
+        </ManageAssignmentsLayout>
       </Suspense>
     </DashboardClient>
   );

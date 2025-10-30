@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import Nav from './nav';
 import Sidebar from './sidebar';
@@ -12,13 +13,14 @@ interface ManageAssignmentsLayoutProps {
     tahunAkhirPeriode: number;
     periode: string;
   };
+  children: ReactNode;
 }
 
 export async function ManageAssignmentsLayout({
   user,
   course,
+  children,
 }: ManageAssignmentsLayoutProps) {
-  // Transform course data to match Nav component's expected Course type
   const courseForNav = {
     ...course,
     dosenId: user.id,
@@ -35,14 +37,8 @@ export async function ManageAssignmentsLayout({
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
         <Sidebar />
-        <div className='px-8 pb-0 min-h-0'>
-          <section className='flex h-full flex-col gap-6 rounded-3xl bg-white p-6'>
-            <div className='flex items-center justify-center h-full'>
-              <p className='text-muted-foreground text-sm'>
-                Konten manajemen tugas akan ditambahkan di sini
-              </p>
-            </div>
-          </section>
+        <div className='px-8 pb-0 pr-0 min-h-0'>
+          {children}
         </div>
       </div>
     </main>
