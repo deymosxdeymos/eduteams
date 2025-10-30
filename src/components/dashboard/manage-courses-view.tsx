@@ -14,9 +14,9 @@ import {
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
+  type MouseEvent,
   type ReactNode,
   useCallback,
   useMemo,
@@ -61,6 +61,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import {
   type CourseCreateUserInput,
@@ -123,6 +124,22 @@ function ManageTable({
   emptyMessage: string;
   renderActions: (course: ManageCourseRow) => ReactNode;
 }) {
+  const router = useRouter();
+
+  const handleRowClick =
+    (courseId: string) => (e: MouseEvent<HTMLTableRowElement>) => {
+      // Ignore clicks on buttons and interactive elements
+      const target = e.target as HTMLElement;
+      if (
+        target.closest('button') ||
+        target.closest('a') ||
+        target.closest('[role="button"]')
+      ) {
+        return;
+      }
+      router.push(`/dashboard/manage/assignments/${courseId}`);
+    };
+
   if (rows.length === 0) {
     return (
       <div className='flex h-40 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/40 bg-muted/30'>
@@ -146,7 +163,11 @@ function ManageTable({
       </TableHeader>
       <TableBody>
         {rows.map(course => (
-          <TableRow key={course.id} className='bg-white'>
+          <TableRow
+            key={course.id}
+            className='bg-white cursor-pointer hover:bg-accent/50 transition-colors'
+            onClick={handleRowClick(course.id)}
+          >
             <TableCell className='font-medium'>{course.name}</TableCell>
             <TableCell className='text-muted-foreground'>
               {course.periodLabel}
@@ -578,12 +599,7 @@ export function ManageCoursesView({
 
       return (
         <div className='flex items-center justify-end gap-2'>
-          <Button
-            asChild
-            variant='ghost'
-            size='icon'
-            aria-label='Bagikan kelas'
-          >
+          <Button asChild variant='ghost' size='icon' aria-label='Lihat kelas'>
             <Link href={`/dashboard/class/${course.id}`}>
               <ExternalLink className='size-4' />
             </Link>

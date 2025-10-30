@@ -51,13 +51,17 @@ export default function Sidebar() {
 
   // Helper function to determine if a route is active
   const isActive = (path: string) => {
-    // Home (dashboard) should be active for all dashboard routes except profile
+    // Home (dashboard) should be active for all dashboard routes except profile and manage
     if (path === '/dashboard') {
       return (
         normalizedPathname.startsWith('/dashboard') &&
         !normalizedPathname.startsWith('/dashboard/profile') &&
         !normalizedPathname.startsWith('/dashboard/manage')
       );
+    }
+    // Manage should be active for all manage routes including tugas
+    if (path === '/dashboard/manage') {
+      return normalizedPathname.startsWith('/dashboard/manage');
     }
     return normalizedPathname.startsWith(path);
   };
