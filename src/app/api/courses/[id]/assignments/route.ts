@@ -44,7 +44,7 @@ export const GET = withAuth<{ id: string }>(
       }
 
       const rows = await prisma.assignment.findMany({
-        where: { courseId },
+        where: { courseId, archivedAt: null },
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,

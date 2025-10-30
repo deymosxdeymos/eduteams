@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Separator } from '@/components/ui/separator';
 import {
   Table,
@@ -34,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { getAssignmentStatusBadge } from '@/lib/utils/assignment-status';
 import type { ManageAssignmentRow } from '@/types/manage';
@@ -45,6 +47,7 @@ interface ManageAssignmentsViewProps {
   emptyActiveMessage: string;
   emptyArchivedMessage: string;
   renderActions?: (assignment: ManageAssignmentRow) => ReactNode;
+  onArchiveToggle?: (assignment: ManageAssignmentRow) => Promise<void> | void;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('id-ID', {
@@ -59,12 +62,10 @@ function formatDate(isoString: string): string {
 
 function ManageTable({
   rows,
-  courseId,
   emptyMessage,
   renderActions,
 }: {
   rows: ManageAssignmentRow[];
-  courseId: string;
   emptyMessage: string;
   renderActions: (assignment: ManageAssignmentRow) => ReactNode;
 }) {
@@ -107,7 +108,9 @@ function ManageTable({
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={cn('rounded-full border', statusBadge.className)}>
+                <Badge
+                  className={cn('rounded-full border', statusBadge.className)}
+                >
                   {statusBadge.text}
                 </Badge>
               </TableCell>
@@ -122,7 +125,7 @@ function ManageTable({
   );
 }
 
-function EditAssignmentDialog({ assignment }: { assignment: ManageAssignmentRow }) {
+function EditAssignmentDialog(): ReactNode {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -137,9 +140,7 @@ function EditAssignmentDialog({ assignment }: { assignment: ManageAssignmentRow 
       </DialogTrigger>
       <DialogContent className='rounded-2xl sm:max-w-xl'>
         <DialogHeader>
-          <DialogTitle className='text-xl font-medium'>
-            Edit Tugas
-          </DialogTitle>
+          <DialogTitle className='text-xl font-medium'>Edit Tugas</DialogTitle>
           <DialogDescription className='text-sm font-normal'>
             Fitur edit tugas akan segera hadir.
           </DialogDescription>
@@ -149,7 +150,7 @@ function EditAssignmentDialog({ assignment }: { assignment: ManageAssignmentRow 
   );
 }
 
-function DeleteAssignmentDialog({ assignment }: { assignment: ManageAssignmentRow }) {
+function DeleteAssignmentDialog(): ReactNode {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -182,66 +183,124 @@ export function ManageAssignmentsView({
   emptyActiveMessage,
   emptyArchivedMessage,
   renderActions,
+  onArchiveToggle,
 }: ManageAssignmentsViewProps) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [pendingAssignmentId, setPendingAssignmentId] = useState<string | null>(
+    null
+  );
+  const [archiveError, setArchiveError] = useState<string | null>(null);
 
-  const defaultActions = (assignment: ManageAssignmentRow) => {
-    const archiveLabel = assignment.isArchived
-      ? 'Tampilkan tugas'
-      : 'Sembunyikan tugas';
-    const ArchiveIcon = assignment.isArchived ? Eye : EyeOff;
+  const handleArchiveToggle = useCallback(
+    (assignment: ManageAssignmentRow) => {
+      if (!onArchiveToggle) {
+        return;
+      }
 
-    return (
-      <div className='flex items-center justify-end gap-2'>
-        <Button asChild variant='ghost' size='icon' aria-label='Lihat tugas'>
-          <Link href={`/dashboard/class/${courseId}/assignments/${assignment.id}`}>
-            <ExternalLink className='size-4' />
-          </Link>
-        </Button>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant='ghost'
-              size='icon'
-              aria-label={archiveLabel}
-              disabled
+      setPendingAssignmentId(assignment.id);
+      setArchiveError(null);
+      void (async () => {
+        try {
+          await onArchiveToggle(assignment);
+          router.refresh();
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : 'Gagal mengubah status tugas. Silakan coba lagi.';
+          setArchiveError(errorMessage);
+        } finally {
+          setPendingAssignmentId(current =>
+            current === assignment.id ? null : current
+          );
+        }
+      })();
+    },
+    [onArchiveToggle, router]
+  );
+
+  const defaultActions = useCallback(
+    (assignment: ManageAssignmentRow) => {
+      const archiveLabel = assignment.isArchived
+        ? 'Tampilkan tugas'
+        : 'Sembunyikan tugas';
+      const ArchiveIcon = assignment.isArchived ? Eye : EyeOff;
+      const isPending = pendingAssignmentId === assignment.id;
+
+      return (
+        <div className='flex items-center justify-end gap-2'>
+          <Button asChild variant='ghost' size='icon' aria-label='Lihat tugas'>
+            <Link
+              href={`/dashboard/class/${courseId}/assignments/${assignment.id}`}
             >
-              <ArchiveIcon className='size-4' />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className='rounded-2xl sm:max-w-[425px]'>
-            <DialogHeader>
-              <DialogTitle className='font-medium'>
-                {assignment.isArchived ? 'Munculkan Tugas?' : 'Sembunyikan Tugas?'}
-              </DialogTitle>
-              <DialogDescription>
-                {assignment.isArchived
-                  ? 'Tampilkan tugas ini agar mahasiswa dapat melihatnya'
-                  : 'Tugas yang disembunyikan tidak akan bisa diakses oleh mahasiswa'}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className='flex-col-reverse sm:flex-col-reverse'>
-              <DialogClose asChild>
-                <Button variant='ghost' className='rounded-full'>
-                  Cancel
-                </Button>
-              </DialogClose>
+              <ExternalLink className='size-4' />
+            </Link>
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
               <Button
-                variant='onboarding'
-                className='h-12 text-sm rounded-full'
-                disabled
+                variant='ghost'
+                size='icon'
+                aria-label={archiveLabel}
+                disabled={isPending}
+                aria-busy={isPending}
               >
-                {assignment.isArchived ? 'Munculkan' : 'Sembunyikan'}
+                <ArchiveIcon className='size-4' />
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <EditAssignmentDialog assignment={assignment} />
-        <DeleteAssignmentDialog assignment={assignment} />
-      </div>
-    );
-  };
+            </DialogTrigger>
+            <DialogContent className='rounded-2xl sm:max-w-[425px]'>
+              <DialogHeader>
+                <DialogTitle className='font-medium'>
+                  {assignment.isArchived
+                    ? 'Munculkan Tugas?'
+                    : 'Sembunyikan Tugas?'}
+                </DialogTitle>
+                <DialogDescription>
+                  {assignment.isArchived
+                    ? 'Tampilkan tugas ini agar mahasiswa dapat melihatnya'
+                    : 'Tugas yang disembunyikan tidak akan bisa diakses oleh mahasiswa'}
+                </DialogDescription>
+              </DialogHeader>
+              {archiveError && (
+                <div
+                  className='rounded-md border border-red-200 bg-red-50 p-3'
+                  role='alert'
+                  aria-live='polite'
+                >
+                  <p className='text-sm text-red-600'>{archiveError}</p>
+                </div>
+              )}
+              <DialogFooter className='flex-col-reverse sm:flex-col-reverse'>
+                <DialogClose asChild>
+                  <Button variant='ghost' className='rounded-full'>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  variant='onboarding'
+                  className='h-12 text-sm rounded-full'
+                  aria-label={archiveLabel}
+                  disabled={isPending}
+                  aria-busy={isPending}
+                  onClick={() => handleArchiveToggle(assignment)}
+                >
+                  {isPending && (
+                    <LoadingSpinner size='sm' color='white' className='mr-2' />
+                  )}
+                  {assignment.isArchived ? 'Munculkan' : 'Sembunyikan'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <EditAssignmentDialog />
+          <DeleteAssignmentDialog />
+        </div>
+      );
+    },
+    [handleArchiveToggle, pendingAssignmentId, archiveError, courseId]
+  );
 
   const renderRowActions = renderActions ?? defaultActions;
 
@@ -277,7 +336,6 @@ export function ManageAssignmentsView({
       <div className='min-h-0 flex-1 overflow-auto'>
         <ManageTable
           rows={activeAssignments}
-          courseId={courseId}
           emptyMessage={emptyActiveMessage}
           renderActions={renderRowActions}
         />
@@ -319,7 +377,6 @@ export function ManageAssignmentsView({
           <div className='mt-4'>
             <ManageTable
               rows={archivedAssignments}
-              courseId={courseId}
               emptyMessage={emptyArchivedMessage}
               renderActions={renderRowActions}
             />

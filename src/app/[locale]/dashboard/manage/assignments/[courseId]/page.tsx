@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { DosenManageAssignmentsContent } from '@/components/dashboard/dosen-manage-assignments-content';
 import { ManageAssignmentsLayout } from '@/components/dashboard/manage-assignments-layout';
-import { ManageAssignmentsView } from '@/components/dashboard/manage-assignments-view';
 import { StudentList } from '@/components/dashboard/student-list';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { canAccessDosenFeatures } from '@/lib/authorization';
@@ -88,12 +88,9 @@ export default async function ManageAssignmentsPage({
       >
         <ManageAssignmentsLayout user={user} course={course}>
           <div className='grid grid-cols-[1fr_400px] h-full min-h-0'>
-            <ManageAssignmentsView
+            <DosenManageAssignmentsContent
               assignments={assignments}
               courseId={courseId}
-              searchPlaceholder='Cari tugas…'
-              emptyActiveMessage='Belum ada tugas aktif'
-              emptyArchivedMessage='Belum ada tugas yang diarsipkan'
             />
             <StudentList
               classId={courseId}

@@ -25,6 +25,7 @@ export async function getManageAssignmentsForCourse(
       status: true,
       startAt: true,
       createdAt: true,
+      archivedAt: true,
       _count: { select: { submissions: true } },
     },
     orderBy: { createdAt: 'desc' },
@@ -37,7 +38,7 @@ export async function getManageAssignmentsForCourse(
     status: assignment.status,
     startAt: assignment.startAt.toISOString(),
     createdAt: assignment.createdAt.toISOString(),
-    isArchived: false,
+    isArchived: assignment.archivedAt !== null,
     submissionsCount: assignment._count.submissions,
     totalStudents,
   }));

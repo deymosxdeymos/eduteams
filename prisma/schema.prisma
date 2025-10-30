@@ -422,6 +422,7 @@ model Assignment {
   status          AssignmentStatus       @default(BELUM_ISI)
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
+  archivedAt      DateTime?
   course          Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdBy       User                   @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
   submissions     AssignmentSubmission[]

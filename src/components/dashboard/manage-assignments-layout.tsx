@@ -37,9 +37,7 @@ export async function ManageAssignmentsLayout({
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
         <Sidebar />
-        <div className='px-8 pb-0 pr-0 min-h-0'>
-          {children}
-        </div>
+        <div className='px-8 pb-0 pr-0 min-h-0'>{children}</div>
       </div>
     </main>
   );

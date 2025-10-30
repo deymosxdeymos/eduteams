@@ -23,7 +23,7 @@ export async function getInitialAssignments(
   if (!isDosen && !isMahasiswa) return [];
 
   const rows = await prisma.assignment.findMany({
-    where: { courseId },
+    where: { courseId, archivedAt: null },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
