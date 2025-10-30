@@ -83,9 +83,6 @@ export function createErrorResponse(
   );
 }
 
-// Params can be either immediate T or Promise<T> if desired
-export type Params<T> = T | Promise<T>;
-
 // DefaultRouteContext aligns with Next's ParamCheck expectations
 // Use Promise<any> to satisfy Next's generated types
 export type DefaultRouteContext<TParams = unknown> = {

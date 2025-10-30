@@ -1,13 +1,13 @@
 import type { SessionQuestionPayload } from '@/lib/personality-session';
 
-export interface PersonalityTestState {
+interface PersonalityTestState {
   currentPage: number;
   answers: Record<string, number>;
   validationErrors: Set<string>;
   isSubmitting: boolean;
 }
 
-export type PersonalityTestAction =
+type PersonalityTestAction =
   | { type: 'SET_ANSWER'; payload: { questionId: string; value: number } }
   | { type: 'NEXT_PAGE' }
   | { type: 'PREV_PAGE' }

@@ -33,7 +33,7 @@ export interface CreatePersonalitySessionResult {
   questions: SessionQuestionPayload[];
 }
 
-export type PersonalitySessionStatus =
+type PersonalitySessionStatus =
   | 'not_started'
   | 'in_progress'
   | 'completed_valid'
@@ -51,13 +51,13 @@ export interface UserPersonalitySessionStatus {
   presentedOrder?: string[];
 }
 
-export type PersonalitySessionSubmitStatus =
+type PersonalitySessionSubmitStatus =
   | 'completed'
   | 'attention_check_failed'
   | 'speeding'
   | 'incomplete';
 
-export interface SubmitPersonalitySessionResult {
+interface SubmitPersonalitySessionResult {
   status: PersonalitySessionSubmitStatus;
   durationMs: number;
   attentionPassed: boolean;

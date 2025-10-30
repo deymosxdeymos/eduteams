@@ -1,7 +1,7 @@
 import type { PersonalityAxis } from '@/generated/prisma';
 import prisma from '@/lib/prisma';
 
-export type PersonalityAxisKey = Lowercase<PersonalityAxis>;
+type PersonalityAxisKey = Lowercase<PersonalityAxis>;
 
 export interface PersonalityQuestionRecord {
   id: string;

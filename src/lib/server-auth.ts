@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/api-utils';
 import { getRedirectPath, permissions } from '@/lib/authorization';
 import type { ExtendedUser } from '@/lib/types';
 
-export async function requireAuth(): Promise<ExtendedUser> {
+async function requireAuth(): Promise<ExtendedUser> {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -13,7 +13,7 @@ export async function requireAuth(): Promise<ExtendedUser> {
   return user;
 }
 
-export async function requireOnboarded(): Promise<ExtendedUser> {
+async function _requireOnboarded(): Promise<ExtendedUser> {
   const user = await requireAuth();
 
   if (!user.isOnboarded) {
@@ -24,7 +24,7 @@ export async function requireOnboarded(): Promise<ExtendedUser> {
   return user;
 }
 
-export async function requireRole(
+async function _requireRole(
   allowedRoles: string | string[]
 ): Promise<ExtendedUser> {
   const user = await requireAuth();

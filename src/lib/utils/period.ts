@@ -2,13 +2,13 @@
  * Utility functions for handling academic period detection
  */
 
-export interface AcademicYear {
+interface AcademicYear {
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
   label: string;
 }
 
-export interface AcademicPeriod {
+interface AcademicPeriod {
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
   periode: 'ganjil' | 'genap';

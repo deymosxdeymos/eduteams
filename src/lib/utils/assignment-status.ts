@@ -1,6 +1,6 @@
 type AssignmentStatus = 'BELUM_ISI' | 'MENUNGGU' | 'BERHASIL_PEMBAGIAN_GRUP';
 
-export interface StatusBadge {
+interface StatusBadge {
   text: string;
   className: string;
 }

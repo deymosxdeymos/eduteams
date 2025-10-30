@@ -1,8 +1,8 @@
 import type { ExtendedUser } from '@/lib/types';
 
-export type DimensionKey = 'ei' | 'sn' | 'tf' | 'pj';
+type DimensionKey = 'ei' | 'sn' | 'tf' | 'pj';
 
-export type DimensionConfig = {
+type DimensionConfig = {
   key: DimensionKey;
   leftLabel: string;
   rightLabel: string;
@@ -11,9 +11,9 @@ export type DimensionConfig = {
   positiveSkewsLeft?: boolean;
 };
 
-export type DominantSide = 'left' | 'right' | 'balanced';
+type DominantSide = 'left' | 'right' | 'balanced';
 
-export type DimensionMetrics = {
+type DimensionMetrics = {
   percentage: number;
   isRightAligned: boolean;
   leftPercentage: number;
@@ -22,9 +22,9 @@ export type DimensionMetrics = {
   dominantPercentage: number;
 };
 
-export type DimensionWithMetrics = DimensionConfig & DimensionMetrics;
+type DimensionWithMetrics = DimensionConfig & DimensionMetrics;
 
-export type RadarAxisDescriptor = {
+type RadarAxisDescriptor = {
   key: DimensionKey;
   side: 'left' | 'right';
 };

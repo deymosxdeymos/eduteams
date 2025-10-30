@@ -41,4 +41,4 @@ export const courseUpdateSchema = courseCreateSchema.partial();
 
 export type CourseCreateUserInput = z.infer<typeof courseCreateInputSchema>;
 export type CourseCreateInput = z.infer<typeof courseCreateSchema>;
-export type CourseUpdateInput = z.infer<typeof courseUpdateSchema>;
+type _CourseUpdateInput = z.infer<typeof courseUpdateSchema>;

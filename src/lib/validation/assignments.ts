@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-export const AssignmentStatusSchema = z.enum([
+const AssignmentStatusSchema = z.enum([
   'BELUM_ISI', // no submissions yet
   'MENUNGGU', // waiting for grouping or review
   'BERHASIL_PEMBAGIAN_GRUP', // grouping done
 ]);
 
-export type AssignmentStatus = z.infer<typeof AssignmentStatusSchema>;
+type _AssignmentStatus = z.infer<typeof AssignmentStatusSchema>;
 
 export const AssignmentCreateSchema = z.object({
   title: z.string().min(1, 'Judul tugas wajib diisi'),
@@ -18,9 +18,9 @@ export const AssignmentCreateSchema = z.object({
   startAt: z.coerce.date().optional(),
 });
 
-export type AssignmentCreate = z.infer<typeof AssignmentCreateSchema>;
+type _AssignmentCreate = z.infer<typeof AssignmentCreateSchema>;
 
-export const AssignmentResponseSchema = z.object({
+const AssignmentResponseSchema = z.object({
   id: z.string().uuid(),
   courseId: z.string(),
   title: z.string(),
@@ -44,13 +44,13 @@ export const AssignmentUpdateSchema = z.object({
   topics: z.array(z.string().min(1)).optional(),
 });
 
-export type AssignmentUpdate = z.infer<typeof AssignmentUpdateSchema>;
+type _AssignmentUpdate = z.infer<typeof AssignmentUpdateSchema>;
 
-export const AssignmentSubmissionCreateSchema = z.object({
+const AssignmentSubmissionCreateSchema = z.object({
   // empty body for now; URL carries the assignmentId
 });
 
-export type AssignmentSubmissionCreate = z.infer<
+type _AssignmentSubmissionCreate = z.infer<
   typeof AssignmentSubmissionCreateSchema
 >;
 

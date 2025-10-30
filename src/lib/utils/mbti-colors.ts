@@ -1,10 +1,6 @@
 import type { MBTIType } from '@/generated/prisma';
 
-export type PersonalityCategory =
-  | 'diplomats'
-  | 'analysts'
-  | 'explorers'
-  | 'sentinels';
+type PersonalityCategory = 'diplomats' | 'analysts' | 'explorers' | 'sentinels';
 
 export type ColorScheme = {
   primaryBg: string;

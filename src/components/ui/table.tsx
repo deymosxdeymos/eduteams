@@ -39,7 +39,7 @@ function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   );
 }
 
-function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
+function _TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   return (
     <tfoot
       data-slot='table-footer'
@@ -91,7 +91,7 @@ function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   );
 }
 
-function TableCaption({
+function _TableCaption({
   className,
   ...props
 }: React.ComponentProps<'caption'>) {
@@ -104,13 +104,4 @@ function TableCaption({
   );
 }
 
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
-};
+export { Table, TableHeader, TableBody, TableHead, TableRow, TableCell };

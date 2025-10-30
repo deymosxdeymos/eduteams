@@ -7,9 +7,7 @@ interface DashboardStatsAsyncProps {
   userId: string;
 }
 
-export async function DashboardStatsAsync({
-  userId,
-}: DashboardStatsAsyncProps) {
+async function _DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) {
   const statistics = await getDashboardStatisticsForUser(userId);
 
   // Return statistics for use by parent component

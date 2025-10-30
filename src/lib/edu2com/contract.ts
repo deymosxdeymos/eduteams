@@ -19,7 +19,7 @@ const personPreferenceSchema = z.object({
   preference: z.number().min(0).max(1),
 });
 
-export const edu2comPersonSchema = z.object({
+const edu2comPersonSchema = z.object({
   id: z.string().min(1),
   gender: genderSchema,
   personality: personalitySchema,
@@ -38,7 +38,7 @@ const taskPreferenceSchema = z.object({
   preference: z.number().min(0).max(1),
 });
 
-export const edu2comTaskSchema = z.object({
+const edu2comTaskSchema = z.object({
   id: z.string().min(1),
   teamSize: z.number().int().min(2),
   skills: z.array(taskSkillSchema).min(1),
@@ -64,12 +64,12 @@ export const edu2comParametersSchema = z.object({
 
 export type Edu2comParameters = z.infer<typeof edu2comParametersSchema>;
 
-export const edu2comTeamMemberSchema = z.object({
+const edu2comTeamMemberSchema = z.object({
   id: z.string().min(1),
   skillIds: z.array(z.string().min(1)),
 });
 
-export const edu2comTeamSchema = z.object({
+const edu2comTeamSchema = z.object({
   taskId: z.string().min(1),
   quality: z.number().min(0).max(1),
   people: z.array(edu2comTeamMemberSchema).min(1),

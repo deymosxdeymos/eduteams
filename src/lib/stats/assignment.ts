@@ -1,9 +1,9 @@
 import type { Gender, MBTIType } from '@/generated/prisma';
 import prisma from '@/lib/prisma';
 
-export type MbtiStat = { kategori: MBTIType; jumlah: number };
-export type SkillStat = { label: string; value: number };
-export type NamedValue = { name: string; value: number };
+type MbtiStat = { kategori: MBTIType; jumlah: number };
+type SkillStat = { label: string; value: number };
+type NamedValue = { name: string; value: number };
 
 export interface AssignmentStats {
   mbti: MbtiStat[];

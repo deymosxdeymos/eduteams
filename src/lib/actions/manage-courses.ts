@@ -70,7 +70,7 @@ const deleteCourseInputSchema = z.object({
 
 type DeleteCourseInput = z.infer<typeof deleteCourseInputSchema>;
 
-export async function deleteCourse(
+async function _deleteCourse(
   input: DeleteCourseInput
 ): Promise<{ success: true }> {
   const parsed = deleteCourseInputSchema.safeParse(input);
