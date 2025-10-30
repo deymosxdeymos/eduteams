@@ -278,7 +278,7 @@
       "status": {
         "formed": "Pembagian grup berhasil dilakukan",
         "waiting": "Menunggu pembagian grup",
-        "noneFilled": "Belum ada yang mengisi kuisioner",
+        "noneFilled": "Belum ada yang mengisi kuesioner",
         "progress": "{filled} dari {total} mahasiswa telah mengisi kuisioner"
       },
       "back": "Kembali"
@@ -398,6 +398,22 @@
         "create": "Buat Tugas",
         "error": "Gagal membuat tugas"
       },
+      "edit": {
+        "title": "Edit Tugas?",
+        "description": "Perbarui detail tugas di bawah",
+        "titleField": "Nama Tugas",
+        "titlePlaceholder": "Tugas Besar",
+        "descriptionField": "Deskripsi",
+        "descriptionPlaceholder": "Deskripsi",
+        "optional": "opsional",
+        "skills": "Spesifikasi Keahlian",
+        "skillsPlaceholder": "Keahlian",
+        "topics": "Preferensi Topik",
+        "topicsPlaceholder": "Preferensi Topik",
+        "saving": "Mengedit…",
+        "save": "Edit Tugas",
+        "error": "Gagal mengubah tugas"
+      },
       "quiz": {
         "skillsTitle": "🚀 Tes Keahlian",
         "topicsTitle": "📚 Preferensi Topik",
@@ -466,7 +482,7 @@
         "back": "Kembali",
         "statusFormed": "Pembagian grup berhasil dilakukan",
         "statusWaiting": "Menunggu pembagian grup",
-        "statusNoSubmissions": "Belum ada yang mengisi kuisioner",
+        "statusNoSubmissions": "Belum ada yang mengisi kuesioner",
         "statusProgress": "{filled} dari {total} mahasiswa telah mengisi kuisioner",
         "submittedBadge": "Sudah mengisi kuisioner",
         "resetConfirm": "Reset status kuisioner untuk tugas ini?",

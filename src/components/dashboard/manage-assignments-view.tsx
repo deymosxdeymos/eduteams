@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { EditAssignmentModal } from '@/components/dashboard/edit-assignment-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -125,31 +126,6 @@ function ManageTable({
   );
 }
 
-function EditAssignmentDialog(): ReactNode {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant='ghost'
-          size='icon'
-          aria-label='Edit assignment'
-          disabled
-        >
-          <Pencil className='size-4' />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className='rounded-2xl sm:max-w-xl'>
-        <DialogHeader>
-          <DialogTitle className='text-xl font-medium'>Edit Tugas</DialogTitle>
-          <DialogDescription className='text-sm font-normal'>
-            Fitur edit tugas akan segera hadir.
-          </DialogDescription>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function DeleteAssignmentDialog(): ReactNode {
   return (
     <Dialog>
@@ -192,6 +168,8 @@ export function ManageAssignmentsView({
     null
   );
   const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [editingAssignment, setEditingAssignment] =
+    useState<ManageAssignmentRow | null>(null);
 
   const handleArchiveToggle = useCallback(
     (assignment: ManageAssignmentRow) => {
@@ -220,6 +198,17 @@ export function ManageAssignmentsView({
     },
     [onArchiveToggle, router]
   );
+
+  useEffect(() => {
+    const handleAssignmentUpdated = () => {
+      router.refresh();
+    };
+
+    window.addEventListener('assignment:updated', handleAssignmentUpdated);
+    return () => {
+      window.removeEventListener('assignment:updated', handleAssignmentUpdated);
+    };
+  }, [router]);
 
   const defaultActions = useCallback(
     (assignment: ManageAssignmentRow) => {
@@ -294,7 +283,14 @@ export function ManageAssignmentsView({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <EditAssignmentDialog />
+          <Button
+            variant='ghost'
+            size='icon'
+            aria-label='Edit assignment'
+            onClick={() => setEditingAssignment(assignment)}
+          >
+            <Pencil className='size-4' />
+          </Button>
           <DeleteAssignmentDialog />
         </div>
       );
@@ -383,6 +379,17 @@ export function ManageAssignmentsView({
           </div>
         )}
       </div>
+
+      {editingAssignment && (
+        <EditAssignmentModal
+          open={Boolean(editingAssignment)}
+          onOpenChange={open => {
+            if (!open) setEditingAssignment(null);
+          }}
+          assignment={editingAssignment}
+          courseId={courseId}
+        />
+      )}
     </section>
   );
 }

@@ -35,7 +35,7 @@ export function getAssignmentStatusBadge(
 
   if (safeSubmittedCount === 0) {
     return {
-      text: 'Belum ada yang mengisi',
+      text: 'Belum ada yang mengisi kuesioner',
       className: 'bg-red-50 text-red-900',
     };
   }

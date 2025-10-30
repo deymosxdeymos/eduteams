@@ -397,6 +397,22 @@
         "create": "Create Assignment",
         "error": "Failed to create assignment"
       },
+      "edit": {
+        "title": "Edit Assignment?",
+        "description": "Update the assignment details below",
+        "titleField": "Assignment Title",
+        "titlePlaceholder": "Final Project",
+        "descriptionField": "Description",
+        "descriptionPlaceholder": "Description",
+        "optional": "optional",
+        "skills": "Skill Requirements",
+        "skillsPlaceholder": "Skills",
+        "topics": "Topic Preferences",
+        "topicsPlaceholder": "Topic Preferences",
+        "saving": "Editing…",
+        "save": "Edit Assignment",
+        "error": "Failed to update assignment"
+      },
       "quiz": {
         "skillsTitle": "🚀 Skills Test",
         "topicsTitle": "📚 Topic Preferences",
