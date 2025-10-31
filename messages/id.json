@@ -412,7 +412,30 @@
         "topicsPlaceholder": "Preferensi Topik",
         "saving": "Mengedit…",
         "save": "Edit Tugas",
-        "error": "Gagal mengubah tugas"
+        "error": "Gagal mengubah tugas",
+        "confirmation": {
+          "close": "Tutup",
+          "cancel": "Batal",
+          "tier4": {
+            "title": "Tidak Dapat Mengedit Tugas",
+            "message": "Tidak dapat mengedit struktur tugas setelah tim dibentuk. Silakan reset tugas terlebih dahulu.",
+            "help": "Untuk melakukan perubahan struktural, Anda harus mereset tugas terlebih dahulu, yang akan menghapus semua pembentukan tim dan pengiriman mahasiswa."
+          },
+          "tier3": {
+            "title": "Perubahan Destruktif Terdeteksi",
+            "message": "Ini akan membatalkan {count, plural, one {# pengiriman yang ada} other {# pengiriman yang ada}}. Mahasiswa perlu mengulang seluruh penilaian.",
+            "confirm": "Saya mengerti ini akan membatalkan pekerjaan yang ada dan mahasiswa perlu mengulang penilaian.",
+            "continue": "Lanjutkan dan Batalkan"
+          },
+          "tier2": {
+            "title": "Item Baru Ditambahkan",
+            "message": "Item baru telah ditambahkan. {count, plural, one {# mahasiswa} other {# mahasiswa}} yang sudah mengirimkan perlu menyelesaikan bagian baru.",
+            "info": "Respons mahasiswa yang ada akan disimpan, tetapi pengiriman akan ditandai sebagai tidak lengkap hingga mereka menilai item baru.",
+            "continue": "Lanjutkan"
+          },
+          "skillsChanges": "Perubahan Keahlian",
+          "topicsChanges": "Perubahan Topik"
+        }
       },
       "quiz": {
         "skillsTitle": "🚀 Tes Keahlian",
