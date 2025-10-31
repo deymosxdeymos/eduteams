@@ -48,7 +48,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         },
       });
 
-      if (existingSubmission) {
+      if (existingSubmission && !existingSubmission.needsUpdate) {
         return createErrorResponse('Already submitted', 400);
       }
 
