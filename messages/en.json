@@ -411,7 +411,30 @@
         "topicsPlaceholder": "Topic Preferences",
         "saving": "Editing…",
         "save": "Edit Assignment",
-        "error": "Failed to update assignment"
+        "error": "Failed to update assignment",
+        "confirmation": {
+          "close": "Close",
+          "cancel": "Cancel",
+          "tier4": {
+            "title": "Cannot Edit Assignment",
+            "message": "Cannot edit assignment structure after teams have been formed. Please reset the assignment first.",
+            "help": "To make structural changes, you must first reset the assignment, which will clear all team formations and student submissions."
+          },
+          "tier3": {
+            "title": "Destructive Changes Detected",
+            "message": "This will invalidate {count, plural, one {# existing submission} other {# existing submissions}}. Students will need to retake the entire assessment.",
+            "confirm": "I understand this will invalidate existing work and students will need to retake the assessment.",
+            "continue": "Continue and Invalidate"
+          },
+          "tier2": {
+            "title": "New Items Added",
+            "message": "New items have been added. {count, plural, one {# student} other {# students}} who already submitted will need to complete the new sections.",
+            "info": "Students' existing responses will be kept, but submissions will be marked as incomplete until they assess the new items.",
+            "continue": "Continue"
+          },
+          "skillsChanges": "Skills Changes",
+          "topicsChanges": "Topics Changes"
+        }
       },
       "quiz": {
         "skillsTitle": "🚀 Skills Test",
@@ -484,6 +507,7 @@
         "statusNoSubmissions": "No one has filled the questionnaire yet",
         "statusProgress": "{filled} of {total} students have filled the questionnaire",
         "submittedBadge": "Already filled questionnaire",
+        "needsUpdate": "Needs Update",
         "resetConfirm": "Reset questionnaire status for this assignment?",
         "resetFailed": "Failed to reset questionnaire.",
         "resetError": "An error occurred during reset.",

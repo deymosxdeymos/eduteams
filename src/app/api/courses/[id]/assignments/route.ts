@@ -57,7 +57,7 @@ export const GET = withAuth<{ id: string }>(
           submissions: isMahasiswa
             ? {
                 where: { studentId: user.id },
-                select: { id: true },
+                select: { id: true, needsUpdate: true },
               }
             : false,
           _count: { select: { submissions: true } },
@@ -75,8 +75,13 @@ export const GET = withAuth<{ id: string }>(
         topics: [],
         submissionsCount: r._count.submissions,
         submittedByMe: Array.isArray(r.submissions)
-          ? (r.submissions as Array<{ id: string }>).length > 0
+          ? (r.submissions as Array<{ id: string; needsUpdate: boolean }>)
+              .length > 0
           : undefined,
+        needsUpdate: Array.isArray(r.submissions)
+          ? ((r.submissions as Array<{ id: string; needsUpdate: boolean }>)[0]
+              ?.needsUpdate ?? false)
+          : false,
       }));
       return createApiResponse(assignments);
     } catch (error) {

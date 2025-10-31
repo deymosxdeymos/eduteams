@@ -212,6 +212,13 @@ export function StudentClassAssignments({
                               <Badge className={`rounded-full ${color} border`}>
                                 {text}
                               </Badge>
+                              {a.submittedByMe && a.needsUpdate && (
+                                <Badge className='rounded-full bg-amber-100 text-amber-900 border border-amber-300'>
+                                  {t('needsUpdate', {
+                                    defaultValue: 'Needs Update',
+                                  })}
+                                </Badge>
+                              )}
                               {process.env.NODE_ENV !== 'production' && (
                                 <Button
                                   variant='outline'

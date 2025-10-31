@@ -27,6 +27,7 @@ const prismaMock: any = {
               skills: ['Frontend'],
               topics: ['Topic1'],
             }),
+            structureVersion: 1,
           }
         : null
     ),

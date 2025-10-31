@@ -42,6 +42,7 @@ export const AssignmentUpdateSchema = z.object({
   status: AssignmentStatusSchema.optional(),
   skills: z.array(z.string().min(1)).optional(),
   topics: z.array(z.string().min(1)).optional(),
+  confirmDestructiveChanges: z.boolean().optional().default(false),
 });
 
 type _AssignmentUpdate = z.infer<typeof AssignmentUpdateSchema>;
@@ -56,4 +57,5 @@ type _AssignmentSubmissionCreate = z.infer<
 
 export type AssignmentClient = AssignmentResponse & {
   submittedByMe?: boolean;
+  needsUpdate?: boolean;
 };

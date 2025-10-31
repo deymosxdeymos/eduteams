@@ -14,7 +14,7 @@ export const POST = withAuth<{ id: string }>(
       // Load assignment and ensure user is enrolled in course
       const assignment = await prisma.assignment.findUnique({
         where: { id: assignmentId },
-        select: { id: true, courseId: true },
+        select: { id: true, courseId: true, structureVersion: true },
       });
       if (!assignment) return createErrorResponse('Assignment not found', 404);
 
@@ -36,8 +36,16 @@ export const POST = withAuth<{ id: string }>(
             studentId: user.id,
           },
         },
-        update: {},
-        create: { assignmentId: assignment.id, studentId: user.id },
+        update: {
+          structureVersion: assignment.structureVersion,
+          needsUpdate: false,
+        },
+        create: {
+          assignmentId: assignment.id,
+          studentId: user.id,
+          structureVersion: assignment.structureVersion,
+          needsUpdate: false,
+        },
       });
 
       return NextResponse.json({ success: true });

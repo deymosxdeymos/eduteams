@@ -413,20 +413,23 @@ enum PersonalityBankStatus {
 }
 
 model Assignment {
-  id              String                 @id @default(uuid())
-  courseId        String
-  createdById     String
-  title           String
-  description     String?
-  startAt         DateTime               @default(now())
-  status          AssignmentStatus       @default(BELUM_ISI)
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  archivedAt      DateTime?
-  course          Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdBy       User                   @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  submissions     AssignmentSubmission[]
-  AssignmentTopic AssignmentTopic[]
+  id                 String                 @id @default(uuid())
+  courseId           String
+  createdById        String
+  title              String
+  description        String?
+  startAt            DateTime               @default(now())
+  status             AssignmentStatus       @default(BELUM_ISI)
+  structureVersion   Int                    @default(1)
+  structureUpdatedAt DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  archivedAt         DateTime?
+  course             Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdBy          User                   @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  submissions        AssignmentSubmission[]
+  AssignmentTopic    AssignmentTopic[]
+  snapshots          AssignmentSnapshot[]
 
   @@index([courseId])
   @@index([status])
@@ -434,17 +437,35 @@ model Assignment {
   @@map("assignments")
 }
 
+model AssignmentSnapshot {
+  id             String     @id @default(uuid())
+  assignmentId   String
+  version        Int
+  title          String
+  description    String?
+  snapshotAt     DateTime   @default(now())
+  snapshotReason String?
+  assignment     Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, version])
+  @@index([assignmentId])
+  @@map("assignment_snapshots")
+}
+
 model AssignmentSubmission {
-  id           String     @id @default(uuid())
-  assignmentId String
-  studentId    String
-  createdAt    DateTime   @default(now())
-  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student      User       @relation("AssignmentSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  id               String     @id @default(uuid())
+  assignmentId     String
+  studentId        String
+  structureVersion Int        @default(1)
+  needsUpdate      Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  assignment       Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student          User       @relation("AssignmentSubmissionStudent", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, studentId])
   @@index([assignmentId])
   @@index([studentId])
+  @@index([needsUpdate])
   @@map("assignment_submissions")
 }
 

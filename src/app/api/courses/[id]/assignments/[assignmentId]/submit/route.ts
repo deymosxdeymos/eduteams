@@ -85,7 +85,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       // Fetch assignment to recover skills/topics names if needed
       const dbAssignment = await prisma.assignment.findUnique({
         where: { id: assignmentId, courseId },
-        select: { id: true, description: true },
+        select: { id: true, description: true, structureVersion: true },
       });
       if (!dbAssignment)
         return createErrorResponse('Assignment not found', 404);
@@ -248,13 +248,21 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
           });
         }
 
-        // Idempotent submission record
+        // Idempotent submission record with current structure version
         await tx.assignmentSubmission.upsert({
           where: {
             assignmentId_studentId: { assignmentId, studentId: user.id },
           },
-          update: {},
-          create: { assignmentId, studentId: user.id },
+          update: {
+            structureVersion: dbAssignment.structureVersion,
+            needsUpdate: false,
+          },
+          create: {
+            assignmentId,
+            studentId: user.id,
+            structureVersion: dbAssignment.structureVersion,
+            needsUpdate: false,
+          },
         });
       });
 

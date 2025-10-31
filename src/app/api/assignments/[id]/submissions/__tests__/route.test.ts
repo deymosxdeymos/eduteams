@@ -10,7 +10,9 @@ const prismaMock: any = {
   },
   assignment: {
     findUnique: mock(async (args: any) =>
-      args?.where?.id === 'a1' ? { id: 'a1', courseId: 'c1' } : null
+      args?.where?.id === 'a1'
+        ? { id: 'a1', courseId: 'c1', structureVersion: 1 }
+        : null
     ),
   },
   courseEnrollment: {
