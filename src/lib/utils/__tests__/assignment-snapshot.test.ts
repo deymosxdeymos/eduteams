@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { markSubmissionsNeedUpdate } from '../assignment-snapshot';
 import prisma from '../../prisma';
+import { markSubmissionsNeedUpdate } from '../assignment-snapshot';
 
 describe('assignment-snapshot', () => {
   let testUser: { id: string };
