@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import RoleSelect from '@/components/onboarding/role/role-select';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { submitRole } from '@/lib/actions/role';
 
 interface RoleFormClientProps {
@@ -85,6 +86,7 @@ export default function RoleFormClient({
               isBlocked ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
+            {isPending && <LoadingSpinner size='sm' color='white' />}
             {isPending ? t('loading') : t('continue')}
             <ArrowRight
               strokeWidth={3}

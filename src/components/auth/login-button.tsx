@@ -38,18 +38,22 @@ export function LoginButton({ className }: LoginButtonProps) {
       onClick={signIn}
       disabled={isLoading}
     >
-      {isLoading ? (
-        <LoadingSpinner size='sm' className='mr-2' color='currentColor' />
-      ) : (
+      <div className='relative mr-2 size-6'>
         <Image
           src='/google.svg'
           alt='Google Logo'
           width={24}
           height={24}
-          className='mr-2'
-          style={{ width: 'auto', height: 'auto' }}
+          className={cn('size-6', isLoading && 'opacity-0')}
         />
-      )}
+        {isLoading && (
+          <LoadingSpinner
+            size='sm'
+            className='absolute inset-0 size-6'
+            color='currentColor'
+          />
+        )}
+      </div>
       {t('signInWithGoogle')}
     </Button>
   );

@@ -35,30 +35,23 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         });
       }}
     >
+      <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
+        {current.toUpperCase()}
+      </span>
       {isPending ? (
-        <>
-          <LoadingSpinner
-            size='sm'
-            className='mr-1 sm:mr-2'
-            color='currentColor'
-          />
-          <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
-            {current.toUpperCase()}
-          </span>
-        </>
+        <LoadingSpinner
+          size='sm'
+          className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
+          color='currentColor'
+        />
       ) : (
-        <>
-          <span className='text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold'>
-            {current.toUpperCase()}
-          </span>
-          <Image
-            src={current === 'id' ? '/indo.svg' : '/english.svg'}
-            width={40}
-            height={40}
-            alt={current === 'id' ? t('indonesiaAlt') : t('englishAlt')}
-            className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
-          />
-        </>
+        <Image
+          src={current === 'id' ? '/indo.svg' : '/english.svg'}
+          width={40}
+          height={40}
+          alt={current === 'id' ? t('indonesiaAlt') : t('englishAlt')}
+          className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
+        />
       )}
     </Button>
   );

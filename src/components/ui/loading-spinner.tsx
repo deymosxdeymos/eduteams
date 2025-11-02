@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,23 @@ export function LoadingSpinner({
   };
 
   return <Spinner className={cn(sizeClasses[size], className)} />;
+}
+
+interface LoadingButtonProps extends React.ComponentProps<typeof Button> {
+  isLoading?: boolean;
+}
+
+export function LoadingButton({
+  isLoading,
+  children,
+  ...props
+}: LoadingButtonProps) {
+  return (
+    <Button disabled={isLoading} {...props}>
+      {isLoading && <LoadingSpinner size='sm' />}
+      {children}
+    </Button>
+  );
 }
 
 export function LoadingPage() {

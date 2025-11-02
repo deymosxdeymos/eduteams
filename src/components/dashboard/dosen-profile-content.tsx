@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useMemo, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useRouter } from '@/i18n/routing';
 import type { ExtendedUser } from '@/lib/types';
 
@@ -166,6 +167,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           className='rounded-full w-[36rem] h-[3rem]'
           disabled={isPending || !namaLengkap || !jenisKelamin}
         >
+          {isPending && <LoadingSpinner size='sm' color='white' />}
           {isPending ? t('saving') : t('save')}
         </Button>
         {message && <span className='text-green-600 text-sm'>{message}</span>}

@@ -420,11 +420,19 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                   type='submit'
                   disabled={isPending}
                 >
-                  {isPending ? (
-                    <LoadingSpinner size='sm' color='white' className='mr-2' />
-                  ) : (
-                    <Pencil className='mr-2 h-4 w-4' strokeWidth={3} />
-                  )}
+                  <div className='relative mr-2 size-4'>
+                    <Pencil
+                      className={cn('h-4 w-4', isPending && 'opacity-0')}
+                      strokeWidth={3}
+                    />
+                    {isPending && (
+                      <LoadingSpinner
+                        size='sm'
+                        color='white'
+                        className='absolute inset-0 size-4'
+                      />
+                    )}
+                  </div>
                   {isPending ? tEdit('saving') : tEdit('button')}
                 </Button>
               </div>
@@ -542,6 +550,7 @@ function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
                 disabled={isPending}
                 aria-busy={isPending}
               >
+                {isPending && <LoadingSpinner size='sm' color='white' />}
                 {isPending ? tDelete('deleting') : tDelete('delete')}
               </Button>
             </DialogFooter>
@@ -643,6 +652,7 @@ export function ManageCoursesView({
                   aria-busy={isPending}
                   onClick={() => handleArchiveToggle(course)}
                 >
+                  {isPending && <LoadingSpinner size='sm' color='white' />}
                   {course.isManuallyArchived ? 'Munculkan' : 'Sembunyikan'}
                 </Button>
               </DialogFooter>
