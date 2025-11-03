@@ -93,7 +93,10 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
               {t('skillsTitle')}
             </h1>
           </div>
-          <SkillsBarChart skills={stats.skills} ready={isReady} />
+          <SkillsBarChart
+            skills={stats.skills}
+            skillsReady={stats.skillsReady}
+          />
         </div>
 
         <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>

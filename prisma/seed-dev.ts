@@ -436,36 +436,39 @@ async function createSampleAssignments(
   const sampleAssignments = [
     {
       title: 'Tugas Besar 1 - Struktur Data Linear',
-      description:
-        'Implementasikan struktur data linear (Array, Linked List, Stack, Queue) dalam bahasa C++ dengan studi kasus aplikasi inventory sederhana.',
-      topics: [
-        'Array Implementation',
-        'Linked List',
-        'Stack Application',
-        'Queue System',
-      ],
+      description: JSON.stringify({
+        skills: ['Rust', 'Linux'],
+        topics: [
+          'Array Implementation',
+          'Linked List',
+          'Stack Application',
+          'Queue System',
+        ],
+      }),
     },
     {
       title: 'Tugas Besar 2 - Struktur Data Non-Linear',
-      description:
-        'Implementasikan struktur data non-linear (Tree, Graph) dengan algoritma traversal dan aplikasi pencarian jalur terpendek.',
-      topics: [
-        'Binary Tree',
-        'Graph Traversal',
-        'Shortest Path',
-        'Tree Balancing',
-      ],
+      description: JSON.stringify({
+        skills: ['Rust', 'Linux'],
+        topics: [
+          'Binary Tree',
+          'Graph Traversal',
+          'Shortest Path',
+          'Tree Balancing',
+        ],
+      }),
     },
     {
       title: 'Quiz 1 - Array dan Linked List',
-      description:
-        'Quiz tertulis tentang konsep dan implementasi Array serta Linked List.',
-      topics: [
-        'Array Concepts',
-        'Linked List Operations',
-        'Time Complexity',
-        'Memory Management',
-      ],
+      description: JSON.stringify({
+        skills: ['Rust', 'Linux'],
+        topics: [
+          'Array Concepts',
+          'Linked List Operations',
+          'Time Complexity',
+          'Memory Management',
+        ],
+      }),
     },
   ];
 
@@ -488,7 +491,16 @@ async function createSampleAssignments(
     });
 
     // Create assignment topics
-    for (const topicName of assignment.topics) {
+    let topics: string[] = [];
+    try {
+      const parsed = JSON.parse(assignment.description);
+      topics = parsed.topics || [];
+    } catch {
+      // Fallback for non-JSON descriptions
+      topics = [];
+    }
+
+    for (const topicName of topics) {
       await prisma.assignmentTopic.create({
         data: {
           id: createId(),

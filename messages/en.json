@@ -355,6 +355,7 @@
       "selectAll": "Select all",
       "select": "Select",
       "remove": "Remove student",
+      "removeStudent": "Remove Student",
       "removeMultiple": "Remove students",
       "exitSelectMode": "Exit select mode",
       "noStudents": "No Students Yet",

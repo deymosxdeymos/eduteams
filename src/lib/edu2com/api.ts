@@ -12,7 +12,7 @@ export async function callEdu2comTeamFormation(
   payload: Edu2comParameters,
   opts: { timeoutMs?: number; headers?: Record<string, string> } = {}
 ): Promise<Edu2comTeamsResponse> {
-  const { timeoutMs = 15000, headers = {} } = opts;
+  const { timeoutMs = 60000, headers = {} } = opts;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);

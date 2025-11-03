@@ -13,6 +13,7 @@ export interface AssignmentStats {
   teamsFormed: boolean;
   quizSubmissions: number;
   chartReady: boolean;
+  skillsReady: boolean;
 }
 
 export async function getAssignmentStats(
@@ -149,6 +150,8 @@ export async function getAssignmentStats(
     return { label, value: Math.round((agg.sum / agg.count) * 100) };
   });
 
+  const skillsReady = skills.some(s => s.value > 0);
+
   // Assignment topics preference distribution
   // Prefer labels from description if present; fallback to DB topics
   const topicRows = await prisma.assignmentTopic.findMany({
@@ -209,5 +212,6 @@ export async function getAssignmentStats(
     teamsFormed,
     quizSubmissions: quizSubmissionCount,
     chartReady,
+    skillsReady,
   };
 }
