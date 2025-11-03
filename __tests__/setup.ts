@@ -1,3 +1,22 @@
+// Enable grey-box DB setup via GREY=1
+const GREY_ENABLED = process.env.GREY === '1';
+
+declare global {
+  // Exposed for test helpers when GREY is enabled
+  // eslint-disable-next-line no-var
+  var __TEST_SCHEMA__: string;
+}
+
+if (GREY_ENABLED) {
+  const testSchema = 'test';
+  process.env.DATABASE_URL = `postgresql://postgres:postgres@localhost:5433/eduteams?schema=${testSchema}`;
+  process.env.NODE_ENV = 'test';
+  globalThis.__TEST_SCHEMA__ = testSchema;
+} else {
+  // Still mark test env for non-DB tests
+  process.env.NODE_ENV = 'test';
+}
+
 import '@testing-library/jest-dom';
 import { afterEach, mock } from 'bun:test';
 import React from 'react';
@@ -148,3 +167,31 @@ console.error = (...args: any[]) => {
   // biome-ignore lint/suspicious/noConsole: re-emit error when not filtered
   return originalError(...args);
 };
+
+import { beforeAll, afterAll } from 'bun:test';
+import { $ } from 'bun';
+import { PrismaClient } from '@/generated/prisma';
+
+if (GREY_ENABLED) {
+  beforeAll(async () => {
+    const schema = globalThis.__TEST_SCHEMA__;
+    const baseUrl = process.env.DATABASE_URL?.split('?')[0];
+    const tempPrisma = new PrismaClient({
+      datasources: { db: { url: baseUrl } },
+    });
+
+    try {
+      await tempPrisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+      await $`bunx prisma db push --skip-generate --accept-data-loss`
+        .env({ ...process.env, DATABASE_URL: process.env.DATABASE_URL! })
+        .quiet();
+      console.log(`✓ Test database schema ready: ${schema}`);
+    } finally {
+      await tempPrisma.$disconnect();
+    }
+  });
+
+  afterAll(async () => {
+    console.log(`✓ Test schema ready for reuse: ${globalThis.__TEST_SCHEMA__}`);
+  });
+}

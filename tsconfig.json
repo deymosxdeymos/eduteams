@@ -24,6 +24,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
+      "@tests/*": ["./__tests__/*"],
       "better-call": ["types/stubs/better-call.d.ts"],
       "nanostores/map-creator": ["types/stubs/nanostores-map-creator.d.ts"],
       "zod/v4/core": ["types/stubs/zod-v4-core.d.ts"]
@@ -36,13 +37,12 @@
     "src/**/*.tsx",
     "scripts/**/*.ts",
     "prisma/**/*.ts",
+    "__tests__/**/*.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "src/generated/prisma",
-    "__tests__",
-    "**/__tests__/**",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]
