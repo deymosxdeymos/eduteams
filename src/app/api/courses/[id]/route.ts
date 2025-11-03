@@ -11,7 +11,6 @@ import {
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
-import { DASHBOARD_COURSES_TAG } from '@/lib/dashboard/courses';
 import prisma from '@/lib/prisma';
 import { courseUpdateSchema } from '@/lib/validation/course';
 
@@ -175,7 +174,6 @@ export const PATCH = withAuth<{ id: string }>(
       },
     });
 
-    revalidateTag(DASHBOARD_COURSES_TAG);
     revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
     return createApiResponse(updatedCourse);
@@ -214,7 +212,6 @@ export const DELETE = withAuth<{ id: string }>(
 
       await prisma.course.delete({ where: { id } });
 
-      revalidateTag(DASHBOARD_COURSES_TAG);
       revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
       const studentIds = new Set(enrollments.map(({ studentId }) => studentId));

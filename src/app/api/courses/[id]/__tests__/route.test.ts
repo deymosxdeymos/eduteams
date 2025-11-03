@@ -174,9 +174,8 @@ describe('DELETE /api/courses/[id]', () => {
     expect(prismaMock.course.delete).toHaveBeenCalledWith({
       where: { id: 'c1' },
     });
-    expect(revalidateTagMock).toHaveBeenCalledTimes(4);
+    expect(revalidateTagMock).toHaveBeenCalledTimes(3);
     expect(revalidateTagMock.mock.calls.map(call => call[0])).toEqual([
-      'dashboard:courses',
       'courses-u1',
       'student-classes-s1',
       'student-classes-s2',

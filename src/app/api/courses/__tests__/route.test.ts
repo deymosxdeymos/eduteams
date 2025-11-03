@@ -105,8 +105,6 @@ describe('courses API', () => {
       body: JSON.stringify({
         namaMataKuliah: 'Algoritma',
         kelas: 'RA',
-        tahunAwalPeriode: 2025,
-        tahunAkhirPeriode: 2025,
         periode: 'ganjil',
       }),
     });

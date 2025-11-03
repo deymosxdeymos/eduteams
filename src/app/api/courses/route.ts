@@ -6,10 +6,9 @@ import {
   withAuth,
   withValidation,
 } from '@/lib/api-utils';
-import {
-  DASHBOARD_COURSES_TAG,
-  getCoursesForDosen,
-} from '@/lib/dashboard/courses';
+import { CACHE_TAGS } from '@/lib/cache-tags';
+
+import { getCoursesForDosen } from '@/lib/dashboard/courses';
 import prisma from '@/lib/prisma';
 import { getCurrentAcademicYear } from '@/lib/utils/period';
 import {
@@ -59,7 +58,7 @@ export const POST = withAuth(
         },
       });
 
-      revalidateTag(DASHBOARD_COURSES_TAG);
+      revalidateTag(CACHE_TAGS.coursesByDosen(user?.id || ''));
 
       return createApiResponse(course);
     }

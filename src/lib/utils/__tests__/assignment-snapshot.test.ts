@@ -1,10 +1,12 @@
 // Grey box tests: partial knowledge, real DB, verify state + returns
 
-import { describe, expect, it, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 
 // Run this suite only when GREY=1 to avoid interference with unit tests that mock Prisma
 const RUN_GREY = process.env.GREY === '1';
-const suite = (RUN_GREY ? describe.serial : describe.skip) as typeof describe.serial;
+const suite = (
+  RUN_GREY ? describe.serial : describe.skip
+) as typeof describe.serial;
 
 type SnapshotModule = typeof import('../assignment-snapshot');
 type DbHelpers = typeof import('@tests/helpers/db');
@@ -21,20 +23,17 @@ let createTestSubmissions!: Factories['createTestSubmissions'];
 let prisma!: PrismaClient;
 
 if (RUN_GREY) {
-  const [
-    snapshotModule,
-    dbHelpers,
-    factories,
-    prismaModule,
-  ] = await Promise.all([
-    import('../assignment-snapshot'),
-    import('@tests/helpers/db'),
-    import('@tests/helpers/factories'),
-    import('@/lib/prisma'),
-  ]);
+  const [snapshotModule, dbHelpers, factories, prismaModule] =
+    await Promise.all([
+      import('../assignment-snapshot'),
+      import('@tests/helpers/db'),
+      import('@tests/helpers/factories'),
+      import('@/lib/prisma'),
+    ]);
 
   markSubmissionsNeedUpdate = snapshotModule.markSubmissionsNeedUpdate;
-  invalidateAssignmentSubmissions = snapshotModule.invalidateAssignmentSubmissions;
+  invalidateAssignmentSubmissions =
+    snapshotModule.invalidateAssignmentSubmissions;
   createAssignmentSnapshot = snapshotModule.createAssignmentSnapshot;
   getLatestSnapshotVersion = snapshotModule.getLatestSnapshotVersion;
   resetDatabase = dbHelpers.resetDatabase;
@@ -64,7 +63,7 @@ suite('assignment-snapshot (grey box)', () => {
       });
 
       expect(submissions).toHaveLength(3);
-      expect(submissions.every((s) => s.needsUpdate === true)).toBe(true);
+      expect(submissions.every(s => s.needsUpdate === true)).toBe(true);
     });
 
     it('should not mark submissions that match the new version', async () => {
@@ -80,7 +79,7 @@ suite('assignment-snapshot (grey box)', () => {
       });
 
       expect(submissions).toHaveLength(2);
-      expect(submissions.every((s) => s.needsUpdate === false)).toBe(true);
+      expect(submissions.every(s => s.needsUpdate === false)).toBe(true);
     });
 
     it('should only mark submissions with versions older than new version', async () => {
@@ -99,17 +98,17 @@ suite('assignment-snapshot (grey box)', () => {
       });
 
       expect(v1Submissions).toHaveLength(2);
-      expect(v1Submissions.every((s) => s.needsUpdate === true)).toBe(true);
+      expect(v1Submissions.every(s => s.needsUpdate === true)).toBe(true);
 
       expect(v2Submissions).toHaveLength(2);
-      expect(v2Submissions.every((s) => s.needsUpdate === false)).toBe(true);
+      expect(v2Submissions.every(s => s.needsUpdate === false)).toBe(true);
     });
   });
 
   describe('invalidateAssignmentSubmissions', () => {
     it('should delete all submissions and related data', async () => {
       const assignment = await createTestAssignment();
-      const submissions = await createTestSubmissions(assignment.id, 2);
+      const _submissions = await createTestSubmissions(assignment.id, 2);
 
       const deletedCount = await invalidateAssignmentSubmissions(assignment.id);
 

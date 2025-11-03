@@ -10,11 +10,7 @@ declare global {
 if (GREY_ENABLED) {
   const testSchema = 'test';
   process.env.DATABASE_URL = `postgresql://postgres:postgres@localhost:5433/eduteams?schema=${testSchema}`;
-  process.env.NODE_ENV = 'test';
   globalThis.__TEST_SCHEMA__ = testSchema;
-} else {
-  // Still mark test env for non-DB tests
-  process.env.NODE_ENV = 'test';
 }
 
 import '@testing-library/jest-dom';
