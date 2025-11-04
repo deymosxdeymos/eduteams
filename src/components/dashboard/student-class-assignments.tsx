@@ -192,10 +192,12 @@ export function StudentClassAssignments({
                           ) {
                             text = t('statusWaiting');
                             color = 'bg-sky-50 text-sky-900';
-                          } else if (safeSubmittedCount === 0) {
-                            text = t('statusNoSubmissions');
+                          } else if (!a.submittedByMe) {
+                            // Student hasn't filled the form yet
+                            text = 'Anda belum mengisi';
                             color = 'bg-red-50 text-red-900';
                           } else {
+                            // Student filled but others haven't
                             const totalForMessage =
                               safeTotalStudents > 0
                                 ? safeTotalStudents

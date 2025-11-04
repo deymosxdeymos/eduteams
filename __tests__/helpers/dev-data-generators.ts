@@ -197,14 +197,19 @@ export function generateMBTIResponses(scores: PersonalityScores): AnswerRecord {
 const SKILL_IDS = [
   "9f030e3d-abab-4d99-aeae-823d5ef6959e", // Rust
   "eb5fdd35-8798-4930-85ec-74973e1bc70c", // Linux
+  "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // JavaScript
+  "b2c3d4e5-f6a7-8901-bcde-f12345678901", // Python
 ];
 
 export function generateRandomSkills(count: number): SkillAssignment[] {
   const skills: SkillAssignment[] = [];
+  const availableIds = [...SKILL_IDS];
   
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count && availableIds.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * availableIds.length);
+    const skillId = availableIds.splice(randomIndex, 1)[0];
     skills.push({
-      skillId: SKILL_IDS[Math.floor(Math.random() * SKILL_IDS.length)],
+      skillId,
       level: Math.random() * 0.6 + 0.3, // 0.3 to 0.9
     });
   }

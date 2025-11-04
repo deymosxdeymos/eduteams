@@ -8,11 +8,22 @@ import {
   edu2comTeamsResponseSchema,
 } from './contract';
 
+const DEFAULT_TIMEOUT_MS = Number.parseInt(
+  process.env.EDU2COM_TIMEOUT_MS ?? '',
+  10
+);
+
 export async function callEdu2comTeamFormation(
   payload: Edu2comParameters,
   opts: { timeoutMs?: number; headers?: Record<string, string> } = {}
 ): Promise<Edu2comTeamsResponse> {
-  const { timeoutMs = 60000, headers = {} } = opts;
+  const timeoutMs =
+    Number.isFinite(opts.timeoutMs) && (opts.timeoutMs as number) > 0
+      ? (opts.timeoutMs as number)
+      : Number.isFinite(DEFAULT_TIMEOUT_MS) && DEFAULT_TIMEOUT_MS > 0
+        ? DEFAULT_TIMEOUT_MS
+        : 120_000;
+  const { headers = {} } = opts;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);

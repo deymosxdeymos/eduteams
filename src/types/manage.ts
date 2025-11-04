@@ -24,3 +24,32 @@ export interface ManageAssignmentRow {
   submissionsCount: number;
   totalStudents: number;
 }
+
+export type SortKey = 'name' | 'year';
+
+export interface TeamMemberUser {
+  id: string;
+  name: string | null;
+  mbtiType?: string | null;
+}
+
+export interface TeamMemberItem {
+  id: string;
+  user: TeamMemberUser;
+}
+
+export interface GroupListItem {
+  id: string;
+  courseId: string;
+  taskTitle: string;
+  className: string;
+  academicYear: string;
+  status: 'my-group' | 'waiting' | 'not-started';
+  dueAt?: Date | string;
+  teamMembers?: TeamMemberItem[];
+  teamName?: string;
+  teamQuality?: number;
+  topicName?: string;
+  startAt?: Date | string;
+  description?: string | null;
+}

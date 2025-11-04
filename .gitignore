@@ -41,3 +41,4 @@ src/generated/prisma
 
 .playwright-mcp/
 .claude/
+.opencode/

@@ -358,6 +358,72 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     );
   });
 
+  it('returns 504 when Edu2com request times out', async () => {
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    }));
+    mock.module('@/lib/edu2com/api', () => ({
+      callEdu2comTeamFormation: async () => {
+        const error = new Error('This operation was aborted');
+        error.name = 'AbortError';
+        throw error;
+      },
+    }));
+
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+    });
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+    expect(res.status).toBe(504);
+    const json = await res.json();
+    expect(json.success).toBe(false);
+    expect(json.error).toContain('batas waktu');
+    expect(prismaMock.teamFormationRequest.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          errorMessage: expect.stringContaining('Timeout contacting Edu2com'),
+          status: 'FAILED',
+        }),
+      })
+    );
+  });
+
+  it('forwards Edu2com HttpError status and message', async () => {
+    const { HttpError } = await import('@/lib/utils/errors');
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    }));
+    mock.module('@/lib/edu2com/api', () => ({
+      callEdu2comTeamFormation: async () => {
+        throw new HttpError(
+          422,
+          'Cannot form the teams with the provided data.'
+        );
+      },
+    }));
+
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+    });
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+    expect(res.status).toBe(422);
+    const json = await res.json();
+    expect(json.success).toBe(false);
+    expect(json.error).toBe('Cannot form the teams with the provided data.');
+  });
+
   it('handles invalid request body', async () => {
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },

@@ -2,6 +2,7 @@
 
 import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
 import { useMemo } from 'react';
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
@@ -10,7 +11,28 @@ const SUPPORTED_LOCALES = ['id', 'en'];
 const ICON_BUTTON_CLASSES =
   'rounded-full w-12 h-12 cursor-pointer transition-transform duration-150 active:scale-[0.96]';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  return res.json();
+};
+
 export default function Sidebar() {
+  const { data: userData } = useSWR('/api/user', fetcher);
+  const user = userData?.data;
+
+  // Fetch not-started count for mahasiswa users only
+  const shouldFetchCount = user?.role === 'mahasiswa';
+  const { data: countData } = useSWR(
+    shouldFetchCount ? '/api/student/not-started-count' : null,
+    fetcher,
+    {
+      refreshInterval: 30000, // Refresh every 30 seconds
+    }
+  );
+  const notStartedCount = countData?.count ?? 0;
+  const showBadge = shouldFetchCount && notStartedCount > 0;
+
   const router = useRouter();
   const pathname = usePathname();
 
@@ -84,17 +106,22 @@ export default function Sidebar() {
           />
         </Button>
 
-        <Button
-          variant={isActive('/dashboard/manage') ? 'onboarding' : 'ghost'}
-          size='icon'
-          className={ICON_BUTTON_CLASSES}
-          onClick={handleManageClick}
-          aria-current={isActive('/dashboard/manage') ? 'page' : undefined}
-        >
-          <LayoutGrid
-            className={`size-5 ${isActive('/dashboard/manage') ? 'text-white' : 'text-black'}`}
-          />
-        </Button>
+        <div className='relative'>
+          <Button
+            variant={isActive('/dashboard/manage') ? 'onboarding' : 'ghost'}
+            size='icon'
+            className={ICON_BUTTON_CLASSES}
+            onClick={handleManageClick}
+            aria-current={isActive('/dashboard/manage') ? 'page' : undefined}
+          >
+            <LayoutGrid
+              className={`size-5 ${isActive('/dashboard/manage') ? 'text-white' : 'text-black'}`}
+            />
+          </Button>
+          {showBadge && (
+            <div className='absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full' />
+          )}
+        </div>
       </div>
       <div className='flex flex-col gap-y-6'>
         <Button

@@ -383,13 +383,15 @@ async function generateStudent(index: number): Promise<string> {
 }
 
 async function assignSkillsToStudent(userId: string): Promise<void> {
-  const skillCount = Math.floor(Math.random() * 3) + 3; // 3-5 skills
+  const skillCount = 4; // 4 skills
   const skills = generateRandomSkills(skillCount);
 
   // Ensure skills exist before creating person skills
   const skillNames: Record<string, string> = {
     '9f030e3d-abab-4d99-aeae-823d5ef6959e': 'Rust',
     'eb5fdd35-8798-4930-85ec-74973e1bc70c': 'Linux',
+    'a1b2c3d4-e5f6-7890-abcd-ef1234567890': 'JavaScript',
+    'b2c3d4e5-f6a7-8901-bcde-f12345678901': 'Python',
   };
 
   for (const skill of skills) {

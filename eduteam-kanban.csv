@@ -1,0 +1,176 @@
+"ID","Team","Title","Description","Status","Estimate","Priority","Project ID","Project","Creator","Assignee","Labels","Cycle Number","Cycle Name","Cycle Start","Cycle End","Created","Updated","Started","Triaged","Completed","Canceled","Archived","Due Date","Parent issue","Initiatives","Project Milestone ID","Project Milestone","SLA Status","Roadmaps"
+"EDU-10","Eduteam","Creating user flow",,"Canceled",,"No priority",,,"galinnichola15@gmail.com",,"",,,,,"Fri Sep 29 2023 17:03:29 GMT+0000 (GMT)","Sat Mar 30 2024 04:40:24 GMT+0000 (GMT)",,,,"Sat Mar 30 2024 04:40:24 GMT+0000 (GMT)","Mon Sep 30 2024 14:45:22 GMT+0000 (GMT)",,,"",,,
+"EDU-18","Eduteam","Backlog 1",,"Backlog",,"Medium",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Mon Mar 24 2025 18:19:41 GMT+0000 (GMT)","Mon Mar 24 2025 18:19:41 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-20","Eduteam","Separate Challenge Creation & Skill Assignment API Logic","API `POST /api/summer-school/[schoolId]/challenge` currently only creates the base challenge, ignoring tags from the UI. UI (`app/dashboard/manager/page.tsx:~175-210`) submits combined data incorrectly. Refactor: 1. API should only handle title/desc/size & return ID. 2. UI calls create API, then calls `POST /api/challenge/[challengeId]/skill` with required skill data (needs UI updates too).","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Bug",,,,,"Mon Apr 21 2025 12:15:36 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)",,,"Mon Apr 21 2025 16:00:33 GMT+0000 (GMT)",,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-21","Eduteam","Implement Student Assessment Status Endpoints","`components/dashboard/challenge/challenge-detail.tsx` tries to fetch `/api/challenge/.../skills-status` and `/api/challenge/.../preferences-status` to determine student progress, but these routes don't exist. Create these two GET endpoints to check `PersonSkill` and `ChallengePreference` completion for the logged-in user against the specific challenge.","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Feature",,,,,"Mon Apr 21 2025 12:15:37 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:09 GMT+0000 (GMT)",,,"Mon Apr 21 2025 16:00:25 GMT+0000 (GMT)",,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-22","Eduteam","Fix Student Skills Submission API Call","`components/dashboard/student/skills-test.tsx` calls non-existent `POST /api/challenge/[challengeId]/skills`. It should call `POST /api/person-skill` and format the body as `[{ skillId, level }]`, normalizing the level from the UI's 0-4 scale to the API's 0-1 scale.","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Bug",,,,,"Mon Apr 21 2025 12:15:38 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)","Mon Apr 21 2025 14:48:50 GMT+0000 (GMT)",,"Mon Apr 21 2025 16:00:22 GMT+0000 (GMT)",,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-23","Eduteam","Fix Student Preference Submission API Call","`components/dashboard/student/preference-test.tsx` calls non-existent `POST /api/challenge/[challengeId]/preferences`. It should call `POST /api/challenge-preference` and format the body as `[{ challengeId, preference }]`, normalizing the preference score from the UI's 0-4 scale to the API's 0-1 scale.","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Bug",,,,,"Mon Apr 21 2025 12:15:38 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)","Mon Apr 21 2025 14:48:49 GMT+0000 (GMT)",,"Mon Apr 21 2025 16:00:21 GMT+0000 (GMT)",,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-24","Eduteam","Enable Email/Password Login for All Roles","`/login` page currently only targets Admin implicitly. Ensure `components/login-form.tsx` works for Manager/Student credentials by verifying the `authClient.signIn.email` call and backend auth logic don't have role filters during login (they shouldn't). Testing is key.","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Feature",,,,,"Mon Apr 21 2025 12:15:39 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)","Mon Apr 21 2025 13:10:26 GMT+0000 (GMT)",,"Mon Apr 21 2025 14:48:43 GMT+0000 (GMT)",,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-25","Eduteam","Add Google Login Button to Login Page","Home page (`app/page.tsx`) has Google login, but `/login` page (`app/login/page.tsx`) does not. Add the ""Login with Google"" button below the email form on `/login`, calling `authClient.signIn.social` with correct callbacks (`/auth/redirect`, `/welcome`, `/login?error=oauth`).","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Feature",,,,,"Mon Apr 21 2025 12:15:39 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)","Mon Apr 21 2025 13:10:25 GMT+0000 (GMT)",,"Mon Apr 21 2025 14:48:42 GMT+0000 (GMT)",,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-26","Eduteam","Update Home Page Button Logic","Home page (`app/page.tsx`) shows ""Sign in with Google"" when logged out. Change this to a single ""Sign In"" button linking to `/login`. Keep ""Continue as \[User\]"" / ""Sign Out"" logic for logged-in users.","Backlog",,"Medium",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Mon Apr 21 2025 12:15:41 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-27","Eduteam","Clarify/Implement Manager-Defined ""Preference Tags""","`components/dashboard/manager/create-question-popup.tsx` allows managers to add ""Preference Tags"" during challenge creation, but there's no API/DB backend to store or utilize these *required* preferences. Define feature requirements (storage, usage in `/form-teams`?) and implement, or remove the feature from the UI.","Backlog",,"Medium",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Feature",,,,,"Mon Apr 21 2025 12:15:41 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-28","Eduteam","Update Manager UI for Required Skill Input","`components/dashboard/manager/create-question-popup.tsx` only collects skill *names*. After CRITICAL#1, this needs update to collect Skill UUIDs, required level (0-1), and importance (0-1) to correctly payload `POST /api/challenge/[challengeId]/skill`. This might involve adding inputs or a skill selection dropdown.","Backlog",,"Medium",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Feature",,,,,"Mon Apr 21 2025 12:15:42 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:08 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-29","Eduteam","Add Team Size Validation Rule","Business logic likely requires `teamSize >= 2`. Current Zod schema (`createChallengeSchema` in `/api/summer-school/[schoolId]/challenge/route.ts`) uses `min(1)`. Update schema to reflect actual minimum required team size.","Backlog",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Bug",,,,,"Mon Apr 21 2025 12:15:42 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:09 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-30","Eduteam","Add Manager Tag Input Validation","`components/dashboard/manager/create-question-popup.tsx` lacks client-side validation to ensure at least one skill tag is entered if required by business logic. Add a check in the submit handler.","Backlog",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Feature",,,,,"Mon Apr 21 2025 12:15:43 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:09 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-31","Eduteam","Strengthen Edu2com Response Validation","Zod schema (`edu2comResponseSchema` in `/api/challenge/[challengeId]/form-teams/route.ts`) for the external API response is basic. Enhance with known constraints (e.g., number ranges for `quality`) based on Edu2com spec.","Backlog",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Mon Apr 21 2025 12:15:43 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:09 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-32","Eduteam","Plan/Add Unit/Integration Tests for APIs","Add tests (e.g., Jest/Supertest/msw) for new/refactored API routes (`/skills-status`, `/preferences-status`, updated challenge creation flow). Include mocking for the Edu2com API in `/form-teams` tests.","Backlog",,"Medium",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Testing",,,,,"Mon Apr 21 2025 12:15:44 GMT+0000 (GMT)","Mon Oct 20 2025 13:14:09 GMT+0000 (GMT)",,,,,"Thu Jul 10 2025 14:41:29 GMT+0000 (GMT)",,,"",,,
+"EDU-36","Eduteam","Authentication Page UI and frontend",,"Done",,"High","ab9cd3fa-599b-4f85-9809-e0f8d378bf6c","Eduteams","galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 18:26:49 GMT+0000 (GMT)","Wed Oct 01 2025 08:08:41 GMT+0000 (GMT)",,,"Wed Oct 01 2025 08:08:41 GMT+0000 (GMT)",,,,,"",,,
+"EDU-37","Eduteam","Setting up better-auth for authentication","## Checklist:
+
+- [ ] Set up Google Authentication
+- [ ] Auth ts and Better Auth ts config
+- [ ] Middleware Setup","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Fri Jul 11 2025 18:29:47 GMT+0000 (GMT)","Sat Oct 25 2025 07:10:06 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:51:11 GMT+0000 (GMT)",,,,,"",,,
+"EDU-38","Eduteam","Dosen Dashboard Page UI and frontend",,"Done",,"High",,,"galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 18:31:55 GMT+0000 (GMT)","Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,,,"",,,
+"EDU-39","Eduteam","Setting up database",,"Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Fri Jul 11 2025 18:46:10 GMT+0000 (GMT)","Mon Jul 14 2025 09:45:24 GMT+0000 (GMT)","Fri Jul 11 2025 19:15:23 GMT+0000 (GMT)",,"Mon Jul 14 2025 09:45:24 GMT+0000 (GMT)",,,,,"",,,
+"EDU-40","Eduteam","Select Role Page UI and frontend",,"Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","UI, Feature",,,,,"Fri Jul 11 2025 18:56:12 GMT+0000 (GMT)","Sat Oct 25 2025 07:10:05 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,,,"",,,
+"EDU-41","Eduteam","Fill Data Diri Page UI and frontend",,"Done",,"High",,,"galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 18:56:40 GMT+0000 (GMT)","Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,,,"",,,
+"EDU-42","Eduteam","MBTI Page UI and frontend",,"Done",,"High",,,"galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 18:57:47 GMT+0000 (GMT)","Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:52:22 GMT+0000 (GMT)",,,,,"",,,
+"EDU-43","Eduteam","Mahasiswa Dashboard Page ui and frontend",,"Done",,"High",,,"galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 18:59:16 GMT+0000 (GMT)","Sun Oct 12 2025 10:51:30 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:51:30 GMT+0000 (GMT)",,,,,"",,,
+"EDU-44","Eduteam","Create Tugas Pop Up UI and frontend",,"Done",,"High",,,"galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 19:02:56 GMT+0000 (GMT)","Sun Oct 12 2025 10:51:20 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:51:20 GMT+0000 (GMT)",,,,,"",,,
+"EDU-45","Eduteam","Dev environment setup (Next, Tailwind, etc)",,"Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Fri Jul 11 2025 19:14:40 GMT+0000 (GMT)","Sun Jul 13 2025 07:16:08 GMT+0000 (GMT)","Fri Jul 11 2025 19:14:45 GMT+0000 (GMT)",,"Sun Jul 13 2025 07:16:08 GMT+0000 (GMT)",,,,,"",,,
+"EDU-46","Eduteam","Landing Page UI and frontend",,"Done",,"High",,,"galinnichola15@gmail.com",,"UI, Feature",,,,,"Fri Jul 11 2025 19:15:12 GMT+0000 (GMT)","Sun Oct 12 2025 05:59:59 GMT+0000 (GMT)","Mon Jul 14 2025 09:45:33 GMT+0000 (GMT)",,"Sun Oct 12 2025 05:59:59 GMT+0000 (GMT)",,,,,"",,,
+"EDU-47","Eduteam","Make homepage responsive",,"Done",,"No priority","ab9cd3fa-599b-4f85-9809-e0f8d378bf6c","Eduteams","galinnichola15@gmail.com",,"",,,,,"Wed Oct 01 2025 08:10:54 GMT+0000 (GMT)","Sun Oct 12 2025 10:52:46 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:52:46 GMT+0000 (GMT)",,,,,"",,,
+"EDU-48","Eduteam","R-01: Deteksi Domain by Email Itera","**Role:** All Role
+**Page:** Autentikasi
+**Priority:** High
+**Status:** Teknis boyyy
+
+**Catatan:**
+
+* Pilih role dan token dosen dihilangkan
+* Nama ditarik dari nama google, tapi bisa diubah juga","Done",,"No priority","ab9cd3fa-599b-4f85-9809-e0f8d378bf6c","Eduteams","galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Wed Oct 01 2025 08:27:29 GMT+0000 (GMT)","Sat Oct 25 2025 07:09:42 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:53:18 GMT+0000 (GMT)",,,,,"",,,
+"EDU-50","Eduteam","R-02: Shadow di Class and Group Card","**Role:** All Role
+**Page:** Home, Class, Task, Management Page","Done",,"Urgent",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Sun Oct 12 2025 05:32:15 GMT+0000 (GMT)","Sat Oct 25 2025 07:09:53 GMT+0000 (GMT)",,,"Sun Oct 12 2025 10:54:17 GMT+0000 (GMT)",,,,,"",,,
+"EDU-51","Eduteam","R-03: Grafik Parameter MBTI diubah ke Grafik Jaring","**Role:** Dosen
+**Page:** Profile Pop Up","Done",,"Urgent",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Sun Oct 12 2025 05:32:21 GMT+0000 (GMT)","Sat Oct 25 2025 07:09:54 GMT+0000 (GMT)","Sun Oct 12 2025 11:00:29 GMT+0000 (GMT)",,"Thu Oct 16 2025 06:41:18 GMT+0000 (GMT)",,,,,"",,,
+"EDU-52","Eduteam","R-04: Sort by Task","**Role:** All Role 
+**Page:** Class Page, Management Page
+
+**Notes:** sort by Nama dan Tanggal Publish","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Sun Oct 12 2025 05:32:26 GMT+0000 (GMT)","Fri Oct 31 2025 15:17:47 GMT+0000 (GMT)","Wed Oct 29 2025 10:28:13 GMT+0000 (GMT)",,"Fri Oct 31 2025 15:17:47 GMT+0000 (GMT)",,,,,"",,,
+"EDU-53","Eduteam","R-05: Sort by Tahun Akademik pada Kelas","**Role:** All Role
+
+**Page:** Home Page, Management Page
+**Notes:** sort by Nama dan Periode Tahun","Done",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Sun Oct 12 2025 05:32:33 GMT+0000 (GMT)","Mon Oct 27 2025 16:16:53 GMT+0000 (GMT)","Sat Oct 25 2025 07:22:12 GMT+0000 (GMT)",,"Mon Oct 27 2025 16:16:53 GMT+0000 (GMT)",,,,,"",,,
+"EDU-54","Eduteam","R-06: Jawaban Skill dan Pref Sebelumnya akan terisi otomatis di kuesioner berikutnya (jika sama)","**Role:** Mahasiswa
+
+**Page:** Skill Test dan Preference Test","In Progress",,"High",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Sun Oct 12 2025 05:32:39 GMT+0000 (GMT)","Fri Oct 31 2025 15:17:55 GMT+0000 (GMT)","Fri Oct 31 2025 15:17:55 GMT+0000 (GMT)",,,,,,,"",,,
+"EDU-55","Eduteam","R-07: Card Rata-Rata Kualitas Skor Kelompok diubah dalam bentuk standar deviasi, min, max, variance","**Role:** Dosen
+Page: Dashboard","Done",,"Urgent",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","UI",,,,,"Sun Oct 12 2025 05:32:47 GMT+0000 (GMT)","Sat Oct 25 2025 07:09:59 GMT+0000 (GMT)",,,"Mon Oct 20 2025 13:15:33 GMT+0000 (GMT)",,,,,"",,,
+"EDU-56","Eduteam","R-08: Panduan Penggunaan","Role: All Role
+
+Page: (PENDING)","Backlog",,"High",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:32:56 GMT+0000 (GMT)","Sat Oct 25 2025 07:12:30 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-57","Eduteam","R-09: Bulk Remove Student List","**Role:** Dosen
+
+**Component:** Student List","Done",,"Urgent",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","UI",,,,,"Sun Oct 12 2025 05:33:06 GMT+0000 (GMT)","Sat Oct 25 2025 07:10:02 GMT+0000 (GMT)",,,"Mon Oct 20 2025 13:16:54 GMT+0000 (GMT)",,,,,"",,,
+"EDU-58","Eduteam","R-10: Mobile Version","**Cancelled:** Mobile is not in MVP","Canceled",,"High",,,"galinnichola15@gmail.com",,"",,,,,"Sun Oct 12 2025 05:33:12 GMT+0000 (GMT)","Mon Oct 20 2025 13:18:09 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 13:18:09 GMT+0000 (GMT)",,,,"",,,
+"EDU-59","Eduteam","R-11: Notification Bubble/Badge on Management Page","**Role:** Mahasiswa
+
+**Page:** Management Page","To Do",,"High",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:33:19 GMT+0000 (GMT)","Sun Nov 02 2025 06:45:39 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-60","Eduteam","R-12: CTA dan Navigasi","**Role:** All Role
+**Page:** Landing Page","To Do",,"High",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:33:30 GMT+0000 (GMT)","Mon Oct 20 2025 14:09:51 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-61","Eduteam","R-13: Export Method PDF & Spreadsheet","**Role:** Dosen
+
+**Page:** Task Page","To Do",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Sun Oct 12 2025 05:33:36 GMT+0000 (GMT)","Sat Oct 25 2025 07:11:22 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-62","Eduteam","R-14: Feedback Page",,"Canceled",,"Low",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:33:46 GMT+0000 (GMT)","Mon Oct 20 2025 13:53:24 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 13:53:24 GMT+0000 (GMT)",,,,"",,,
+"EDU-63","Eduteam","R-15: Evaluasi Nilai Tugas dan Kualitas Skor Kelompok",,"Canceled",,"Low",,,"galinnichola15@gmail.com",,"",,,,,"Sun Oct 12 2025 05:33:58 GMT+0000 (GMT)","Mon Oct 20 2025 13:53:46 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 13:53:41 GMT+0000 (GMT)",,,,"",,,
+"EDU-64","Eduteam","R-16: Page Grafik per Kelompok","**Role:** All Role
+**Page:** Hasil Kelompok Page","To Do",,"Low",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:34:08 GMT+0000 (GMT)","Mon Oct 20 2025 13:54:18 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-65","Eduteam","R-17: Edit Kelompok","**Role:** Dosen
+
+**Page:** Hasil Kelompok Page","To Do",,"Low",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:34:22 GMT+0000 (GMT)","Mon Oct 20 2025 14:09:42 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-66","Eduteam","R-18: Penginputan Bobot Nilai",,"Canceled",,"Low",,,"galinnichola15@gmail.com",,"",,,,,"Sun Oct 12 2025 05:34:32 GMT+0000 (GMT)","Mon Oct 20 2025 14:00:38 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 14:00:33 GMT+0000 (GMT)",,,,"",,,
+"EDU-67","Eduteam","R-19: Ilustrasi Landing Page dibuat 4 Icon","**Role:** All Role
+
+**Page:** Landing Page","Done",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Sun Oct 12 2025 05:34:48 GMT+0000 (GMT)","Sat Oct 25 2025 07:10:04 GMT+0000 (GMT)",,,"Mon Oct 20 2025 14:01:50 GMT+0000 (GMT)",,,,,"",,,
+"EDU-68","Eduteam","R-20: Notif Email (Resend)","**Note:** Setup resend for this","To Do",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Sun Oct 12 2025 05:35:01 GMT+0000 (GMT)","Sat Oct 25 2025 07:11:25 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-69","Eduteam","R-21: Perbaiki Page Profile",,"Canceled",,"Low",,,"galinnichola15@gmail.com",,"",,,,,"Sun Oct 12 2025 05:35:16 GMT+0000 (GMT)","Mon Oct 20 2025 14:08:59 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 14:08:54 GMT+0000 (GMT)",,,,"",,,
+"EDU-70","Eduteam","R-22: Kata ""Periode"" -> ""Akademik","**Role:** All Role
+
+**Page:** Home Dashboard","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:35:38 GMT+0000 (GMT)","Mon Oct 20 2025 14:09:35 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-71","Eduteam","R-23: Fitur ""Sort by"" di Grafik MBTI","**Role:** Dosen
+**Page:** Task Page
+Notes: by Tipe (4 Tipe) dan Jumlah","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:35:48 GMT+0000 (GMT)","Mon Oct 20 2025 14:17:33 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-72","Eduteam","R-24: Gradasi Warna di Grafik Skill","**Role:** Dosen
+**Page:** Task Page","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:36:12 GMT+0000 (GMT)","Mon Oct 20 2025 14:10:34 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-73","Eduteam","R-25: Grafik Gender di Ganti ke Level Graph",,"Canceled",,"Medium",,,"galinnichola15@gmail.com",,"",,,,,"Sun Oct 12 2025 05:36:27 GMT+0000 (GMT)","Mon Oct 20 2025 14:11:03 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 14:10:59 GMT+0000 (GMT)",,,,"",,,
+"EDU-74","Eduteam","R-26: Flow pada Form Pengisian Mata Kuliah dibuat sama dengan Input Skill dan Preference","**Role:** Dosen
+**Page:** Pop Up Create Class","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:36:51 GMT+0000 (GMT)","Mon Oct 20 2025 14:11:23 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-75","Eduteam","R-27: Tahun Periode dan Semester dibuat satu form","**Role:** Dosen
+**Page:** Pop Up Create Class","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:37:06 GMT+0000 (GMT)","Mon Oct 20 2025 14:12:18 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-76","Eduteam","R-28: Justifikasi Ketika Berhasil Sign Up","**Role:** All Role
+
+**Page:** Auth","Backlog",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:37:35 GMT+0000 (GMT)","Sat Oct 25 2025 07:12:48 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-77","Eduteam","R-29: Deploy ke Server IF","**Note:** Vercel might be enough","To Do",,"Low",,,"galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Sun Oct 12 2025 05:37:51 GMT+0000 (GMT)","Sat Oct 25 2025 07:11:28 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-78","Eduteam","R-30: Card Group dibuat berbeda Warna","**Role:** All Role
+
+**Page:** Hasil Kelompok Page","Canceled",,"Low",,,"galinnichola15@gmail.com",,"",,,,,"Sun Oct 12 2025 05:38:22 GMT+0000 (GMT)","Mon Oct 20 2025 14:13:28 GMT+0000 (GMT)",,,,"Mon Oct 20 2025 14:13:28 GMT+0000 (GMT)",,,,"",,,
+"EDU-79","Eduteam","R-31: Even/Odds diganti","**Role:** All Role
+
+**Page:** Hasil Kelompok
+
+**Notes:** Diganti jadi Fall Semester (Ganjil) dan Spring Semester (Genap)","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:38:39 GMT+0000 (GMT)","Mon Oct 20 2025 14:15:02 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-80","Eduteam","R-32: Adv Setting pada Bobot Pembagian","**Role:** Dosen
+**Page:** Create Teams Popup","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:39:15 GMT+0000 (GMT)","Mon Oct 20 2025 14:15:23 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-81","Eduteam","R-33: Legend pada MBTI Graph","**Role:** Dosen
+
+**Page:** Task Page (MBTI Graph)
+
+**Notes:** Legend 4 Tipe MBTI","To Do",,"Medium",,,"galinnichola15@gmail.com",,"UI",,,,,"Sun Oct 12 2025 05:39:34 GMT+0000 (GMT)","Mon Oct 20 2025 14:16:16 GMT+0000 (GMT)",,,,,,,,"",,,
+"EDU-82","Eduteam","R-34: Cari pertanyaan MBTI from correct source","**Summary**
+
+* Implemented OJTS v2.1 session-based personality testing.
+* Added psychometric analysis with Cronbach’s alpha.
+* Schemas for sessions, responses, and scoring tables.
+* 34-question bilingual OJTS set with strict ID validation.
+* Guardrails for mismatched IDs and duplicate/corrupt responses.
+
+**System refactor**
+
+* Upgraded to Next.js 15 with async params handling.
+* Server-side data fetching with caching for dashboard flows.
+* Converted suitable components to server components.
+* Modularized personality metrics with URL state management.
+* i18n coverage across dashboard and join-class flow.
+
+**Quality and ops**
+
+* Removed deprecated auth and unused UI utilities.
+* Improved tests, added Knip config, cleaned Biome rules and deps.
+
+**Why this closes R-34**
+
+* Questions sourced from the correct OJTS v2.1 set.
+* Bilingual delivery supported and validated at schema level.
+* End-to-end from session to scoring implemented and tested.
+
+**Link**
+PR: [https://github.com/deymosxdeymos/eduteams/pull/22](https://github.com/deymosxdeymos/eduteams/pull/22)
+
+**Follow-ups**
+
+* Monitor Cronbach’s alpha on first 200 runs and set threshold alerts.
+* Admin export for session-level scores.
+* Document question-set versioning policy in the repo.","Done",,"High","ab9cd3fa-599b-4f85-9809-e0f8d378bf6c","Eduteams","galinnichola15@gmail.com","galinnichola15@gmail.com","Dev",,,,,"Mon Oct 20 2025 14:29:51 GMT+0000 (GMT)","Sat Oct 25 2025 07:22:09 GMT+0000 (GMT)","Mon Oct 20 2025 14:29:58 GMT+0000 (GMT)",,"Sat Oct 25 2025 07:22:09 GMT+0000 (GMT)",,,,,"",,,
+"EDU-83","Eduteam","management.dosen: implement manage control","'- [X] ke halaman asal
+- [X] arsip kelas
+- [X] edit kelas
+- [X] hapus kelas","Done",,"High","ab9cd3fa-599b-4f85-9809-e0f8d378bf6c","Eduteams","galinnichola15@gmail.com","galinnichola15@gmail.com","UI",,,,,"Mon Oct 27 2025 16:19:35 GMT+0000 (GMT)","Wed Oct 29 2025 08:28:50 GMT+0000 (GMT)","Mon Oct 27 2025 16:19:40 GMT+0000 (GMT)",,"Wed Oct 29 2025 08:28:50 GMT+0000 (GMT)",,,,,"",,,
+"EDU-84","Eduteam","manage.dosen.task: page management task/tugas di dalam class","'- [X] search bar (mencari tugas)
+- [X] table (nama tugas, status, manage control)
+- [X] sidebar daftar mahasiswa
+
+### manage.dosen.task.control
+
+- [X] edit task (dialog, ada popup confirmation)
+- [X] archive tugas/task
+- [X] delete task","Done",,"High","ab9cd3fa-599b-4f85-9809-e0f8d378bf6c","Eduteams","galinnichola15@gmail.com","galinnichola15@gmail.com","",,,,,"Wed Oct 29 2025 10:27:51 GMT+0000 (GMT)","Fri Oct 31 2025 15:17:46 GMT+0000 (GMT)","Wed Oct 29 2025 10:27:51 GMT+0000 (GMT)",,"Fri Oct 31 2025 15:17:46 GMT+0000 (GMT)",,,,,"",,,
+"EDU-85","Eduteam","manage.mahasiswa: manage page untuk mahasiswa","'- [ ] tabs (kelompok saya, menunggu pembagian, belum dikerjakan (badge di belum dikerjakan))
+
+**manage.mahasiswa.kelompok:**
+
+- [ ] sort by (name, academic year)
+- [ ] search class
+- [ ] class card:
+  - [ ] heading (judul tugas)
+  - [ ] subheading (nama kelas)
+  - [ ] ","In Progress",,"No priority",,,"galinnichola15@gmail.com",,"",,,,,"Sun Nov 02 2025 07:06:16 GMT+0000 (GMT)","Sun Nov 02 2025 07:06:16 GMT+0000 (GMT)","Sun Nov 02 2025 07:06:16 GMT+0000 (GMT)",,,,,,,"",,,

@@ -7,7 +7,15 @@ import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
 import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
 import type { Edu2comParameters } from '@/lib/edu2com/contract';
 import prisma from '@/lib/prisma';
-import { ValidationError } from '@/lib/utils/errors';
+import { HttpError, ValidationError } from '@/lib/utils/errors';
+
+function isAbortError(error: unknown): error is Error {
+  if (!(error instanceof Error)) return false;
+  return (
+    error.name === 'AbortError' ||
+    error.message?.toLowerCase?.().includes('aborted')
+  );
+}
 
 function normalizeGender(g: unknown): 'MALE' | 'FEMALE' | undefined {
   if (!g || typeof g !== 'string') return undefined;
@@ -361,6 +369,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     const tf = await prisma.teamFormationRequest.create({
       data: {
         ownerId: ctx.user.id,
+        assignmentId,
         status: 'PROCESSING',
         requestData: payload as unknown as Prisma.InputJsonValue,
       },
@@ -410,16 +419,28 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       });
     } catch (err) {
       const text = err instanceof Error ? err.message : String(err);
+      const abort = isAbortError(err);
+      const httpError = err instanceof HttpError ? err : undefined;
+      const status = abort ? 504 : (httpError?.status ?? 400);
+      const userError = abort
+        ? 'Permintaan ke Edu2com melebihi batas waktu. Silakan coba lagi.'
+        : (httpError?.message ?? 'Gagal membentuk kelompok');
       await prisma.teamFormationRequest.update({
         where: { id: tf.id },
         data: {
           status: 'FAILED',
-          errorMessage: text?.slice(0, 250) || 'Failed to form teams',
+          errorMessage:
+            (abort ? `Timeout contacting Edu2com: ${text}` : text)?.slice(
+              0,
+              250
+            ) ||
+            // Default fallback ensures Prisma accepts non-empty string when slice returns undefined
+            'Failed to form teams',
         },
       });
       return NextResponse.json(
-        { success: false, error: 'Gagal membentuk kelompok' },
-        { status: 400 }
+        { success: false, error: userError },
+        { status }
       );
     }
   } catch (error) {

@@ -217,6 +217,7 @@ model TaskPreference {
 model TeamFormationRequest {
   id           String              @id @default(uuid())
   ownerId      String
+  assignmentId String?
   status       TeamFormationStatus @default(PENDING)
   alpha        Float?
   beta         Float?
@@ -231,10 +232,12 @@ model TeamFormationRequest {
   updatedAt    DateTime            @updatedAt
   completedAt  DateTime?
   owner        User                @relation("TeamRequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  assignment   Assignment?         @relation("TeamFormationAssignment", fields: [assignmentId], references: [id], onDelete: SetNull)
   teams        Team[]
 
   @@index([status, createdAt])
   @@index([ownerId])
+  @@index([assignmentId])
   @@index([requestData], type: Gin)
   @@index([responseData], type: Gin)
   @@map("team_formation_requests")
@@ -425,11 +428,12 @@ model Assignment {
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
   archivedAt         DateTime?
-  course             Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdBy          User                   @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  submissions        AssignmentSubmission[]
-  AssignmentTopic    AssignmentTopic[]
-  snapshots          AssignmentSnapshot[]
+  course                Course                   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdBy             User                     @relation("AssignmentCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  submissions           AssignmentSubmission[]
+  AssignmentTopic       AssignmentTopic[]
+  snapshots             AssignmentSnapshot[]
+  teamFormationRequests TeamFormationRequest[]   @relation("TeamFormationAssignment")
 
   @@index([courseId])
   @@index([status])
