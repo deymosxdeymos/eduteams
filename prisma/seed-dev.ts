@@ -386,8 +386,27 @@ async function assignSkillsToStudent(userId: string): Promise<void> {
   const skillCount = Math.floor(Math.random() * 3) + 3; // 3-5 skills
   const skills = generateRandomSkills(skillCount);
 
-  // Get existing skills from database or create new ones
+  // Ensure skills exist before creating person skills
+  const skillNames: Record<string, string> = {
+    '9f030e3d-abab-4d99-aeae-823d5ef6959e': 'Rust',
+    'eb5fdd35-8798-4930-85ec-74973e1bc70c': 'Linux',
+  };
+
   for (const skill of skills) {
+    // Create the skill if it doesn't exist
+    await prisma.skill.upsert({
+      where: {
+        id: skill.skillId,
+      },
+      update: {},
+      create: {
+        id: skill.skillId,
+        name: skillNames[skill.skillId] || `Skill ${skill.skillId}`,
+        description: `Auto-generated skill: ${skillNames[skill.skillId] || 'Unknown'}`,
+      },
+    });
+
+    // Now create the person skill
     await prisma.personSkill.upsert({
       where: {
         personId_skillId: {
