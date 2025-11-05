@@ -182,7 +182,8 @@ export async function StudentManageContent({
       if (!teamFormation) {
         const fallbackTeamFormation = await getTeamFormationForAssignment(
           assignment.id,
-          assignment.createdById
+          assignment.createdById,
+          assignment.startAt
         );
         if (fallbackTeamFormation) {
           teamFormation = fallbackTeamFormation;

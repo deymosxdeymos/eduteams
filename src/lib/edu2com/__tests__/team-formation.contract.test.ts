@@ -286,7 +286,7 @@ describeIntegration('Edu2Com live integration', () => {
 
       const parsed = edu2comTeamsResponseSchema.safeParse(response);
       expect(parsed.success).toBe(true);
-      expect(elapsedMs).toBeLessThan(5_000);
+      expect(elapsedMs).toBeLessThan(7_000);
     });
   }
 

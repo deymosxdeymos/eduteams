@@ -2,12 +2,11 @@ import { Mail, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { LoginButton } from '@/components/auth/login-button';
-import { LanguageSwitcher } from '@/components/dashboard/language-switcher';
+import { LanguageSwitcherServer } from '@/components/dashboard/language-switcher-server';
 import Logo from '@/components/logo';
 import { HighlightText } from '@/components/ui/highlight-text';
-import { ScrollToTopButton } from '@/components/ui/scroll-to-top-button';
+import { ScrollToTopClient } from '@/components/ui/scroll-to-top-client';
 import { SkipLink } from '@/components/ui/skip-link';
-import { SmoothScrollLink } from '@/components/ui/smooth-scroll-link';
 import { SocialRow } from '@/components/ui/social-row';
 
 export default async function Home() {
@@ -25,14 +24,14 @@ export default async function Home() {
           size='text-xl sm:text-2xl md:text-3xl'
           className='justify-center animate-hero-delay-800'
         />
-        <div className='flex items-center font-medium text-base gap-x-6'>
-          <div className='flex text-background items-center gap-x-4 animate-hero-delay-700'>
-            <SmoothScrollLink href='#tentang'>Tentang</SmoothScrollLink>
-            <SmoothScrollLink href='#masalah'>Masalah</SmoothScrollLink>
-            <SmoothScrollLink href='#solusi'>Solusi</SmoothScrollLink>
-            <SmoothScrollLink href='#manfaat'>Manfaat</SmoothScrollLink>
+        <div className='flex items-center font-medium text-base gap-x-2 sm:gap-x-6'>
+          <div className='sm:flex text-background items-center gap-x-2 sm:gap-x-4 animate-hero-delay-700'>
+            <a href='#tentang'>Tentang</a>
+            <a href='#masalah'>Masalah</a>
+            <a href='#solusi'>Solusi</a>
+            <a href='#manfaat'>Manfaat</a>
           </div>
-          <LanguageSwitcher className='animate-hero-delay-800' />
+          <LanguageSwitcherServer className='animate-hero-delay-800 flex-shrink-0' />
         </div>
       </nav>
       <main id={mainContentId} className='overflow-x-hidden'>
@@ -74,7 +73,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
         <section
           id='tentang'
           className='relative bg-white -mt-56 sm:mt-0 animate-hills'
@@ -114,10 +112,9 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
         <section
           id='masalah'
-          className='bg-accent min-h-screen flex flex-col items-center justify-center px-12 py-14 lg:p-10 overflow-x-hidden z-0'
+          className='bg-accent min-h-screen flex flex-col items-center justify-center px-12 py-14 lg:p-10 overflow-x-hidden z-0 content-auto'
         >
           <h2 className='text-black text-4xl sm:text-5xl text-center font-semibold sm:font-bold tracking-tight mb-4'>
             {t('homepage.problems.title')}
@@ -172,10 +169,9 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
         <section
           id='solusi'
-          className='bg-white min-h-screen flex flex-col items-center justify-center px-8 lg:px-10 py-18 overflow-x-hidden'
+          className='bg-white min-h-screen flex flex-col items-center justify-center px-8 lg:px-10 py-18 overflow-x-hidden content-auto'
         >
           <h2 className='text-blue-background text-5xl sm:text-5xl tracking-tighter sm:tracking-normal font-semibold sm:font-bold mt-2'>
             {t('homepage.solution.title')}
@@ -348,10 +344,9 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        {/* biome-ignore lint/correctness/useUniqueElementIds: static ID for anchor navigation */}
         <section
           id='manfaat'
-          className='bg-blue-background min-h-screen flex flex-col items-center px-4 sm:px-6 py-18 overflow-x-hidden'
+          className='bg-blue-background min-h-screen flex flex-col items-center px-4 sm:px-6 py-18 overflow-x-hidden content-auto'
         >
           <h2 className='text-white text-center text-5xl font-bold mt-2'>
             {t('homepage.benefits.title')}
@@ -434,7 +429,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        <section className='bg-white min-h-screen flex flex-col items-center justify-center px-4 lg:px-10 py-18 overflow-x-hidden'>
+        <section className='bg-white min-h-screen flex flex-col items-center justify-center px-4 lg:px-10 py-18 overflow-x-hidden content-auto'>
           <div className='flex flex-col items-center justify-center gap-18 max-w-6xl text-center'>
             <h2 className='text-zinc-800 text-2xl sm:text-3xl lg:text-4xl font-semibold mt-2'>
               {t('homepage.focus.title')}
@@ -512,7 +507,7 @@ export default async function Home() {
           />
         </footer>
       </main>
-      <ScrollToTopButton />
+      <ScrollToTopClient />
     </>
   );
 }

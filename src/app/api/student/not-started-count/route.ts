@@ -33,6 +33,7 @@ export async function GET() {
         id: true,
         status: true,
         createdById: true,
+        startAt: true,
         teamFormationRequests: {
           where: {
             status: 'COMPLETED',
@@ -81,6 +82,9 @@ export async function GET() {
               ownerId: assignment.createdById,
               assignmentId: null,
               status: 'COMPLETED',
+              createdAt: assignment.startAt
+                ? { gte: assignment.startAt }
+                : undefined,
             },
             select: {
               teams: {
