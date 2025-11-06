@@ -441,6 +441,7 @@
         "skillsTitle": "🚀 Skills Test",
         "topicsTitle": "📚 Topic Preferences",
         "description": "Answer the following questions honestly 😬 the results will be used to form the most suitable study team for you!",
+        "prefilledHint": "Auto-filled from your previous answer",
         "sending": "Sending...",
         "nextToTopics": "Continue to Topic Preferences",
         "finish": "Finish",

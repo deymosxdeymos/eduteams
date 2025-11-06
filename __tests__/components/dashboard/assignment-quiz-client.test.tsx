@@ -49,6 +49,16 @@ describe('AssignmentQuizClient', () => {
           skills: ['Design Thinking'],
           topics: [],
           hasTopics: false,
+          skillPrefills: [
+            {
+              name: 'Design Thinking',
+              level: null,
+              profileId: null,
+              profileUpdatedAt: null,
+              sourceAssignmentId: null,
+            },
+          ],
+          topicPrefills: [],
         }}
       />
     );
@@ -94,6 +104,24 @@ describe('AssignmentQuizClient', () => {
           skills: ['User Research'],
           topics: ['Wellbeing'],
           hasTopics: true,
+          skillPrefills: [
+            {
+              name: 'User Research',
+              level: null,
+              profileId: null,
+              profileUpdatedAt: null,
+              sourceAssignmentId: null,
+            },
+          ],
+          topicPrefills: [
+            {
+              name: 'Wellbeing',
+              preference: null,
+              profileId: null,
+              profileUpdatedAt: null,
+              sourceAssignmentId: null,
+            },
+          ],
         }}
       />
     );

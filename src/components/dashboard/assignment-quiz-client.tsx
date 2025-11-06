@@ -16,6 +16,20 @@ interface Assignment {
   skills: string[];
   topics: string[];
   hasTopics: boolean;
+  skillPrefills: Array<{
+    name: string;
+    level: number | null;
+    profileId?: string | null;
+    profileUpdatedAt?: string | null;
+    sourceAssignmentId?: string | null;
+  }>;
+  topicPrefills: Array<{
+    name: string;
+    preference: number | null;
+    profileId?: string | null;
+    profileUpdatedAt?: string | null;
+    sourceAssignmentId?: string | null;
+  }>;
 }
 
 interface AssignmentQuizClientProps {
@@ -46,13 +60,35 @@ type QuizAction =
   | { type: 'SET_VALIDATION_ERRORS'; payload: Set<string> }
   | { type: 'SET_SUBMITTING'; payload: boolean };
 
-const initialQuizState: QuizState = {
-  currentStep: 'skills',
-  skillsAnswers: {},
-  topicsAnswers: {},
-  validationErrors: new Set(),
-  isSubmitting: false,
+const toLikertValue = (
+  value: number | null | undefined
+): number | undefined => {
+  if (value == null) return undefined;
+  const denorm = Math.round(value * 4) + 1;
+  if (Number.isNaN(denorm)) return undefined;
+  return Math.min(5, Math.max(1, denorm));
 };
+
+function createInitialQuizState(assignment: Assignment): QuizState {
+  const state: QuizState = {
+    currentStep: 'skills',
+    skillsAnswers: {},
+    topicsAnswers: {},
+    validationErrors: new Set(),
+    isSubmitting: false,
+  };
+
+  assignment.skillPrefills.forEach((prefill, index) => {
+    const likert = toLikertValue(prefill.level);
+    if (likert) state.skillsAnswers[index] = likert;
+  });
+  assignment.topicPrefills.forEach((prefill, index) => {
+    const likert = toLikertValue(prefill.preference);
+    if (likert) state.topicsAnswers[index] = likert;
+  });
+
+  return state;
+}
 
 function quizReducer(state: QuizState, action: QuizAction): QuizState {
   switch (action.type) {
@@ -104,7 +140,11 @@ export function AssignmentQuizClient({
 }: AssignmentQuizClientProps) {
   const t = useTranslations('dashboard.assignments.quiz');
   const router = useRouter();
-  const [state, dispatch] = useReducer(quizReducer, initialQuizState);
+  const [state, dispatch] = useReducer(
+    quizReducer,
+    assignment,
+    createInitialQuizState
+  );
   const formRef = useRef<HTMLFormElement>(null);
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(true);
   const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
@@ -178,14 +218,53 @@ export function AssignmentQuizClient({
       // Normalize to 0..1 like summerschool but better shape
       const toNorm = (v: number) => Math.max(0, Math.min(1, (v - 1) / 4));
       const skills = assignment.skills
-        .map((name, idx) => ({ name, level: toNorm(state.skillsAnswers[idx]) }))
-        .filter(s => Number.isFinite(s.level));
+        .map((name, idx) => {
+          const normalized = toNorm(state.skillsAnswers[idx]);
+          if (!Number.isFinite(normalized)) return null;
+          const prefill = assignment.skillPrefills[idx];
+          return {
+            name,
+            level: normalized,
+            ...(prefill?.profileId ? { profileId: prefill.profileId } : {}),
+            ...(prefill?.profileUpdatedAt
+              ? { profileUpdatedAt: prefill.profileUpdatedAt }
+              : {}),
+          };
+        })
+        .filter(
+          (
+            value
+          ): value is {
+            name: string;
+            level: number;
+            profileId?: string;
+            profileUpdatedAt?: string;
+          } => value !== null
+        );
       const topics = assignment.topics
-        .map((name, idx) => ({
-          name,
-          preference: toNorm(state.topicsAnswers[idx]),
-        }))
-        .filter(t => Number.isFinite(t.preference));
+        .map((name, idx) => {
+          const normalized = toNorm(state.topicsAnswers[idx]);
+          if (!Number.isFinite(normalized)) return null;
+          const prefill = assignment.topicPrefills[idx];
+          return {
+            name,
+            preference: normalized,
+            ...(prefill?.profileId ? { profileId: prefill.profileId } : {}),
+            ...(prefill?.profileUpdatedAt
+              ? { profileUpdatedAt: prefill.profileUpdatedAt }
+              : {}),
+          };
+        })
+        .filter(
+          (
+            value
+          ): value is {
+            name: string;
+            preference: number;
+            profileId?: string;
+            profileUpdatedAt?: string;
+          } => value !== null
+        );
 
       const response = await fetch(
         `/api/courses/${classId}/assignments/${assignmentId}/submit`,
@@ -250,6 +329,7 @@ export function AssignmentQuizClient({
               onAnswerAction={handleSkillsAnswer}
               hasError={state.validationErrors.size > 0}
               answers={state.skillsAnswers}
+              prefills={assignment.skillPrefills}
             />
           ) : (
             <TopicsQuiz
@@ -257,6 +337,7 @@ export function AssignmentQuizClient({
               onAnswerAction={handleTopicsAnswer}
               hasError={state.validationErrors.size > 0}
               answers={state.topicsAnswers}
+              prefills={assignment.topicPrefills}
             />
           )}
         </div>

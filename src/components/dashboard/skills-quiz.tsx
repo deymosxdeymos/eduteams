@@ -10,6 +10,11 @@ interface SkillsQuizProps {
   onAnswerAction: (skillIndex: number, value: number) => void;
   hasError?: boolean;
   answers: Record<number, number>;
+  prefills?: Array<{
+    level: number | null;
+    profileUpdatedAt?: string | null;
+    sourceAssignmentId?: string | null;
+  }>;
 }
 
 export default function SkillsQuiz({
@@ -17,6 +22,7 @@ export default function SkillsQuiz({
   onAnswerAction,
   hasError = false,
   answers,
+  prefills,
 }: SkillsQuizProps) {
   const t = useTranslations('dashboard.assignments.quiz');
   const likertScale = [
@@ -63,114 +69,132 @@ export default function SkillsQuiz({
 
   return (
     <div className='space-y-8'>
-      {skills.map((skill, skillIndex) => (
-        <div
-          key={skillIndex}
-          role='group'
-          className='space-y-6'
-          id={`skill-${skillIndex}`}
-        >
-          <div className='mb-2'>
-            <div
-              className={`rounded-lg px-6 py-4 ${hasError && !answers[skillIndex] ? 'border border-red-700' : 'border border-transparent'}`}
-            >
-              <div className='text-center mb-6'>
-                <p className='text-md font-normal text-black'>
-                  {t('skillQuestion', { skill })}
-                </p>
-              </div>
+      {skills.map((skill, skillIndex) => {
+        const prefill = prefills?.[skillIndex];
+        const isPrefilled = prefill?.level != null;
+        const containerClass =
+          hasError && !answers[skillIndex]
+            ? 'border border-red-700'
+            : isPrefilled
+              ? 'border border-neutral-200 bg-neutral-50'
+              : 'border border-transparent';
 
-              <div className='flex items-start justify-center max-w-5xl mx-auto'>
-                {likertScale.map((item, index) => (
-                  <div key={item.value} className='flex items-start'>
-                    <motion.div
-                      className='flex flex-col items-center space-y-3 cursor-pointer'
-                      onClick={() => handleSelection(skillIndex, item.value)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      animate={{
-                        scale: answers[skillIndex] === item.value ? 1.1 : 1,
-                        y: answers[skillIndex] === item.value ? -5 : 0,
-                      }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 25,
-                      }}
-                    >
-                      <div
-                        style={{ height: '64px' }}
-                        className='flex items-center justify-center'
+        return (
+          <div
+            key={skillIndex}
+            role='group'
+            className='space-y-6'
+            id={`skill-${skillIndex}`}
+          >
+            <div className='mb-2'>
+              <div
+                className={`rounded-lg px-6 py-4 transition-colors ${containerClass}`}
+              >
+                <div className='text-center mb-6'>
+                  <p className='text-md font-normal text-black'>
+                    {t('skillQuestion', { skill })}
+                  </p>
+                  {isPrefilled && (
+                    <p className='text-xs text-neutral-500 mt-1'>
+                      {t('prefilledHint')}
+                    </p>
+                  )}
+                </div>
+
+                <div className='flex items-start justify-center max-w-5xl mx-auto'>
+                  {likertScale.map((item, index) => (
+                    <div key={item.value} className='flex items-start'>
+                      <motion.div
+                        className='flex flex-col items-center space-y-3 cursor-pointer'
+                        onClick={() => handleSelection(skillIndex, item.value)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={{
+                          scale: answers[skillIndex] === item.value ? 1.1 : 1,
+                          y: answers[skillIndex] === item.value ? -5 : 0,
+                        }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 300,
+                          damping: 25,
+                        }}
                       >
-                        <Image
-                          src={`/quiz/skills/${item.icon}${answers[skillIndex] === item.value ? '' : '-not-active'}.svg`}
-                          width={item.size}
-                          height={item.size}
-                          alt={item.label}
-                          className='object-contain'
-                        />
-                      </div>
-                      <div className='text-center'>
-                        <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
-                          {item.label}
+                        <div
+                          style={{ height: '64px' }}
+                          className='flex items-center justify-center'
+                        >
+                          <Image
+                            src={`/quiz/skills/${item.icon}${answers[skillIndex] === item.value ? '' : '-not-active'}.svg`}
+                            width={item.size}
+                            height={item.size}
+                            alt={item.label}
+                            className='object-contain'
+                          />
                         </div>
-                      </div>
-                    </motion.div>
-                    {index < likertScale.length - 1 && (
-                      <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
-                    )}
-                  </div>
-                ))}
+                        <div className='text-center'>
+                          <div className='text-xs font-medium text-gray-700 whitespace-pre-line'>
+                            {item.label}
+                          </div>
+                        </div>
+                      </motion.div>
+                      {index < likertScale.length - 1 && (
+                        <div className='h-1 w-16 bg-gray-300 mx-4 mt-6' />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {hasError && !answers[skillIndex] && (
+                  <motion.div
+                    key={`error-${skillIndex}`}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 400,
+                      damping: 30,
+                    }}
+                    className='overflow-hidden'
+                  >
+                    <div className='flex items-center justify-start px-30 mt-4 text-red-700'>
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 300,
+                          damping: 25,
+                        }}
+                      >
+                        <MessageSquareWarning className='w-4 h-4 mr-2' />
+                      </motion.div>
+                      <motion.span
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 400,
+                          damping: 30,
+                        }}
+                        className='text-sm font-normal'
+                      >
+                        {t('required')}
+                      </motion.span>
+                    </div>
+                  </motion.div>
+                )}
               </div>
-
-              {hasError && !answers[skillIndex] && (
-                <motion.div
-                  key={`error-${skillIndex}`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 30,
-                  }}
-                  className='overflow-hidden'
-                >
-                  <div className='flex items-center justify-start px-30 mt-4 text-red-700'>
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 25,
-                      }}
-                    >
-                      <MessageSquareWarning className='w-4 h-4 mr-2' />
-                    </motion.div>
-                    <motion.span
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 30,
-                      }}
-                      className='text-sm font-normal'
-                    >
-                      {t('required')}
-                    </motion.span>
-                  </div>
-                </motion.div>
-              )}
             </div>
-          </div>
 
-          {!hasError && <div className='border-b border-gray-300 w-full'></div>}
-        </div>
-      ))}
+            {!hasError && (
+              <div className='border-b border-gray-300 w-full'></div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

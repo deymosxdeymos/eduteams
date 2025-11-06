@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { CompetencyKind } from '@/generated/prisma';
 import {
   createApiResponse,
   createErrorResponse,
@@ -7,7 +8,9 @@ import {
   withAuth,
 } from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
+import { normalizeTopicKey } from '@/lib/data/student-competency-profiles';
 import prisma from '@/lib/prisma';
+import { HttpError } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -61,6 +64,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
             z.object({
               name: z.string().min(1),
               level: z.number().min(0).max(1), // normalized 0..1
+              profileId: z.string().uuid().optional(),
+              profileUpdatedAt: z.string().optional(),
             })
           )
           .optional(),
@@ -69,6 +74,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
             z.object({
               name: z.string().min(1),
               preference: z.number().min(0).max(1), // normalized 0..1
+              profileId: z.string().uuid().optional(),
+              profileUpdatedAt: z.string().optional(),
             })
           )
           .optional(),
@@ -90,8 +97,18 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       if (!dbAssignment)
         return createErrorResponse('Assignment not found', 404);
 
-      let skillsToPersist: Array<{ name: string; level: number }> = [];
-      let topicsToPersist: Array<{ name: string; preference: number }> = [];
+      let skillsToPersist: Array<{
+        name: string;
+        level: number;
+        profileId?: string;
+        profileUpdatedAt?: string;
+      }> = [];
+      let topicsToPersist: Array<{
+        name: string;
+        preference: number;
+        profileId?: string;
+        profileUpdatedAt?: string;
+      }> = [];
 
       // Helper to parse skills/topics from assignment.description JSON if present
       const parsedDesc = (() => {
@@ -117,10 +134,14 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         skillsToPersist = (arraysParse.data.skills ?? []).map(s => ({
           name: s.name.trim(),
           level: s.level,
+          profileId: s.profileId,
+          profileUpdatedAt: s.profileUpdatedAt,
         }));
         topicsToPersist = (arraysParse.data.topics ?? []).map(t => ({
           name: t.name.trim(),
           preference: t.preference,
+          profileId: t.profileId,
+          profileUpdatedAt: t.profileUpdatedAt,
         }));
       } else if (
         mapsParse.success &&
@@ -216,16 +237,97 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       }
 
       // 3) Transaction: upsert PersonSkill and AssignmentTopicPreference; upsert submission idempotently
+      const topicKeyByName = new Map<string, string>();
+      for (const topic of topicsToPersist) {
+        if (!topicKeyByName.has(topic.name)) {
+          topicKeyByName.set(topic.name, normalizeTopicKey(topic.name));
+        }
+      }
+
       await prisma.$transaction(async tx => {
         // Upsert skills
         for (const s of skillsToPersist) {
           const skillId = nameToSkillId.get(s.name);
           if (!skillId) continue;
+
           await tx.personSkill.upsert({
             where: { personId_skillId: { personId: user.id, skillId } },
             update: { level: s.level },
             create: { personId: user.id, skillId, level: s.level },
           });
+
+          const profileData = {
+            value: s.level,
+            sourceAssignmentId: assignmentId,
+          };
+          const profileUnique = {
+            studentId_competencyKind_skillId: {
+              studentId: user.id,
+              competencyKind: CompetencyKind.SKILL,
+              skillId,
+            },
+          } as const;
+
+          if (s.profileId) {
+            const baseWhere = {
+              id: s.profileId,
+              studentId: user.id,
+              competencyKind: CompetencyKind.SKILL,
+              skillId,
+            } as const;
+
+            if (s.profileUpdatedAt) {
+              const expected = new Date(s.profileUpdatedAt);
+              if (Number.isNaN(expected.getTime())) {
+                throw new HttpError(
+                  400,
+                  'Profil kompetensi tidak valid.',
+                  'INVALID_PROFILE_VERSION'
+                );
+              }
+              const updated = await tx.studentCompetencyProfile.updateMany({
+                where: { ...baseWhere, updatedAt: expected },
+                data: profileData,
+              });
+              if (updated.count === 0) {
+                throw new HttpError(
+                  409,
+                  'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
+                  'COMPETENCY_CONFLICT'
+                );
+              }
+            } else {
+              const updated = await tx.studentCompetencyProfile.updateMany({
+                where: baseWhere,
+                data: profileData,
+              });
+              if (updated.count === 0) {
+                await tx.studentCompetencyProfile.upsert({
+                  where: profileUnique,
+                  update: profileData,
+                  create: {
+                    studentId: user.id,
+                    competencyKind: CompetencyKind.SKILL,
+                    skillId,
+                    value: s.level,
+                    sourceAssignmentId: assignmentId,
+                  },
+                });
+              }
+            }
+          } else {
+            await tx.studentCompetencyProfile.upsert({
+              where: profileUnique,
+              update: profileData,
+              create: {
+                studentId: user.id,
+                competencyKind: CompetencyKind.SKILL,
+                skillId,
+                value: s.level,
+                sourceAssignmentId: assignmentId,
+              },
+            });
+          }
         }
 
         // Upsert topic preferences
@@ -246,6 +348,81 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
               preference: t.preference,
             },
           });
+
+          const topicKey = topicKeyByName.get(t.name);
+          if (!topicKey) continue;
+          const topicProfileData = {
+            value: t.preference,
+            topicKey,
+            sourceAssignmentId: assignmentId,
+          };
+          const topicProfileUnique = {
+            studentId_competencyKind_topicKey: {
+              studentId: user.id,
+              competencyKind: CompetencyKind.TOPIC,
+              topicKey,
+            },
+          } as const;
+
+          if (t.profileId) {
+            const baseWhere = {
+              id: t.profileId,
+              studentId: user.id,
+              competencyKind: CompetencyKind.TOPIC,
+              topicKey,
+            } as const;
+            if (t.profileUpdatedAt) {
+              const expected = new Date(t.profileUpdatedAt);
+              if (Number.isNaN(expected.getTime())) {
+                throw new HttpError(
+                  400,
+                  'Profil kompetensi tidak valid.',
+                  'INVALID_PROFILE_VERSION'
+                );
+              }
+              const updated = await tx.studentCompetencyProfile.updateMany({
+                where: { ...baseWhere, updatedAt: expected },
+                data: topicProfileData,
+              });
+              if (updated.count === 0) {
+                throw new HttpError(
+                  409,
+                  'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
+                  'COMPETENCY_CONFLICT'
+                );
+              }
+            } else {
+              const updated = await tx.studentCompetencyProfile.updateMany({
+                where: baseWhere,
+                data: topicProfileData,
+              });
+              if (updated.count === 0) {
+                await tx.studentCompetencyProfile.upsert({
+                  where: topicProfileUnique,
+                  update: topicProfileData,
+                  create: {
+                    studentId: user.id,
+                    competencyKind: CompetencyKind.TOPIC,
+                    topicKey,
+                    value: t.preference,
+                    sourceAssignmentId: assignmentId,
+                  },
+                });
+              }
+            }
+          } else {
+            await tx.studentCompetencyProfile.upsert({
+              where: topicProfileUnique,
+              update: topicProfileData,
+              create: {
+                studentId: user.id,
+                competencyKind: CompetencyKind.TOPIC,
+                topicKey,
+                value: t.preference,
+                sourceAssignmentId: assignmentId,
+              },
+            });
+          }
         }
 
         // Idempotent submission record with current structure version

@@ -441,6 +441,7 @@
         "skillsTitle": "🚀 Tes Keahlian",
         "topicsTitle": "📚 Preferensi Topik",
         "description": "Jawab pertanyaan berikut dengan jujur ya 😬 hasilnya akan digunakan untuk membentuk tim belajar yang paling cocok buat kamu!",
+        "prefilledHint": "Diisi otomatis dari jawaban sebelumnya",
         "sending": "Mengirim...",
         "nextToTopics": "Lanjut ke Preferensi Topik",
         "finish": "Selesai",

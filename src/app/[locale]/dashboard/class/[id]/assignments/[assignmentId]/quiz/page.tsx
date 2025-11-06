@@ -7,6 +7,10 @@ import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { ProfileHeader } from '@/components/dashboard/profile-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
+import {
+  getStudentCompetencyPrefills,
+  normalizeTopicKey,
+} from '@/lib/data/student-competency-profiles';
 import { getMBTIQuestions } from '@/lib/mbti-questions-simple';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
@@ -27,6 +31,20 @@ type UnsubmittedData = {
     skills: string[];
     topics: string[];
     hasTopics: boolean;
+    skillPrefills: Array<{
+      name: string;
+      level: number | null;
+      profileId?: string | null;
+      profileUpdatedAt?: string | null;
+      sourceAssignmentId?: string | null;
+    }>;
+    topicPrefills: Array<{
+      name: string;
+      preference: number | null;
+      profileId?: string | null;
+      profileUpdatedAt?: string | null;
+      sourceAssignmentId?: string | null;
+    }>;
   };
 };
 type AssignmentData = SubmittedData | UnsubmittedData;
@@ -155,6 +173,44 @@ async function getAssignmentData(
   }
   hasTopics = topics.length > 0;
 
+  const prefills = await getStudentCompetencyPrefills({
+    studentId: user.id,
+    skillNames: skills,
+    topicNames: topics,
+  });
+
+  const skillPrefillMap = new Map(
+    prefills.skills.map(prefill => [prefill.name.trim().toLowerCase(), prefill])
+  );
+  const topicPrefillMap = new Map(
+    prefills.topics.map(prefill => [normalizeTopicKey(prefill.name), prefill])
+  );
+
+  const skillPrefills = skills.map(name => {
+    const match = skillPrefillMap.get(name.trim().toLowerCase());
+    return {
+      name,
+      level: match?.level ?? null,
+      profileId: match?.profileId ?? null,
+      profileUpdatedAt: match?.profileUpdatedAt
+        ? match.profileUpdatedAt.toISOString()
+        : null,
+      sourceAssignmentId: match?.sourceAssignmentId ?? null,
+    };
+  });
+  const topicPrefills = topics.map(name => {
+    const match = topicPrefillMap.get(normalizeTopicKey(name));
+    return {
+      name,
+      preference: match?.preference ?? null,
+      profileId: match?.profileId ?? null,
+      profileUpdatedAt: match?.profileUpdatedAt
+        ? match.profileUpdatedAt.toISOString()
+        : null,
+      sourceAssignmentId: match?.sourceAssignmentId ?? null,
+    };
+  });
+
   return {
     hasSubmitted: false as const,
     assignment: {
@@ -163,6 +219,8 @@ async function getAssignmentData(
       skills,
       topics,
       hasTopics,
+      skillPrefills,
+      topicPrefills,
     },
   };
 }
