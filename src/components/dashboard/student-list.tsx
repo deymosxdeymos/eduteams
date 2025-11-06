@@ -419,7 +419,7 @@ export function StudentList({
                   }}
                 >
                   <div
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors duration-200 ${
                       filteredStudents.length > 0 &&
                       selectedStudentIds.size === filteredStudents.length
                         ? 'bg-blue-500 border-blue-500'
@@ -515,12 +515,12 @@ export function StudentList({
                           duration: 0.2,
                           ease: [0.215, 0.61, 0.355, 1],
                         }}
-                        className='flex-shrink-0'
+                        className='shrink-0'
                         style={{ willChange: 'opacity, transform' }}
                       >
                         <button
                           type='button'
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200 cursor-pointer ${
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors duration-200 cursor-pointer ${
                             selectedStudentIds.has(student.id)
                               ? 'bg-blue-500 border-blue-500'
                               : 'border-gray-300 bg-white'

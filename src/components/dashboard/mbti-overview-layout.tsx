@@ -171,7 +171,7 @@ export function MBTIOverviewLayout({
             </div>
             <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-4'} h-full`}>
               {/* mbti list stuff */}
-              <div className={`flex flex-col gap-y-6 flex-shrink-0`}>
+              <div className={`flex flex-col gap-y-6 shrink-0`}>
                 {/* purple */}
                 <div className={`flex gap-x-3`}>
                   <div
@@ -593,7 +593,7 @@ export function MBTIOverviewLayout({
                       className={`flex items-center justify-center border ${getMBTIColorScheme(selectedMBTI).lightBorder} rounded-xl shadow-glow ${getMBTIColorScheme(selectedMBTI).lightShadow} px-4 py-3 w-full h-20`}
                     >
                       <Sparkle
-                        className={`${getMBTIColorScheme(selectedMBTI).primaryText} rounded-md w-16 h-10 py-[1px] flex-shrink-0`}
+                        className={`${getMBTIColorScheme(selectedMBTI).primaryText} rounded-md w-16 h-10 py-[1px] shrink-0`}
                         size={14}
                         fill='currentColor'
                       />
@@ -607,7 +607,7 @@ export function MBTIOverviewLayout({
                         />
                       </div>
                       <Sparkle
-                        className={`${getMBTIColorScheme(selectedMBTI).primaryText} rounded-md w-16 h-10 py-[1px] flex-shrink-0`}
+                        className={`${getMBTIColorScheme(selectedMBTI).primaryText} rounded-md w-16 h-10 py-[1px] shrink-0`}
                         size={14}
                         fill='currentColor'
                       />

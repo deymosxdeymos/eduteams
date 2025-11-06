@@ -69,7 +69,7 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
     <Suspense
       fallback={<div className='flex-1 animate-pulse bg-gray-100 rounded-xl' />}
     >
-      <div className='flex flex-col justify-start border shadow-sm rounded-xl p-4 flex-shrink-0'>
+      <div className='flex flex-col justify-start border shadow-sm rounded-xl p-4 shrink-0'>
         <div className='mb-2'>
           <span className='text-neutral-500 font-light text-base block'>
             {t('distributionLabel')}
@@ -85,7 +85,7 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
 
       <div className='flex gap-x-4 flex-1 min-h-0'>
         <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
-          <div className='flex-shrink-0 mb-3'>
+          <div className='shrink-0 mb-3'>
             <span className='text-neutral-500 font-light text-base block'>
               {t('averageLabel')}
             </span>
@@ -100,7 +100,7 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
         </div>
 
         <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
-          <div className='flex-shrink-0 mb-3'>
+          <div className='shrink-0 mb-3'>
             <span className='text-neutral-500 font-light text-base block'>
               {t('averageLabel')}
             </span>
@@ -115,7 +115,7 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
         </div>
 
         <div className='flex flex-col border shadow-sm rounded-xl p-4 flex-1 min-h-0'>
-          <div className='flex-shrink-0 mb-3'>
+          <div className='shrink-0 mb-3'>
             <span className='text-neutral-500 font-light text-base block'>
               {t('averageLabel')}
             </span>

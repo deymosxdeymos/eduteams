@@ -34,7 +34,7 @@ export async function LanguageSwitcherServer({
           width={40}
           height={40}
           alt={current === 'id' ? t('indonesiaAlt') : t('englishAlt')}
-          className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 flex-shrink-0'
+          className='w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 shrink-0'
         />
       </Link>
     </Button>

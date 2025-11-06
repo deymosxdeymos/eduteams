@@ -11,7 +11,7 @@ export function SkillsBarChart({ skills, skillsReady }: SkillsBarChartProps) {
       {(skills.length > 0 ? skills : []).map((s, i) => (
         <div className='flex items-center gap-8 w-full' key={i}>
           <div
-            className='text-neutral-700 text-sm flex-shrink-0'
+            className='text-neutral-700 text-sm shrink-0'
             style={{ width: '80px', whiteSpace: 'pre-wrap' }}
           >
             {(s.label || '').replace(/\s+/g, '\n')}

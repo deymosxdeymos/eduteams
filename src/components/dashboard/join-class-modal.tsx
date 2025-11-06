@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface JoinClassModalProps {
   onClassJoined?: () => void;
@@ -153,6 +154,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
             disabled={isLoading || !classToken.trim()}
             className='w-full rounded-full py-6 font-semibold'
           >
+            {isLoading && <LoadingSpinner size='sm' className='mr-2' />}
             {isLoading ? t('joining') : t('join')}
           </Button>
         </form>

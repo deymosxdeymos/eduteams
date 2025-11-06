@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Textarea } from '@/components/ui/textarea';
 
 interface CreateAssignmentModalProps {
@@ -124,7 +125,7 @@ export function CreateAssignmentModal({
                 />
                 <Button
                   variant='onboarding'
-                  className='rounded-full w-12 h-12 flex-shrink-0'
+                  className='rounded-full w-12 h-12 shrink-0'
                   onClick={addSkill}
                   disabled={!skillInput.trim()}
                 >
@@ -135,7 +136,7 @@ export function CreateAssignmentModal({
                 {skills.map((skill, index) => (
                   <Badge
                     key={index}
-                    className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 flex-shrink-0'
+                    className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
                   >
                     <div className='flex items-center gap-2'>
                       <span className='text-xs font-medium text-stone-900'>
@@ -166,7 +167,7 @@ export function CreateAssignmentModal({
                 />
                 <Button
                   variant='onboarding'
-                  className='rounded-full w-12 h-12 flex-shrink-0'
+                  className='rounded-full w-12 h-12 shrink-0'
                   onClick={addTopic}
                   disabled={!topicInput.trim()}
                 >
@@ -177,7 +178,7 @@ export function CreateAssignmentModal({
                 {topics.map((topic, index) => (
                   <Badge
                     key={index}
-                    className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 flex-shrink-0'
+                    className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
                   >
                     <div className='flex items-center gap-2'>
                       <span className='text-xs font-medium text-stone-900'>
@@ -242,7 +243,11 @@ export function CreateAssignmentModal({
             }
           }}
         >
-          <Plus strokeWidth={3} className='w-4 h-4 mr-2' />
+          {submitting ? (
+            <LoadingSpinner size='sm' className='mr-2' />
+          ) : (
+            <Plus strokeWidth={3} className='w-4 h-4 mr-2' />
+          )}
           <span className='text-sm'>
             {submitting ? t('creating') : t('create')}
           </span>

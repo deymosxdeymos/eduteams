@@ -31,7 +31,7 @@ export default async function Home() {
             <a href='#solusi'>Solusi</a>
             <a href='#manfaat'>Manfaat</a>
           </div>
-          <LanguageSwitcherServer className='animate-hero-delay-800 flex-shrink-0' />
+          <LanguageSwitcherServer className='animate-hero-delay-800 shrink-0' />
         </div>
       </nav>
       <main id={mainContentId} className='overflow-x-hidden'>

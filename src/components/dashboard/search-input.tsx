@@ -106,7 +106,7 @@ export function SearchInput({
 
   return (
     <div className={cn(containerBaseClass, containerClassName)}>
-      <div className='flex-shrink-0'>{effectiveLeftSlot}</div>
+      <div className='shrink-0'>{effectiveLeftSlot}</div>
       {searchField}
     </div>
   );

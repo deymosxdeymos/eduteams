@@ -40,13 +40,13 @@ export function AssignmentChangeDiff({ changes }: AssignmentChangeDiffProps) {
                 }`}
               >
                 {change.type === 'removed' && (
-                  <MinusCircle className='w-4 h-4 flex-shrink-0' />
+                  <MinusCircle className='w-4 h-4 shrink-0' />
                 )}
                 {change.type === 'added' && (
-                  <PlusCircle className='w-4 h-4 flex-shrink-0' />
+                  <PlusCircle className='w-4 h-4 shrink-0' />
                 )}
                 {change.type === 'renamed' && (
-                  <RefreshCw className='w-4 h-4 flex-shrink-0' />
+                  <RefreshCw className='w-4 h-4 shrink-0' />
                 )}
                 <span>{change.text}</span>
               </li>
@@ -73,13 +73,13 @@ export function AssignmentChangeDiff({ changes }: AssignmentChangeDiffProps) {
                 }`}
               >
                 {change.type === 'removed' && (
-                  <MinusCircle className='w-4 h-4 flex-shrink-0' />
+                  <MinusCircle className='w-4 h-4 shrink-0' />
                 )}
                 {change.type === 'added' && (
-                  <PlusCircle className='w-4 h-4 flex-shrink-0' />
+                  <PlusCircle className='w-4 h-4 shrink-0' />
                 )}
                 {change.type === 'renamed' && (
-                  <RefreshCw className='w-4 h-4 flex-shrink-0' />
+                  <RefreshCw className='w-4 h-4 shrink-0' />
                 )}
                 <span>{change.text}</span>
               </li>

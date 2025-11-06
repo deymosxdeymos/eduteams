@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 
@@ -12,10 +14,14 @@ interface LoginButtonProps {
 
 export function LoginButton({ className }: LoginButtonProps) {
   const t = useTranslations('auth');
+  const [isPending, startTransition] = useTransition();
+
   const handleGoogleSignIn = () => {
-    void authClient.signIn.social({
-      provider: 'google',
-      callbackURL: '/dashboard',
+    startTransition(() => {
+      void authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/dashboard',
+      });
     });
   };
 
@@ -28,16 +34,21 @@ export function LoginButton({ className }: LoginButtonProps) {
         className
       )}
       onClick={handleGoogleSignIn}
+      disabled={isPending}
     >
-      <div className='relative mr-2 size-6'>
-        <Image
-          src='/google.svg'
-          alt='Google Logo'
-          width={24}
-          height={24}
-          className='size-6'
-        />
-      </div>
+      {isPending ? (
+        <LoadingSpinner size='sm' className='mr-2' />
+      ) : (
+        <div className='relative mr-2 size-6'>
+          <Image
+            src='/google.svg'
+            alt='Google Logo'
+            width={24}
+            height={24}
+            className='size-6'
+          />
+        </div>
+      )}
       {t('signInWithGoogle')}
     </Button>
   );
