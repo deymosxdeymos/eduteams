@@ -1,17 +1,19 @@
-import { getTranslations } from 'next-intl/server';
-import { TeamMemberListClient } from '@/components/dashboard/team-member-list-client';
+import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
 import prisma from '@/lib/prisma';
 
 interface AssignmentTeamsProps {
   assignmentId: string;
   isStudent?: boolean;
+  searchValue?: string;
+  canManage?: boolean;
 }
 
 export async function AssignmentTeams({
   assignmentId,
   isStudent = false,
+  searchValue = '',
+  canManage = false,
 }: AssignmentTeamsProps) {
-  const t = await getTranslations('dashboard.teams');
   // Load assignment to infer owner/time window
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
@@ -38,7 +40,13 @@ export async function AssignmentTeams({
             orderBy: { createdAt: 'asc' },
             include: {
               user: {
-                select: { id: true, name: true, email: true, mbtiType: true },
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  mbtiType: true,
+                  nimNpm: true,
+                },
               },
             },
           },
@@ -69,69 +77,33 @@ export async function AssignmentTeams({
           where: { assignmentId, id: { in: taskIdByIndex } },
           select: { id: true, name: true },
         })
-        .then(rows => new Map(rows.map(r => [r.id, r.name] as const)))
-    : new Map<string, string>();
-
-  const pad = (n: number) => n.toString().padStart(2, '0');
+        .then(rows => Object.fromEntries(rows.map(r => [r.id, r.name] as const)))
+    : {};
 
   return (
-    <div
-      className={
-        isStudent
-          ? 'flex flex-col gap-4'
-          : 'flex flex-col gap-4 pt-4 border-t border-gray-200'
-      }
-    >
-      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
-        {latest.teams.map((team, idx) => {
-          const topicName = topicNames.get(taskIdByIndex[idx] || '') || '-';
-          const qualityPct =
-            team.quality != null ? Math.round(team.quality * 100) : null;
-          const hasTopic = topicName && topicName !== '-';
-          return (
-            <div
-              key={team.id}
-              className='border rounded-xl shadow-sm p-4 flex flex-col gap-3'
-            >
-              <div className='flex items-start justify-between gap-3'>
-                <h2 className='font-semibold text-lg text-gray-800'>
-                  {t('group')} {pad(idx + 1)}
-                </h2>
-                {isStudent ? (
-                  hasTopic ? (
-                    <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
-                      {t('topic')}: {topicName}
-                    </div>
-                  ) : null
-                ) : (
-                  <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
-                    <div className='rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 text-xs'>
-                      {t('qualityScore')}:{' '}
-                      {qualityPct != null ? `${qualityPct}%` : '-'}
-                    </div>
-                    <div>
-                      {t('topic')}: {hasTopic ? topicName : '-'}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <TeamMemberListClient
-                members={team.members.map(m => ({
-                  id: m.id,
-                  user: {
-                    id: m.user.id,
-                    name: m.user.name,
-                    email: m.user.email,
-                    mbtiType: m.user.mbtiType as unknown as string | null,
-                  },
-                }))}
-                courseId={assignment.course.id}
-                canManage={!isStudent}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <AssignmentTeamsClient
+      teams={latest.teams.map(team => ({
+        id: team.id,
+        quality: team.quality,
+        createdAt: team.createdAt,
+        members: team.members.map(m => ({
+          id: m.id,
+          user: {
+            id: m.user.id,
+            name: m.user.name,
+            email: m.user.email,
+            mbtiType: m.user.mbtiType,
+            nimNpm: m.user.nimNpm,
+          },
+        })),
+      }))}
+      assignmentId={assignmentId}
+      courseId={assignment.course.id}
+      topicNames={topicNames}
+      taskIdByIndex={taskIdByIndex}
+      isStudent={isStudent}
+      searchValue={searchValue}
+      canManage={canManage}
+    />
   );
 }

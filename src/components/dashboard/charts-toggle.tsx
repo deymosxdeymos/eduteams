@@ -8,11 +8,16 @@ import { Badge } from '@/components/ui/badge';
 interface ChartsToggleProps {
   progressPercent: number; // 0..100
   children: React.ReactNode;
+  defaultVisible?: boolean;
 }
 
-export function ChartsToggle({ progressPercent, children }: ChartsToggleProps) {
+export function ChartsToggle({
+  progressPercent,
+  children,
+  defaultVisible = true,
+}: ChartsToggleProps) {
   const t = useTranslations('dashboard.charts');
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(defaultVisible);
   const onKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -37,7 +42,7 @@ export function ChartsToggle({ progressPercent, children }: ChartsToggleProps) {
             <ChevronRight className='w-4 h-4' />
           )}
         </div>
-        <Badge className='rounded-full bg-emerald-50 text-emerald-700 border-emerald-200'>
+        <Badge className='rounded-full bg-emerald-50 text-emerald-700'>
           {t('completionRate', { percent: Math.round(progressPercent) })}
         </Badge>
       </div>

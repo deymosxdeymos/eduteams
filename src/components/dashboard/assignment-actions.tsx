@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ExportButtons } from '@/components/dashboard/export-buttons';
+import { SearchInput } from '@/components/dashboard/search-input';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,6 +31,8 @@ interface AssignmentActionsProps {
   hasTeams?: boolean;
   topicCount?: number;
   enrollmentCount?: number;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export function AssignmentActions({
@@ -40,9 +43,12 @@ export function AssignmentActions({
   hasTeams = false,
   topicCount,
   enrollmentCount,
+  searchValue = '',
+  onSearchChange,
 }: AssignmentActionsProps) {
   const router = useRouter();
   const t = useTranslations('dashboard.assignment.actions');
+  const tTeams = useTranslations('dashboard.teams');
   const [modalOpen, setModalOpen] = useState(false);
   const [method, setMethod] = useState<
     'JUMLAH_KELOMPOK' | 'JUMLAH_MHS_PER_KELOMPOK' | ''
@@ -51,6 +57,9 @@ export function AssignmentActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const createButtonLabel = hasTeams
+    ? t('recreateTeamsButton')
+    : t('createTeamsButton');
 
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !submitting
@@ -97,14 +106,13 @@ export function AssignmentActions({
         <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />
       </Button>
 
-      {canManage && (
+      <div className='flex items-center gap-4'>
+        {canManage && (
         <Dialog open={modalOpen} onOpenChange={setModalOpen}>
           <DialogTrigger asChild>
-            <Button variant='onboarding' className='rounded-full p-6 w-[11rem]'>
+            <Button variant='onboarding' className={`rounded-full p-6 ${hasTeams ? 'w-[14rem]' : 'w-[11rem]'}`}>
               <Plus strokeWidth={3} className='w-4 h-4 text-white' />
-              <span className='font-semibold text-sm'>
-                {t('createTeamsButton')}
-              </span>
+              <span className='font-semibold text-sm'>{createButtonLabel}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className='border max-w-md md:max-w-xl rounded-3xl p-0 gap-0'>
@@ -239,6 +247,21 @@ export function AssignmentActions({
         hasTeams={hasTeams}
         canManage={canManage}
       />
+      </div>
+
+      {hasTeams && (
+        <div className='ml-auto'>
+          <SearchInput
+            searchValue={searchValue}
+            onSearchChange={onSearchChange || (() => {})}
+            placeholder={tTeams('searchStudents')}
+            showClassActions={false}
+            containerClassName='relative'
+            className='pr-10 text-gray-700 placeholder:text-gray-400 w-80'
+            iconClassName='right-5 w-6 h-6'
+          />
+        </div>
+      )}
 
       {isStudent && (
         <Button

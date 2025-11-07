@@ -286,6 +286,7 @@
     "assignment": {
       "actions": {
         "createTeamsButton": "Buat Kelompok",
+        "recreateTeamsButton": "Buat Ulang Kelompok",
         "createTeamsTitle": "Buat Kelompok",
         "createTeamsDesc": "Pilih cara pembagian, sistem akan menyusun kelompok secara otomatis berdasarkan data mahasiswa.",
         "methodLabel": "Metode Pembagian Kelompok",
@@ -527,7 +528,10 @@
     "teams": {
       "group": "Kelompok",
       "topic": "Topik Tugas",
-      "qualityScore": "Kualitas Skor"
+      "qualityScore": "Kualitas Skor",
+      "searchStudents": "Cari mahasiswa...",
+      "noStudentsFound": "Tidak ada mahasiswa yang ditemukan",
+      "tryDifferentSearch": "Coba kata kunci pencarian lain"
     },
     "charts": {
       "viewAnalysis": "Lihat Analisis Jawaban Mahasiswa",

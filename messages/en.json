@@ -286,6 +286,7 @@
     "assignment": {
       "actions": {
         "createTeamsButton": "Create Teams",
+        "recreateTeamsButton": "Recreate Teams",
         "createTeamsTitle": "Create Teams",
         "createTeamsDesc": "Choose the distribution method, the system will automatically arrange teams based on student data.",
         "methodLabel": "Team Distribution Method",
@@ -528,7 +529,10 @@
     "teams": {
       "group": "Group",
       "topic": "Task Topic",
-      "qualityScore": "Quality Score"
+      "qualityScore": "Quality Score",
+      "searchStudents": "Search students...",
+      "noStudentsFound": "No students found",
+      "tryDifferentSearch": "Try a different search term"
     },
     "charts": {
       "viewAnalysis": "View Student Answer Analysis",
