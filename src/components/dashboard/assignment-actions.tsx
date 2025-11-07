@@ -4,6 +4,7 @@ import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { ExportButtons } from '@/components/dashboard/export-buttons';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -50,7 +51,6 @@ export function AssignmentActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [resetting, setResetting] = useState(false);
 
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !submitting
@@ -83,31 +83,6 @@ export function AssignmentActions({
       setError(t('networkError'));
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleReset = async () => {
-    if (resetting) return;
-    const ok = window.confirm(t('resetConfirm'));
-    if (!ok) return;
-    setResetting(true);
-    setError('');
-    setSuccess('');
-    try {
-      const res = await fetch(`/api/assignments/${assignmentId}/reset-teams`, {
-        method: 'POST',
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) {
-        setError(data?.error || t('resetFailed'));
-        return;
-      }
-      setSuccess(t('resetSuccess'));
-      setTimeout(() => router.refresh(), 600);
-    } catch {
-      setError(t('resetNetworkError'));
-    } finally {
-      setResetting(false);
     }
   };
 
@@ -242,17 +217,6 @@ export function AssignmentActions({
         </Dialog>
       )}
 
-      {canManage && hasTeams && (
-        <Button
-          variant='outline'
-          className='rounded-full border border-red-600 text-red-600 p-6 w-[11rem]'
-          disabled={resetting}
-          onClick={handleReset}
-        >
-          {resetting ? t('resetting') : t('resetButton')}
-        </Button>
-      )}
-
       {!isStudent && (
         <Button
           variant='outline'
@@ -269,6 +233,12 @@ export function AssignmentActions({
           </span>
         </Button>
       )}
+
+      <ExportButtons
+        assignmentId={assignmentId}
+        hasTeams={hasTeams}
+        canManage={canManage}
+      />
 
       {isStudent && (
         <Button

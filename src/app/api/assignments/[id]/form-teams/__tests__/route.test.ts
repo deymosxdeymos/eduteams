@@ -119,6 +119,9 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     expect(json.success).toBe(true);
     expect(prismaMock.teamFormationRequest.create).toHaveBeenCalled();
     expect(prismaMock.teamFormationRequest.update).toHaveBeenCalled();
+    const updateArgs =
+      prismaMock.teamFormationRequest.update.mock.calls[0]?.[0];
+    expect(updateArgs?.data?.completedAt).toBeInstanceOf(Date);
     expect(prismaMock.assignment.update).toHaveBeenCalled();
   });
 

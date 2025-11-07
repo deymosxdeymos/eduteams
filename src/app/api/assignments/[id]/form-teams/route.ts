@@ -385,6 +385,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         where: { id: tf.id },
         data: {
           status: 'COMPLETED',
+          completedAt: new Date(),
           responseData: data as unknown as Prisma.InputJsonValue,
           teams: {
             create: data.teams.map((t, i) => ({

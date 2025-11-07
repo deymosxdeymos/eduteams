@@ -63,7 +63,7 @@ export function AssignmentEditConfirmationDialog({
               {impact.reason ||
                 t('tier4.message', {
                   defaultValue:
-                    'Cannot edit assignment structure after teams have been formed. Please reset the assignment first.',
+                    'Cannot edit assignment structure after teams have been formed.',
                 })}
             </p>
 
@@ -71,7 +71,7 @@ export function AssignmentEditConfirmationDialog({
               <p className='text-sm text-red-800'>
                 {t('tier4.help', {
                   defaultValue:
-                    'To make structural changes, you must first reset the assignment, which will clear all team formations and student submissions.',
+                    'Structural changes are not allowed after teams have been formed to preserve team formations and student submissions.',
                 })}
               </p>
             </div>

@@ -322,6 +322,15 @@
         "alt": "Waiting for team formation",
         "title": "Waiting for team formation!",
         "description": "Don't worry, your data has been recorded properly. Please wait a moment, the lecturer is processing the team formation."
+      },
+      "export": {
+        "export": "Export",
+        "exportPdf": "Export PDF",
+        "exportCsv": "Export CSV",
+        "exporting": "Exporting...",
+        "successDownload": "{format} downloaded successfully",
+        "errorFailed": "Failed to export {format}",
+        "networkError": "Network error. Please try again."
       }
     },
     "profile": {

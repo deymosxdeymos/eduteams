@@ -322,6 +322,15 @@
         "alt": "Menunggu pembagian kelompok",
         "title": "Menunggu pembagian kelompok!",
         "description": "Tenang, datamu sudah terekam dengan baik. Tunggu sebentar ya, dosen sedang memproses pembagian kelompok."
+      },
+      "export": {
+        "export": "Ekspor",
+        "exportPdf": "Ekspor PDF",
+        "exportCsv": "Ekspor CSV",
+        "exporting": "Mengekspor...",
+        "successDownload": "{format} berhasil diunduh",
+        "errorFailed": "Gagal mengekspor {format}",
+        "networkError": "Kesalahan jaringan. Silakan coba lagi."
       }
     },
     "profile": {
