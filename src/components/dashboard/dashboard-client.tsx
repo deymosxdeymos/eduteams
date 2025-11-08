@@ -21,7 +21,9 @@ export function DashboardClient({
   useEffect(() => {
     if (isFirstVisit) {
       // Clean up URL to remove firstVisit parameter
-      window.history.replaceState({}, '', '/dashboard');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('firstVisit');
+      window.history.replaceState({}, '', url.pathname + url.search);
     }
   }, [isFirstVisit]);
 

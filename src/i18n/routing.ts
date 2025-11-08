@@ -5,6 +5,7 @@ export const routing = defineRouting({
   locales: ['id', 'en'],
   defaultLocale: 'id',
   localePrefix: 'as-needed',
+  localeDetection: false,
 });
 
 const navigation = createNavigation(routing);

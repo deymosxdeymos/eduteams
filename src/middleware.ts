@@ -63,6 +63,22 @@ export async function middleware(request: NextRequest) {
     /^\/(en\/)?(dashboard|onboarding|profile|settings)/;
   const isProtectedRoute = protectedPathnameRegex.test(pathname);
 
+  function detectLocale(_request: NextRequest): 'id' | 'en' {
+    if (pathname.startsWith('/en')) {
+      return 'en';
+    }
+
+    return (routing.defaultLocale ?? 'id') as 'id' | 'en';
+  }
+
+  // Redirect logged-in users from homepage to dashboard
+  if ((pathname === '/' || pathname === '/en') && hasSessionToken) {
+    const locale = detectLocale(request);
+    const target = locale === 'en' ? '/en/dashboard' : '/dashboard';
+    const res = NextResponse.redirect(new URL(target, request.url));
+    return applySecurityHeaders(res);
+  }
+
   if (
     pathname.startsWith('/login') ||
     pathname.startsWith('/register') ||
@@ -70,7 +86,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/en/register')
   ) {
     if (hasSessionToken) {
-      const locale = pathname.startsWith('/en') ? 'en' : 'id';
+      const locale = detectLocale(request);
       const target = locale === 'en' ? '/en/dashboard' : '/dashboard';
       const res = NextResponse.redirect(new URL(target, request.url));
       return applySecurityHeaders(res);
@@ -78,7 +94,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isProtectedRoute && !hasSessionToken) {
-    const locale = pathname.startsWith('/en') ? 'en' : 'id';
+    const locale = detectLocale(request);
     const url = new URL(locale === 'en' ? '/en' : '/', request.url);
     const res = NextResponse.redirect(url);
     return applySecurityHeaders(res);

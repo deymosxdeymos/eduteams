@@ -81,7 +81,7 @@ export function getNextOnboardingStep(user: ExtendedUser): string | null {
   }
 
   if (!user.isOnboarded) {
-    return '/dashboard';
+    return '/onboarding/resume';
   }
 
   return null;

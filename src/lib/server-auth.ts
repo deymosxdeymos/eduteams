@@ -7,7 +7,9 @@ async function requireAuth(): Promise<ExtendedUser> {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/');
+    // Redirect to route handler that clears invalid session cookies
+    // This prevents the infinite redirect loop
+    redirect('/api/auth/clear-session?redirect=/');
   }
 
   return user;

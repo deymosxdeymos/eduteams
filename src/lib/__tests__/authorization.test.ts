@@ -358,13 +358,13 @@ describe('Authorization Functions', () => {
       expect(getNextOnboardingStep(user)).toBe('/onboarding/kepribadian');
     });
 
-    it('returns dashboard for non-mahasiswa users who are not onboarded', () => {
+    it('returns resume for non-mahasiswa users who are not onboarded', () => {
       const user = createMockUser({
         role: 'dosen',
         nimNpm: '123456789',
         isOnboarded: false,
       });
-      expect(getNextOnboardingStep(user)).toBe('/dashboard');
+      expect(getNextOnboardingStep(user)).toBe('/onboarding/resume');
     });
 
     it('returns null for fully onboarded user', () => {
@@ -376,13 +376,13 @@ describe('Authorization Functions', () => {
       expect(getNextOnboardingStep(user)).toBe(null);
     });
 
-    it('returns dashboard for admin user', () => {
+    it('returns resume for admin user', () => {
       const user = createMockUser({
         role: 'admin',
         nimNpm: undefined,
         isOnboarded: false,
       });
-      expect(getNextOnboardingStep(user)).toBe('/dashboard');
+      expect(getNextOnboardingStep(user)).toBe('/onboarding/resume');
     });
   });
 
