@@ -5,7 +5,7 @@ const prismaMock: any = {
     findUnique: mock(async () => ({
       id: 's1',
       role: 'mahasiswa',
-      nimNpm: '123',
+      nim: '123',
       isOnboarded: false,
       onboardingStep: 'data-diri',
     })),
@@ -28,7 +28,7 @@ describe('GET /api/user/onboarding-status', () => {
     prismaMock.user.findUnique.mockImplementation(async () => ({
       id: 's1',
       role: 'mahasiswa',
-      nimNpm: '123',
+      nim: '123',
       isOnboarded: false,
       onboardingStep: 'data-diri',
     }));
@@ -62,7 +62,7 @@ describe('GET /api/user/onboarding-status', () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 's1',
       role: 'mahasiswa',
-      nimNpm: null,
+      nim: null,
       isOnboarded: false,
       onboardingStep: 'data-diri',
     }));
@@ -105,7 +105,7 @@ describe('GET /api/user/onboarding-status', () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 's1',
       role: null,
-      nimNpm: null,
+      nim: null,
       isOnboarded: false,
       onboardingStep: 'role',
     }));

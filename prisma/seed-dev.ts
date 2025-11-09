@@ -17,6 +17,8 @@ import {
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 
+const SUPPORTED_PERSONALITY_LOCALES = ['id-ID', 'en-US'] as const;
+
 const argsSchema = z.object({
   count: z.number().int().min(0).default(20),
   courseId: z.string().optional(),
@@ -29,6 +31,9 @@ const argsSchema = z.object({
   listDosen: z.boolean().default(false),
   assignmentsOnly: z.boolean().default(false),
   skipPersonality: z.boolean().default(false),
+  personalityLocale: z
+    .enum(SUPPORTED_PERSONALITY_LOCALES)
+    .default(SUPPORTED_PERSONALITY_LOCALES[0]),
 });
 
 type Args = z.infer<typeof argsSchema>;
@@ -60,7 +65,8 @@ function parseArgs(): Args {
         } else if (
           key === 'courseId' ||
           key === 'courseClass' ||
-          key === 'coursePeriod'
+          key === 'coursePeriod' ||
+          key === 'personalityLocale'
         ) {
           parsed[key] = value;
         } else if (key === 'courseName' || key === 'dosenEmail') {
@@ -375,7 +381,7 @@ async function generateStudent(index: number): Promise<string> {
       updatedAt: new Date(),
       role: 'mahasiswa',
       gender,
-      nimNpm: nim,
+      nim: nim,
       isOnboarded: false, // Will be set to true after personality session
       hasSeenWelcomeSplash: false,
     },
@@ -641,9 +647,11 @@ async function seedStudents(args: Args): Promise<void> {
 
   if (!args.skipPersonality) {
     console.log('\n🧠 Generating personality test data...');
+    console.log(`   Locale: ${args.personalityLocale}`);
 
     // Fetch question IDs from database
     const questions = await prisma.personalityQuestion.findMany({
+      where: { locale: args.personalityLocale },
       orderBy: { orderHint: 'asc' },
       select: { id: true },
     });

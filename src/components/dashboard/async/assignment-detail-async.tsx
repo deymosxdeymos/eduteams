@@ -145,7 +145,7 @@ export async function AssignmentDetailAsync({
         name: string | null;
         email: string | null;
         mbtiType: string | null;
-        nimNpm: string | null;
+        nim: string | null;
       };
     }>;
   }> = [];
@@ -173,7 +173,7 @@ export async function AssignmentDetailAsync({
                     name: true,
                     email: true,
                     mbtiType: true,
-                    nimNpm: true,
+                    nim: true,
                   },
                 },
               },
@@ -195,7 +195,7 @@ export async function AssignmentDetailAsync({
             name: m.user.name,
             email: m.user.email,
             mbtiType: m.user.mbtiType,
-            nimNpm: m.user.nimNpm,
+            nim: m.user.nim,
           },
         })),
       }));

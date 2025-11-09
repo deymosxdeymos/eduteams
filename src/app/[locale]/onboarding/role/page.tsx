@@ -23,14 +23,16 @@ export default async function RolePage({
 
   if (!devDisableAutoRole) {
     if (user.role === 'dosen' && isInstitutionalEmail(user.email)) {
-      if (!user.nimNpm) {
+      // Dosen only needs name and gender (no NPM requirement)
+      if (!user.name || !user.gender) {
         redirect('/onboarding/data-diri/dosen');
       }
       redirect('/dashboard?firstVisit=true');
     }
 
     if (user.role === 'mahasiswa') {
-      if (!user.nimNpm) {
+      // Mahasiswa needs NIM
+      if (!user.nim) {
         redirect('/onboarding/data-diri/mahasiswa');
       }
 

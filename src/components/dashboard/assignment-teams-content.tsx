@@ -8,7 +8,7 @@ interface TeamMemberUser {
   name: string | null;
   email?: string | null;
   mbtiType?: string | null;
-  nimNpm?: string | null;
+  nim?: string | null;
 }
 
 interface TeamMemberItem {
@@ -105,7 +105,7 @@ export function AssignmentTeamsContent({
                     name: m.user.name,
                     email: m.user.email,
                     mbtiType: m.user.mbtiType as unknown as string | null,
-                    nimNpm: m.user.nimNpm,
+                    nim: m.user.nim,
                   },
                 }))}
                 courseId={courseId}

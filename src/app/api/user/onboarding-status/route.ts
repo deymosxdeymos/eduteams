@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createErrorResponse, getCurrentUser } from '@/lib/api-utils';
+import { needsDataDiri } from '@/lib/authorization';
 import {
   getUserPersonalitySessionStatus,
   type UserPersonalitySessionStatus,
@@ -22,7 +23,8 @@ export const GET = async () => {
     if (!user.isOnboarded) {
       if (!user.role) {
         redirectUrl = '/onboarding/resume';
-      } else if (!user.nimNpm && ['mahasiswa', 'dosen'].includes(user.role)) {
+      } else if (needsDataDiri(user)) {
+        // Check if user needs data-diri (mahasiswa needs NIM, dosen needs name/gender)
         redirectUrl = `/onboarding/data-diri/${user.role}`;
       } else if (user.role === 'mahasiswa') {
         if (!sessionStatus || sessionStatus.status === 'completed_valid') {

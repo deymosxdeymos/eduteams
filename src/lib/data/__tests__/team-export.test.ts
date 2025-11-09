@@ -54,7 +54,7 @@ describe('getAssignmentExportData', () => {
                     id: 'student-1',
                     name: 'Student One',
                     email: 'student1@example.com',
-                    nimNpm: '001',
+                    nim: '001',
                     mbtiType: 'INTJ',
                     gender: 'MALE',
                     ei: null,

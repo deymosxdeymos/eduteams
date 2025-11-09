@@ -45,7 +45,7 @@ export async function AssignmentTeams({
                   name: true,
                   email: true,
                   mbtiType: true,
-                  nimNpm: true,
+                  nim: true,
                 },
               },
             },
@@ -93,7 +93,7 @@ export async function AssignmentTeams({
             name: m.user.name,
             email: m.user.email,
             mbtiType: m.user.mbtiType,
-            nimNpm: m.user.nimNpm,
+            nim: m.user.nim,
           },
         })),
       }))}

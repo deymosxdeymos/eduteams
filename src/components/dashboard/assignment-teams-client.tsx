@@ -8,7 +8,7 @@ interface TeamMemberUser {
   name: string | null;
   email?: string | null;
   mbtiType?: string | null;
-  nimNpm?: string | null;
+  nim?: string | null;
 }
 
 interface TeamMemberItem {
@@ -73,7 +73,7 @@ export function AssignmentTeamsClient({
     return teamsWithTopics.filter(team =>
       team.members.some(member => {
         const name = member.user.name?.toLowerCase() ?? '';
-        const nim = member.user.nimNpm?.toLowerCase() ?? '';
+        const nim = member.user.nim?.toLowerCase() ?? '';
         return name.includes(searchTerm) || nim.includes(searchTerm);
       }),
     );

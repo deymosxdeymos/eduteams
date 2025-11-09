@@ -22,7 +22,7 @@ export const auth = betterAuth({
         type: 'string',
         input: false,
       },
-      nimNpm: {
+      nim: {
         type: 'string',
         input: false,
       },

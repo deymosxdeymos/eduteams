@@ -29,7 +29,7 @@ const baseUser: ExtendedUser = {
   isOnboarded: false,
   hasSeenWelcomeSplash: false,
   role: 'mahasiswa',
-  nimNpm: '123456789',
+  nim: '123456789',
   onboardingData: null,
   onboardingStep: null,
   mbtiType: null,
@@ -278,33 +278,38 @@ describe('Authorization Functions', () => {
   });
 
   describe('needsDataDiri', () => {
-    it('returns true for mahasiswa without nimNpm', () => {
-      const user = createMockUser({ role: 'mahasiswa', nimNpm: undefined });
+    it('returns true for mahasiswa without nim', () => {
+      const user = createMockUser({ role: 'mahasiswa', nim: undefined });
       expect(needsDataDiri(user)).toBe(true);
     });
 
-    it('returns true for dosen without nimNpm', () => {
-      const user = createMockUser({ role: 'dosen', nimNpm: undefined });
+    it('returns true for dosen without name', () => {
+      const user = createMockUser({ role: 'dosen', name: undefined, gender: 'MALE' });
       expect(needsDataDiri(user)).toBe(true);
     });
 
-    it('returns false for mahasiswa with nimNpm', () => {
-      const user = createMockUser({ role: 'mahasiswa', nimNpm: '123456789' });
+    it('returns true for dosen without gender', () => {
+      const user = createMockUser({ role: 'dosen', name: 'Test', gender: null });
+      expect(needsDataDiri(user)).toBe(true);
+    });
+
+    it('returns false for mahasiswa with nim', () => {
+      const user = createMockUser({ role: 'mahasiswa', nim: '123456789' });
       expect(needsDataDiri(user)).toBe(false);
     });
 
-    it('returns false for dosen with nimNpm', () => {
-      const user = createMockUser({ role: 'dosen', nimNpm: '123456789' });
+    it('returns false for dosen with name and gender', () => {
+      const user = createMockUser({ role: 'dosen', name: 'Test', gender: 'MALE' });
       expect(needsDataDiri(user)).toBe(false);
     });
 
-    it('returns false for admin (no nimNpm required)', () => {
-      const user = createMockUser({ role: 'admin', nimNpm: undefined });
+    it('returns false for admin (no data-diri required)', () => {
+      const user = createMockUser({ role: 'admin', nim: undefined });
       expect(needsDataDiri(user)).toBe(false);
     });
 
     it('returns false for user without role', () => {
-      const user = createMockUser({ role: undefined, nimNpm: undefined });
+      const user = createMockUser({ role: undefined, nim: undefined });
       expect(needsDataDiri(user)).toBe(false);
     });
   });
@@ -337,31 +342,32 @@ describe('Authorization Functions', () => {
       expect(getNextOnboardingStep(user)).toBe('/onboarding/resume');
     });
 
-    it('returns data-diri for mahasiswa without nimNpm', () => {
-      const user = createMockUser({ role: 'mahasiswa', nimNpm: undefined });
+    it('returns data-diri for mahasiswa without nim', () => {
+      const user = createMockUser({ role: 'mahasiswa', nim: undefined });
       expect(getNextOnboardingStep(user)).toBe(
         '/onboarding/data-diri/mahasiswa'
       );
     });
 
-    it('returns data-diri for dosen without nimNpm', () => {
-      const user = createMockUser({ role: 'dosen', nimNpm: undefined });
+    it('returns data-diri for dosen without name or gender', () => {
+      const user = createMockUser({ role: 'dosen', name: undefined, gender: null });
       expect(getNextOnboardingStep(user)).toBe('/onboarding/data-diri/dosen');
     });
 
-    it('returns kepribadian test for mahasiswa with nimNpm but not onboarded', () => {
+    it('returns kepribadian test for mahasiswa with nim but not onboarded', () => {
       const user = createMockUser({
         role: 'mahasiswa',
-        nimNpm: '123456789',
+        nim: '123456789',
         isOnboarded: false,
       });
       expect(getNextOnboardingStep(user)).toBe('/onboarding/kepribadian');
     });
 
-    it('returns resume for non-mahasiswa users who are not onboarded', () => {
+    it('returns resume for dosen with name and gender but not onboarded', () => {
       const user = createMockUser({
         role: 'dosen',
-        nimNpm: '123456789',
+        name: 'Test',
+        gender: 'MALE',
         isOnboarded: false,
       });
       expect(getNextOnboardingStep(user)).toBe('/onboarding/resume');
@@ -370,7 +376,7 @@ describe('Authorization Functions', () => {
     it('returns null for fully onboarded user', () => {
       const user = createMockUser({
         role: 'mahasiswa',
-        nimNpm: '123456789',
+        nim: '123456789',
         isOnboarded: true,
       });
       expect(getNextOnboardingStep(user)).toBe(null);
@@ -379,7 +385,7 @@ describe('Authorization Functions', () => {
     it('returns resume for admin user', () => {
       const user = createMockUser({
         role: 'admin',
-        nimNpm: undefined,
+        nim: undefined,
         isOnboarded: false,
       });
       expect(getNextOnboardingStep(user)).toBe('/onboarding/resume');
@@ -395,7 +401,7 @@ describe('Authorization Functions', () => {
     it('returns dashboard when no next step', () => {
       const user = createMockUser({
         role: 'mahasiswa',
-        nimNpm: '123456789',
+        nim: '123456789',
         isOnboarded: true,
       });
       expect(getRedirectPath(user)).toBe('/dashboard');

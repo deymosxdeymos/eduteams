@@ -55,7 +55,7 @@ const convertToExtendedUser = (student: Student): ExtendedUser =>
     name: student.name,
     email: student.email,
     role: null,
-    nimNpm: student.nim,
+    nim: student.nim,
     isOnboarded: true,
     onboardingStep: null,
     mbtiType: (student.mbtiType || null) as ExtendedUser['mbtiType'],

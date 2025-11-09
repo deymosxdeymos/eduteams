@@ -24,7 +24,7 @@ const prismaMock: any = {
           id: 's1',
           name: 'S',
           email: 's@example.com',
-          nimNpm: 'N',
+          nim: 'N',
           mbtiType: 'INTJ',
           ei: 0,
           sn: 0,

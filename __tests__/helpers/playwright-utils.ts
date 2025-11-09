@@ -25,7 +25,7 @@ export async function setupTestAuth(_page: Page, role: 'dosen' | 'mahasiswa' = '
 export async function completeOnboarding(page: Page, userData: {
   role: 'dosen' | 'mahasiswa';
   name: string;
-  nimNpm?: string;
+  nim?: string;
   gender?: 'male' | 'female';
 }) {
   // Navigate to onboarding
@@ -36,8 +36,8 @@ export async function completeOnboarding(page: Page, userData: {
   
   // Fill personal data
   await page.fill('[name="name"]', userData.name);
-  if (userData.nimNpm) {
-    await page.fill('[name="nimNpm"]', userData.nimNpm);
+  if (userData.nim) {
+    await page.fill('[name="nim"]', userData.nim);
   }
   
   // Continue through onboarding steps

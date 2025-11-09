@@ -44,7 +44,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
             namaLengkap,
             jenisKelamin,
             role: 'dosen',
-            npm: user.nimNpm || '',
+            // Dosen doesn't need NPM anymore, only name and gender
           }),
         });
 

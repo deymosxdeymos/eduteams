@@ -217,7 +217,7 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
         createdAt: true,
         updatedAt: true,
         role: true,
-        nimNpm: true,
+        nim: true,
         gender: true,
         isOnboarded: true,
         hasSeenWelcomeSplash: true,

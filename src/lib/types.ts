@@ -9,7 +9,7 @@ export type UserRole = 'dosen' | 'mahasiswa' | 'admin';
 
 export interface ExtendedUser extends PrismaUser {
   role: UserRole | null;
-  nimNpm: string | null;
+  nim: string | null;
   isOnboarded: boolean;
   onboardingStep: string | null;
   mbtiType: MBTIType | null;

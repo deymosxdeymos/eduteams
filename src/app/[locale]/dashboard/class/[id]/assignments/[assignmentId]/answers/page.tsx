@@ -48,7 +48,7 @@ async function getSubmittedStudents(assignmentId: string) {
           id: true,
           name: true,
           email: true,
-          nimNpm: true,
+          nim: true,
           role: true,
           image: true,
           gender: true,

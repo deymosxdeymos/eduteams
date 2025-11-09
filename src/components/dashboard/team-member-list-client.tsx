@@ -21,7 +21,7 @@ interface TeamMemberUser {
   name: string | null;
   email?: string | null;
   mbtiType?: string | null;
-  nimNpm?: string | null;
+  nim?: string | null;
 }
 
 interface TeamMemberItem {
@@ -42,7 +42,7 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser =>
     name: member.user.name,
     email: member.user.email,
     role: null,
-    nimNpm: member.user.nimNpm,
+    nim: member.user.nim,
     isOnboarded: true,
     onboardingStep: null,
     mbtiType: (member.user.mbtiType || null) as ExtendedUser['mbtiType'],
@@ -86,7 +86,7 @@ export function TeamMemberListClient({
     if (!searchValue.trim()) return false;
     const searchTerm = searchValue.toLowerCase();
     const name = member.user.name?.toLowerCase() ?? '';
-    const nim = member.user.nimNpm?.toLowerCase() ?? '';
+    const nim = member.user.nim?.toLowerCase() ?? '';
     return name.includes(searchTerm) || nim.includes(searchTerm);
   };
 
@@ -164,7 +164,7 @@ export function TeamMemberListClient({
                 {member.user.name || t('noName')}
               </p>
               <p className='text-[0.625rem] font-normal text-gray-500 truncate'>
-                {member.user.nimNpm || ''}
+                {member.user.nim || ''}
               </p>
             </div>
           </div>

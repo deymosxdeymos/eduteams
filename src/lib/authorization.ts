@@ -58,9 +58,15 @@ export function needsRoleSelection(user: ExtendedUser): boolean {
 }
 
 export function needsDataDiri(user: ExtendedUser): boolean {
-  return (
-    !user.nimNpm && !!user.role && ['mahasiswa', 'dosen'].includes(user.role)
-  );
+  // Mahasiswa needs NIM, dosen only needs name and gender
+  if (user.role === 'mahasiswa') {
+    return !user.nim;
+  }
+  // Dosen needs data-diri but not NIM
+  if (user.role === 'dosen') {
+    return !user.name || !user.gender;
+  }
+  return false;
 }
 
 export function needsKepribadianTest(user: ExtendedUser): boolean {
@@ -72,7 +78,8 @@ export function getNextOnboardingStep(user: ExtendedUser): string | null {
     return '/onboarding/resume';
   }
 
-  if (!user.nimNpm && ['mahasiswa', 'dosen'].includes(user.role)) {
+  // Check if user needs data-diri (mahasiswa needs NIM, dosen needs name/gender)
+  if (needsDataDiri(user)) {
     return `/onboarding/data-diri/${user.role}`;
   }
 

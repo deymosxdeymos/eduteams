@@ -1,7 +1,6 @@
 'use client';
 
 import { ArrowLeft, Calendar, Plus, Share2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
+import { useRouter } from '@/i18n/routing';
 import { CreateAssignmentModal } from './create-assignment-modal';
 import { EmptyAssignmentState } from './empty-assignment-state';
 import { SearchInput } from './search-input';

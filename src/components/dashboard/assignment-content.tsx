@@ -14,7 +14,7 @@ interface TeamMemberUser {
   name: string | null;
   email?: string | null;
   mbtiType?: string | null;
-  nimNpm?: string | null;
+  nim?: string | null;
 }
 
 interface TeamMemberItem {

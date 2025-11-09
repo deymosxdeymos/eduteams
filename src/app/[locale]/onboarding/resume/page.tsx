@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { autoAssignRole } from '@/lib/actions/role';
 import { getCurrentUser } from '@/lib/api-utils';
+import { needsDataDiri } from '@/lib/authorization';
 import { isInstitutionalEmail } from '@/lib/email';
 import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
 import prisma from '@/lib/prisma';
@@ -56,7 +57,7 @@ export default async function ResumePage({
     redirect('/onboarding/resume');
   }
 
-  if (!user.nimNpm) {
+  if (needsDataDiri(user)) {
     redirect(`/onboarding/data-diri/${targetRole}`);
   }
 

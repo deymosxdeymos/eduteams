@@ -10,7 +10,6 @@ import { AuthError, ValidationError } from '@/lib/types';
 const dataDiriSchema = z.object({
   namaLengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
   nim: z.string().optional().nullable(),
-  npm: z.string().optional().nullable(),
   jenisKelamin: z.enum(['laki-laki', 'perempuan']),
   role: z.enum(['dosen', 'mahasiswa']),
 });
@@ -28,20 +27,16 @@ export async function submitDataDiri(
     const rawData = {
       namaLengkap: formData.get('namaLengkap') as string,
       nim: formData.get('nim') as string,
-      npm: formData.get('npm') as string,
       jenisKelamin: formData.get('jenisKelamin') as string,
       role: formData.get('role') as string,
     };
 
     const validatedData = dataDiriSchema.parse(rawData);
-    const { namaLengkap, nim, npm, jenisKelamin, role } = validatedData;
+    const { namaLengkap, nim, jenisKelamin, role } = validatedData;
 
-    // Validate role-specific fields
+    // Validate role-specific fields (only mahasiswa needs NIM, dosen doesn't need NPM)
     if (role === 'mahasiswa' && !nim) {
       throw new ValidationError('NIM is required for mahasiswa');
-    }
-    if (role === 'dosen' && !npm) {
-      throw new ValidationError('NPM is required for dosen');
     }
 
     // Convert UI gender to enum
@@ -52,7 +47,7 @@ export async function submitDataDiri(
       where: { id: user.id },
       data: {
         name: namaLengkap,
-        nimNpm: role === 'mahasiswa' ? nim : npm,
+        nim: role === 'mahasiswa' ? nim : null, // Only mahasiswa has NIM
         role,
         gender,
         isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
@@ -101,7 +96,7 @@ export async function getDataDiri(getCurrentUserImpl = getCurrentUser) {
       where: { id: user.id },
       select: {
         name: true,
-        nimNpm: true,
+        nim: true,
         role: true,
         gender: true,
       },
@@ -121,7 +116,7 @@ export async function getDataDiri(getCurrentUserImpl = getCurrentUser) {
 
     return {
       namaLengkap: currentUser.name || '',
-      nimNpm: currentUser.nimNpm || '',
+      nim: currentUser.nim || '',
       jenisKelamin,
       role: currentUser.role || '',
     };

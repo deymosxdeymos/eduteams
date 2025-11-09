@@ -70,7 +70,7 @@ export async function getAssignmentExportData(
                       id: true,
                       name: true,
                       email: true,
-                      nimNpm: true,
+                      nim: true,
                       mbtiType: true,
                       gender: true,
                       ei: true,
@@ -167,7 +167,7 @@ export async function getAssignmentExportData(
         id: member.user.id,
         name: member.user.name,
         email: member.user.email,
-        nim: member.user.nimNpm,
+        nim: member.user.nim,
         mbtiType: member.user.mbtiType,
         gender: member.user.gender,
         personalityScores: {

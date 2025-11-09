@@ -43,9 +43,11 @@ export function ProfileHeader({
         <div className='flex gap-2 items-start justify-start'>
           <div className='flex flex-col items-start'>
             <h1 className='text-2xl text-white font-bold'>{user.name}</h1>
-            <p className='text-base text-slate-200 font-medium'>
-              {user.role === 'dosen' ? 'NPM' : 'NIM'}: {user.nimNpm}
-            </p>
+            {user.role === 'mahasiswa' && user.nim && (
+              <p className='text-base text-slate-200 font-medium'>
+                NIM: {user.nim}
+              </p>
+            )}
           </div>
           {user.gender === 'FEMALE' ? (
             <Venus

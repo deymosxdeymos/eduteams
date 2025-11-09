@@ -8,7 +8,6 @@ export const runtime = 'nodejs';
 const dataDiriSchema = z.object({
   namaLengkap: z.string().min(1, 'Nama lengkap is required'),
   nim: z.string().optional(),
-  npm: z.string().optional(),
   jenisKelamin: z.enum(['laki-laki', 'perempuan']),
   role: z.enum(['dosen', 'mahasiswa']),
 });
@@ -18,7 +17,7 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
     where: { id: user?.id },
     select: {
       name: true,
-      nimNpm: true,
+      nim: true,
       role: true,
       gender: true,
     },
@@ -38,7 +37,7 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
 
   return createApiResponse({
     namaLengkap: currentUser.name || '',
-    nimNpm: currentUser.nimNpm || '',
+    nim: currentUser.nim || '',
     jenisKelamin,
     role: currentUser.role || '',
   });
@@ -48,14 +47,11 @@ export const POST = withAuth(
   withValidation(
     (data: unknown) => dataDiriSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
-      const { namaLengkap, nim, npm, jenisKelamin, role } = validatedData;
+      const { namaLengkap, nim, jenisKelamin, role } = validatedData;
 
-      // Validate role-specific fields
+      // Validate role-specific fields (only mahasiswa needs NIM, dosen doesn't need NPM)
       if (role === 'mahasiswa' && !nim) {
         return createApiResponse(null, 'NIM is required for mahasiswa', 400);
-      }
-      if (role === 'dosen' && !npm) {
-        return createApiResponse(null, 'NPM is required for dosen', 400);
       }
 
       // Convert UI gender to enum
@@ -66,7 +62,7 @@ export const POST = withAuth(
         where: { id: user?.id },
         data: {
           name: namaLengkap,
-          nimNpm: role === 'mahasiswa' ? nim : npm,
+          nim: role === 'mahasiswa' ? nim : null, // Only mahasiswa has NIM
           role,
           gender,
           isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri

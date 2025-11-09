@@ -1,7 +1,6 @@
 'use client';
 
 import { ArrowLeft, Calendar, RotateCcw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -10,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { Course } from '@/lib/types';
 import type { AssignmentClient } from '@/lib/validation/assignments';
+import { useRouter } from '@/i18n/routing';
 import { EmptyStudentAssignmentState } from './empty-student-assignment-state';
 import { SearchInput } from './search-input';
 

@@ -22,7 +22,7 @@ interface DataDiriFormClientProps {
   role: 'dosen' | 'mahasiswa';
   initialData?: {
     namaLengkap: string;
-    nimNpm: string;
+    nim: string;
     jenisKelamin: string;
     role: string;
   };
@@ -85,14 +85,8 @@ const createFormSchema = (
         .regex(/^\d+$/, dict.onboarding.dataDiri.validation.nimPattern),
     });
   } else {
-    return z.object({
-      ...baseSchema,
-      npm: z
-        .string()
-        .min(8, dict.onboarding.dataDiri.validation.npmMin)
-        .max(15, dict.onboarding.dataDiri.validation.npmMax)
-        .regex(/^\d+$/, dict.onboarding.dataDiri.validation.npmPattern),
-    });
+    // Dosen only needs name and gender, no NPM
+    return z.object(baseSchema);
   }
 };
 
@@ -105,10 +99,8 @@ export default function DataDiriFormClient({
   const genderLabelId = useId();
   const namaLengkapId = useId();
   const nimFieldId = useId();
-  const npmFieldId = useId();
-  const nimNpmFieldId = role === 'mahasiswa' ? nimFieldId : npmFieldId;
   const namaWrapperRef = useRef<HTMLDivElement>(null);
-  const nimNpmWrapperRef = useRef<HTMLDivElement>(null);
+  const nimWrapperRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const formSchema = createFormSchema(role, dict);
   type FormData = z.infer<typeof formSchema>;
@@ -119,9 +111,7 @@ export default function DataDiriFormClient({
     defaultValues: {
       namaLengkap: initialData?.namaLengkap || '',
       jenisKelamin: initialData?.jenisKelamin || '',
-      ...(role === 'mahasiswa'
-        ? { nim: initialData?.nimNpm || '' }
-        : { npm: initialData?.nimNpm || '' }),
+      ...(role === 'mahasiswa' ? { nim: initialData?.nim || '' } : {}),
     } as FormData,
   });
 
@@ -132,10 +122,9 @@ export default function DataDiriFormClient({
       formData.append('jenisKelamin', values.jenisKelamin);
       formData.append('role', role);
 
-      if (role === 'mahasiswa') {
-        formData.append('nim', (values as { nim: string }).nim);
-      } else {
-        formData.append('npm', (values as { npm: string }).npm);
+      // Only append NIM for mahasiswa (dosen doesn't have NPM anymore)
+      if (role === 'mahasiswa' && 'nim' in values) {
+        formData.append('nim', values.nim as string);
       }
 
       try {
@@ -217,50 +206,46 @@ export default function DataDiriFormClient({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name={role === 'mahasiswa' ? 'nim' : 'npm'}
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel
-                htmlFor={nimNpmFieldId}
-                className='text-black text-xl font-normal'
-              >
-                {role === 'mahasiswa'
-                  ? dict.onboarding.dataDiri.nim
-                  : dict.onboarding.dataDiri.npm}
-              </FormLabel>
-              <FormControl>
-                <motion.div
-                  ref={nimNpmWrapperRef}
-                  className='relative'
-                  initial={false}
+{role === 'mahasiswa' && (
+          <FormField
+            control={form.control}
+            name={'nim' as any}
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel
+                  htmlFor={nimFieldId}
+                  className='text-black text-xl font-normal'
                 >
-                  <Image
-                    src='/icons/nim.svg'
-                    alt={`${role === 'mahasiswa' ? 'NIM' : 'NPM'} icon`}
-                    width={16}
-                    height={16}
-                    className='absolute left-3 top-1/2 -translate-y-1/2 z-10'
-                  />
-                  <InputRounded
-                    id={nimNpmFieldId}
-                    placeholder={
-                      role === 'mahasiswa'
-                        ? dict.onboarding.dataDiri.nimPlaceholder
-                        : dict.onboarding.dataDiri.npmPlaceholder
-                    }
-                    {...field}
-                    aria-invalid={!!fieldState.error}
-                    animationTargetRef={nimNpmWrapperRef}
-                    className='pl-10'
-                  />
-                </motion.div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  {dict.onboarding.dataDiri.nim}
+                </FormLabel>
+                <FormControl>
+                  <motion.div
+                    ref={nimWrapperRef}
+                    className='relative'
+                    initial={false}
+                  >
+                    <Image
+                      src='/icons/nim.svg'
+                      alt='NIM icon'
+                      width={16}
+                      height={16}
+                      className='absolute left-3 top-1/2 -translate-y-1/2 z-10'
+                    />
+                    <InputRounded
+                      id={nimFieldId}
+                      placeholder={dict.onboarding.dataDiri.nimPlaceholder}
+                      {...field}
+                      aria-invalid={!!fieldState.error}
+                      animationTargetRef={nimWrapperRef}
+                      className='pl-10'
+                    />
+                  </motion.div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

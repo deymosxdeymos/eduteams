@@ -1,7 +1,6 @@
 'use client';
 
 import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ExportButtons } from '@/components/dashboard/export-buttons';
@@ -22,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useRouter } from '@/i18n/routing';
 
 interface AssignmentActionsProps {
   assignmentId: string;

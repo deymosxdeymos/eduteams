@@ -71,7 +71,7 @@ export async function GET(
             id: true,
             name: true,
             email: true,
-            nimNpm: true,
+            nim: true,
             mbtiType: true,
             ei: true,
             sn: true,
@@ -90,7 +90,7 @@ export async function GET(
     const students = enrollments.map(enrollment => ({
       id: enrollment.student.id,
       name: enrollment.student.name || 'Unknown',
-      nim: enrollment.student.nimNpm || 'N/A',
+      nim: enrollment.student.nim || 'N/A',
       email: enrollment.student.email || 'N/A',
       mbtiType: enrollment.student.mbtiType,
       ei: enrollment.student.ei,

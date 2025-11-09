@@ -77,7 +77,7 @@ export default async function DataDiriPage({
     }
   }
 
-  if (role === 'mahasiswa' && user.nimNpm && edit !== 'true') {
+  if (role === 'mahasiswa' && user.nim && edit !== 'true') {
     const sessionStatus = await getUserPersonalitySessionStatus(
       user.id,
       locale
@@ -96,7 +96,7 @@ export default async function DataDiriPage({
 
   let initialData: {
     namaLengkap: string;
-    nimNpm: string;
+    nim: string;
     jenisKelamin: string;
     role: string;
   };
@@ -106,7 +106,7 @@ export default async function DataDiriPage({
     // If we can't fetch data, start with empty form
     initialData = {
       namaLengkap: '',
-      nimNpm: '',
+      nim: '',
       jenisKelamin: '',
       role: '',
     };
