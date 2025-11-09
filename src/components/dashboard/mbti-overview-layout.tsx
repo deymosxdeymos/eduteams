@@ -144,9 +144,9 @@ export function MBTIOverviewLayout({
           >
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-4'>
-                {!isModal && (
+                {!isModal && onRequestClose && (
                   <button
-                    onClick={() => window.history.back()}
+                    onClick={onRequestClose}
                     className='flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors duration-200'
                     aria-label='Go back'
                   >

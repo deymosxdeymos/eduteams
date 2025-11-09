@@ -27,8 +27,17 @@ export function DashboardClient({
     }
   }, [isFirstVisit]);
 
-  const handleSplashComplete = () => {
+  const handleSplashComplete = async () => {
     setShowSplash(false);
+    // Mark splash as seen after animation completes
+    try {
+      await fetch('/api/user/welcome-splash', {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Failed to update welcome splash status:', error);
+      // Non-critical error, don't block user experience
+    }
   };
 
   if (showSplash) {

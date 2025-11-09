@@ -8,7 +8,6 @@ import Nav from '@/components/dashboard/nav';
 import Sidebar from '@/components/dashboard/sidebar';
 import { StudentDashboard } from '@/components/dashboard/student-dashboard';
 import { CourseListSkeleton } from '@/components/ui/skeletons/course-list-skeleton';
-import { updateWelcomeSplashStatus } from '@/lib/actions/dashboard';
 import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
@@ -44,10 +43,6 @@ export default async function Dashboard({
 
   // Get statistics synchronously for dosen
   const statistics = isDosen ? await getStatsOrEmpty(user.id) : null;
-
-  if (shouldShowSplash) {
-    await updateWelcomeSplashStatus();
-  }
 
   return (
     <DashboardClient

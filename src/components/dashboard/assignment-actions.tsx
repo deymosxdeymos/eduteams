@@ -100,7 +100,7 @@ export function AssignmentActions({
       <Button
         variant='ghost'
         size='icon'
-        onClick={() => window.history.back()}
+        onClick={() => router.push(`/dashboard/class/${classId}`)}
         className='rounded-full'
       >
         <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />

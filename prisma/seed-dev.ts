@@ -28,6 +28,7 @@ const argsSchema = z.object({
   listCourses: z.boolean().default(false),
   listDosen: z.boolean().default(false),
   assignmentsOnly: z.boolean().default(false),
+  skipPersonality: z.boolean().default(false),
 });
 
 type Args = z.infer<typeof argsSchema>;
@@ -68,7 +69,8 @@ function parseArgs(): Args {
           key === 'mbtiBalanced' ||
           key === 'listCourses' ||
           key === 'listDosen' ||
-          key === 'assignmentsOnly'
+          key === 'assignmentsOnly' ||
+          key === 'skipPersonality'
         ) {
           parsed[key] = value === 'true';
         } else {
@@ -266,7 +268,8 @@ async function generateCompletePersonalitySession(
   userId: string,
   index: number,
   total: number,
-  mbtiBalanced: boolean
+  mbtiBalanced: boolean,
+  questionIds: string[]
 ): Promise<void> {
   const scores = generatePersonalityScores();
   const mbtiType = mbtiBalanced
@@ -274,7 +277,7 @@ async function generateCompletePersonalitySession(
     : getMBTIType(scores);
 
   // Generate responses consistent with MBTI type
-  const responses = generateMBTIResponses(scores);
+  const responses = generateMBTIResponses(scores, questionIds);
 
   // Realistic timing: 2-5 minutes
   const startedAt = new Date(Date.now() - randomInt(120_000, 300_000));
@@ -636,17 +639,35 @@ async function seedStudents(args: Args): Promise<void> {
     studentIds.push(userId);
   }
 
-  console.log('\n🧠 Generating personality test data...');
-  for (let i = 0; i < studentIds.length; i++) {
-    await generateCompletePersonalitySession(
-      studentIds[i],
-      i,
-      args.count,
-      args.mbtiBalanced
-    );
-    if ((i + 1) % 5 === 0) {
-      console.log(`  ✓ Completed ${i + 1}/${args.count} personality tests`);
+  if (!args.skipPersonality) {
+    console.log('\n🧠 Generating personality test data...');
+
+    // Fetch question IDs from database
+    const questions = await prisma.personalityQuestion.findMany({
+      orderBy: { orderHint: 'asc' },
+      select: { id: true },
+    });
+
+    if (questions.length === 0) {
+      console.log('⚠️  No personality questions found in database. Skipping personality data.');
+    } else {
+      const questionIds = questions.map(q => q.id);
+
+      for (let i = 0; i < studentIds.length; i++) {
+        await generateCompletePersonalitySession(
+          studentIds[i],
+          i,
+          args.count,
+          args.mbtiBalanced,
+          questionIds
+        );
+        if ((i + 1) % 5 === 0) {
+          console.log(`  ✓ Completed ${i + 1}/${args.count} personality tests`);
+        }
+      }
     }
+  } else {
+    console.log('\n⏭️  Skipping personality test data (--skipPersonality enabled)');
   }
 
   console.log('\n🛠️  Assigning skills...');

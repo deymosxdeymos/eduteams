@@ -41,7 +41,11 @@ const ICON_TWEAKS: Partial<Record<MbtiType, IconTweak>> = {
   ESTP: { size: 52, dy: 7 },
   ENFJ: { size: 48, dy: 6 },
   ENTJ: { size: 48, dy: 3 },
+  ENTP: { size: 48, dy: 3 },
+  ENFP: { size: 48 },
   ESFJ: { size: 48, dy: 5 },
+  INTP: { size: 48, dx: -3 },
+  INFJ: { size: 48, dx: 3 },
 };
 
 const chartConfig = {

@@ -68,7 +68,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           size='icon'
           className='rounded-full'
           aria-label={t('back')}
-          onClick={() => router.back()}
+          onClick={() => router.push('/dashboard')}
         >
           <ArrowLeft className='w-5 h-5' />
         </Button>

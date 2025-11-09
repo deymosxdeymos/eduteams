@@ -97,7 +97,7 @@ export function StudentClassAssignments({
           <Button
             variant='ghost'
             size='icon'
-            onClick={() => window.history.back()}
+            onClick={() => router.push('/dashboard')}
             className='rounded-full'
           >
             <ArrowLeft strokeWidth={2} className='w-5 h-5 text-gray-600' />
