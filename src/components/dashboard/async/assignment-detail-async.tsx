@@ -126,8 +126,7 @@ export async function AssignmentDetailAsync({
   if (assignment) {
     const latest = await prisma.teamFormationRequest.findFirst({
       where: {
-        ownerId: course.dosenId,
-        createdAt: { gte: assignment.startAt },
+        assignmentId,
         status: 'COMPLETED',
       },
       orderBy: { createdAt: 'desc' },
@@ -178,8 +177,7 @@ export async function AssignmentDetailAsync({
   if (assignment && percentAssigned > 0) {
     const latest = await prisma.teamFormationRequest.findFirst({
       where: {
-        ownerId: course.dosenId,
-        createdAt: { gte: assignment.startAt },
+        assignmentId,
         status: 'COMPLETED',
       },
       orderBy: { createdAt: 'desc' },

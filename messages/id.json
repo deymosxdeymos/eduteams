@@ -537,7 +537,12 @@
       "qualityScore": "Kualitas Skor",
       "searchStudents": "Cari mahasiswa...",
       "noStudentsFound": "Tidak ada mahasiswa yang ditemukan",
-      "tryDifferentSearch": "Coba kata kunci pencarian lain"
+      "tryDifferentSearch": "Coba kata kunci pencarian lain",
+      "formingTeams": "Membentuk kelompok...",
+      "formingTeamsDesc": "Sistem sedang memproses pembentukan kelompok. Proses ini biasanya memakan waktu beberapa detik hingga beberapa menit.",
+      "formationFailed": "Pembentukan kelompok gagal",
+      "formationFailedDesc": "Terjadi kesalahan saat membentuk kelompok. Silakan coba lagi.",
+      "retryFormation": "Coba Lagi"
     },
     "charts": {
       "viewAnalysis": "Lihat Analisis Jawaban Mahasiswa",

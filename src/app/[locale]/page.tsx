@@ -75,7 +75,7 @@ export default async function Home() {
 
         <section
           id='tentang'
-          className='relative bg-white -mt-56 sm:mt-0 animate-hills'
+          className='relative bg-white -mt-56 sm:mt-0 animate-hills z-10'
         >
           <div className='absolute inset-x-0 -top-6 sm:-top-10 -translate-y-[10%] sm:-translate-y-[60%] pointer-events-none z-10 flex justify-center'>
             <Image

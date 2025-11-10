@@ -93,24 +93,31 @@ export async function callEdu2comBackgroundTeamFormation(
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const startTime = performance.now();
   try {
     const endpoint =
       'https://ardid.iiia.csic.es/eduteams/edu2com/v1/backgroundTeamFormation';
 
     console.log(
-      `[Edu2com API] Calling background team formation for ${payload.people.length} people, ${payload.tasks.length} tasks`
+      `[Edu2com API] Calling background team formation for ${payload.people.length} people, ${payload.tasks.length} tasks (timeout: ${timeoutMs}ms)`
     );
 
+    const fetchStart = performance.now();
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
+    const fetchTime = performance.now() - fetchStart;
+    console.log(
+      `[Edu2com API] Fetch completed in ${fetchTime.toFixed(2)}ms, status: ${res.status}`
+    );
 
     if (res.status === 202) {
+      const totalTime = performance.now() - startTime;
       console.log(
-        '[Edu2com API] Request accepted (202) - processing in background'
+        `[Edu2com API] Request accepted (202) - processing in background. Total time: ${totalTime.toFixed(2)}ms`
       );
       return;
     }

@@ -57,8 +57,10 @@ const STUCK_REQUEST_TIMEOUT_MS = 3 * 60 * 1000; // Auto-fail background requests
 
 // POST /api/assignments/[id]/form-teams
 export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
+  const startTime = performance.now();
   try {
     const { id: assignmentId } = await ctx.params;
+    console.log(`[Team Formation] Starting for assignment: ${assignmentId}`);
 
     let body: unknown;
     try {
@@ -80,8 +82,10 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     }
 
     const { method, value } = parsedBody;
+    console.log(`[Team Formation] Method: ${method}, Value: ${value}`);
 
     // Verify assignment and ownership
+    const assignmentQueryStart = performance.now();
     const assignment = await prisma.assignment.findUnique({
       where: { id: assignmentId },
       select: {
@@ -91,6 +95,11 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         description: true,
       },
     });
+    const assignmentQueryTime = performance.now() - assignmentQueryStart;
+    console.log(
+      `[Team Formation] Assignment query took ${assignmentQueryTime.toFixed(2)}ms`
+    );
+
     if (!assignment) {
       return NextResponse.json(
         { success: false, error: 'Assignment not found' },
@@ -106,6 +115,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
 
     // Primary cleanup: Auto-fail stale requests when new team formation is attempted
     // (Runs immediately on each POST request - more reliable than daily cron on Hobby plan)
+    const cleanupStart = performance.now();
     const now = new Date();
     const staleCutoff = new Date(now.getTime() - STUCK_REQUEST_TIMEOUT_MS);
     await prisma.teamFormationRequest.updateMany({
@@ -121,6 +131,10 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         completedAt: now,
       },
     });
+    const cleanupTime = performance.now() - cleanupStart;
+    console.log(
+      `[Team Formation] Cleanup stale requests took ${cleanupTime.toFixed(2)}ms`
+    );
 
     const inFlight = await prisma.teamFormationRequest.findFirst({
       where: {
@@ -141,6 +155,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     }
 
     // Gather enrolled students for the course
+    const enrollmentQueryStart = performance.now();
     const enrollments = await prisma.courseEnrollment.findMany({
       where: { courseId: assignment.courseId },
       select: {
@@ -157,21 +172,41 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         },
       },
     });
+    const enrollmentQueryTime = performance.now() - enrollmentQueryStart;
+    console.log(
+      `[Team Formation] Enrollment query took ${enrollmentQueryTime.toFixed(2)}ms, found ${enrollments.length} students`
+    );
 
     // Get students who have submitted the assignment quiz
+    const submissionQueryStart = performance.now();
     const submissions = await prisma.assignmentSubmission.findMany({
       where: { assignmentId },
       select: { studentId: true },
     });
     const submittedStudentIds = new Set(submissions.map(s => s.studentId));
+    const submissionQueryTime = performance.now() - submissionQueryStart;
+    console.log(
+      `[Team Formation] Submission query took ${submissionQueryTime.toFixed(2)}ms, found ${submissions.length} submissions`
+    );
+
+    type PersonalityComplete<T> = T & {
+      ei: number;
+      sn: number;
+      tf: number;
+      pj: number;
+    };
 
     // Helper to check if student has valid personality scores
-    const hasValidPersonality = (student: {
-      ei: number | null;
-      sn: number | null;
-      tf: number | null;
-      pj: number | null;
-    }) => {
+    const hasValidPersonality = <
+      T extends {
+        ei: number | null;
+        sn: number | null;
+        tf: number | null;
+        pj: number | null;
+      },
+    >(
+      student: T
+    ): student is PersonalityComplete<T> => {
       return (
         student.ei !== null &&
         student.sn !== null &&
@@ -192,9 +227,9 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // 1. Have submitted the assignment quiz
     // 2. Have valid personality scores (MBTI)
     const allStudents = enrollments.map(e => e.student);
-    const students = allStudents.filter(
-      s => submittedStudentIds.has(s.id) && hasValidPersonality(s)
-    );
+    const students = allStudents
+      .filter(s => submittedStudentIds.has(s.id))
+      .filter(hasValidPersonality);
 
     const totalEnrolled = allStudents.length;
     const n = students.length;
@@ -257,10 +292,10 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       id: s.id,
       gender: normalizeGender(s.gender ?? undefined),
       personality: {
-        ei: s.ei!, // Safe to use non-null assertion after filtering
-        sn: s.sn!,
-        tf: s.tf!,
-        pj: s.pj!,
+        ei: s.ei,
+        sn: s.sn,
+        tf: s.tf,
+        pj: s.pj,
       },
       skills: (s.personSkills || [])
         .filter(ps => declaredSkillIds.includes(ps.skillId))
@@ -332,6 +367,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     }
 
     // Optionally load assignment topics and preferences
+    const topicQueryStart = performance.now();
     const topics = await prisma.assignmentTopic.findMany({
       where: { assignmentId },
       select: { id: true, name: true },
@@ -343,6 +379,11 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
           select: { assignmentTopicId: true, personId: true, preference: true },
         })
       : [];
+    const topicQueryTime = performance.now() - topicQueryStart;
+    console.log(
+      `[Team Formation] Topic queries took ${topicQueryTime.toFixed(2)}ms, found ${topics.length} topics, ${topicPrefs.length} preferences`
+    );
+
     const prefsByTopic = new Map<
       string,
       Array<{ personId: string; preference: number }>
@@ -465,6 +506,12 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // Create a TeamFormationRequest log
     const requestId = randomUUID();
     const replyPostUrl = buildEdu2comReplyPostUrl(requestId);
+    const dataPreparationTime = performance.now() - startTime;
+    console.log(
+      `[Team Formation] Data preparation completed in ${dataPreparationTime.toFixed(2)}ms`
+    );
+
+    const createRequestStart = performance.now();
     const tf = await prisma.teamFormationRequest.create({
       data: {
         id: requestId,
@@ -476,13 +523,27 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       },
       select: { id: true },
     });
+    const createRequestTime = performance.now() - createRequestStart;
+    console.log(
+      `[Team Formation] Creating TeamFormationRequest took ${createRequestTime.toFixed(2)}ms`
+    );
 
     // Call official Edu2com API endpoint (background mode)
+    const edu2comCallStart = performance.now();
+    console.log('[Team Formation] Calling Edu2com API...');
     try {
       await callEdu2comBackgroundTeamFormation({
         ...payload,
         replyPostUrl,
       });
+      const edu2comCallTime = performance.now() - edu2comCallStart;
+      const totalTime = performance.now() - startTime;
+      console.log(
+        `[Team Formation] Edu2com API call took ${edu2comCallTime.toFixed(2)}ms`
+      );
+      console.log(
+        `[Team Formation] Total request time: ${totalTime.toFixed(2)}ms`
+      );
 
       return NextResponse.json({
         success: true,
@@ -491,6 +552,12 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
           'Permintaan pembentukan kelompok sedang diproses di latar belakang. Hasil akan muncul setelah Edu2com selesai.',
       });
     } catch (err) {
+      const edu2comCallTime = performance.now() - edu2comCallStart;
+      console.log(
+        `[Team Formation] Edu2com API call failed after ${edu2comCallTime.toFixed(2)}ms`
+      );
+      console.error('[Team Formation] Edu2com API error:', err);
+
       const text = err instanceof Error ? err.message : String(err);
       const abort = isAbortError(err);
       const httpError = err instanceof HttpError ? err : undefined;

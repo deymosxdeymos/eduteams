@@ -2,11 +2,15 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
+import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
+import { Button } from '@/components/ui/button';
+import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
+import { useRouter } from '@/i18n/routing';
 import type { AssignmentStats } from '@/lib/stats/assignment';
 
 interface TeamMemberUser {
@@ -66,7 +70,41 @@ export function AssignmentContent({
   incompleteStudentCount = 0,
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
+  const tTeams = useTranslations('dashboard.teams');
+  const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [retryModalSignal, setRetryModalSignal] = useState(0);
+
+  const shouldFetchStatus = !isStudent;
+  const shouldPollStatus = shouldFetchStatus && isTeamFormationProcessing;
+
+  // Poll for team formation status for teachers; only keep interval while processing
+  const { status, errorMessage } = useTeamFormationStatus({
+    assignmentId,
+    enabled: shouldFetchStatus,
+    shouldPoll: shouldPollStatus,
+    onComplete: () => {
+      // Auto-refresh when team formation completes
+      router.refresh();
+    },
+    onFailed: error => {
+      // Show error message inline
+      setShowError(true);
+      console.error('Team formation failed:', error);
+    },
+  });
+
+  useEffect(() => {
+    if (status !== 'FAILED' && showError) {
+      setShowError(false);
+    }
+  }, [status, showError]);
+
+  const handleRetry = () => {
+    setShowError(false);
+    setRetryModalSignal(prev => prev + 1);
+  };
 
   return (
     <div className='flex-1 p-8 min-h-0'>
@@ -83,6 +121,7 @@ export function AssignmentContent({
           searchValue={searchValue}
           isTeamFormationProcessing={isTeamFormationProcessing}
           incompleteStudentCount={incompleteStudentCount}
+          retryFormationModalSignal={retryModalSignal}
         />
 
         {isStudent ? (
@@ -117,6 +156,30 @@ export function AssignmentContent({
               </div>
             </div>
           )
+        ) : isTeamFormationProcessing && status !== 'FAILED' ? (
+          // Show loading animation for teachers when team formation is processing
+          <TeamFormationLoading />
+        ) : showError || status === 'FAILED' ? (
+          // Show error message with retry button
+          <div className='flex-1 flex items-center justify-center'>
+            <div className='flex flex-col items-center text-center max-w-xl gap-4'>
+              <div className='rounded-2xl border border-red-200 bg-red-50 text-red-900 px-6 py-4'>
+                <h3 className='font-semibold text-lg mb-2'>
+                  {tTeams('formationFailed')}
+                </h3>
+                <p className='text-sm text-red-700'>
+                  {errorMessage || tTeams('formationFailedDesc')}
+                </p>
+              </div>
+              <Button
+                onClick={handleRetry}
+                variant='onboarding'
+                className='rounded-full px-8 py-6'
+              >
+                {tTeams('retryFormation')}
+              </Button>
+            </div>
+          </div>
         ) : (
           <>
             <ChartsToggle

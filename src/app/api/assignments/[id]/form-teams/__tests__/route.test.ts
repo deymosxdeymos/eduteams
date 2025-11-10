@@ -89,6 +89,15 @@ const prismaMock: any = {
     create: mock(async () => ({ id: 'tfr1' })),
     update: mock(async () => ({ id: 'tfr1' })),
     findFirst: mock(async () => null),
+    updateMany: mock(async () => ({ count: 0 })),
+  },
+  assignmentSubmission: {
+    findMany: mock(async () => [
+      { studentId: 's1' },
+      { studentId: 's2' },
+      { studentId: 's3' },
+      { studentId: 's4' },
+    ]),
   },
 };
 

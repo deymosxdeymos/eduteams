@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ExportButtons } from '@/components/dashboard/export-buttons';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ interface AssignmentActionsProps {
   onSearchChange?: (value: string) => void;
   isTeamFormationProcessing?: boolean;
   incompleteStudentCount?: number;
+  retryFormationModalSignal?: number;
 }
 
 export function AssignmentActions({
@@ -49,6 +50,7 @@ export function AssignmentActions({
   onSearchChange,
   isTeamFormationProcessing = false,
   incompleteStudentCount = 0,
+  retryFormationModalSignal = 0,
 }: AssignmentActionsProps) {
   const router = useRouter();
   const t = useTranslations('dashboard.assignment.actions');
@@ -62,6 +64,7 @@ export function AssignmentActions({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const lastRetrySignalRef = useRef(retryFormationModalSignal);
   const createButtonLabel = hasTeams
     ? t('recreateTeamsButton')
     : t('createTeamsButton');
@@ -71,6 +74,16 @@ export function AssignmentActions({
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !disableForm
   );
+
+  useEffect(() => {
+    if (retryFormationModalSignal === lastRetrySignalRef.current) return;
+    lastRetrySignalRef.current = retryFormationModalSignal;
+    if (!canManage) return;
+    setModalOpen(true);
+    setWarningOpen(false);
+    setError('');
+    setSuccess('');
+  }, [retryFormationModalSignal, canManage]);
 
   const handleModalOpenChange = (open: boolean) => {
     setModalOpen(open);
@@ -154,12 +167,6 @@ export function AssignmentActions({
                   </p>
                 </DialogHeader>
                 <div className='p-6 pt-0 space-y-5'>
-                  {isProcessing && (
-                    <div className='rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm'>
-                      {t('inProgressNotice')}
-                    </div>
-                  )}
-
                   <div className='space-y-2'>
                     <label className='text-sm font-medium text-gray-900'>
                       {t('methodLabel')}
@@ -308,12 +315,6 @@ export function AssignmentActions({
                 </div>
               </DialogContent>
             </Dialog>
-
-            {isProcessing && (
-              <p className='text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 font-medium'>
-                {t('inProgressNotice')}
-              </p>
-            )}
           </div>
         )}
 

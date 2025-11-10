@@ -10,12 +10,15 @@ import prisma from '@/lib/prisma';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  const startTime = performance.now();
   try {
     const url = new URL(req.url);
     const requestId = url.searchParams.get('requestId');
     const token = url.searchParams.get('token');
+    console.log(`[Webhook] Received callback for request: ${requestId}`);
 
     if (!requestId || !verifyEdu2comWebhookToken(requestId, token)) {
+      console.log('[Webhook] Unauthorized: Invalid requestId or token');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -32,8 +35,15 @@ export async function POST(req: Request) {
       );
     }
 
+    const parseStart = performance.now();
     const parsed = edu2comTeamsResponseSchema.safeParse(payload);
+    const parseTime = performance.now() - parseStart;
+    console.log(
+      `[Webhook] Payload parsing took ${parseTime.toFixed(2)}ms, valid: ${parsed.success}`
+    );
+
     if (!parsed.success) {
+      console.error('[Webhook] Invalid payload:', parsed.error.message);
       await prisma.teamFormationRequest
         .update({
           where: { id: requestId },
@@ -51,12 +61,18 @@ export async function POST(req: Request) {
       );
     }
 
+    const requestQueryStart = performance.now();
     const requestRecord = await prisma.teamFormationRequest.findUnique({
       where: { id: requestId },
       select: { id: true, assignmentId: true },
     });
+    const requestQueryTime = performance.now() - requestQueryStart;
+    console.log(
+      `[Webhook] Request record query took ${requestQueryTime.toFixed(2)}ms`
+    );
 
     if (!requestRecord) {
+      console.log('[Webhook] Team formation request not found');
       return NextResponse.json(
         { success: false, error: 'Team formation request not found' },
         { status: 404 }
@@ -64,7 +80,11 @@ export async function POST(req: Request) {
     }
 
     const teamsPayload = parsed.data;
+    console.log(
+      `[Webhook] Received ${teamsPayload.teams.length} teams from Edu2com`
+    );
 
+    const transactionStart = performance.now();
     try {
       await prisma.$transaction([
         prisma.team.deleteMany({
@@ -93,9 +113,13 @@ export async function POST(req: Request) {
           },
         }),
       ]);
+      const transactionTime = performance.now() - transactionStart;
+      console.log(
+        `[Webhook] Database transaction took ${transactionTime.toFixed(2)}ms`
+      );
 
       console.log(
-        `[Edu2com Webhook] Successfully processed ${teamsPayload.teams.length} teams for request ${requestId}`
+        `[Webhook] Successfully processed ${teamsPayload.teams.length} teams for request ${requestId}`
       );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -127,15 +151,25 @@ export async function POST(req: Request) {
     }
 
     if (requestRecord.assignmentId) {
+      const assignmentUpdateStart = performance.now();
       await prisma.assignment
         .update({
           where: { id: requestRecord.assignmentId },
           data: { status: 'BERHASIL_PEMBAGIAN_GRUP' },
         })
         .catch(() => {});
+      const assignmentUpdateTime = performance.now() - assignmentUpdateStart;
+      console.log(
+        `[Webhook] Assignment status update took ${assignmentUpdateTime.toFixed(2)}ms`
+      );
     }
 
     revalidateTag(DASHBOARD_STATISTICS_TAG);
+
+    const totalTime = performance.now() - startTime;
+    console.log(
+      `[Webhook] Total webhook processing time: ${totalTime.toFixed(2)}ms`
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

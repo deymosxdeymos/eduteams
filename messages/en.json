@@ -538,7 +538,12 @@
       "qualityScore": "Quality Score",
       "searchStudents": "Search students...",
       "noStudentsFound": "No students found",
-      "tryDifferentSearch": "Try a different search term"
+      "tryDifferentSearch": "Try a different search term",
+      "formingTeams": "Forming teams...",
+      "formingTeamsDesc": "The system is processing team formation. This usually takes a few seconds to a few minutes.",
+      "formationFailed": "Team formation failed",
+      "formationFailedDesc": "An error occurred while forming teams. Please try again.",
+      "retryFormation": "Try Again"
     },
     "charts": {
       "viewAnalysis": "View Student Answer Analysis",
