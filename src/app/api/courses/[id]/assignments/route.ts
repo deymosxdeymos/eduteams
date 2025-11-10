@@ -34,11 +34,13 @@ export const GET = withAuth<{ id: string }>(
       if (isDosen) {
         const course = await prisma.course.findFirst({
           where: { id: courseId, dosenId: user.id },
+          select: { id: true },
         });
         if (!course) return createErrorResponse('Course not found', 404);
       } else if (isMahasiswa) {
         const enrollment = await prisma.courseEnrollment.findUnique({
           where: { courseId_studentId: { courseId, studentId: user.id } },
+          select: { courseId: true },
         });
         if (!enrollment) return createErrorResponse('Course not found', 404);
       }

@@ -41,6 +41,7 @@ export async function GET(
           id: courseId,
           dosenId: user.id,
         },
+        select: { id: true },
       });
       hasAccess = !!course;
     } else if (isMahasiswa) {
@@ -52,6 +53,7 @@ export async function GET(
             studentId: user.id,
           },
         },
+        select: { courseId: true },
       });
       hasAccess = !!enrollment;
     }

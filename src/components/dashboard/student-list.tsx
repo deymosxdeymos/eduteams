@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, MoreVertical, Search, Trash2, X } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,7 +73,7 @@ const convertToExtendedUser = (student: Student): ExtendedUser =>
     personalityData: null,
   }) as ExtendedUser;
 
-export function StudentList({
+export const StudentList = memo(function StudentList({
   classId,
   initialData,
   currentUserId,
@@ -186,36 +186,42 @@ export function StudentList({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isSelectMode]);
 
-  const onRemoveStudent = async (studentId: string) => {
-    setIsRemoving(true);
-    setRemoveError(null);
-    try {
-      const res = await fetch(`/api/courses/${classId}/students/${studentId}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(json?.error || t('errors.removeFailed'));
+  const onRemoveStudent = useCallback(
+    async (studentId: string) => {
+      setIsRemoving(true);
+      setRemoveError(null);
+      try {
+        const res = await fetch(
+          `/api/courses/${classId}/students/${studentId}`,
+          {
+            method: 'DELETE',
+          }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(json?.error || t('errors.removeFailed'));
+        }
+        // Refresh list if using SWR; otherwise optimistically filter from fallback
+        if (shouldFetch) {
+          await mutate();
+        }
+        setConfirmStudentId(null);
+        setOpenMenuStudentId(null);
+        // If removing from modal, close it and clear selection
+        if (selectedStudent && selectedStudent.id === studentId) {
+          setIsMbtiOpen(false);
+          setSelectedStudent(null);
+        }
+      } catch (err) {
+        setRemoveError(err instanceof Error ? err.message : t('errors.error'));
+      } finally {
+        setIsRemoving(false);
       }
-      // Refresh list if using SWR; otherwise optimistically filter from fallback
-      if (shouldFetch) {
-        await mutate();
-      }
-      setConfirmStudentId(null);
-      setOpenMenuStudentId(null);
-      // If removing from modal, close it and clear selection
-      if (selectedStudent && selectedStudent.id === studentId) {
-        setIsMbtiOpen(false);
-        setSelectedStudent(null);
-      }
-    } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : t('errors.error'));
-    } finally {
-      setIsRemoving(false);
-    }
-  };
+    },
+    [classId, t, shouldFetch, mutate, selectedStudent]
+  );
 
-  const onBulkRemoveStudents = async () => {
+  const onBulkRemoveStudents = useCallback(async () => {
     setIsRemoving(true);
     setRemoveError(null);
     const idsToRemove = Array.from(selectedStudentIds);
@@ -267,7 +273,7 @@ export function StudentList({
     } finally {
       setIsRemoving(false);
     }
-  };
+  }, [selectedStudentIds, classId, t, shouldFetch, mutate]);
 
   return (
     <div
@@ -783,4 +789,4 @@ export function StudentList({
       </Dialog>
     </div>
   );
-}
+});

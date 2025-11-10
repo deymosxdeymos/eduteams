@@ -1,3 +1,5 @@
+import { unstable_cache } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import prisma from '@/lib/prisma';
 
 export interface DosenCourseSummary {
@@ -66,5 +68,13 @@ async function fetchCoursesForDosen(
 export async function getCoursesForDosen(
   userId: string
 ): Promise<DosenCourseSummary[]> {
-  return fetchCoursesForDosen(userId);
+  const fetcher = unstable_cache(
+    () => fetchCoursesForDosen(userId),
+    ['courses:dosen', userId],
+    {
+      tags: [CACHE_TAGS.coursesByDosen(userId)],
+    }
+  );
+
+  return fetcher();
 }

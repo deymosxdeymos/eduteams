@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 
 interface ClassCardProps {
@@ -34,7 +35,7 @@ const getClassBadgeColor = (classCode: string) => {
   );
 };
 
-export function ClassCard({
+export const ClassCard = memo(function ClassCard({
   id,
   title,
   academicYear,
@@ -96,4 +97,4 @@ export function ClassCard({
       </div>
     </div>
   );
-}
+});

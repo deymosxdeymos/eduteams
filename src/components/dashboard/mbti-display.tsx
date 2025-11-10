@@ -12,13 +12,6 @@ interface MBTIDisplayProps {
 export function MBTIDisplay({ user }: MBTIDisplayProps) {
   const colorScheme = getMBTIColorScheme(user.mbtiType);
 
-  // Debug logging
-  console.log('MBTIDisplay:', {
-    userMbtiType: user.mbtiType,
-    userMbtiTypeType: typeof user.mbtiType,
-    colorScheme: colorScheme,
-  });
-
   // If no MBTI type, show placeholder
   if (!user.mbtiType) {
     return (

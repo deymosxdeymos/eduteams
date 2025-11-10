@@ -35,6 +35,7 @@ export default function Nav({
           alt='mascot'
           className='h-12 w-auto'
           style={{ width: 'auto' }}
+          priority
         />
         <div className='leading-loose flex items-center'>
           {className ? (

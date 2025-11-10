@@ -35,9 +35,10 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         return createErrorResponse('Not enrolled in this course', 403);
       }
 
-      // Check if assignment exists
+      // Check if assignment exists and fetch all needed fields at once
       const assignment = await prisma.assignment.findUnique({
         where: { id: assignmentId, courseId },
+        select: { id: true, description: true, structureVersion: true },
       });
 
       if (!assignment) {
@@ -89,13 +90,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       const arraysParse = ArraysSchema.safeParse(body);
       const mapsParse = MapsSchema.safeParse(body);
 
-      // Fetch assignment to recover skills/topics names if needed
-      const dbAssignment = await prisma.assignment.findUnique({
-        where: { id: assignmentId, courseId },
-        select: { id: true, description: true, structureVersion: true },
-      });
-      if (!dbAssignment)
-        return createErrorResponse('Assignment not found', 404);
+      // Use already fetched assignment data
+      const dbAssignment = assignment;
 
       let skillsToPersist: Array<{
         name: string;
