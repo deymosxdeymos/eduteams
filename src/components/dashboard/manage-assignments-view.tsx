@@ -10,8 +10,15 @@ import {
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { parseAsBoolean, useQueryState } from 'nuqs';
+import {
+  memo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { EditAssignmentModal } from '@/components/dashboard/edit-assignment-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -152,7 +159,7 @@ function DeleteAssignmentDialog(): ReactNode {
   );
 }
 
-export function ManageAssignmentsView({
+export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   assignments,
   courseId,
   searchPlaceholder,
@@ -162,8 +169,15 @@ export function ManageAssignmentsView({
   onArchiveToggle,
 }: ManageAssignmentsViewProps) {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showArchived, setShowArchived] = useState(false);
+  const [searchTerm, setSearchTerm] = useQueryState('search', {
+    defaultValue: '',
+    shallow: true,
+  });
+  const [showArchived, setShowArchived] = useQueryState('archived', {
+    ...parseAsBoolean,
+    defaultValue: false,
+    shallow: true,
+  });
   const [pendingAssignmentId, setPendingAssignmentId] = useState<string | null>(
     null
   );
@@ -392,4 +406,4 @@ export function ManageAssignmentsView({
       )}
     </section>
   );
-}
+});

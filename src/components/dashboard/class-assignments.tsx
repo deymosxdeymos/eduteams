@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Calendar, Plus, Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useQueryState } from 'nuqs';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
@@ -56,7 +57,10 @@ export function ClassAssignments({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCreateAssignmentModalOpen, setIsCreateAssignmentModalOpen] =
     useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useQueryState('search', {
+    defaultValue: '',
+    shallow: true,
+  });
 
   // Use courseData if provided, otherwise fetch via SWR
   const { data: classData, error } = useSWR(

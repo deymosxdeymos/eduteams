@@ -67,26 +67,23 @@ export async function GET() {
 
     const submissionSet = new Set(submissions.map(s => s.assignmentId));
 
-    // Count not-started assignments
-    let notStartedCount = 0;
-    for (const assignment of assignments) {
-      const hasSubmission = submissionSet.has(assignment.id);
-      let teamFormation = assignment.teamFormationRequests[0];
-
-      // Fallback for legacy data: if no team formation found with assignmentId,
-      // try to find the most recent completed team formation for this assignment's owner
-      if (!teamFormation) {
-        const legacyTeamFormation = await prisma.teamFormationRequest.findFirst(
-          {
+    // Batch fetch all legacy team formations to avoid N+1 query
+    const assignmentsNeedingLegacy = assignments.filter(
+      a => a.teamFormationRequests.length === 0
+    );
+    const legacyTeamFormations =
+      assignmentsNeedingLegacy.length > 0
+        ? await prisma.teamFormationRequest.findMany({
             where: {
-              ownerId: assignment.createdById,
+              ownerId: {
+                in: assignmentsNeedingLegacy.map(a => a.createdById),
+              },
               assignmentId: null,
               status: 'COMPLETED',
-              createdAt: assignment.startAt
-                ? { gte: assignment.startAt }
-                : undefined,
             },
             select: {
+              ownerId: true,
+              createdAt: true,
               teams: {
                 select: {
                   members: {
@@ -98,11 +95,34 @@ export async function GET() {
               },
             },
             orderBy: { createdAt: 'desc' },
-          }
-        );
+          })
+        : [];
 
-        if (legacyTeamFormation) {
-          teamFormation = legacyTeamFormation;
+    // Create a map of ownerId -> legacy team formation for quick lookup
+    const legacyByOwner = new Map<
+      string,
+      (typeof legacyTeamFormations)[number]
+    >();
+    for (const legacy of legacyTeamFormations) {
+      if (!legacyByOwner.has(legacy.ownerId)) {
+        legacyByOwner.set(legacy.ownerId, legacy);
+      }
+    }
+
+    // Count not-started assignments
+    let notStartedCount = 0;
+    for (const assignment of assignments) {
+      const hasSubmission = submissionSet.has(assignment.id);
+      let teamFormation = assignment.teamFormationRequests[0];
+
+      // Fallback for legacy data: use pre-fetched legacy team formation
+      if (!teamFormation) {
+        const legacy = legacyByOwner.get(assignment.createdById);
+        if (
+          legacy &&
+          (!assignment.startAt || legacy.createdAt >= assignment.startAt)
+        ) {
+          teamFormation = legacy;
         }
       }
 

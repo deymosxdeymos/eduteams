@@ -34,6 +34,7 @@ export function ProfileHeader({
               alt={`${user.mbtiType} Logo`}
               width={50}
               height={50}
+              priority
             />
           ) : (
             <div className='w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center'>

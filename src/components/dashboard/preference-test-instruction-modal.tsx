@@ -47,6 +47,7 @@ export default function PreferenceTestInstructionModal({
               height={120}
               alt='INFP'
               className='absolute -top-20 left-1/2 transform -translate-x-1/2 z-10'
+              priority
             />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}

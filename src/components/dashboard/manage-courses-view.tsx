@@ -15,8 +15,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import {
   type MouseEvent,
+  memo,
   type ReactNode,
   useCallback,
   useMemo,
@@ -561,7 +563,7 @@ function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
   );
 }
 
-export function ManageCoursesView({
+export const ManageCoursesView = memo(function ManageCoursesView({
   courses,
   searchPlaceholder,
   archivedLabel,
@@ -571,9 +573,20 @@ export function ManageCoursesView({
   onArchiveToggle,
 }: ManageCoursesViewProps) {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>('recent');
-  const [showArchived, setShowArchived] = useState(false);
+  const [searchTerm, setSearchTerm] = useQueryState('search', {
+    defaultValue: '',
+    shallow: true,
+  });
+  const [sortKey, setSortKey] = useQueryState('sort', {
+    ...parseAsStringLiteral(['recent', 'name-asc', 'year-desc'] as const),
+    defaultValue: 'recent' as SortKey,
+    shallow: true,
+  });
+  const [showArchived, setShowArchived] = useQueryState('archived', {
+    ...parseAsBoolean,
+    defaultValue: false,
+    shallow: true,
+  });
   const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
   const handleArchiveToggle = useCallback(
     (course: ManageCourseRow) => {
@@ -754,4 +767,4 @@ export function ManageCoursesView({
       </div>
     </section>
   );
-}
+});

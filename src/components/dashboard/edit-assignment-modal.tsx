@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -102,43 +102,55 @@ export function EditAssignmentModal({
     onOpenChange(false);
   };
 
-  const addSkill = () => {
+  const addSkill = useCallback(() => {
     const trimmedInput = skillInput.trim();
     if (trimmedInput && !skills.includes(trimmedInput)) {
       setSkills([...skills, trimmedInput]);
       setSkillInput('');
     }
-  };
+  }, [skillInput, skills]);
 
-  const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove));
-  };
+  const removeSkill = useCallback(
+    (skillToRemove: string) => {
+      setSkills(skills.filter(skill => skill !== skillToRemove));
+    },
+    [skills]
+  );
 
-  const addTopic = () => {
+  const addTopic = useCallback(() => {
     const trimmedInput = topicInput.trim();
     if (trimmedInput && !topics.includes(trimmedInput)) {
       setTopics([...topics, trimmedInput]);
       setTopicInput('');
     }
-  };
+  }, [topicInput, topics]);
 
-  const removeTopic = (topicToRemove: string) => {
-    setTopics(topics.filter(topic => topic !== topicToRemove));
-  };
+  const removeTopic = useCallback(
+    (topicToRemove: string) => {
+      setTopics(topics.filter(topic => topic !== topicToRemove));
+    },
+    [topics]
+  );
 
-  const handleSkillKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addSkill();
-    }
-  };
+  const handleSkillKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addSkill();
+      }
+    },
+    [addSkill]
+  );
 
-  const handleTopicKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTopic();
-    }
-  };
+  const handleTopicKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addTopic();
+      }
+    },
+    [addTopic]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
