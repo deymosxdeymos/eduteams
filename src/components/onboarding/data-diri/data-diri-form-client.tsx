@@ -103,7 +103,7 @@ export default function DataDiriFormClient({
   const nimWrapperRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const formSchema = createFormSchema(role, dict);
-  type FormData = z.infer<typeof formSchema>;
+  type FormData = z.infer<typeof formSchema> & { nim?: string };
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -206,10 +206,10 @@ export default function DataDiriFormClient({
           )}
         />
 
-{role === 'mahasiswa' && (
+        {role === 'mahasiswa' && (
           <FormField
             control={form.control}
-            name={'nim' as any}
+            name='nim'
             render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel

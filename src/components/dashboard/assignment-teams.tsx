@@ -77,7 +77,9 @@ export async function AssignmentTeams({
           where: { assignmentId, id: { in: taskIdByIndex } },
           select: { id: true, name: true },
         })
-        .then(rows => Object.fromEntries(rows.map(r => [r.id, r.name] as const)))
+        .then(rows =>
+          Object.fromEntries(rows.map(r => [r.id, r.name] as const))
+        )
     : {};
 
   return (

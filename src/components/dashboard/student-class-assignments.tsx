@@ -6,10 +6,10 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Link, useRouter } from '@/i18n/routing';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { Course } from '@/lib/types';
 import type { AssignmentClient } from '@/lib/validation/assignments';
-import { useRouter } from '@/i18n/routing';
 import { EmptyStudentAssignmentState } from './empty-student-assignment-state';
 import { SearchInput } from './search-input';
 
@@ -94,13 +94,10 @@ export function StudentClassAssignments({
     <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
       <div className='p-6'>
         <div className='flex items-center gap-4'>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => router.push('/dashboard')}
-            className='rounded-full'
-          >
-            <ArrowLeft strokeWidth={2} className='w-5 h-5 text-gray-600' />
+          <Button variant='ghost' size='icon' className='rounded-full' asChild>
+            <Link href='/dashboard' prefetch>
+              <ArrowLeft strokeWidth={2} className='w-5 h-5 text-gray-600' />
+            </Link>
           </Button>
 
           <span className='text-gray-600 font-medium'>{t('back')}</span>

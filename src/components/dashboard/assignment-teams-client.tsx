@@ -75,7 +75,7 @@ export function AssignmentTeamsClient({
         const name = member.user.name?.toLowerCase() ?? '';
         const nim = member.user.nim?.toLowerCase() ?? '';
         return name.includes(searchTerm) || nim.includes(searchTerm);
-      }),
+      })
     );
   }, [teamsWithTopics, searchValue]);
 

@@ -284,12 +284,20 @@ describe('Authorization Functions', () => {
     });
 
     it('returns true for dosen without name', () => {
-      const user = createMockUser({ role: 'dosen', name: undefined, gender: 'MALE' });
+      const user = createMockUser({
+        role: 'dosen',
+        name: undefined,
+        gender: 'MALE',
+      });
       expect(needsDataDiri(user)).toBe(true);
     });
 
     it('returns true for dosen without gender', () => {
-      const user = createMockUser({ role: 'dosen', name: 'Test', gender: null });
+      const user = createMockUser({
+        role: 'dosen',
+        name: 'Test',
+        gender: null,
+      });
       expect(needsDataDiri(user)).toBe(true);
     });
 
@@ -299,7 +307,11 @@ describe('Authorization Functions', () => {
     });
 
     it('returns false for dosen with name and gender', () => {
-      const user = createMockUser({ role: 'dosen', name: 'Test', gender: 'MALE' });
+      const user = createMockUser({
+        role: 'dosen',
+        name: 'Test',
+        gender: 'MALE',
+      });
       expect(needsDataDiri(user)).toBe(false);
     });
 
@@ -350,7 +362,11 @@ describe('Authorization Functions', () => {
     });
 
     it('returns data-diri for dosen without name or gender', () => {
-      const user = createMockUser({ role: 'dosen', name: undefined, gender: null });
+      const user = createMockUser({
+        role: 'dosen',
+        name: undefined,
+        gender: null,
+      });
       expect(getNextOnboardingStep(user)).toBe('/onboarding/data-diri/dosen');
     });
 

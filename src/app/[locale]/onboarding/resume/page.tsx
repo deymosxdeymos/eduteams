@@ -21,6 +21,16 @@ export default async function ResumePage({
     return <SessionClearClient />;
   }
 
+  let userOnboarded = user.isOnboarded;
+  const markUserOnboarded = async () => {
+    if (userOnboarded) return;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isOnboarded: true },
+    });
+    userOnboarded = true;
+  };
+
   if (user.isOnboarded) {
     redirect('/dashboard');
   }
@@ -66,20 +76,13 @@ export default async function ResumePage({
       redirect('/onboarding/kepribadian');
     }
 
-    // Mark user as onboarded before redirecting to dashboard
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { isOnboarded: true },
-    });
+    await markUserOnboarded();
 
     redirect('/dashboard?firstVisit=true');
   }
 
   // Mark user as onboarded before redirecting to dashboard
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { isOnboarded: true },
-  });
+  await markUserOnboarded();
 
   redirect('/dashboard?firstVisit=true');
 }

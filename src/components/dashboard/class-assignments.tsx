@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Link, useRouter } from '@/i18n/routing';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
-import { useRouter } from '@/i18n/routing';
 import { CreateAssignmentModal } from './create-assignment-modal';
 import { EmptyAssignmentState } from './empty-assignment-state';
 import { SearchInput } from './search-input';
@@ -121,13 +121,10 @@ export function ClassAssignments({
     <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
       <div className='p-6'>
         <div className='flex items-center gap-4'>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => router.push('/dashboard')}
-            className='rounded-full'
-          >
-            <ArrowLeft strokeWidth={2} className='w-5 h-5 text-gray-600' />
+          <Button variant='ghost' size='icon' className='rounded-full' asChild>
+            <Link href='/dashboard' prefetch>
+              <ArrowLeft strokeWidth={2} className='w-5 h-5 text-gray-600' />
+            </Link>
           </Button>
 
           <Button

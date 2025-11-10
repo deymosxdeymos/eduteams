@@ -657,7 +657,9 @@ async function seedStudents(args: Args): Promise<void> {
     });
 
     if (questions.length === 0) {
-      console.log('⚠️  No personality questions found in database. Skipping personality data.');
+      console.log(
+        '⚠️  No personality questions found in database. Skipping personality data.'
+      );
     } else {
       const questionIds = questions.map(q => q.id);
 
@@ -675,7 +677,9 @@ async function seedStudents(args: Args): Promise<void> {
       }
     }
   } else {
-    console.log('\n⏭️  Skipping personality test data (--skipPersonality enabled)');
+    console.log(
+      '\n⏭️  Skipping personality test data (--skipPersonality enabled)'
+    );
   }
 
   console.log('\n🛠️  Assigning skills...');

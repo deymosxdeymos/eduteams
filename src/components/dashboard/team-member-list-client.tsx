@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { MBTIOverviewLayout } from '@/components/dashboard/mbti-overview-layout';
+import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,9 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
-import { MBTIOverviewLayout } from '@/components/dashboard/mbti-overview-layout';
 import type { ExtendedUser } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface TeamMemberUser {
   id: string;
@@ -94,9 +94,12 @@ export function TeamMemberListClient({
     setIsRemoving(true);
     setRemoveError(null);
     try {
-      const res = await fetch(`/api/courses/${courseId}/students/${studentId}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(
+        `/api/courses/${courseId}/students/${studentId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json?.error || t('errors.removeFailed'));
@@ -200,7 +203,8 @@ export function TeamMemberListClient({
                   student={memberUser}
                   canManage={canManage}
                   onRemoveStudent={() =>
-                    selectedMember && setConfirmStudentId(selectedMember.user.id)
+                    selectedMember &&
+                    setConfirmStudentId(selectedMember.user.id)
                   }
                   onClose={() => setIsProfileOpen(false)}
                   onShowMBTI={() => setModalContent('mbti')}

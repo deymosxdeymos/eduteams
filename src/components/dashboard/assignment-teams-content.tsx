@@ -65,56 +65,56 @@ export function AssignmentTeamsContent({
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
           {teams.map((team, idx) => {
-          const topicName = team.topicName || '-';
-          const qualityPct =
-            team.quality != null ? Math.round(team.quality * 100) : null;
-          const hasTopic = topicName && topicName !== '-';
-          const groupNumber = team.groupNumber ?? idx + 1;
-          return (
-            <div
-              key={team.id}
-              className='border rounded-xl shadow-sm p-4 flex flex-col gap-3'
-            >
-              <div className='flex items-start justify-between gap-3'>
-                <h2 className='font-bold text-2xl text-gray-800 uppercase'>
-                  {t('group')} {pad(groupNumber)}
-                </h2>
-                {isStudent ? (
-                  hasTopic ? (
-                    <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
-                      {t('topic')}: {topicName}
+            const topicName = team.topicName || '-';
+            const qualityPct =
+              team.quality != null ? Math.round(team.quality * 100) : null;
+            const hasTopic = topicName && topicName !== '-';
+            const groupNumber = team.groupNumber ?? idx + 1;
+            return (
+              <div
+                key={team.id}
+                className='border rounded-xl shadow-sm p-4 flex flex-col gap-3'
+              >
+                <div className='flex items-start justify-between gap-3'>
+                  <h2 className='font-bold text-2xl text-gray-800 uppercase'>
+                    {t('group')} {pad(groupNumber)}
+                  </h2>
+                  {isStudent ? (
+                    hasTopic ? (
+                      <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
+                        {t('topic')}: {topicName}
+                      </div>
+                    ) : null
+                  ) : (
+                    <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
+                      <div className='rounded-sm bg-green-50 text-green-900 px-2 py-0.5 text-xs'>
+                        {t('qualityScore')}:{' '}
+                        {qualityPct != null ? `${qualityPct}%` : '-'}
+                      </div>
+                      <div className='rounded-sm bg-sky-50 text-sky-900 px-2 py-0.5 text-xs'>
+                        {t('topic')}: {hasTopic ? topicName : '-'}
+                      </div>
                     </div>
-                  ) : null
-                ) : (
-                  <div className='flex flex-col items-end gap-1 text-sm text-gray-600'>
-                    <div className='rounded-sm bg-green-50 text-green-900 px-2 py-0.5 text-xs'>
-                      {t('qualityScore')}:{' '}
-                      {qualityPct != null ? `${qualityPct}%` : '-'}
-                    </div>
-                    <div className='rounded-sm bg-sky-50 text-sky-900 px-2 py-0.5 text-xs'>
-                      {t('topic')}: {hasTopic ? topicName : '-'}
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                <TeamMemberListClient
+                  members={team.members.map(m => ({
+                    id: m.id,
+                    user: {
+                      id: m.user.id,
+                      name: m.user.name,
+                      email: m.user.email,
+                      mbtiType: m.user.mbtiType as unknown as string | null,
+                      nim: m.user.nim,
+                    },
+                  }))}
+                  courseId={courseId}
+                  searchValue={searchValue}
+                  canManage={canManage}
+                />
               </div>
-              <TeamMemberListClient
-                members={team.members.map(m => ({
-                  id: m.id,
-                  user: {
-                    id: m.user.id,
-                    name: m.user.name,
-                    email: m.user.email,
-                    mbtiType: m.user.mbtiType as unknown as string | null,
-                    nim: m.user.nim,
-                  },
-                }))}
-                courseId={courseId}
-                searchValue={searchValue}
-                canManage={canManage}
-              />
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
       )}
     </div>
