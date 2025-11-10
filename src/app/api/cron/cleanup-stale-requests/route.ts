@@ -4,16 +4,17 @@ import prisma from '@/lib/prisma';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const STUCK_REQUEST_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+const STUCK_REQUEST_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours (Hobby plan runs once daily)
 
-// Vercel Cron Job endpoint - runs every 10 minutes to clean up stale requests
+// Vercel Cron Job endpoint - runs daily at 2 AM to clean up stale requests
 export async function GET(req: Request) {
-  // Verify cron secret for security
+  // Verify cron secret for security (Vercel automatically sets CRON_SECRET from dashboard)
   const authHeader = req.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
+  // Vercel automatically sends the CRON_SECRET as a bearer token
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] Unauthorized cleanup attempt - invalid CRON_SECRET');
+    console.warn('[Cron] Unauthorized cleanup attempt - invalid bearer token');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

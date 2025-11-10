@@ -53,7 +53,7 @@ const BODY_SCHEMA = z
   .strict();
 
 export const runtime = 'nodejs';
-const STUCK_REQUEST_TIMEOUT_MS = 10 * 60 * 1000; // Auto-fail background requests after 10 minutes
+const STUCK_REQUEST_TIMEOUT_MS = 3 * 60 * 1000; // Auto-fail background requests after 3 minutes
 
 // POST /api/assignments/[id]/form-teams
 export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
@@ -104,6 +104,8 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       );
     }
 
+    // Primary cleanup: Auto-fail stale requests when new team formation is attempted
+    // (Runs immediately on each POST request - more reliable than daily cron on Hobby plan)
     const now = new Date();
     const staleCutoff = new Date(now.getTime() - STUCK_REQUEST_TIMEOUT_MS);
     await prisma.teamFormationRequest.updateMany({
