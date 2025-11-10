@@ -8,6 +8,7 @@ import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
 import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
 import { useRouter } from '@/i18n/routing';
@@ -71,6 +72,7 @@ export function AssignmentContent({
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
   const tTeams = useTranslations('dashboard.teams');
+  const tCharts = useTranslations('dashboard.charts');
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const [showError, setShowError] = useState(false);
@@ -182,12 +184,28 @@ export function AssignmentContent({
           </div>
         ) : (
           <>
-            <ChartsToggle
-              progressPercent={quizCompletionPercent}
-              defaultVisible={!hasTeams}
-            >
-              <AssignmentCharts stats={stats} isStudent={isStudent} />
-            </ChartsToggle>
+            {!hasTeams ? (
+              <div className='flex flex-col gap-3'>
+                <div className='flex items-center justify-between'>
+                  <span className='font-medium text-black'>
+                    {tCharts('viewAnalysis')}
+                  </span>
+                  <Badge className='rounded-full bg-emerald-50 text-emerald-700'>
+                    {tCharts('completionRate', {
+                      percent: Math.round(quizCompletionPercent),
+                    })}
+                  </Badge>
+                </div>
+                <AssignmentCharts stats={stats} isStudent={isStudent} />
+              </div>
+            ) : (
+              <ChartsToggle
+                progressPercent={quizCompletionPercent}
+                defaultVisible={false}
+              >
+                <AssignmentCharts stats={stats} isStudent={isStudent} />
+              </ChartsToggle>
+            )}
             <AssignmentTeamsClient
               teams={teams}
               assignmentId={assignmentId}

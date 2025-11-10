@@ -254,7 +254,7 @@ export async function AssignmentDetailAsync({
       assignmentId={assignmentId}
       students={students}
       canManage={isDosen}
-      hideStudentList={stats.teamsFormed}
+      hideStudentList={percentAssigned > 0}
       assignmentTitle={assignmentTitle}
       submittedStudentIds={Array.from(submittedStudentIds) as string[]}
     >
