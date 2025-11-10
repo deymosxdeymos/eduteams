@@ -297,7 +297,7 @@
         "valuePlaceholderStudents": "e.g. 4",
         "noteTopicsMismatch": "Note: Number of topics ({topicCount}) does not match number of teams ({groups}). Topic preferences will be mapped best‑effort.",
         "errorCreateFailed": "Failed to form teams. Please try again shortly.",
-        "successCreate": "Successfully formed teams!",
+        "successCreate": "Team formation request sent! Edu2com is working in the background.",
         "networkError": "Network error. Please try again.",
         "submitCreating": "Creating...",
         "submitCreate": "Create Teams",
@@ -309,7 +309,9 @@
         "resetNetworkError": "Network error while resetting.",
         "viewAnswers": "View Student Answers",
         "viewMyAnswers": "View My Answers",
-        "back": "Back"
+        "back": "Back",
+        "alreadyProcessing": "Team formation is already running. Please wait until it finishes.",
+        "inProgressNotice": "Edu2com is currently forming teams in the background. Refresh in a moment to see the results."
       },
       "charts": {
         "distributionLabel": "Distribution Chart",

@@ -1,5 +1,8 @@
 import { describe, expect, it, mock } from 'bun:test';
 
+process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
+process.env.BETTER_AUTH_SECRET = 'test-secret';
+
 const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
@@ -85,23 +88,25 @@ const prismaMock: any = {
   teamFormationRequest: {
     create: mock(async () => ({ id: 'tfr1' })),
     update: mock(async () => ({ id: 'tfr1' })),
+    findFirst: mock(async () => null),
+  },
+};
+
+const authMock = {
+  auth: {
+    api: {
+      getSession: mock(async () => ({ user: { id: 'u1' } })),
+    },
   },
 };
 
 mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+mock.module('@/lib/auth', () => authMock);
 
 describe('POST /api/assignments/[id]/form-teams', () => {
   it('forms teams for dosen with JUMLAH_KELOMPOK method and persists', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => ({
-        teams: [
-          { quality: 0.9, people: [{ id: 's1', skillIds: ['sk1'] }] },
-          { quality: 0.8, people: [{ id: 's2', skillIds: ['sk1'] }] },
-        ],
-      }),
+      callEdu2comBackgroundTeamFormation: async () => undefined,
     }));
 
     const { POST } = await import('../route');
@@ -118,20 +123,32 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
     expect(prismaMock.teamFormationRequest.create).toHaveBeenCalled();
-    expect(prismaMock.teamFormationRequest.update).toHaveBeenCalled();
-    const updateArgs =
-      prismaMock.teamFormationRequest.update.mock.calls[0]?.[0];
-    expect(updateArgs?.data?.completedAt).toBeInstanceOf(Date);
-    expect(prismaMock.assignment.update).toHaveBeenCalled();
+    expect(prismaMock.teamFormationRequest.update).not.toHaveBeenCalled();
+  });
+
+  it('prevents concurrent requests when one is already processing', async () => {
+    prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(
+      async () => ({ id: 'existing' })
+    );
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+    });
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+    expect(res.status).toBe(409);
+    const json = await res.json();
+    expect(json.success).toBe(false);
   });
 
   it('rejects when less than 2 students', async () => {
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
       { student: { id: 's1', personSkills: [] } },
     ]);
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
@@ -146,9 +163,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('returns 404 when assignment not found', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request(
       'http://localhost/api/assignments/nonexistent/form-teams',
@@ -181,9 +195,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
             }
           : null
     );
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
@@ -228,9 +239,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
         },
       },
     ]);
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
@@ -248,9 +256,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('returns 400 when JUMLAH_KELOMPOK value is too high', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
@@ -268,9 +273,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('returns 400 when JUMLAH_MHS_PER_KELOMPOK value is less than 2', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
@@ -288,28 +290,8 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('handles JUMLAH_MHS_PER_KELOMPOK with valid configuration', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => ({
-        teams: [
-          {
-            quality: 0.9,
-            people: [
-              { id: 's1', skillIds: ['sk1'] },
-              { id: 's2', skillIds: ['sk1'] },
-            ],
-          },
-          {
-            quality: 0.8,
-            people: [
-              { id: 's3', skillIds: ['sk1'] },
-              { id: 's4', skillIds: ['sk1'] },
-            ],
-          },
-        ],
-      }),
+      callEdu2comBackgroundTeamFormation: async () => undefined,
     }));
 
     const { POST } = await import('../route');
@@ -328,11 +310,8 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('handles API call failure gracefully', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => {
+      callEdu2comBackgroundTeamFormation: async () => {
         throw new Error('API call failed');
       },
     }));
@@ -350,7 +329,7 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.success).toBe(false);
-    expect(json.error).toBe('Gagal membentuk kelompok');
+    expect(json.error).toBe('Gagal mengirim permintaan pembentukan kelompok');
     // Should update the team formation request with failed status
     expect(prismaMock.teamFormationRequest.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -362,11 +341,8 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('returns 504 when Edu2com request times out', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => {
+      callEdu2comBackgroundTeamFormation: async () => {
         const error = new Error('This operation was aborted');
         error.name = 'AbortError';
         throw error;
@@ -399,11 +375,8 @@ describe('POST /api/assignments/[id]/form-teams', () => {
 
   it('forwards Edu2com HttpError status and message', async () => {
     const { HttpError } = await import('@/lib/utils/errors');
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => {
+      callEdu2comBackgroundTeamFormation: async () => {
         throw new HttpError(
           422,
           'Cannot form the teams with the provided data.'
@@ -428,9 +401,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('handles invalid request body', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
@@ -458,28 +428,8 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       ]
     );
 
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async () => ({
-        teams: [
-          {
-            quality: 0.9,
-            people: [
-              { id: 's1', skillIds: ['sk1'] },
-              { id: 's2', skillIds: ['sk1'] },
-            ],
-          },
-          {
-            quality: 0.8,
-            people: [
-              { id: 's3', skillIds: ['sk1'] },
-              { id: 's4', skillIds: ['sk1'] },
-            ],
-          },
-        ],
-      }),
+      callEdu2comBackgroundTeamFormation: async () => undefined,
     }));
 
     const { POST } = await import('../route');
@@ -508,33 +458,11 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     // Capture payload sent to external API
     let captured: any;
     mock.module('@/lib/edu2com/api', () => ({
-      callEdu2comTeamFormation: async (payload: any) => {
+      callEdu2comBackgroundTeamFormation: async (payload: any) => {
         captured = payload;
-        // Return any valid teams structure
-        return {
-          teams: [
-            {
-              quality: 0.9,
-              people: [
-                { id: 's1', skillIds: ['sk1'] },
-                { id: 's2', skillIds: ['sk1'] },
-              ],
-            },
-            {
-              quality: 0.8,
-              people: [
-                { id: 's3', skillIds: ['sk1'] },
-                { id: 's4', skillIds: ['sk1'] },
-              ],
-            },
-          ],
-        };
       },
     }));
 
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
 
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
@@ -555,9 +483,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
   });
 
   it('handles malformed JSON in request body', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
-    }));
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',

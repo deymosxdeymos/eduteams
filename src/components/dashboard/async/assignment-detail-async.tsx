@@ -102,6 +102,16 @@ export async function AssignmentDetailAsync({
     topicCount = topicRecords.length;
   }
 
+  const pendingFormation = await prisma.teamFormationRequest.findFirst({
+    where: {
+      assignmentId,
+      status: { in: ['PENDING', 'PROCESSING'] },
+    },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true },
+  });
+  const isTeamFormationProcessing = Boolean(pendingFormation);
+
   let percentAssigned = 0;
   if (assignment) {
     const latest = await prisma.teamFormationRequest.findFirst({
@@ -249,10 +259,11 @@ export async function AssignmentDetailAsync({
         topicCount={topicCount}
         enrollmentCount={enrollments.length}
         quizCompletionPercent={quizCompletionPercent}
-        teams={teamsData}
-        topicNames={topicNames}
-        taskIdByIndex={taskIdByIndex}
-      />
+      teams={teamsData}
+      topicNames={topicNames}
+      taskIdByIndex={taskIdByIndex}
+      isTeamFormationProcessing={isTeamFormationProcessing}
+    />
     </AssignmentLayout>
   );
 }

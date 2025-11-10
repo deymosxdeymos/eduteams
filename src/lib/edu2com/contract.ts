@@ -64,6 +64,15 @@ export const edu2comParametersSchema = z.object({
 
 export type Edu2comParameters = z.infer<typeof edu2comParametersSchema>;
 
+export const edu2comBackgroundParametersSchema =
+  edu2comParametersSchema.extend({
+    replyPostUrl: z.string().url(),
+  });
+
+export type Edu2comBackgroundParameters = z.infer<
+  typeof edu2comBackgroundParametersSchema
+>;
+
 const edu2comTeamMemberSchema = z.object({
   id: z.string().min(1),
   skillIds: z.array(z.string().min(1)),

@@ -1,11 +1,11 @@
-import { revalidateTag } from 'next/cache';
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Prisma } from '@/generated/prisma';
 import { handleApiError, withRole } from '@/lib/api-utils';
-import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
-import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
+import { callEdu2comBackgroundTeamFormation } from '@/lib/edu2com/api';
 import type { Edu2comParameters } from '@/lib/edu2com/contract';
+import { buildEdu2comReplyPostUrl } from '@/lib/edu2com/webhook';
 import prisma from '@/lib/prisma';
 import { HttpError, ValidationError } from '@/lib/utils/errors';
 
@@ -53,6 +53,7 @@ const BODY_SCHEMA = z
   .strict();
 
 export const runtime = 'nodejs';
+const STUCK_REQUEST_TIMEOUT_MS = 10 * 60 * 1000; // Auto-fail background requests after 10 minutes
 
 // POST /api/assignments/[id]/form-teams
 export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
@@ -100,6 +101,40 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 403 }
+      );
+    }
+
+    const now = new Date();
+    const staleCutoff = new Date(now.getTime() - STUCK_REQUEST_TIMEOUT_MS);
+    await prisma.teamFormationRequest.updateMany({
+      where: {
+        assignmentId,
+        status: { in: ['PENDING', 'PROCESSING'] },
+        updatedAt: { lt: staleCutoff },
+      },
+      data: {
+        status: 'FAILED',
+        errorMessage:
+          'Permintaan otomatis gagal karena tidak ada respons dari Edu2com dalam batas waktu.',
+        completedAt: now,
+      },
+    });
+
+    const inFlight = await prisma.teamFormationRequest.findFirst({
+      where: {
+        assignmentId,
+        status: { in: ['PENDING', 'PROCESSING'] },
+      },
+      select: { id: true },
+    });
+    if (inFlight) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Masih ada proses pembentukan kelompok yang berjalan. Silakan tunggu hingga selesai sebelum menjalankan lagi.',
+        },
+        { status: 409 }
       );
     }
 
@@ -366,57 +401,32 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     };
 
     // Create a TeamFormationRequest log
+    const requestId = randomUUID();
+    const replyPostUrl = buildEdu2comReplyPostUrl(requestId);
     const tf = await prisma.teamFormationRequest.create({
       data: {
+        id: requestId,
         ownerId: ctx.user.id,
         assignmentId,
         status: 'PROCESSING',
         requestData: payload as unknown as Prisma.InputJsonValue,
+        replyPostUrl,
       },
       select: { id: true },
     });
 
-    // Call official Edu2com API endpoint
+    // Call official Edu2com API endpoint (background mode)
     try {
-      const data = await callEdu2comTeamFormation(payload);
-
-      // Persist team results
-      const created = await prisma.teamFormationRequest.update({
-        where: { id: tf.id },
-        data: {
-          status: 'COMPLETED',
-          completedAt: new Date(),
-          responseData: data as unknown as Prisma.InputJsonValue,
-          teams: {
-            create: data.teams.map((t, i) => ({
-              name: `Kelompok ${i + 1}`,
-              quality: t.quality ?? null,
-              members: {
-                create: t.people.map(p => ({
-                  userId: p.id,
-                  assignedSkillIds: p.skillIds ?? [],
-                })),
-              },
-            })),
-          },
-        },
-        select: { id: true },
+      await callEdu2comBackgroundTeamFormation({
+        ...payload,
+        replyPostUrl,
       });
 
-      // Optionally, update assignment status
-      try {
-        await prisma.assignment.update({
-          where: { id: assignmentId },
-          data: { status: 'BERHASIL_PEMBAGIAN_GRUP' },
-        });
-      } catch {
-        // Optional field; ignore if not present in schema
-      }
-
-      revalidateTag(DASHBOARD_STATISTICS_TAG);
       return NextResponse.json({
         success: true,
-        data: { requestId: created.id },
+        data: { requestId: tf.id, status: 'PROCESSING' },
+        message:
+          'Permintaan pembentukan kelompok sedang diproses di latar belakang. Hasil akan muncul setelah Edu2com selesai.',
       });
     } catch (err) {
       const text = err instanceof Error ? err.message : String(err);
@@ -425,7 +435,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       const status = abort ? 504 : (httpError?.status ?? 400);
       const userError = abort
         ? 'Permintaan ke Edu2com melebihi batas waktu. Silakan coba lagi.'
-        : (httpError?.message ?? 'Gagal membentuk kelompok');
+        : (httpError?.message ?? 'Gagal mengirim permintaan pembentukan kelompok');
       await prisma.teamFormationRequest.update({
         where: { id: tf.id },
         data: {
@@ -435,8 +445,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
               0,
               250
             ) ||
-            // Default fallback ensures Prisma accepts non-empty string when slice returns undefined
-            'Failed to form teams',
+            'Failed to enqueue team formation',
         },
       });
       return NextResponse.json(

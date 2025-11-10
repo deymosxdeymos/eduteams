@@ -3,6 +3,7 @@
 
 import { HttpError } from '@/lib/utils/errors';
 import {
+  type Edu2comBackgroundParameters,
   type Edu2comParameters,
   type Edu2comTeamsResponse,
   edu2comTeamsResponseSchema,
@@ -73,6 +74,44 @@ export async function callEdu2comTeamFormation(
     }
 
     return parsed.data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function callEdu2comBackgroundTeamFormation(
+  payload: Edu2comBackgroundParameters,
+  opts: { timeoutMs?: number; headers?: Record<string, string> } = {}
+): Promise<void> {
+  const timeoutMs =
+    Number.isFinite(opts.timeoutMs) && (opts.timeoutMs as number) > 0
+      ? (opts.timeoutMs as number)
+      : Number.isFinite(DEFAULT_TIMEOUT_MS) && DEFAULT_TIMEOUT_MS > 0
+        ? DEFAULT_TIMEOUT_MS
+        : 120_000;
+  const { headers = {} } = opts;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const endpoint =
+      'https://ardid.iiia.csic.es/eduteams/edu2com/v1/backgroundTeamFormation';
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (res.status === 202) return;
+
+    const text = await res.text();
+    throw new HttpError(
+      res.status,
+      text || 'Cannot form the teams with the provided data.',
+      'EDU2COM_BACKGROUND_ERROR'
+    );
   } finally {
     clearTimeout(timer);
   }

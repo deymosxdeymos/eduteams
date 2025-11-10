@@ -44,6 +44,7 @@ interface AssignmentContentProps {
   teams?: Team[];
   topicNames?: Record<string, string>;
   taskIdByIndex?: string[];
+  isTeamFormationProcessing?: boolean;
 }
 
 export function AssignmentContent({
@@ -60,6 +61,7 @@ export function AssignmentContent({
   teams = [],
   topicNames = {},
   taskIdByIndex = [],
+  isTeamFormationProcessing = false,
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
   const [searchValue, setSearchValue] = useState('');
@@ -77,6 +79,7 @@ export function AssignmentContent({
           enrollmentCount={enrollmentCount}
           onSearchChange={setSearchValue}
           searchValue={searchValue}
+          isTeamFormationProcessing={isTeamFormationProcessing}
         />
 
         {isStudent ? (

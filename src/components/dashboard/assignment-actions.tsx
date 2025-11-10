@@ -33,6 +33,7 @@ interface AssignmentActionsProps {
   enrollmentCount?: number;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  isTeamFormationProcessing?: boolean;
 }
 
 export function AssignmentActions({
@@ -45,6 +46,7 @@ export function AssignmentActions({
   enrollmentCount,
   searchValue = '',
   onSearchChange,
+  isTeamFormationProcessing = false,
 }: AssignmentActionsProps) {
   const router = useRouter();
   const t = useTranslations('dashboard.assignment.actions');
@@ -60,9 +62,11 @@ export function AssignmentActions({
   const createButtonLabel = hasTeams
     ? t('recreateTeamsButton')
     : t('createTeamsButton');
+  const isProcessing = Boolean(isTeamFormationProcessing);
+  const disableForm = submitting || isProcessing;
 
   const canSubmit = Boolean(
-    method && value && Number(value) > 0 && !submitting
+    method && value && Number(value) > 0 && !disableForm
   );
 
   const handleCreate = async () => {
@@ -78,16 +82,17 @@ export function AssignmentActions({
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
-        setError(data?.error || t('errorCreateFailed'));
+        setError(
+          res.status === 409
+            ? t('alreadyProcessing')
+            : data?.error || t('errorCreateFailed')
+        );
         return;
       }
       setSuccess(t('successCreate'));
-      setTimeout(() => {
-        setModalOpen(false);
-        setMethod('');
-        setValue('');
-        router.refresh();
-      }, 900);
+      setMethod('');
+      setValue('');
+      router.refresh();
     } catch {
       setError(t('networkError'));
     } finally {
@@ -105,126 +110,146 @@ export function AssignmentActions({
 
       <div className='flex items-center gap-4'>
         {canManage && (
-          <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant='onboarding'
-                className={`rounded-full p-6 ${hasTeams ? 'w-[14rem]' : 'w-[11rem]'}`}
-              >
-                <Plus strokeWidth={3} className='w-4 h-4 text-white' />
-                <span className='font-semibold text-sm'>
-                  {createButtonLabel}
-                </span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className='border max-w-md md:max-w-xl rounded-3xl p-0 gap-0'>
-              <DialogHeader className='p-6 pb-2'>
-                <DialogTitle className='text-xl font-semibold text-left'>
-                  {t('createTeamsTitle')}
-                </DialogTitle>
-                <p className='text-gray-600 text-sm font-normal text-left mt-2'>
-                  {t('createTeamsDesc')}
-                </p>
-              </DialogHeader>
-              <div className='p-6 pt-0 space-y-5'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium text-gray-900'>
-                    {t('methodLabel')}
-                  </label>
-                  <Select
-                    value={method}
-                    onValueChange={v => {
-                      setMethod(v as typeof method);
-                      setError('');
-                    }}
-                  >
-                    <SelectTrigger className='!h-12 !min-h-[3rem] w-full rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20'>
-                      <SelectValue placeholder={t('methodPlaceholder')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='JUMLAH_KELOMPOK'>
-                        {t('methodByGroupCount')}
-                      </SelectItem>
-                      <SelectItem value='JUMLAH_MHS_PER_KELOMPOK'>
-                        {t('methodByStudentsPerGroup')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className='flex flex-col gap-2'>
+            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant='onboarding'
+                  className={`rounded-full p-6 ${hasTeams ? 'w-[14rem]' : 'w-[11rem]'}`}
+                >
+                  <Plus strokeWidth={3} className='w-4 h-4 text-white' />
+                  <span className='font-semibold text-sm'>
+                    {createButtonLabel}
+                  </span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className='border max-w-md md:max-w-xl rounded-3xl p-0 gap-0'>
+                <DialogHeader className='p-6 pb-2'>
+                  <DialogTitle className='text-xl font-semibold text-left'>
+                    {t('createTeamsTitle')}
+                  </DialogTitle>
+                  <p className='text-gray-600 text-sm font-normal text-left mt-2'>
+                    {t('createTeamsDesc')}
+                  </p>
+                </DialogHeader>
+                <div className='p-6 pt-0 space-y-5'>
+                  {isProcessing && (
+                    <div className='rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm'>
+                      {t('inProgressNotice')}
+                    </div>
+                  )}
 
-                {method && (
                   <div className='space-y-2'>
                     <label className='text-sm font-medium text-gray-900'>
-                      {method === 'JUMLAH_KELOMPOK'
-                        ? t('methodByGroupCount')
-                        : t('methodByStudentsPerGroup')}
+                      {t('methodLabel')}
                     </label>
-                    <InputRounded
-                      type='number'
-                      min={method === 'JUMLAH_MHS_PER_KELOMPOK' ? 2 : 1}
-                      placeholder={
-                        method === 'JUMLAH_KELOMPOK'
-                          ? t('valuePlaceholderGroups')
-                          : t('valuePlaceholderStudents')
-                      }
-                      value={value}
-                      onChange={e =>
-                        setValue(e.target.value.replace(/[^0-9]/g, ''))
-                      }
-                      className='w-full'
-                    />
-                    {topicCount != null && enrollmentCount != null && value && (
-                      <p className='text-xs text-neutral-500'>
-                        {(() => {
-                          const val = Number(value);
-                          const groups =
-                            method === 'JUMLAH_KELOMPOK'
-                              ? val
-                              : val > 0
-                                ? Math.max(
-                                    1,
-                                    Math.ceil(
-                                      (enrollmentCount ?? 0) / Math.max(1, val)
-                                    )
-                                  )
-                                : 0;
-                          if (
-                            groups &&
-                            (topicCount ?? 0) > 0 &&
-                            groups !== topicCount
-                          ) {
-                            return t('noteTopicsMismatch', {
-                              topicCount,
-                              groups,
-                            });
-                          }
-                          return null;
-                        })()}
-                      </p>
-                    )}
+                    <Select
+                      value={method}
+                      disabled={disableForm}
+                      onValueChange={v => {
+                        setMethod(v as typeof method);
+                        setError('');
+                      }}
+                    >
+                      <SelectTrigger className='!h-12 !min-h-[3rem] w-full rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 disabled:cursor-not-allowed disabled:opacity-60'>
+                        <SelectValue placeholder={t('methodPlaceholder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='JUMLAH_KELOMPOK'>
+                          {t('methodByGroupCount')}
+                        </SelectItem>
+                        <SelectItem value='JUMLAH_MHS_PER_KELOMPOK'>
+                          {t('methodByStudentsPerGroup')}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
 
-                {error && (
-                  <p className='text-sm text-red-600' role='alert'>
-                    {error}
-                  </p>
-                )}
-                {success && <p className='text-sm text-green-600'>{success}</p>}
+                  {method && (
+                    <div className='space-y-2'>
+                      <label className='text-sm font-medium text-gray-900'>
+                        {method === 'JUMLAH_KELOMPOK'
+                          ? t('methodByGroupCount')
+                          : t('methodByStudentsPerGroup')}
+                      </label>
+                      <InputRounded
+                        type='number'
+                        min={method === 'JUMLAH_MHS_PER_KELOMPOK' ? 2 : 1}
+                        placeholder={
+                          method === 'JUMLAH_KELOMPOK'
+                            ? t('valuePlaceholderGroups')
+                            : t('valuePlaceholderStudents')
+                        }
+                        value={value}
+                        disabled={disableForm}
+                        onChange={e =>
+                          setValue(e.target.value.replace(/[^0-9]/g, ''))
+                        }
+                        className='w-full disabled:cursor-not-allowed disabled:opacity-60'
+                      />
+                      {topicCount != null && enrollmentCount != null && value && (
+                        <p className='text-xs text-neutral-500'>
+                          {(() => {
+                            const val = Number(value);
+                            const groups =
+                              method === 'JUMLAH_KELOMPOK'
+                                ? val
+                                : val > 0
+                                  ? Math.max(
+                                      1,
+                                      Math.ceil(
+                                        (enrollmentCount ?? 0) / Math.max(1, val)
+                                      )
+                                    )
+                                  : 0;
+                            if (
+                              groups &&
+                              (topicCount ?? 0) > 0 &&
+                              groups !== topicCount
+                            ) {
+                              return t('noteTopicsMismatch', {
+                                topicCount,
+                                groups,
+                              });
+                            }
+                            return null;
+                          })()}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
-                <div className='pt-1'>
-                  <Button
-                    className='w-full rounded-full py-6 font-semibold'
-                    variant='onboarding'
-                    disabled={!canSubmit}
-                    onClick={handleCreate}
-                  >
-                    {submitting ? t('submitCreating') : t('submitCreate')}
-                  </Button>
+                  {error && (
+                    <p className='text-sm text-red-600' role='alert'>
+                      {error}
+                    </p>
+                  )}
+                  {success && (
+                    <p className='text-sm text-emerald-700' role='status'>
+                      {success}
+                    </p>
+                  )}
+
+                  <div className='pt-1'>
+                    <Button
+                      className='w-full rounded-full py-6 font-semibold'
+                      variant='onboarding'
+                      disabled={!canSubmit}
+                      onClick={handleCreate}
+                    >
+                      {submitting ? t('submitCreating') : t('submitCreate')}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+
+            {isProcessing && (
+              <p className='text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 font-medium'>
+                {t('inProgressNotice')}
+              </p>
+            )}
+          </div>
         )}
 
         {!isStudent && (
