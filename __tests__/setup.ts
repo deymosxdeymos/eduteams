@@ -61,18 +61,45 @@ mock.module('@/app/actions/set-locale', () => ({
 }));
 
 // Mock next-intl
-mock.module('next-intl', () => ({
-  useTranslations: (namespace?: string) => {
-    return (key: string) => {
-      return `${namespace ? `${namespace}.` : ''}${key}`;
-    };
-  },
-  useLocale: () => 'id',
-  useFormatter: () => ({
-    number: (value: number) => value.toString(),
-    dateTime: (value: Date) => value.toISOString(),
-  }),
-}));
+mock.module('next-intl', () => {
+  // Load actual translation messages for testing
+  let messages: Record<string, any> = {};
+  try {
+    // Import en.json directly for consistent test behavior
+    messages = require('../messages/en.json');
+  } catch {
+    // Fallback if messages can't be loaded
+    messages = {};
+  }
+
+  const getNestedValue = (obj: any, path: string): string => {
+    const keys = path.split('.');
+    let value = obj;
+    for (const key of keys) {
+      if (value && typeof value === 'object' && key in value) {
+        value = value[key];
+      } else {
+        // Return the full key path if not found
+        return path;
+      }
+    }
+    return typeof value === 'string' ? value : path;
+  };
+
+  return {
+    useTranslations: (namespace?: string) => {
+      return (key: string) => {
+        const fullKey = namespace ? `${namespace}.${key}` : key;
+        return getNestedValue(messages, fullKey);
+      };
+    },
+    useLocale: () => 'en',
+    useFormatter: () => ({
+      number: (value: number) => value.toString(),
+      dateTime: (value: Date) => value.toISOString(),
+    }),
+  };
+});
 
 mock.module('framer-motion', () => {
   const omitKeys = new Set([

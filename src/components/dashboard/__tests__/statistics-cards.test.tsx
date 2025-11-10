@@ -18,11 +18,9 @@ describe('StatisticsCards', () => {
       'N/A',
       'N/A',
     ]);
-    expect(
-      screen.getByText('dashboard.statistics.totalAssignments')
-    ).toBeTruthy();
-    expect(screen.getByText('dashboard.statistics.totalTeams')).toBeTruthy();
-    expect(screen.getByText('dashboard.statistics.qualityTitle')).toBeTruthy();
+    expect(screen.getByText('Total assignments created')).toBeTruthy();
+    expect(screen.getByText('Total teams successfully formed')).toBeTruthy();
+    expect(screen.getByText('Team Quality')).toBeTruthy();
   });
 
   it('displays statistics data when loaded', () => {

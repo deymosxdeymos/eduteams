@@ -277,17 +277,21 @@ describeIntegration('Edu2Com live integration', () => {
   );
 
   for (const scenario of successScenarios) {
-    it(`returns teams successfully: ${scenario.name}`, async () => {
-      const start = performance.now();
-      const response = await callEdu2comTeamFormation(scenario.payload, {
-        timeoutMs: 10_000,
-      });
-      const elapsedMs = performance.now() - start;
+    it(
+      `returns teams successfully: ${scenario.name}`,
+      async () => {
+        const start = performance.now();
+        const response = await callEdu2comTeamFormation(scenario.payload, {
+          timeoutMs: 10_000,
+        });
+        const elapsedMs = performance.now() - start;
 
-      const parsed = edu2comTeamsResponseSchema.safeParse(response);
-      expect(parsed.success).toBe(true);
-      expect(elapsedMs).toBeLessThan(7_000);
-    });
+        const parsed = edu2comTeamsResponseSchema.safeParse(response);
+        expect(parsed.success).toBe(true);
+        expect(elapsedMs).toBeLessThan(7_000);
+      },
+      { timeout: 15_000 }
+    );
   }
 
   const failureScenarios: Array<{

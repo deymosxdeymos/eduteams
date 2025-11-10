@@ -131,8 +131,12 @@ describe('Dashboard Content', () => {
   it('renders empty state when there are no courses', () => {
     render(<Content statistics={baseStatistics} courses={[]} />);
 
-    expect(screen.getByText('dashboard.emptyStates.dosen.title')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.emptyStates.dosen.description')).toBeInTheDocument();
+    expect(
+      screen.getByText("You haven't created any classes yet")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Create a class to start team formation')
+    ).toBeInTheDocument();
     expect(searchInputProps).toBeUndefined();
   });
 

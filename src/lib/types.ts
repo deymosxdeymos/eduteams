@@ -1,6 +1,8 @@
 import type {
   MBTIType,
+  ClassCatalog as PrismaClassCatalog,
   Course as PrismaCourse,
+  CourseCatalog as PrismaCourseCatalog,
   CourseEnrollment as PrismaCourseEnrollment,
   User as PrismaUser,
 } from '@/generated/prisma';
@@ -27,6 +29,8 @@ export interface ApiResponse<T = unknown> {
 }
 
 export type Course = PrismaCourse;
+export type CourseCatalog = PrismaCourseCatalog;
+export type ClassCatalog = PrismaClassCatalog;
 type _CourseEnrollment = PrismaCourseEnrollment;
 
 interface _CourseWithDosen extends Course {

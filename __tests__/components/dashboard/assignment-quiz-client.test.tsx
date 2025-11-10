@@ -5,7 +5,7 @@ import { AssignmentQuizClient } from '@/components/dashboard/assignment-quiz-cli
 
 const dismissInstructions = async (user: ReturnType<typeof userEvent.setup>) => {
   const buttons = screen.queryAllByRole('button', {
-    name: 'dashboard.assignments.quiz.instructions.startNow',
+    name: 'Start Now',
   });
   for (const button of buttons) {
     await user.click(button);
@@ -66,12 +66,12 @@ describe('AssignmentQuizClient', () => {
     await dismissInstructions(user);
 
     const skillOption = screen.getByAltText(
-      'dashboard.assignments.quiz.skillLevels.novice'
+      'Novice'
     );
     await user.click(skillOption);
 
     const submitButton = screen.getByRole('button', {
-      name: 'dashboard.assignments.quiz.finish',
+      name: 'Finish',
     });
     await user.click(submitButton);
 
@@ -87,7 +87,7 @@ describe('AssignmentQuizClient', () => {
     expect(payload.topics).toEqual([]);
 
     expect(
-      screen.queryByText('dashboard.assignments.quiz.topicQuestion')
+      screen.queryByText(/How interested are you in topic/)
     ).not.toBeInTheDocument();
   });
 
@@ -129,16 +129,16 @@ describe('AssignmentQuizClient', () => {
     await dismissInstructions(user);
 
     const nextButton = screen.getByRole('button', {
-      name: 'dashboard.assignments.quiz.nextToTopics',
+      name: 'Continue to Topic Preferences',
     });
     await user.click(nextButton);
 
     expect(
-      screen.getByText('dashboard.assignments.quiz.required')
+      screen.getByText('This question is required')
     ).toBeInTheDocument();
 
     const skillOption = screen.getByAltText(
-      'dashboard.assignments.quiz.skillLevels.novice'
+      'Novice'
     );
     await user.click(skillOption);
 
@@ -146,14 +146,14 @@ describe('AssignmentQuizClient', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('dashboard.assignments.quiz.topicsTitle')
+        screen.getByText('📚 Topic Preferences')
       ).toBeInTheDocument();
     });
 
     await dismissInstructions(user);
 
     expect(
-      screen.queryByText('dashboard.assignments.quiz.required')
+      screen.queryByText('This question is required')
     ).not.toBeInTheDocument();
   });
 });

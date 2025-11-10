@@ -242,6 +242,12 @@ describe('PATCH /api/courses/[id]', () => {
       role: 'dosen',
       isOnboarded: true,
     }));
+    // Mock findUnique for the ownership check
+    prismaMock.course.findUnique.mockImplementationOnce(async () => ({
+      ...baseCourse,
+    }));
+    // Mock findFirst for the duplicate check - should return null (no duplicate)
+    prismaMock.course.findFirst.mockImplementationOnce(async () => null);
     mock.module('@/lib/auth', () => ({
       auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
     }));
@@ -313,7 +319,8 @@ describe('PATCH /api/courses/[id]', () => {
       new Request('http://localhost/api/courses/c1', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kelas: 'RX' }),
+        // Send invalid data - empty kelas string should fail validation
+        body: JSON.stringify({ kelas: '' }),
       }) as any,
       { params: Promise.resolve({ id: 'c1' }) } as any
     );

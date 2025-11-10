@@ -59,9 +59,7 @@ describe('Dashboard Content', () => {
       <Content statistics={EMPTY_DASHBOARD_STATISTICS} courses={MOCK_COURSES} />
     );
 
-    const searchInput = screen.getByPlaceholderText(
-      'dashboard.search.placeholder'
-    );
+    const searchInput = screen.getByPlaceholderText('Search for something?');
     fireEvent.change(searchInput, { target: { value: 'basis' } });
 
     expect(screen.getByText('Basis Data')).toBeTruthy();

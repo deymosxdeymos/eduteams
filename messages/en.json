@@ -218,6 +218,7 @@
         "success": "Class created successfully!",
         "creating": "Creating...",
         "create": "Create Class",
+        "duplicateError": "A course with the same name, class, and academic period already exists",
         "fields": {
           "courseName": "Course Name",
           "courseNamePlaceholder": "Enter course name",
@@ -230,6 +231,52 @@
         "options": {
           "odd": "Odd",
           "even": "Even"
+        },
+        "catalog": {
+          "searchPlaceholder": "Search by course code or name",
+          "loading": "Loading available courses...",
+          "error": "Unable to load course list.",
+          "retry": "Try again",
+          "noResults": "No course matches \"{query}\".",
+          "createNewOption": "Create new: {value}",
+          "startTyping": "Type to search available courses",
+          "dialog": {
+            "title": "Add new course",
+            "description": "Add a new course code and name so it can be reused when creating classes.",
+            "codeLabel": "Course code",
+            "codePlaceholder": "e.g. IF25-99999",
+            "codeHint": "Use the official code with letters, numbers, and dashes only.",
+            "nameLabel": "Course name",
+            "namePlaceholder": "Enter course name",
+            "cancel": "Cancel",
+            "save": "Save course",
+            "saving": "Saving...",
+            "required": "Course code and name are required",
+            "genericError": "Failed to add course, please try again."
+          }
+        },
+        "classCatalog": {
+          "searchPlaceholder": "Search by class code or name",
+          "loading": "Loading available classes...",
+          "error": "Unable to load class list.",
+          "retry": "Try again",
+          "noResults": "No class matches \"{query}\".",
+          "createNewOption": "Create new: {value}",
+          "startTyping": "Type to search available classes",
+          "dialog": {
+            "title": "Add new class",
+            "description": "Add a new class code and name so it can be reused when creating classes.",
+            "codeLabel": "Class code",
+            "codePlaceholder": "e.g. RA",
+            "codeHint": "Use letters, numbers, and dashes only.",
+            "nameLabel": "Class name",
+            "namePlaceholder": "Enter class name",
+            "cancel": "Cancel",
+            "save": "Save class",
+            "saving": "Saving...",
+            "required": "Class code and name are required",
+            "genericError": "Failed to add class, please try again."
+          }
         }
       },
       "editClass": {

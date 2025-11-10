@@ -218,6 +218,7 @@
         "success": "Kelas berhasil dibuat!",
         "creating": "Membuat...",
         "create": "Buat Kelas",
+        "duplicateError": "Mata kuliah dengan nama, kelas, dan periode akademik yang sama sudah ada",
         "fields": {
           "courseName": "Nama Mata Kuliah",
           "courseNamePlaceholder": "Masukkan nama mata kuliah",
@@ -230,6 +231,52 @@
         "options": {
           "odd": "Ganjil",
           "even": "Genap"
+        },
+        "catalog": {
+          "searchPlaceholder": "Cari berdasarkan kode atau nama mata kuliah",
+          "loading": "Memuat daftar mata kuliah...",
+          "error": "Gagal memuat daftar mata kuliah.",
+          "retry": "Coba lagi",
+          "noResults": "Tidak ada mata kuliah yang cocok dengan \"{query}\".",
+          "createNewOption": "Buat baru: {value}",
+          "startTyping": "Ketik untuk mencari mata kuliah",
+          "dialog": {
+            "title": "Tambahkan mata kuliah",
+            "description": "Masukkan kode dan nama mata kuliah agar dapat digunakan kembali saat membuat kelas.",
+            "codeLabel": "Kode mata kuliah",
+            "codePlaceholder": "mis. IF25-99999",
+            "codeHint": "Gunakan kode resmi dengan huruf, angka, dan tanda hubung.",
+            "nameLabel": "Nama mata kuliah",
+            "namePlaceholder": "Masukkan nama mata kuliah",
+            "cancel": "Batal",
+            "save": "Simpan mata kuliah",
+            "saving": "Menyimpan...",
+            "required": "Kode dan nama mata kuliah wajib diisi",
+            "genericError": "Gagal menambahkan mata kuliah, silakan coba lagi."
+          }
+        },
+        "classCatalog": {
+          "searchPlaceholder": "Cari berdasarkan kode atau nama kelas",
+          "loading": "Memuat daftar kelas...",
+          "error": "Gagal memuat daftar kelas.",
+          "retry": "Coba lagi",
+          "noResults": "Tidak ada kelas yang cocok dengan \"{query}\".",
+          "createNewOption": "Buat baru: {value}",
+          "startTyping": "Ketik untuk mencari kelas",
+          "dialog": {
+            "title": "Tambahkan kelas",
+            "description": "Masukkan kode dan nama kelas agar dapat digunakan kembali saat membuat kelas.",
+            "codeLabel": "Kode kelas",
+            "codePlaceholder": "mis. RA",
+            "codeHint": "Gunakan huruf, angka, dan tanda hubung saja.",
+            "nameLabel": "Nama kelas",
+            "namePlaceholder": "Masukkan nama kelas",
+            "cancel": "Batal",
+            "save": "Simpan kelas",
+            "saving": "Menyimpan...",
+            "required": "Kode dan nama kelas wajib diisi",
+            "genericError": "Gagal menambahkan kelas, silakan coba lagi."
+          }
         }
       },
       "editClass": {

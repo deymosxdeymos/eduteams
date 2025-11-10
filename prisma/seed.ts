@@ -361,9 +361,44 @@ async function seedMBTIQuestions() {
   }
 }
 
+async function seedClassCatalog() {
+  console.log('🌱 Starting class catalog seeding...');
+
+  try {
+    const predefinedClasses = ['RA', 'RB', 'RC', 'RD', 'RE'];
+
+    await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        for (const code of predefinedClasses) {
+          await tx.classCatalog.upsert({
+            where: { code },
+            update: {},
+            create: withTimestamps({
+              id: randomUUID(),
+              code,
+            }),
+          });
+        }
+      },
+      {
+        timeout: 10000,
+      }
+    );
+
+    console.log('✅ Seeded class catalog');
+    console.log(
+      `✅ Created/updated ${predefinedClasses.length} predefined classes`
+    );
+  } catch (error) {
+    console.error('❌ Error seeding class catalog:', error);
+    throw error;
+  }
+}
+
 async function main() {
   try {
     await seedMBTIQuestions();
+    await seedClassCatalog();
     // Dosen token seeding deprecated: replaced by institutional email domain verification
     // await seedDosenTokens();
   } catch (error) {
@@ -384,4 +419,4 @@ if (isDirectExecution) {
   void main();
 }
 
-export { seedMBTIQuestions };
+export { seedMBTIQuestions, seedClassCatalog };

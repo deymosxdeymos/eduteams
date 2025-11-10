@@ -76,6 +76,7 @@ mock.module('@/lib/prisma', () => ({
         shareToken: null,
         dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
       })),
+      findFirst: mock(async () => null), // No duplicate courses found
       findMany: mock(async () => [
         {
           id: 'c1',

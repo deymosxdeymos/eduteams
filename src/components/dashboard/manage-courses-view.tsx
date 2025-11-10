@@ -5,10 +5,12 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  ChevronsUpDown,
   ExternalLink,
   Eye,
   EyeOff,
   Pencil,
+  Plus,
   Search,
   SortDesc,
   Trash2,
@@ -21,12 +23,21 @@ import {
   memo,
   type ReactNode,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   useTransition,
 } from 'react';
 import { useForm } from 'react-hook-form';
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Dialog,
   DialogClose,
@@ -48,6 +59,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -64,6 +80,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useRouter } from '@/i18n/routing';
+import type { ApiResponse, ClassCatalog } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   type CourseCreateUserInput,
@@ -72,6 +89,15 @@ import {
 import type { ManageCourseRow } from '@/types/manage';
 
 type SortKey = 'recent' | 'name-asc' | 'year-desc';
+
+const classCatalogFetcher = async (url: string): Promise<ClassCatalog[]> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch class catalog');
+  }
+  const payload = (await response.json()) as ApiResponse<ClassCatalog[]>;
+  return payload.data ?? [];
+};
 
 const sortOptions: Array<{ value: SortKey; label: string }> = [
   { value: 'recent', label: 'Terbaru' },
@@ -200,10 +226,29 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
   const tFields = useTranslations('dashboard.modals.createClass.fields');
   const tOptions = useTranslations('dashboard.modals.createClass.options');
   const tCreate = useTranslations('dashboard.modals.createClass');
+  const tClassCatalog = useTranslations(
+    'dashboard.modals.createClass.classCatalog'
+  );
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [classPopoverOpen, setClassPopoverOpen] = useState(false);
+  const [classSearch, setClassSearch] = useState('');
+  const [selectedCatalogClass, setSelectedCatalogClass] =
+    useState<ClassCatalog | null>(null);
+
+  const {
+    data: classCatalogData,
+    error: classCatalogError,
+    isLoading: isClassCatalogLoading,
+    mutate: mutateClassCatalog,
+  } = useSWR<ClassCatalog[]>(
+    open ? '/api/class-catalog' : null,
+    classCatalogFetcher
+  );
+
+  const classOptions = classCatalogData ?? [];
 
   const form = useForm<CourseCreateUserInput>({
     resolver: zodResolver(courseCreateInputSchema),
@@ -212,7 +257,120 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
 
   const resetForm = useCallback(() => {
     form.reset(mapCourseToFormValues(course));
-  }, [course, form]);
+    setClassSearch('');
+    setClassPopoverOpen(false);
+    if (classOptions.length > 0) {
+      const currentClassCode = course.classCode;
+      const matchingClass = classOptions.find(c => c.code === currentClassCode);
+      setSelectedCatalogClass(matchingClass || null);
+    } else {
+      setSelectedCatalogClass(null);
+    }
+  }, [course, form, classOptions]);
+
+  const filteredClasses = useMemo(() => {
+    const query = classSearch.trim().toLowerCase();
+    if (!query) {
+      return classOptions;
+    }
+
+    return classOptions.filter(classItem => {
+      return classItem.code.toLowerCase().includes(query);
+    });
+  }, [classOptions, classSearch]);
+
+  const handleClassSelect = (classItem: ClassCatalog) => {
+    setSelectedCatalogClass(classItem);
+    form.setValue('kelas', classItem.code, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setClassPopoverOpen(false);
+    setClassSearch('');
+  };
+
+  const _handleResetClassSelection = () => {
+    setSelectedCatalogClass(null);
+    setClassSearch('');
+    setClassPopoverOpen(false);
+    form.setValue('kelas', '', { shouldValidate: false });
+    form.clearErrors('kelas');
+  };
+
+  const handleClassPopoverChange = (nextOpen: boolean) => {
+    setClassPopoverOpen(nextOpen);
+    if (!nextOpen) {
+      setClassSearch('');
+    }
+  };
+
+  const handleCreateClassFromSearch = async (prefill?: string) => {
+    const trimmedClassSearchQuery = classSearch.trim();
+    const value = (prefill ?? trimmedClassSearchQuery).trim().toUpperCase();
+    if (!value) return;
+
+    handleClassPopoverChange(false);
+
+    try {
+      const response = await fetch('/api/class-catalog', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: value }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create class');
+      }
+
+      const result = await response.json();
+      const newClass = result.data as ClassCatalog;
+
+      await mutateClassCatalog();
+      handleClassSelect(newClass);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : tClassCatalog('dialog.genericError')
+      );
+    }
+  };
+
+  const handleClassSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    const typedValue = event.currentTarget.value.trim();
+    if (!typedValue) {
+      return;
+    }
+    const _trimmedClassSearchQuery = typedValue.trim();
+    const hasMatches = classOptions.some(classItem => {
+      return classItem.code.toLowerCase().includes(typedValue.toLowerCase());
+    });
+    if (!hasMatches && !classCatalogError) {
+      event.preventDefault();
+      handleCreateClassFromSearch(typedValue);
+    }
+  };
+
+  useEffect(() => {
+    if (open && classOptions.length > 0) {
+      const currentClassCode = course.classCode;
+      const matchingClass = classOptions.find(c => c.code === currentClassCode);
+      if (matchingClass) {
+        setSelectedCatalogClass(matchingClass);
+        form.setValue('kelas', matchingClass.code, { shouldValidate: false });
+      } else if (currentClassCode) {
+        form.setValue('kelas', currentClassCode, { shouldValidate: false });
+      }
+    }
+  }, [open, classOptions, course.classCode, form]);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (isPending) {
@@ -349,26 +507,127 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{tFields('class')}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={isPending}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
-                          <SelectValue
-                            placeholder={tFields('classPlaceholder')}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='RA'>RA</SelectItem>
-                        <SelectItem value='RB'>RB</SelectItem>
-                        <SelectItem value='RC'>RC</SelectItem>
-                        <SelectItem value='RD'>RD</SelectItem>
-                        <SelectItem value='RE'>RE</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <div>
+                        <input type='hidden' {...field} />
+                        <Popover
+                          open={classPopoverOpen}
+                          onOpenChange={handleClassPopoverChange}
+                        >
+                          <PopoverTrigger asChild>
+                            <button
+                              type='button'
+                              className='flex h-12 w-full min-w-0 items-center justify-between rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-left text-base shadow-sm transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
+                              aria-haspopup='listbox'
+                              aria-expanded={classPopoverOpen}
+                              aria-invalid={!!form.formState.errors.kelas}
+                              disabled={isPending}
+                            >
+                              {selectedCatalogClass ? (
+                                <span className='text-sm font-semibold'>
+                                  {selectedCatalogClass.code}
+                                </span>
+                              ) : field.value ? (
+                                <span className='text-sm font-semibold'>
+                                  {field.value}
+                                </span>
+                              ) : (
+                                <span className='text-muted-foreground'>
+                                  {tFields('classPlaceholder')}
+                                </span>
+                              )}
+                              <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align='start'
+                            className='w-[var(--radix-popover-trigger-width)] p-0'
+                            onWheel={e => e.stopPropagation()}
+                            onTouchMove={e => e.stopPropagation()}
+                          >
+                            <Command className='max-h-[300px]'>
+                              <CommandInput
+                                placeholder={tClassCatalog('searchPlaceholder')}
+                                value={classSearch}
+                                onValueChange={setClassSearch}
+                                onKeyDown={handleClassSearchKeyDown}
+                              />
+                              <CommandList className='max-h-[calc(300px-3rem)] overflow-y-auto'>
+                                {isClassCatalogLoading ? (
+                                  <div className='flex items-center justify-center py-6'>
+                                    <LoadingSpinner className='h-6 w-6' />
+                                    <span className='ml-2 text-sm text-muted-foreground'>
+                                      {tClassCatalog('loading')}
+                                    </span>
+                                  </div>
+                                ) : classCatalogError ? (
+                                  <div className='p-4 text-center text-sm text-red-600'>
+                                    {tClassCatalog('error')}
+                                    <button
+                                      type='button'
+                                      onClick={() => mutateClassCatalog()}
+                                      className='ml-2 text-blue-600 underline'
+                                    >
+                                      {tClassCatalog('retry')}
+                                    </button>
+                                  </div>
+                                ) : filteredClasses.length > 0 ? (
+                                  <CommandGroup className='p-1'>
+                                    {filteredClasses.map(classItem => (
+                                      <CommandItem
+                                        key={classItem.id}
+                                        value={classItem.code}
+                                        onSelect={() =>
+                                          handleClassSelect(classItem)
+                                        }
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            selectedCatalogClass?.id ===
+                                            classItem.id
+                                              ? 'opacity-100'
+                                              : 'opacity-0'
+                                          }`}
+                                        />
+                                        <span className='text-sm font-semibold'>
+                                          {classItem.code}
+                                        </span>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                ) : classSearch.trim().length > 0 ? (
+                                  <>
+                                    <div className='p-4 text-center text-sm text-muted-foreground'>
+                                      {tClassCatalog('noResults', {
+                                        query: classSearch.trim(),
+                                      })}
+                                    </div>
+                                    <CommandItem
+                                      value={`create-${classSearch.trim()}`}
+                                      onSelect={() =>
+                                        handleCreateClassFromSearch(
+                                          classSearch.trim()
+                                        )
+                                      }
+                                      className='mx-auto mb-3 flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-blue-background py-2 text-sm font-medium text-white hover:bg-[#00006C]'
+                                    >
+                                      <Plus className='h-4 w-4' />
+                                      {tClassCatalog('createNewOption', {
+                                        value: classSearch.trim(),
+                                      })}
+                                    </CommandItem>
+                                  </>
+                                ) : (
+                                  <div className='py-4 text-center text-sm text-muted-foreground'>
+                                    {tClassCatalog('startTyping')}
+                                  </div>
+                                )}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

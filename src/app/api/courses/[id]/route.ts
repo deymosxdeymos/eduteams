@@ -1,5 +1,8 @@
 import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
+import enMessages from '@/../messages/en.json';
+import idMessages from '@/../messages/id.json';
+import { routing } from '@/i18n/routing';
 import {
   createApiResponse,
   createErrorResponse,
@@ -13,6 +16,27 @@ import {
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import prisma from '@/lib/prisma';
 import { courseUpdateSchema } from '@/lib/validation/course';
+
+function getLocaleFromRequest(request: NextRequest): 'id' | 'en' {
+  const referer = request.headers.get('referer');
+  if (referer?.includes('/en/')) {
+    return 'en';
+  }
+
+  return (routing.defaultLocale ?? 'id') as 'id' | 'en';
+}
+
+function getLocalizedMessage(locale: 'id' | 'en', key: string): string {
+  const messages = locale === 'en' ? enMessages : idMessages;
+  const keys = key.split('.');
+  let value: Record<string, unknown> | string = messages;
+  for (const k of keys) {
+    value = (value as Record<string, unknown>)?.[k] as
+      | Record<string, unknown>
+      | string;
+  }
+  return typeof value === 'string' ? value : key;
+}
 
 // Cache for 10 minutes since course data doesn't change frequently
 export const revalidate = 600;
@@ -149,7 +173,15 @@ export const PATCH = withAuth<{ id: string }>(
 
     const course = await prisma.course.findUnique({
       where: { id },
-      select: { id: true, dosenId: true },
+      select: {
+        id: true,
+        dosenId: true,
+        namaMataKuliah: true,
+        kelas: true,
+        periode: true,
+        tahunAwalPeriode: true,
+        tahunAkhirPeriode: true,
+      },
     });
 
     if (!course) {
@@ -158,6 +190,41 @@ export const PATCH = withAuth<{ id: string }>(
 
     if (course.dosenId !== user.id) {
       return createErrorResponse('Access denied', 403);
+    }
+
+    const finalNamaMataKuliah =
+      (updateData.namaMataKuliah as string | undefined) ??
+      course.namaMataKuliah;
+    const finalKelas = (updateData.kelas as string | undefined) ?? course.kelas;
+    const finalPeriode =
+      (updateData.periode as string | undefined) ?? course.periode;
+    const finalTahunAwalPeriode =
+      (updateData.tahunAwalPeriode as number | undefined) ??
+      course.tahunAwalPeriode;
+    const finalTahunAkhirPeriode =
+      (updateData.tahunAkhirPeriode as number | undefined) ??
+      course.tahunAkhirPeriode;
+
+    const existingCourse = await prisma.course.findFirst({
+      where: {
+        id: { not: id },
+        dosenId: user.id,
+        namaMataKuliah: finalNamaMataKuliah,
+        kelas: finalKelas,
+        tahunAwalPeriode: finalTahunAwalPeriode,
+        tahunAkhirPeriode: finalTahunAkhirPeriode,
+        periode: finalPeriode,
+        archivedAt: null,
+      },
+    });
+
+    if (existingCourse) {
+      const locale = getLocaleFromRequest(request);
+      const errorMessage = getLocalizedMessage(
+        locale,
+        'dashboard.modals.createClass.duplicateError'
+      );
+      return createErrorResponse(errorMessage, 409);
     }
 
     const updatedCourse = await prisma.course.update({

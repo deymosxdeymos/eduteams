@@ -7,25 +7,27 @@ describe('Dashboard empty states', () => {
   it('renders dosen empty state and matches snapshot', () => {
     render(<EmptyClassState />);
 
-    expect(screen.getByText('dashboard.emptyStates.dosen.title')).toBeTruthy();
     expect(
-      screen.getByText('dashboard.emptyStates.dosen.description')
+      screen.getByText("You haven't created any classes yet")
+    ).toBeTruthy();
+    expect(
+      screen.getByText('Create a class to start team formation')
     ).toBeTruthy();
   });
 
   it('renders student empty state and matches snapshot', () => {
     render(<EmptyStudentClassState />);
 
+    expect(screen.getByText("You don't have any classes yet")).toBeTruthy();
     expect(
-      screen.getByText('dashboard.emptyStates.student.title')
-    ).toBeTruthy();
-    expect(
-      screen.getByText('dashboard.emptyStates.student.description')
+      screen.getByText(
+        'Enter the class token provided by your lecturer to join a class'
+      )
     ).toBeTruthy();
 
     expect(
       screen.getByRole('button', {
-        name: /dashboard\.modals\.joinClass\.button/i,
+        name: /Join Class/i,
       })
     ).toBeTruthy();
   });

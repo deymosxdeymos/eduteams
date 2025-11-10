@@ -3,9 +3,7 @@ import { z } from 'zod';
 // User input schema - only requires fields the user provides
 export const courseCreateInputSchema = z.object({
   namaMataKuliah: z.string().min(1, 'Nama mata kuliah is required'),
-  kelas: z.enum(['RA', 'RB', 'RC', 'RD', 'RE'], {
-    message: 'Kelas must be one of: RA, RB, RC, RD, RE',
-  }),
+  kelas: z.string().min(1, 'Kelas is required'),
   periode: z.enum(['ganjil', 'genap'], {
     message: 'Periode must be either ganjil or genap',
   }),
@@ -15,9 +13,7 @@ export const courseCreateInputSchema = z.object({
 export const courseCreateSchema = z
   .object({
     namaMataKuliah: z.string().min(1, 'Nama mata kuliah is required'),
-    kelas: z.enum(['RA', 'RB', 'RC', 'RD', 'RE'], {
-      message: 'Kelas must be one of: RA, RB, RC, RD, RE',
-    }),
+    kelas: z.string().min(1, 'Kelas is required'),
     tahunAwalPeriode: z
       .number()
       .int()

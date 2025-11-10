@@ -19,17 +19,15 @@ describe('JoinClassModal', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: /dashboard\.modals\.joinClass\.button/i,
+        name: /Join Class/i,
       })
     );
 
-    const input = await screen.findByPlaceholderText(
-      'dashboard.modals.joinClass.classCodePlaceholder'
-    );
+    const input = await screen.findByPlaceholderText('687ad8sa');
     fireEvent.change(input, { target: { value: 'abc123' } });
     fireEvent.click(
       screen.getByRole('button', {
-        name: /dashboard\.modals\.joinClass\.join/i,
+        name: /Join/i,
       })
     );
 
@@ -53,24 +51,22 @@ describe('JoinClassModal', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: /dashboard\.modals\.joinClass\.button/i,
+        name: /Join Class/i,
       })
     );
 
-    const input = await screen.findByPlaceholderText(
-      'dashboard.modals.joinClass.classCodePlaceholder'
-    );
+    const input = await screen.findByPlaceholderText('687ad8sa');
     fireEvent.change(input, { target: { value: 'badcode' } });
     fireEvent.click(
       screen.getByRole('button', {
-        name: /dashboard\.modals\.joinClass\.join/i,
+        name: /Join/i,
       })
     );
 
-    await screen.findByText('dashboard.modals.joinClass.invalidCode');
-    const invalidInput = screen.getByPlaceholderText(
-      'dashboard.modals.joinClass.classCodePlaceholder'
+    await screen.findByText(
+      'The code you entered is incorrect. Please try again'
     );
+    const invalidInput = screen.getByPlaceholderText('687ad8sa');
     expect(invalidInput.getAttribute('aria-invalid')).toBe('true');
   });
 });
