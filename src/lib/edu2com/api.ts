@@ -97,6 +97,10 @@ export async function callEdu2comBackgroundTeamFormation(
     const endpoint =
       'https://ardid.iiia.csic.es/eduteams/edu2com/v1/backgroundTeamFormation';
 
+    console.log(
+      `[Edu2com API] Calling background team formation for ${payload.people.length} people, ${payload.tasks.length} tasks`
+    );
+
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
@@ -104,14 +108,29 @@ export async function callEdu2comBackgroundTeamFormation(
       signal: controller.signal,
     });
 
-    if (res.status === 202) return;
+    if (res.status === 202) {
+      console.log(
+        '[Edu2com API] Request accepted (202) - processing in background'
+      );
+      return;
+    }
 
     const text = await res.text();
+    console.error(
+      `[Edu2com API] Background team formation failed with status ${res.status}:`,
+      text
+    );
     throw new HttpError(
       res.status,
       text || 'Cannot form the teams with the provided data.',
       'EDU2COM_BACKGROUND_ERROR'
     );
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Edu2com API] Request failed:', errorMsg);
+    throw error;
   } finally {
     clearTimeout(timer);
   }

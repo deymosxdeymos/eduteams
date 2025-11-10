@@ -76,7 +76,17 @@ export async function AssignmentDetailAsync({
     }),
     prisma.courseEnrollment.findMany({
       where: { courseId: classId },
-      select: { studentId: true },
+      select: {
+        studentId: true,
+        student: {
+          select: {
+            ei: true,
+            sn: true,
+            tf: true,
+            pj: true,
+          },
+        },
+      },
     }),
   ]);
 
@@ -142,6 +152,9 @@ export async function AssignmentDetailAsync({
           100
       )
     : 0;
+
+  // Calculate how many students haven't submitted the assignment quiz
+  const incompleteCount = totalEnrollments - submittedStudentIds.size;
 
   // Fetch teams data if teams are formed
   let teamsData: Array<{
@@ -263,6 +276,7 @@ export async function AssignmentDetailAsync({
         topicNames={topicNames}
         taskIdByIndex={taskIdByIndex}
         isTeamFormationProcessing={isTeamFormationProcessing}
+        incompleteStudentCount={incompleteCount}
       />
     </AssignmentLayout>
   );

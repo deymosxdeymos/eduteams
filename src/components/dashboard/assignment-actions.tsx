@@ -34,6 +34,7 @@ interface AssignmentActionsProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   isTeamFormationProcessing?: boolean;
+  incompleteStudentCount?: number;
 }
 
 export function AssignmentActions({
@@ -47,11 +48,13 @@ export function AssignmentActions({
   searchValue = '',
   onSearchChange,
   isTeamFormationProcessing = false,
+  incompleteStudentCount = 0,
 }: AssignmentActionsProps) {
   const router = useRouter();
   const t = useTranslations('dashboard.assignment.actions');
   const tTeams = useTranslations('dashboard.teams');
   const [modalOpen, setModalOpen] = useState(false);
+  const [warningOpen, setWarningOpen] = useState(false);
   const [method, setMethod] = useState<
     'JUMLAH_KELOMPOK' | 'JUMLAH_MHS_PER_KELOMPOK' | ''
   >('');
@@ -69,8 +72,25 @@ export function AssignmentActions({
     method && value && Number(value) > 0 && !disableForm
   );
 
+  const handleModalOpenChange = (open: boolean) => {
+    setModalOpen(open);
+    if (!open) {
+      setWarningOpen(false);
+    }
+  };
+
+  const handleCreateClick = () => {
+    if (!canSubmit) return;
+    if (incompleteStudentCount > 0) {
+      setWarningOpen(true);
+    } else {
+      handleCreate();
+    }
+  };
+
   const handleCreate = async () => {
     if (!canSubmit) return;
+    setWarningOpen(false);
     setSubmitting(true);
     setError('');
     setSuccess('');
@@ -92,6 +112,7 @@ export function AssignmentActions({
       setSuccess(t('successCreate'));
       setMethod('');
       setValue('');
+      setModalOpen(false);
       router.refresh();
     } catch {
       setError(t('networkError'));
@@ -111,7 +132,7 @@ export function AssignmentActions({
       <div className='flex items-center gap-4'>
         {canManage && (
           <div className='flex flex-col gap-2'>
-            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+            <Dialog open={modalOpen} onOpenChange={handleModalOpenChange}>
               <DialogTrigger asChild>
                 <Button
                   variant='onboarding'
@@ -238,9 +259,50 @@ export function AssignmentActions({
                       className='w-full rounded-full py-6 font-semibold'
                       variant='onboarding'
                       disabled={!canSubmit}
-                      onClick={handleCreate}
+                      onClick={handleCreateClick}
                     >
                       {submitting ? t('submitCreating') : t('submitCreate')}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={warningOpen} onOpenChange={setWarningOpen}>
+              <DialogContent
+                className='border max-w-md rounded-3xl p-0 gap-0'
+                onPointerDownOutside={e => {
+                  e.preventDefault();
+                }}
+                onEscapeKeyDown={e => {
+                  e.preventDefault();
+                }}
+              >
+                <DialogHeader className='p-6 pb-2'>
+                  <DialogTitle className='text-xl font-semibold text-left'>
+                    {t('warningTitle')}
+                  </DialogTitle>
+                  <p className='text-gray-600 text-sm font-normal text-left mt-2'>
+                    {t('warningMessage')}
+                  </p>
+                </DialogHeader>
+                <div className='p-6 pt-0'>
+                  <div className='flex flex-col gap-3'>
+                    <Button
+                      className='w-full rounded-full py-6 font-semibold'
+                      variant='onboarding'
+                      onClick={handleCreate}
+                      disabled={submitting}
+                    >
+                      {submitting ? t('submitCreating') : t('warningContinue')}
+                    </Button>
+                    <Button
+                      className='w-full rounded-full py-6 font-semibold'
+                      variant='outline'
+                      onClick={() => setWarningOpen(false)}
+                      disabled={submitting}
+                    >
+                      {t('warningCancel')}
                     </Button>
                   </div>
                 </div>

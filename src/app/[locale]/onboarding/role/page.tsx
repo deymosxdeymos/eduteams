@@ -1,8 +1,8 @@
 import Image from 'next/image';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Logo from '@/components/logo';
 import RoleFormClient from '@/components/onboarding/role/role-form-client';
+import { redirect } from '@/i18n/routing';
 import { isInstitutionalEmail } from '@/lib/email';
 import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
 import { protectOnboardingPage } from '@/lib/server-auth';
@@ -25,15 +25,15 @@ export default async function RolePage({
     if (user.role === 'dosen' && isInstitutionalEmail(user.email)) {
       // Dosen only needs name and gender (no NPM requirement)
       if (!user.name || !user.gender) {
-        redirect('/onboarding/data-diri/dosen');
+        redirect({ href: '/onboarding/data-diri/dosen', locale });
       }
-      redirect('/dashboard?firstVisit=true');
+      redirect({ href: '/dashboard?firstVisit=true', locale });
     }
 
     if (user.role === 'mahasiswa') {
       // Mahasiswa needs NIM
       if (!user.nim) {
-        redirect('/onboarding/data-diri/mahasiswa');
+        redirect({ href: '/onboarding/data-diri/mahasiswa', locale });
       }
 
       const sessionStatus = await getUserPersonalitySessionStatus(
@@ -41,15 +41,11 @@ export default async function RolePage({
         locale
       );
 
-      if (!sessionStatus) {
-        redirect('/onboarding/kepribadian');
+      if (!sessionStatus || sessionStatus.status !== 'completed_valid') {
+        redirect({ href: '/onboarding/kepribadian', locale });
       }
 
-      if (sessionStatus.status === 'completed_valid') {
-        redirect('/dashboard?firstVisit=true');
-      }
-
-      redirect('/onboarding/kepribadian');
+      redirect({ href: '/dashboard?firstVisit=true', locale });
     }
   }
 

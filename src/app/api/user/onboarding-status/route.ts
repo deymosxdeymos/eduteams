@@ -27,7 +27,7 @@ export const GET = async () => {
         // Check if user needs data-diri (mahasiswa needs NIM, dosen needs name/gender)
         redirectUrl = `/onboarding/data-diri/${user.role}`;
       } else if (user.role === 'mahasiswa') {
-        if (!sessionStatus || sessionStatus.status === 'completed_valid') {
+        if (sessionStatus && sessionStatus.status === 'completed_valid') {
           redirectUrl = '/dashboard?firstVisit=true';
         } else {
           redirectUrl = '/onboarding/kepribadian';

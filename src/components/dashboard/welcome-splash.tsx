@@ -18,16 +18,14 @@ export function WelcomeSplash({ onAnimationComplete }: WelcomeSplashProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    const MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
-    const mediaQueryList =
-      typeof window !== 'undefined' && 'matchMedia' in window
-        ? window.matchMedia(MEDIA_QUERY)
-        : null;
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
 
-    if (mediaQueryList?.matches) {
+    if (prefersReducedMotion) {
       setIsVisible(false);
       onAnimationComplete?.();
-      return undefined;
+      return;
     }
 
     const hideTimer = window.setTimeout(() => {

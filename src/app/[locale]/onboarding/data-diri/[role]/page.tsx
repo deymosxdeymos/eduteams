@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { getMessages } from 'next-intl/server';
 import Logo from '@/components/logo';
 import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
 import { Button } from '@/components/ui/button';
+import { redirect } from '@/i18n/routing';
 import { getDataDiri } from '@/lib/actions/data-diri';
 import { isInstitutionalEmail } from '@/lib/email';
 import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
@@ -57,7 +57,7 @@ export default async function DataDiriPage({
 
   // Validate role parameter
   if (!['dosen', 'mahasiswa'].includes(role)) {
-    redirect('/onboarding/role');
+    redirect({ href: '/onboarding/role', locale });
   }
 
   // Protect the onboarding page
@@ -67,13 +67,13 @@ export default async function DataDiriPage({
   const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
 
   if (user.role && user.role !== role) {
-    redirect(`/onboarding/data-diri/${user.role}`);
+    redirect({ href: `/onboarding/data-diri/${user.role}`, locale });
   }
 
   // For dosen, ensure institutional email domain
   if (role === 'dosen') {
     if (!isInstitutionalEmail(user.email)) {
-      redirect('/onboarding/role?err=dosen_email');
+      redirect({ href: '/onboarding/role?err=dosen_email', locale });
     }
   }
 
@@ -83,15 +83,11 @@ export default async function DataDiriPage({
       locale
     );
 
-    if (!sessionStatus) {
-      redirect('/dashboard?firstVisit=true');
+    if (!sessionStatus || sessionStatus.status === 'completed_valid') {
+      redirect({ href: '/dashboard?firstVisit=true', locale });
     }
 
-    if (sessionStatus.status === 'completed_valid') {
-      redirect('/dashboard?firstVisit=true');
-    }
-
-    redirect('/onboarding/kepribadian');
+    redirect({ href: '/onboarding/kepribadian', locale });
   }
 
   let initialData: {

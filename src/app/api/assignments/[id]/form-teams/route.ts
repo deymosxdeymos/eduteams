@@ -156,13 +156,72 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       },
     });
 
-    const students = enrollments.map(e => e.student);
+    // Get students who have submitted the assignment quiz
+    const submissions = await prisma.assignmentSubmission.findMany({
+      where: { assignmentId },
+      select: { studentId: true },
+    });
+    const submittedStudentIds = new Set(submissions.map(s => s.studentId));
+
+    // Helper to check if student has valid personality scores
+    const hasValidPersonality = (student: {
+      ei: number | null;
+      sn: number | null;
+      tf: number | null;
+      pj: number | null;
+    }) => {
+      return (
+        student.ei !== null &&
+        student.sn !== null &&
+        student.tf !== null &&
+        student.pj !== null &&
+        typeof student.ei === 'number' &&
+        typeof student.sn === 'number' &&
+        typeof student.tf === 'number' &&
+        typeof student.pj === 'number' &&
+        Number.isFinite(student.ei) &&
+        Number.isFinite(student.sn) &&
+        Number.isFinite(student.tf) &&
+        Number.isFinite(student.pj)
+      );
+    };
+
+    // Filter to only include students who:
+    // 1. Have submitted the assignment quiz
+    // 2. Have valid personality scores (MBTI)
+    const allStudents = enrollments.map(e => e.student);
+    const students = allStudents.filter(
+      s => submittedStudentIds.has(s.id) && hasValidPersonality(s)
+    );
+
+    const totalEnrolled = allStudents.length;
     const n = students.length;
+    const notSubmitted = totalEnrolled - submittedStudentIds.size;
+
+    // Check if any students haven't submitted the assignment quiz
+    if (notSubmitted > 0) {
+      console.log(
+        `[Team Formation] ${notSubmitted} of ${totalEnrolled} students excluded: haven't submitted assignment quiz`
+      );
+    }
+
+    // Validate minimum students with submissions
+    if (submittedStudentIds.size === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Tidak ada mahasiswa yang telah mengisi kuesioner tugas. Pembentukan kelompok memerlukan minimal 2 mahasiswa yang telah mengisi kuesioner.',
+        },
+        { status: 400 }
+      );
+    }
+
     if (n < 2) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Minimal 2 mahasiswa untuk membentuk kelompok',
+          error: `Hanya ${n} mahasiswa yang telah mengisi kuesioner dan memiliki data kepribadian lengkap. Minimal 2 mahasiswa diperlukan untuk membentuk kelompok.`,
         },
         { status: 400 }
       );
@@ -191,14 +250,15 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     }
 
     // Build people payload as required by openapi.json
+    // Note: students are already filtered to have valid personality scores
     const people = students.map(s => ({
       id: s.id,
       gender: normalizeGender(s.gender ?? undefined),
       personality: {
-        ei: Number.isFinite(s.ei ?? 0) ? (s.ei ?? 0) : 0,
-        sn: Number.isFinite(s.sn ?? 0) ? (s.sn ?? 0) : 0,
-        tf: Number.isFinite(s.tf ?? 0) ? (s.tf ?? 0) : 0,
-        pj: Number.isFinite(s.pj ?? 0) ? (s.pj ?? 0) : 0,
+        ei: s.ei!, // Safe to use non-null assertion after filtering
+        sn: s.sn!,
+        tf: s.tf!,
+        pj: s.pj!,
       },
       skills: (s.personSkills || [])
         .filter(ps => declaredSkillIds.includes(ps.skillId))

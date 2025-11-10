@@ -10,4 +10,4 @@ export const routing = defineRouting({
 
 const navigation = createNavigation(routing);
 
-export const { Link, usePathname, useRouter } = navigation;
+export const { Link, redirect, usePathname, useRouter } = navigation;

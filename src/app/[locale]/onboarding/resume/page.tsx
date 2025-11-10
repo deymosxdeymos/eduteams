@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/routing';
 import { autoAssignRole } from '@/lib/actions/role';
 import { getCurrentUser } from '@/lib/api-utils';
 import { needsDataDiri } from '@/lib/authorization';
@@ -32,14 +32,14 @@ export default async function ResumePage({
   };
 
   if (user.isOnboarded) {
-    redirect('/dashboard');
+    redirect({ href: '/dashboard?firstVisit=true', locale });
   }
 
   const isOnboardingRole =
     !user.role || user.role === 'dosen' || user.role === 'mahasiswa';
 
   if (!isOnboardingRole) {
-    redirect('/dashboard');
+    redirect({ href: '/dashboard?firstVisit=true', locale });
   }
 
   const expectedRole = isInstitutionalEmail(user.email) ? 'dosen' : 'mahasiswa';
@@ -56,33 +56,26 @@ export default async function ResumePage({
       ? await getUserPersonalitySessionStatus(user.id, locale)
       : null;
 
-  console.log('Resume page - User data:', {
-    isOnboarded: user.isOnboarded,
-    onboardingStep: user.onboardingStep,
-    role: user.role,
-    sessionStatus: sessionStatus?.status ?? null,
-  });
-
   if (!user.role) {
-    redirect('/onboarding/resume');
+    redirect({ href: '/onboarding/resume', locale });
   }
 
   if (needsDataDiri(user)) {
-    redirect(`/onboarding/data-diri/${targetRole}`);
+    redirect({ href: `/onboarding/data-diri/${targetRole}`, locale });
   }
 
   if (targetRole === 'mahasiswa') {
     if (!sessionStatus || sessionStatus.status !== 'completed_valid') {
-      redirect('/onboarding/kepribadian');
+      redirect({ href: '/onboarding/kepribadian', locale });
     }
 
     await markUserOnboarded();
 
-    redirect('/dashboard?firstVisit=true');
+    redirect({ href: '/dashboard?firstVisit=true', locale });
   }
 
   // Mark user as onboarded before redirecting to dashboard
   await markUserOnboarded();
 
-  redirect('/dashboard?firstVisit=true');
+  redirect({ href: '/dashboard?firstVisit=true', locale });
 }

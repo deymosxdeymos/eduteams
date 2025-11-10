@@ -65,31 +65,66 @@ export async function POST(req: Request) {
 
     const teamsPayload = parsed.data;
 
-    await prisma.$transaction([
-      prisma.team.deleteMany({ where: { teamFormationRequestId: requestId } }),
-      prisma.teamFormationRequest.update({
-        where: { id: requestId },
-        data: {
-          status: 'COMPLETED',
-          completedAt: new Date(),
-          responseData: teamsPayload as unknown as Prisma.InputJsonValue,
-          errorMessage: null,
-          teams: {
-            create: teamsPayload.teams.map((team, index) => ({
-              taskId: team.taskId,
-              name: `Kelompok ${index + 1}`,
-              quality: team.quality ?? null,
-              members: {
-                create: team.people.map(member => ({
-                  userId: member.id,
-                  assignedSkillIds: member.skillIds ?? [],
-                })),
-              },
-            })),
+    try {
+      await prisma.$transaction([
+        prisma.team.deleteMany({
+          where: { teamFormationRequestId: requestId },
+        }),
+        prisma.teamFormationRequest.update({
+          where: { id: requestId },
+          data: {
+            status: 'COMPLETED',
+            completedAt: new Date(),
+            responseData: teamsPayload as unknown as Prisma.InputJsonValue,
+            errorMessage: null,
+            teams: {
+              create: teamsPayload.teams.map((team, index) => ({
+                taskId: null, // Set to null since Edu2com's taskId doesn't map to Task table
+                name: `Kelompok ${index + 1} (${team.taskId})`,
+                quality: team.quality ?? null,
+                members: {
+                  create: team.people.map(member => ({
+                    userId: member.id,
+                    assignedSkillIds: member.skillIds ?? [],
+                  })),
+                },
+              })),
+            },
           },
-        },
-      }),
-    ]);
+        }),
+      ]);
+
+      console.log(
+        `[Edu2com Webhook] Successfully processed ${teamsPayload.teams.length} teams for request ${requestId}`
+      );
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error(
+        `[Edu2com Webhook] Failed to save teams for request ${requestId}:`,
+        errorMsg
+      );
+
+      await prisma.teamFormationRequest
+        .update({
+          where: { id: requestId },
+          data: {
+            status: 'FAILED',
+            errorMessage: `Failed to save teams: ${errorMsg}`.slice(0, 250),
+            completedAt: new Date(),
+          },
+        })
+        .catch(e => {
+          console.error(
+            `[Edu2com Webhook] Failed to mark request ${requestId} as FAILED:`,
+            e
+          );
+        });
+
+      return NextResponse.json(
+        { success: false, error: 'Failed to save team formation results' },
+        { status: 500 }
+      );
+    }
 
     if (requestRecord.assignmentId) {
       await prisma.assignment
