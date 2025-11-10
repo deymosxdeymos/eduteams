@@ -283,42 +283,69 @@ async function seedMBTIQuestions() {
 
     validateOJTSStructure(OJTS_V21_ITEMS);
 
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const deleted = await tx.personalityQuestion.deleteMany({
-        where: { bankVersion: 4 },
-      });
-      if (deleted.count > 0) {
-        console.log(
-          `i Removed ${deleted} existing OJTS questions (bank v4) before reseeding`
-        );
-      }
-
-      let createdCount = 0;
-      for (const locale of SUPPORTED_LOCALES) {
-        const ojtsBank = buildOJTSBank(locale);
-        for (const q of ojtsBank) {
-          await tx.personalityQuestion.create({
-            data: withTimestamps({
-              id: randomUUID(),
+    await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // First, delete all personality responses that reference questions in bank v4
+        const deletedResponses = await tx.personalityResponse.deleteMany({
+          where: {
+            question: {
               bankVersion: 4,
-              status: 'ACTIVE',
-              text: q.text,
-              dimension: DIMENSION_MAP[q.dimension],
-              orderHint: q.orderHint,
-              reversed: q.reversed ?? false,
-              isAttentionCheck: q.isAttentionCheck ?? false,
-              locale: q.locale,
-            }),
-          });
-          createdCount += 1;
+            },
+          },
+        });
+        if (deletedResponses.count > 0) {
+          console.log(
+            `i Removed ${deletedResponses.count} personality responses referencing bank v4 questions`
+          );
         }
-      }
 
-      console.log('✅ Seeded OJTS personality bank (v4)');
-      console.log(
-        `✅ Created ${createdCount} MBTI questions across ${SUPPORTED_LOCALES.length} locales (v4)`
-      );
-    });
+        // Then delete the questions
+        const deleted = await tx.personalityQuestion.deleteMany({
+          where: { bankVersion: 4 },
+        });
+        if (deleted.count > 0) {
+          console.log(
+            `i Removed ${deleted.count} existing OJTS questions (bank v4) before reseeding`
+          );
+        }
+
+        // Build all questions at once for batch insert
+        const allQuestions: Array<Prisma.PersonalityQuestionUncheckedCreateInput> =
+          [];
+
+        for (const locale of SUPPORTED_LOCALES) {
+          const ojtsBank = buildOJTSBank(locale);
+          for (const q of ojtsBank) {
+            allQuestions.push(
+              withTimestamps({
+                id: randomUUID(),
+                bankVersion: 4,
+                status: 'ACTIVE',
+                text: q.text,
+                dimension: DIMENSION_MAP[q.dimension],
+                orderHint: q.orderHint,
+                reversed: q.reversed ?? false,
+                isAttentionCheck: q.isAttentionCheck ?? false,
+                locale: q.locale,
+              })
+            );
+          }
+        }
+
+        // Batch insert all questions at once
+        const result = await tx.personalityQuestion.createMany({
+          data: allQuestions,
+        });
+
+        console.log('✅ Seeded OJTS personality bank (v4)');
+        console.log(
+          `✅ Created ${result.count} MBTI questions across ${SUPPORTED_LOCALES.length} locales (v4)`
+        );
+      },
+      {
+        timeout: 15000, // Increase timeout to 15 seconds
+      }
+    );
 
     console.log('🎉 MBTI questions seeding completed successfully!');
     console.log('\n📊 Seeding Summary:');

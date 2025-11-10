@@ -24,6 +24,7 @@
     "test:lighthouse": "bun run scripts/lighthouse-test.ts",
     "i18n:validate": "bun run scripts/validate-i18n.ts",
     "db:seed": "bun run prisma/seed.ts",
+    "db:seed:production": "export DATABASE_URL=\"$PRISMA_POSTGRES_URL\" && bun run prisma/seed.ts",
     "db:seed:dev": "bun run prisma/seed-dev.ts",
     "db:list-courses": "bun run prisma/seed-dev.ts --list-courses",
     "db:list-dosen": "bun run prisma/seed-dev.ts --list-dosen",

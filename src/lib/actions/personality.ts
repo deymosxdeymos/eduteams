@@ -79,7 +79,7 @@ export async function submitPersonalityTest(
     }
 
     revalidatePath('/dashboard');
-    redirect('/dashboard');
+    redirect('/dashboard?firstVisit=true');
   } catch (error) {
     if (error instanceof AuthError || error instanceof ValidationError) {
       throw error;

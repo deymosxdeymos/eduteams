@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useTransition } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
@@ -14,15 +14,21 @@ interface LoginButtonProps {
 
 export function LoginButton({ className }: LoginButtonProps) {
   const t = useTranslations('auth');
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleGoogleSignIn = () => {
-    startTransition(() => {
-      void authClient.signIn.social({
+  const handleGoogleSignIn = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      await authClient.signIn.social({
         provider: 'google',
         callbackURL: '/dashboard',
       });
-    });
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,12 +40,12 @@ export function LoginButton({ className }: LoginButtonProps) {
         className
       )}
       onClick={handleGoogleSignIn}
-      disabled={isPending}
+      disabled={isLoading}
     >
-      {isPending ? (
-        <LoadingSpinner size='sm' className='mr-2' />
-      ) : (
-        <div className='relative mr-2 size-6'>
+      <div className='mr-2 flex h-6 w-6 items-center justify-center'>
+        {isLoading ? (
+          <LoadingSpinner size='sm' />
+        ) : (
           <Image
             src='/google.svg'
             alt='Google Logo'
@@ -47,8 +53,8 @@ export function LoginButton({ className }: LoginButtonProps) {
             height={24}
             className='size-6'
           />
-        </div>
-      )}
+        )}
+      </div>
       {t('signInWithGoogle')}
     </Button>
   );
