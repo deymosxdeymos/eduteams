@@ -1,5 +1,5 @@
-import { createHmac } from 'node:crypto';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { createHmac } from 'node:crypto';
 
 process.env.EDU2COM_WEBHOOK_SECRET = 'test-webhook-secret';
 
@@ -43,7 +43,7 @@ const prismaMock = {
 mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 
 const validToken = (requestId: string) =>
-  createHmac('sha256', process.env.EDU2COM_WEBHOOK_SECRET!)
+  createHmac('sha256', process.env.EDU2COM_WEBHOOK_SECRET || 'fallback-secret')
     .update(requestId)
     .digest('hex');
 

@@ -64,10 +64,11 @@ export const edu2comParametersSchema = z.object({
 
 export type Edu2comParameters = z.infer<typeof edu2comParametersSchema>;
 
-export const edu2comBackgroundParametersSchema =
-  edu2comParametersSchema.extend({
+export const edu2comBackgroundParametersSchema = edu2comParametersSchema.extend(
+  {
     replyPostUrl: z.string().url(),
-  });
+  }
+);
 
 export type Edu2comBackgroundParameters = z.infer<
   typeof edu2comBackgroundParametersSchema

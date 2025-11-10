@@ -259,11 +259,11 @@ export async function AssignmentDetailAsync({
         topicCount={topicCount}
         enrollmentCount={enrollments.length}
         quizCompletionPercent={quizCompletionPercent}
-      teams={teamsData}
-      topicNames={topicNames}
-      taskIdByIndex={taskIdByIndex}
-      isTeamFormationProcessing={isTeamFormationProcessing}
-    />
+        teams={teamsData}
+        topicNames={topicNames}
+        taskIdByIndex={taskIdByIndex}
+        isTeamFormationProcessing={isTeamFormationProcessing}
+      />
     </AssignmentLayout>
   );
 }

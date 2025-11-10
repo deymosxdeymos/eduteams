@@ -435,7 +435,8 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       const status = abort ? 504 : (httpError?.status ?? 400);
       const userError = abort
         ? 'Permintaan ke Edu2com melebihi batas waktu. Silakan coba lagi.'
-        : (httpError?.message ?? 'Gagal mengirim permintaan pembentukan kelompok');
+        : (httpError?.message ??
+          'Gagal mengirim permintaan pembentukan kelompok');
       await prisma.teamFormationRequest.update({
         where: { id: tf.id },
         data: {
@@ -444,8 +445,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
             (abort ? `Timeout contacting Edu2com: ${text}` : text)?.slice(
               0,
               250
-            ) ||
-            'Failed to enqueue team formation',
+            ) || 'Failed to enqueue team formation',
         },
       });
       return NextResponse.json(

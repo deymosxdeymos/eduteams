@@ -187,35 +187,38 @@ export function AssignmentActions({
                         }
                         className='w-full disabled:cursor-not-allowed disabled:opacity-60'
                       />
-                      {topicCount != null && enrollmentCount != null && value && (
-                        <p className='text-xs text-neutral-500'>
-                          {(() => {
-                            const val = Number(value);
-                            const groups =
-                              method === 'JUMLAH_KELOMPOK'
-                                ? val
-                                : val > 0
-                                  ? Math.max(
-                                      1,
-                                      Math.ceil(
-                                        (enrollmentCount ?? 0) / Math.max(1, val)
+                      {topicCount != null &&
+                        enrollmentCount != null &&
+                        value && (
+                          <p className='text-xs text-neutral-500'>
+                            {(() => {
+                              const val = Number(value);
+                              const groups =
+                                method === 'JUMLAH_KELOMPOK'
+                                  ? val
+                                  : val > 0
+                                    ? Math.max(
+                                        1,
+                                        Math.ceil(
+                                          (enrollmentCount ?? 0) /
+                                            Math.max(1, val)
+                                        )
                                       )
-                                    )
-                                  : 0;
-                            if (
-                              groups &&
-                              (topicCount ?? 0) > 0 &&
-                              groups !== topicCount
-                            ) {
-                              return t('noteTopicsMismatch', {
-                                topicCount,
-                                groups,
-                              });
-                            }
-                            return null;
-                          })()}
-                        </p>
-                      )}
+                                    : 0;
+                              if (
+                                groups &&
+                                (topicCount ?? 0) > 0 &&
+                                groups !== topicCount
+                              ) {
+                                return t('noteTopicsMismatch', {
+                                  topicCount,
+                                  groups,
+                                });
+                              }
+                              return null;
+                            })()}
+                          </p>
+                        )}
                     </div>
                   )}
 

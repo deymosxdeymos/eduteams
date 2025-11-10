@@ -39,10 +39,8 @@ export async function POST(req: Request) {
           where: { id: requestId },
           data: {
             status: 'FAILED',
-            errorMessage: `Invalid Edu2com payload: ${parsed.error.message}`.slice(
-              0,
-              250
-            ),
+            errorMessage:
+              `Invalid Edu2com payload: ${parsed.error.message}`.slice(0, 250),
           },
         })
         .catch(() => {});

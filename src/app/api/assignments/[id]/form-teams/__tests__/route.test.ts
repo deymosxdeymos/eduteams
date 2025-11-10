@@ -463,7 +463,6 @@ describe('POST /api/assignments/[id]/form-teams', () => {
       },
     }));
 
-
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
       method: 'POST',
