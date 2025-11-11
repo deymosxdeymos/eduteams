@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import { Badge } from '../ui/badge';
 import { MBTIOverviewLayout } from './mbti-overview-layout';
 import { SearchInput } from './search-input';
@@ -49,8 +50,13 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-const convertToExtendedUser = (student: Student): ExtendedUser =>
-  ({
+const convertToExtendedUser = (student: Student): ExtendedUser => {
+  const ei = student.ei ?? null;
+  const sn = student.sn ?? null;
+  const tf = student.tf ?? null;
+  const pj = student.pj ?? null;
+
+  return {
     id: student.id,
     name: student.name,
     email: student.email,
@@ -58,11 +64,17 @@ const convertToExtendedUser = (student: Student): ExtendedUser =>
     nim: student.nim,
     isOnboarded: true,
     onboardingStep: null,
-    mbtiType: (student.mbtiType || null) as ExtendedUser['mbtiType'],
-    ei: student.ei ?? null,
-    sn: student.sn ?? null,
-    tf: student.tf ?? null,
-    pj: student.pj ?? null,
+    mbtiType: getMBTIType({
+      ei,
+      sn,
+      tf,
+      pj,
+      mbtiType: (student.mbtiType || null) as ExtendedUser['mbtiType'],
+    }) as ExtendedUser['mbtiType'],
+    ei,
+    sn,
+    tf,
+    pj,
     createdAt: new Date(0),
     updatedAt: new Date(0),
     image: null,
@@ -71,7 +83,8 @@ const convertToExtendedUser = (student: Student): ExtendedUser =>
     hasSeenWelcomeSplash: false,
     onboardingData: null,
     personalityData: null,
-  }) as ExtendedUser;
+  } as ExtendedUser;
+};
 
 export const StudentList = memo(function StudentList({
   classId,

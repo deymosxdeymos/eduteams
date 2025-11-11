@@ -10,6 +10,7 @@ import {
   buildRadarData,
   computeAllDimensionMetrics,
 } from '@/lib/utils/mbti-dimension';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import { ChartTypeTabs } from './chart-type-tabs';
 import { MetricBar } from './metric-bar';
 import { PersonalityRadarChart } from './personality-radar-chart';
@@ -21,7 +22,8 @@ interface PersonalityMetricsProps {
 }
 
 export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
-  const colorScheme = getMBTIColorScheme(user.mbtiType);
+  const mbtiType = getMBTIType(user);
+  const colorScheme = getMBTIColorScheme(mbtiType);
   const [chartType, setChartType] = useQueryState<ChartType>('chart', {
     defaultValue: 'bar',
     parse: (value: string | null): ChartType =>

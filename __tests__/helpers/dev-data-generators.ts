@@ -117,12 +117,31 @@ export function generateBalancedMBTI(index: number, total: number): MBTIType {
 
 export function getMBTIType(scores: PersonalityScores): MBTIType {
   const ei = scores.ei >= 0 ? 'E' : 'I';
-  const sn = scores.sn >= 0 ? 'S' : 'N';
-  const tf = scores.tf >= 0 ? 'T' : 'F';
-  const pj = scores.pj >= 0 ? 'J' : 'P';
+  const sn = scores.sn >= 0 ? 'N' : 'S';
+  const tf = scores.tf >= 0 ? 'F' : 'T';
+  const pj = scores.pj >= 0 ? 'P' : 'J';
   
   const mbtiString = `${ei}${sn}${tf}${pj}` as MBTIType;
   return mbtiTypes.includes(mbtiString) ? mbtiString : 'INTJ';
+}
+
+/**
+ * Generate personality scores that match a specific MBTI type
+ * Ensures consistency between mbtiType and raw scores
+ */
+export function generateScoresForMBTI(mbtiType: MBTIType): PersonalityScores {
+  // Parse MBTI string
+  const [e_i, s_n, t_f, j_p] = mbtiType.split('');
+  
+  // Generate scores that match the type with some variance (0.3 to 1.0)
+  const variance = () => Math.random() * 0.7 + 0.3;
+  
+  return {
+    ei: e_i === 'E' ? variance() : -variance(),
+    sn: s_n === 'N' ? variance() : -variance(),
+    tf: t_f === 'F' ? variance() : -variance(),
+    pj: j_p === 'P' ? variance() : -variance(),
+  };
 }
 
 export function generateMBTIResponses(

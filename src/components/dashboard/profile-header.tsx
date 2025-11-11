@@ -4,6 +4,7 @@ import { Mars, Pencil, User, Venus } from 'lucide-react';
 import Image from 'next/image';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import { Button } from '../ui/button';
 
 interface ProfileHeaderProps {
@@ -17,7 +18,8 @@ export function ProfileHeader({
   hideImage = false,
   hideEditButton = false,
 }: ProfileHeaderProps) {
-  const colorScheme = getMBTIColorScheme(user.mbtiType);
+  const mbtiType = getMBTIType(user);
+  const colorScheme = getMBTIColorScheme(mbtiType);
 
   // Create gradient based on MBTI category colors
   const gradientClass = `bg-gradient-to-r ${colorScheme.gradientFrom} ${colorScheme.gradientTo}`;
@@ -28,10 +30,10 @@ export function ProfileHeader({
     >
       <div className='flex items-center gap-4'>
         {!hideImage &&
-          (user.mbtiType ? (
+          (mbtiType ? (
             <Image
-              src={`/mbti-logo-normalized/${user.mbtiType}.svg`}
-              alt={`${user.mbtiType} Logo`}
+              src={`/mbti-logo-normalized/${mbtiType}.svg`}
+              alt={`${mbtiType} Logo`}
               width={50}
               height={50}
               priority

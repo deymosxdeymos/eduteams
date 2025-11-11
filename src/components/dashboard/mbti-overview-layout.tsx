@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import type { MBTIType } from '@/lib/validation/personality';
 import { Button } from '../ui/button';
 import Nav from './nav';
@@ -106,9 +107,10 @@ export function MBTIOverviewLayout({
   isCompact = false,
   onRequestClose,
 }: MBTIOverviewLayoutProps) {
+  const mbtiType = getMBTIType(user);
   const initialSelected = useMemo<MBTIType | null>(
-    () => user.mbtiType ?? null,
-    [user.mbtiType]
+    () => mbtiType ?? null,
+    [mbtiType]
   );
   const [selectedMBTI, setSelectedMBTI] = useState<MBTIType | null>(
     initialSelected
@@ -161,7 +163,7 @@ export function MBTIOverviewLayout({
                 variant='ghost'
                 className='rounded-full'
                 onClick={() => {
-                  setSelectedMBTI(user.mbtiType ?? null);
+                  setSelectedMBTI(mbtiType ?? null);
                   onRequestClose?.();
                 }}
                 aria-label='Close'

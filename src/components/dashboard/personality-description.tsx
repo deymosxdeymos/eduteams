@@ -2,6 +2,7 @@
 
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 
 interface PersonalityDescriptionProps {
   user: ExtendedUser;
@@ -91,10 +92,11 @@ const PERSONALITY_DESCRIPTIONS = {
 };
 
 export function PersonalityDescription({ user }: PersonalityDescriptionProps) {
-  const colorScheme = getMBTIColorScheme(user.mbtiType);
+  const mbtiType = getMBTIType(user);
+  const colorScheme = getMBTIColorScheme(mbtiType);
 
   // Don't show anything if user doesn't have an MBTI type
-  if (!user.mbtiType) {
+  if (!mbtiType) {
     return (
       <div
         className={`flex flex-col text-start border ${colorScheme.lightBorder} rounded-xl shadow-glow ${colorScheme.lightShadow} p-4 gap-4 flex-1 self-stretch`}
@@ -110,7 +112,7 @@ export function PersonalityDescription({ user }: PersonalityDescriptionProps) {
     );
   }
 
-  const personality = PERSONALITY_DESCRIPTIONS[user.mbtiType];
+  const personality = PERSONALITY_DESCRIPTIONS[mbtiType];
 
   return (
     <div

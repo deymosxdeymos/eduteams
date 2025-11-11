@@ -4,16 +4,18 @@ import { Sparkle } from 'lucide-react';
 import Image from 'next/image';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 
 interface MBTIDisplayProps {
   user: ExtendedUser;
 }
 
 export function MBTIDisplay({ user }: MBTIDisplayProps) {
-  const colorScheme = getMBTIColorScheme(user.mbtiType);
+  const mbtiType = getMBTIType(user);
+  const colorScheme = getMBTIColorScheme(mbtiType);
 
   // If no MBTI type, show placeholder
-  if (!user.mbtiType) {
+  if (!mbtiType) {
     return (
       <div className='flex flex-col gap-2 self-stretch'>
         <div
@@ -45,8 +47,8 @@ export function MBTIDisplay({ user }: MBTIDisplayProps) {
           fill='currentColor'
         />
         <Image
-          src={`/mbti-text/${user.mbtiType}.svg`}
-          alt={user.mbtiType}
+          src={`/mbti-text/${mbtiType}.svg`}
+          alt={mbtiType}
           width={150}
           height={150}
         />
@@ -60,8 +62,8 @@ export function MBTIDisplay({ user }: MBTIDisplayProps) {
         className={`flex items-center justify-center border ${colorScheme.lightBorder} rounded-xl shadow-glow ${colorScheme.lightShadow} p-4 flex-1`}
       >
         <Image
-          src={`/mbti-type/${user.mbtiType}.svg`}
-          alt={user.mbtiType}
+          src={`/mbti-type/${mbtiType}.svg`}
+          alt={mbtiType}
           width={150}
           height={150}
         />

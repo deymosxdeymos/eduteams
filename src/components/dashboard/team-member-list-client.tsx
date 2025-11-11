@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 
 interface TeamMemberUser {
   id: string;
@@ -40,8 +41,13 @@ interface TeamMemberListClientProps {
   canManage?: boolean;
 }
 
-const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser =>
-  ({
+const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
+  const ei = member.user.ei ?? null;
+  const sn = member.user.sn ?? null;
+  const tf = member.user.tf ?? null;
+  const pj = member.user.pj ?? null;
+
+  return {
     id: member.user.id,
     name: member.user.name,
     email: member.user.email,
@@ -49,11 +55,17 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser =>
     nim: member.user.nim,
     isOnboarded: true,
     onboardingStep: null,
-    mbtiType: (member.user.mbtiType || null) as ExtendedUser['mbtiType'],
-    ei: member.user.ei ?? null,
-    sn: member.user.sn ?? null,
-    tf: member.user.tf ?? null,
-    pj: member.user.pj ?? null,
+    mbtiType: getMBTIType({
+      ei,
+      sn,
+      tf,
+      pj,
+      mbtiType: (member.user.mbtiType || null) as ExtendedUser['mbtiType'],
+    }) as ExtendedUser['mbtiType'],
+    ei,
+    sn,
+    tf,
+    pj,
     createdAt: new Date(0),
     updatedAt: new Date(0),
     image: null,
@@ -62,7 +74,8 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser =>
     hasSeenWelcomeSplash: false,
     onboardingData: null,
     personalityData: null,
-  }) as ExtendedUser;
+  } as ExtendedUser;
+};
 
 export function TeamMemberListClient({
   members,

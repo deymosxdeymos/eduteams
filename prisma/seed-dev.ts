@@ -12,6 +12,7 @@ import {
   generatePersonalityScores,
   generateRandomGender,
   generateRandomSkills,
+  generateScoresForMBTI,
   getMBTIType,
 } from '__tests__/helpers/dev-data-generators';
 import { z } from 'zod';
@@ -277,12 +278,19 @@ async function generateCompletePersonalitySession(
   mbtiBalanced: boolean,
   questionIds: string[]
 ): Promise<void> {
-  const scores = generatePersonalityScores();
-  const mbtiType = mbtiBalanced
-    ? generateBalancedMBTI(index, total)
-    : getMBTIType(scores);
+  // When balanced mode, generate type first then create matching scores
+  const mbtiType = mbtiBalanced ? generateBalancedMBTI(index, total) : null;
 
-  // Generate responses consistent with MBTI type
+  // Generate scores: either matching the balanced type or random
+  const scores =
+    mbtiBalanced && mbtiType
+      ? generateScoresForMBTI(mbtiType)
+      : generatePersonalityScores();
+
+  // Recalculate final type to ensure consistency
+  const finalMbtiType = getMBTIType(scores);
+
+  // Generate responses consistent with the scores
   const responses = generateMBTIResponses(scores, questionIds);
 
   // Realistic timing: 2-5 minutes
@@ -340,7 +348,7 @@ async function generateCompletePersonalitySession(
         sn: scores.sn,
         tf: scores.tf,
         pj: scores.pj,
-        mbtiType,
+        mbtiType: finalMbtiType,
         isOnboarded: true,
         onboardingStep: null,
         personalityData: {
@@ -350,7 +358,7 @@ async function generateCompletePersonalitySession(
             sn: scores.sn,
             tf: scores.tf,
             pj: scores.pj,
-            mbtiType,
+            mbtiType: finalMbtiType,
           },
           metadata: {
             sessionId: session.id,
