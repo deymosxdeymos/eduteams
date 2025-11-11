@@ -168,6 +168,10 @@ export async function AssignmentDetailAsync({
         email: string | null;
         mbtiType: string | null;
         nim: string | null;
+        ei: number | null;
+        sn: number | null;
+        tf: number | null;
+        pj: number | null;
       };
     }>;
   }> = [];
@@ -195,6 +199,10 @@ export async function AssignmentDetailAsync({
                     email: true,
                     mbtiType: true,
                     nim: true,
+                    ei: true,
+                    sn: true,
+                    tf: true,
+                    pj: true,
                   },
                 },
               },
@@ -217,6 +225,10 @@ export async function AssignmentDetailAsync({
             email: m.user.email,
             mbtiType: m.user.mbtiType,
             nim: m.user.nim,
+            ei: m.user.ei,
+            sn: m.user.sn,
+            tf: m.user.tf,
+            pj: m.user.pj,
           },
         })),
       }));

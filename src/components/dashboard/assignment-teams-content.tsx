@@ -9,6 +9,10 @@ interface TeamMemberUser {
   email?: string | null;
   mbtiType?: string | null;
   nim?: string | null;
+  ei?: number | null;
+  sn?: number | null;
+  tf?: number | null;
+  pj?: number | null;
 }
 
 interface TeamMemberItem {
@@ -106,6 +110,10 @@ export function AssignmentTeamsContent({
                       email: m.user.email,
                       mbtiType: m.user.mbtiType as unknown as string | null,
                       nim: m.user.nim,
+                      ei: m.user.ei,
+                      sn: m.user.sn,
+                      tf: m.user.tf,
+                      pj: m.user.pj,
                     },
                   }))}
                   courseId={courseId}

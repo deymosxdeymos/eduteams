@@ -22,6 +22,10 @@ interface TeamMemberUser {
   email?: string | null;
   mbtiType?: string | null;
   nim?: string | null;
+  ei?: number | null;
+  sn?: number | null;
+  tf?: number | null;
+  pj?: number | null;
 }
 
 interface TeamMemberItem {
@@ -46,10 +50,10 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser =>
     isOnboarded: true,
     onboardingStep: null,
     mbtiType: (member.user.mbtiType || null) as ExtendedUser['mbtiType'],
-    ei: null,
-    sn: null,
-    tf: null,
-    pj: null,
+    ei: member.user.ei ?? null,
+    sn: member.user.sn ?? null,
+    tf: member.user.tf ?? null,
+    pj: member.user.pj ?? null,
     createdAt: new Date(0),
     updatedAt: new Date(0),
     image: null,
