@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
@@ -142,13 +143,6 @@ const MBTI_GROUP: Record<
 
 type MbtiGroup = 'analyst' | 'diplomat' | 'sentinel' | 'explorer';
 
-const MBTI_LEGEND = [
-  { color: 'bg-violet-500', label: 'Pemikir', group: 'analyst' as const },
-  { color: 'bg-emerald-500', label: 'Empatik', group: 'diplomat' as const },
-  { color: 'bg-sky-500', label: 'Disiplin', group: 'sentinel' as const },
-  { color: 'bg-amber-500', label: 'Eksploratif', group: 'explorer' as const },
-];
-
 function getGroupForType(type: MbtiType): MbtiGroup {
   return MBTI_GROUP[type];
 }
@@ -265,6 +259,8 @@ interface MbtiBarChartProps {
 }
 
 export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
+  const t = useTranslations('dashboard.charts');
+
   const chartData = stats.map(row => ({
     kategori: row.kategori,
     jumlah: ready ? row.jumlah : 0,
@@ -283,6 +279,17 @@ export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
     sentinel: `mbti-blue-${blueId}`,
     explorer: `mbti-amber-${amberId}`,
   };
+
+  const MBTI_LEGEND = [
+    { color: 'bg-violet-500', label: t('analyst'), group: 'analyst' as const },
+    {
+      color: 'bg-emerald-500',
+      label: t('diplomat'),
+      group: 'diplomat' as const,
+    },
+    { color: 'bg-sky-500', label: t('sentinel'), group: 'sentinel' as const },
+    { color: 'bg-amber-500', label: t('explorer'), group: 'explorer' as const },
+  ];
 
   return (
     <>
@@ -305,19 +312,43 @@ export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
             >
               <feDropShadow dx='0' dy='2' stdDeviation='4' floodOpacity='0.2' />
             </filter>
-            <linearGradient id={gradientIds.diplomat} x1='0' y1='0' x2='0' y2='1'>
+            <linearGradient
+              id={gradientIds.diplomat}
+              x1='0'
+              y1='0'
+              x2='0'
+              y2='1'
+            >
               <stop offset='0%' stopColor='oklch(from #6CE9A6 l c h)' />
               <stop offset='100%' stopColor='oklch(from #3BCC7E l c h)' />
             </linearGradient>
-            <linearGradient id={gradientIds.analyst} x1='0' y1='0' x2='0' y2='1'>
+            <linearGradient
+              id={gradientIds.analyst}
+              x1='0'
+              y1='0'
+              x2='0'
+              y2='1'
+            >
               <stop offset='0%' stopColor='oklch(from #9B8AFB l c h)' />
               <stop offset='100%' stopColor='oklch(from #7A64FA l c h)' />
             </linearGradient>
-            <linearGradient id={gradientIds.sentinel} x1='0' y1='0' x2='0' y2='1'>
+            <linearGradient
+              id={gradientIds.sentinel}
+              x1='0'
+              y1='0'
+              x2='0'
+              y2='1'
+            >
               <stop offset='0%' stopColor='oklch(from #7CD4FD l c h)' />
               <stop offset='100%' stopColor='oklch(from #38B8F4 l c h)' />
             </linearGradient>
-            <linearGradient id={gradientIds.explorer} x1='0' y1='0' x2='0' y2='1'>
+            <linearGradient
+              id={gradientIds.explorer}
+              x1='0'
+              y1='0'
+              x2='0'
+              y2='1'
+            >
               <stop offset='0%' stopColor='oklch(from #FEC84B l c h)' />
               <stop offset='100%' stopColor='oklch(from #D7A32A l c h)' />
             </linearGradient>
@@ -330,7 +361,7 @@ export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
             axisLine={false}
             tickFormatter={value => value.slice(0, 10)}
             label={{
-              value: 'Tipe Personality',
+              value: t('personalityType'),
               position: 'insideBottom',
               offset: -10,
               style: { textAnchor: 'middle' },

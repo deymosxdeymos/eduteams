@@ -370,7 +370,12 @@
         "averageLabel": "Grafik Rata-Rata",
         "skillsTitle": "Keahlian Mahasiswa",
         "preferencesTitle": "Preferensi Tugas",
-        "genderTitle": "Gender Mahasiswa"
+        "genderTitle": "Gender Mahasiswa",
+        "personalityType": "Tipe Personality",
+        "analyst": "Pemikir",
+        "diplomat": "Empatik",
+        "sentinel": "Disiplin",
+        "explorer": "Eksploratif"
       },
       "studentWaiting": {
         "alt": "Menunggu pembagian kelompok",
@@ -593,7 +598,12 @@
     },
     "charts": {
       "viewAnalysis": "Lihat Analisis Jawaban Mahasiswa",
-      "completionRate": "{percent}% mahasiswa telah menyelesaikan kuis"
+      "completionRate": "{percent}% mahasiswa telah menyelesaikan kuis",
+      "personalityType": "Tipe Personality",
+      "analyst": "Pemikir",
+      "diplomat": "Empatik",
+      "sentinel": "Disiplin",
+      "explorer": "Eksploratif"
     },
     "answers": {
       "back": "Kembali",

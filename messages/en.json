@@ -370,7 +370,12 @@
         "averageLabel": "Average Chart",
         "skillsTitle": "Student Skills",
         "preferencesTitle": "Task Preferences",
-        "genderTitle": "Student Gender"
+        "genderTitle": "Student Gender",
+        "personalityType": "Personality Type",
+        "analyst": "Analyst",
+        "diplomat": "Diplomat",
+        "sentinel": "Sentinel",
+        "explorer": "Explorer"
       },
       "studentWaiting": {
         "alt": "Waiting for team formation",
@@ -594,7 +599,12 @@
     },
     "charts": {
       "viewAnalysis": "View Student Answer Analysis",
-      "completionRate": "{percent}% of students have completed the quiz"
+      "completionRate": "{percent}% of students have completed the quiz",
+      "personalityType": "Personality Type",
+      "analyst": "Analyst",
+      "diplomat": "Diplomat",
+      "sentinel": "Sentinel",
+      "explorer": "Explorer"
     },
     "answers": {
       "back": "Back",
