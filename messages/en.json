@@ -599,7 +599,22 @@
       "formingTeamsDesc": "The system is processing team formation. This usually takes a few seconds to a few minutes.",
       "formationFailed": "Team formation failed",
       "formationFailedDesc": "An error occurred while forming teams. Please try again.",
-      "retryFormation": "Try Again"
+      "retryFormation": "Try Again",
+      "viewDetails": "View details",
+      "detailDialogTitle": "Team Detail",
+      "teamDetail": {
+        "groupLabel": "Group",
+        "qualityScoreLabel": "Quality Score",
+        "taskTopicLabel": "Task Topic",
+        "previousGroup": "Previous Group",
+        "nextGroup": "Next Group",
+        "topSkillsBadge": "Top Skills",
+        "topSkillsTitle": "Outstanding Expertise",
+        "topSkillsDesc": "Core capabilities that stand out in team collaboration and project completion",
+        "topPreferencesBadge": "Top Preferences",
+        "topPreferencesTitle": "Task Topic Focus",
+        "topPreferencesDesc": "Student preference choices for assignment topics."
+      }
     },
     "charts": {
       "viewAnalysis": "View Student Answer Analysis",

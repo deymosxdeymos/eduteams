@@ -7,6 +7,7 @@ export type ColorScheme = {
   primaryText: string;
   primaryBorder: string;
   lightBorder: string;
+  lightBg: string;
   lightShadow: string;
   gradientFrom: string;
   gradientTo: string;
@@ -42,6 +43,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     primaryText: 'text-emerald-500',
     primaryBorder: 'border-emerald-500',
     lightBorder: 'border-emerald-100',
+    lightBg: 'bg-emerald-100',
     lightShadow: 'shadow-emerald-100',
     gradientFrom: 'from-emerald-600',
     gradientTo: 'to-emerald-400',
@@ -56,6 +58,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     primaryText: 'text-violet-500',
     primaryBorder: 'border-violet-500',
     lightBorder: 'border-violet-100',
+    lightBg: 'bg-violet-100',
     lightShadow: 'shadow-violet-100',
     gradientFrom: 'from-violet-600',
     gradientTo: 'to-violet-400',
@@ -70,6 +73,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     primaryText: 'text-orange-500',
     primaryBorder: 'border-orange-500',
     lightBorder: 'border-orange-100',
+    lightBg: 'bg-orange-100',
     lightShadow: 'shadow-orange-100',
     gradientFrom: 'from-orange-600',
     gradientTo: 'to-orange-400',
@@ -84,6 +88,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     primaryText: 'text-blue-500',
     primaryBorder: 'border-blue-500',
     lightBorder: 'border-blue-100',
+    lightBg: 'bg-blue-100',
     lightShadow: 'shadow-blue-100',
     gradientFrom: 'from-blue-600',
     gradientTo: 'to-blue-400',

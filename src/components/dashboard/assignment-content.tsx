@@ -10,6 +10,7 @@ import { ChartsToggle } from '@/components/dashboard/charts-toggle';
 import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import type { Gender } from '@/generated/prisma';
 import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
 import { useRouter } from '@/i18n/routing';
 import type { AssignmentStats } from '@/lib/stats/assignment';
@@ -24,10 +25,14 @@ interface TeamMemberUser {
   sn?: number | null;
   tf?: number | null;
   pj?: number | null;
+  gender?: Gender | null;
 }
 
 interface TeamMemberItem {
   id: string;
+  assignedSkillIds?: string[] | null;
+  topSkills?: string[];
+  preferredTopics?: string[];
   user: TeamMemberUser;
 }
 
@@ -42,6 +47,9 @@ interface AssignmentContentProps {
   assignmentId: string;
   classId: string;
   courseId: string;
+  assignmentTitleLabel: string;
+  courseNameLabel: string;
+  courseClassLabel: string;
   canManage: boolean;
   isStudent?: boolean;
   hasSubmitted?: boolean;
@@ -61,6 +69,9 @@ export function AssignmentContent({
   assignmentId,
   classId,
   courseId,
+  assignmentTitleLabel,
+  courseNameLabel,
+  courseClassLabel,
   canManage,
   isStudent = false,
   stats,
@@ -138,6 +149,9 @@ export function AssignmentContent({
               courseId={courseId}
               topicNames={topicNames}
               taskIdByIndex={taskIdByIndex}
+              assignmentTitleLabel={assignmentTitleLabel}
+              courseNameLabel={courseNameLabel}
+              courseClassLabel={courseClassLabel}
               isStudent
               searchValue={searchValue}
               canManage={false}
@@ -216,6 +230,9 @@ export function AssignmentContent({
               courseId={courseId}
               topicNames={topicNames}
               taskIdByIndex={taskIdByIndex}
+              assignmentTitleLabel={assignmentTitleLabel}
+              courseNameLabel={courseNameLabel}
+              courseClassLabel={courseClassLabel}
               searchValue={searchValue}
               canManage={canManage}
             />

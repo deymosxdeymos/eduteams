@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type { Gender } from '@/generated/prisma';
 import { AssignmentTeamsContent } from './assignment-teams-content';
 
 interface TeamMemberUser {
@@ -13,10 +14,14 @@ interface TeamMemberUser {
   sn?: number | null;
   tf?: number | null;
   pj?: number | null;
+  gender?: Gender | null;
 }
 
 interface TeamMemberItem {
   id: string;
+  assignedSkillIds?: string[] | null;
+  topSkills?: string[];
+  preferredTopics?: string[];
   user: TeamMemberUser;
 }
 
@@ -36,6 +41,9 @@ interface AssignmentTeamsClientProps {
   courseId: string;
   topicNames: Record<string, string>;
   taskIdByIndex: string[];
+  assignmentTitleLabel: string;
+  courseNameLabel: string;
+  courseClassLabel: string;
   isStudent?: boolean;
   searchValue?: string;
   canManage?: boolean;
@@ -47,6 +55,9 @@ export function AssignmentTeamsClient({
   courseId,
   topicNames,
   taskIdByIndex,
+  assignmentTitleLabel,
+  courseNameLabel,
+  courseClassLabel,
   isStudent = false,
   searchValue: externalSearchValue = '',
   canManage = false,
@@ -91,6 +102,9 @@ export function AssignmentTeamsClient({
       teams={filteredTeams}
       assignmentId={assignmentId}
       courseId={courseId}
+      assignmentTitleLabel={assignmentTitleLabel}
+      courseNameLabel={courseNameLabel}
+      courseClassLabel={courseClassLabel}
       isStudent={isStudent}
       searchValue={searchValue}
       hasSearchResults={hasSearchResults}

@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import type { Gender } from '@/generated/prisma';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
@@ -27,10 +28,14 @@ interface TeamMemberUser {
   sn?: number | null;
   tf?: number | null;
   pj?: number | null;
+  gender?: Gender | null;
 }
 
 interface TeamMemberItem {
   id: string;
+  assignedSkillIds?: string[] | null;
+  topSkills?: string[];
+  preferredTopics?: string[];
   user: TeamMemberUser;
 }
 
@@ -70,7 +75,7 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
     updatedAt: new Date(0),
     image: null,
     emailVerified: false,
-    gender: null,
+    gender: member.user.gender ?? null,
     hasSeenWelcomeSplash: false,
     onboardingData: null,
     personalityData: null,

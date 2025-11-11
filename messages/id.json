@@ -598,7 +598,22 @@
       "formingTeamsDesc": "Sistem sedang memproses pembentukan kelompok. Proses ini biasanya memakan waktu beberapa detik hingga beberapa menit.",
       "formationFailed": "Pembentukan kelompok gagal",
       "formationFailedDesc": "Terjadi kesalahan saat membentuk kelompok. Silakan coba lagi.",
-      "retryFormation": "Coba Lagi"
+      "retryFormation": "Coba Lagi",
+      "viewDetails": "Lihat selengkapnya",
+      "detailDialogTitle": "Detail Kelompok",
+      "teamDetail": {
+        "groupLabel": "Kelompok",
+        "qualityScoreLabel": "Kualitas Skor",
+        "taskTopicLabel": "Topik Tugas",
+        "previousGroup": "Kelompok Sebelumnya",
+        "nextGroup": "Kelompok Selanjutnya",
+        "topSkillsBadge": "Skill Teratas",
+        "topSkillsTitle": "Keahlian Terunggul",
+        "topSkillsDesc": "Kapabilitas utama yang paling menonjol dalam kolaborasi tim dan penyelesaian proyek",
+        "topPreferencesBadge": "Preferensi Teratas",
+        "topPreferencesTitle": "Fokus Topik Tugas",
+        "topPreferencesDesc": "Preferensi pilihan mahasiswa terhadap topik tugas."
+      }
     },
     "charts": {
       "viewAnalysis": "Lihat Analisis Jawaban Mahasiswa",

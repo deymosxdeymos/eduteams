@@ -191,7 +191,9 @@ export async function AssignmentDetailAsync({
           include: {
             members: {
               orderBy: { createdAt: 'asc' },
-              include: {
+              select: {
+                id: true,
+                assignedSkillIds: true,
                 user: {
                   select: {
                     id: true,
@@ -203,6 +205,30 @@ export async function AssignmentDetailAsync({
                     sn: true,
                     tf: true,
                     pj: true,
+                    gender: true,
+                    personSkills: {
+                      select: {
+                        skillId: true,
+                        level: true,
+                        skill: { select: { id: true, name: true } },
+                      },
+                    },
+                    AssignmentTopicPreference: {
+                      where: {
+                        topic: {
+                          assignmentId,
+                        },
+                      },
+                      select: {
+                        preference: true,
+                        topic: {
+                          select: {
+                            id: true,
+                            name: true,
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -217,20 +243,60 @@ export async function AssignmentDetailAsync({
         id: team.id,
         quality: team.quality,
         createdAt: team.createdAt,
-        members: team.members.map(m => ({
-          id: m.id,
-          user: {
-            id: m.user.id,
-            name: m.user.name,
-            email: m.user.email,
-            mbtiType: m.user.mbtiType,
-            nim: m.user.nim,
-            ei: m.user.ei,
-            sn: m.user.sn,
-            tf: m.user.tf,
-            pj: m.user.pj,
-          },
-        })),
+        members: team.members.map(member => {
+          const assignedSkillIds = member.assignedSkillIds ?? [];
+          const assignedSkillSet = new Set(assignedSkillIds);
+
+          const personSkills =
+            member.user.personSkills?.map(skill => ({
+              skillId: skill.skillId,
+              level: skill.level ?? 0,
+              name: skill.skill?.name ?? null,
+            })) ?? [];
+
+          const sortedSkills = [...personSkills].sort(
+            (a, b) => (b.level ?? 0) - (a.level ?? 0)
+          );
+          const filteredSkills = sortedSkills.filter(skill =>
+            assignedSkillSet.size === 0
+              ? true
+              : assignedSkillSet.has(skill.skillId)
+          );
+          const relevantSkills =
+            filteredSkills.length > 0 ? filteredSkills : sortedSkills;
+          const topSkills = Array.from(
+            new Set(relevantSkills.map(skill => skill.name).filter(Boolean))
+          ) as string[];
+
+          const topicPreferences =
+            member.user.AssignmentTopicPreference?.map(pref => ({
+              name: pref.topic?.name ?? null,
+              preference: pref.preference ?? 0,
+            })) ?? [];
+          const preferredTopics = topicPreferences
+            .filter(pref => pref.name)
+            .sort((a, b) => (b.preference ?? 0) - (a.preference ?? 0))
+            .map(pref => pref.name as string);
+
+          return {
+            id: member.id,
+            assignedSkillIds,
+            user: {
+              id: member.user.id,
+              name: member.user.name,
+              email: member.user.email,
+              mbtiType: member.user.mbtiType,
+              nim: member.user.nim,
+              ei: member.user.ei,
+              sn: member.user.sn,
+              tf: member.user.tf,
+              pj: member.user.pj,
+              gender: member.user.gender,
+            },
+            topSkills,
+            preferredTopics,
+          };
+        }),
       }));
 
       // Try to extract taskId mapping from responseData
@@ -274,6 +340,9 @@ export async function AssignmentDetailAsync({
         assignmentId={assignmentId}
         classId={classId}
         courseId={classId}
+        assignmentTitleLabel={assignmentTitle}
+        courseNameLabel={course.namaMataKuliah}
+        courseClassLabel={course.kelas}
         canManage={isDosen}
         isStudent={isMahasiswa}
         hasSubmitted={hasSubmitted}

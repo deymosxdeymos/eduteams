@@ -1,5 +1,5 @@
-import { getMBTIType as getMBTITypeFromScores } from '@/lib/personality';
 import type { MBTIType } from '@/generated/prisma';
+import { getMBTIType as getMBTITypeFromScores } from '@/lib/personality';
 
 /**
  * Derive MBTI type from user's personality scores

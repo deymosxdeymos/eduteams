@@ -1,8 +1,7 @@
 'use client';
 
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
-import { useQueryState } from 'nuqs';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CHART_DIMENSIONS, getMBTIColorScheme } from '@/lib/utils/mbti-colors';
@@ -24,12 +23,7 @@ interface PersonalityMetricsProps {
 export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
   const mbtiType = getMBTIType(user);
   const colorScheme = getMBTIColorScheme(mbtiType);
-  const [chartType, setChartType] = useQueryState<ChartType>('chart', {
-    defaultValue: 'bar',
-    parse: (value: string | null): ChartType =>
-      value === 'radar' ? 'radar' : 'bar',
-    shallow: true,
-  });
+  const [chartType, setChartType] = useState<ChartType>('bar');
 
   const prevChartTypeRef = useRef<ChartType>(chartType);
   const directionRef = useRef<number>(1);
