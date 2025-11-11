@@ -375,7 +375,11 @@
         "analyst": "Pemikir",
         "diplomat": "Empatik",
         "sentinel": "Disiplin",
-        "explorer": "Eksploratif"
+        "explorer": "Eksploratif",
+        "sortBy": "Urutkan",
+        "sortDefault": "Default",
+        "sortHighest": "Tertinggi",
+        "sortLowest": "Terendah"
       },
       "studentWaiting": {
         "alt": "Menunggu pembagian kelompok",

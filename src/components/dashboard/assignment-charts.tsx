@@ -70,16 +70,13 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
       fallback={<div className='flex-1 animate-pulse bg-gray-100 rounded-xl' />}
     >
       <div className='flex flex-col justify-start border shadow-sm rounded-xl p-4 shrink-0'>
-        <div className='mb-2'>
-          <span className='text-neutral-500 font-light text-base block'>
-            {t('distributionLabel')}
-          </span>
-          <h1 className='text-neutral-800 font-medium text-xl'>
-            {t('personalityTitle')}
-          </h1>
-        </div>
         <div className='overflow-x-auto'>
-          <MbtiBarChart stats={stats.mbti} ready={isReady} />
+          <MbtiBarChart
+            stats={stats.mbti}
+            ready={isReady}
+            distributionLabel={t('distributionLabel')}
+            personalityTitle={t('personalityTitle')}
+          />
         </div>
       </div>
 

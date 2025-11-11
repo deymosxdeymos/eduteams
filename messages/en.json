@@ -375,7 +375,11 @@
         "analyst": "Analyst",
         "diplomat": "Diplomat",
         "sentinel": "Sentinel",
-        "explorer": "Explorer"
+        "explorer": "Explorer",
+        "sortBy": "Sort By",
+        "sortDefault": "Default",
+        "sortHighest": "Highest Count",
+        "sortLowest": "Lowest Count"
       },
       "studentWaiting": {
         "alt": "Waiting for team formation",

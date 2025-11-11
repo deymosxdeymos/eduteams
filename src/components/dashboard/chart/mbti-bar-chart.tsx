@@ -1,8 +1,9 @@
 'use client';
 
+import { SortDesc } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useId } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   type ChartConfig,
@@ -10,6 +11,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { AssignmentStats } from '@/lib/stats/assignment';
 
 type MbtiType =
@@ -256,15 +264,41 @@ function MbtiBarShape(
 interface MbtiBarChartProps {
   stats: AssignmentStats['mbti'];
   ready: boolean;
+  distributionLabel: string;
+  personalityTitle: string;
 }
 
-export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
-  const t = useTranslations('dashboard.charts');
+type SortOrder = 'default' | 'highest' | 'lowest';
 
-  const chartData = stats.map(row => ({
-    kategori: row.kategori,
-    jumlah: ready ? row.jumlah : 0,
-  }));
+export function MbtiBarChart({
+  stats,
+  ready,
+  distributionLabel,
+  personalityTitle,
+}: MbtiBarChartProps) {
+  const t = useTranslations('dashboard.assignment.charts');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('default');
+
+  const chartData = useMemo(
+    () =>
+      stats.map(row => ({
+        kategori: row.kategori,
+        jumlah: ready ? row.jumlah : 0,
+      })),
+    [stats, ready]
+  );
+
+  const sortedData = useMemo(() => {
+    const data = [...chartData];
+    switch (sortOrder) {
+      case 'highest':
+        return data.sort((a, b) => b.jumlah - a.jumlah);
+      case 'lowest':
+        return data.sort((a, b) => a.jumlah - b.jumlah);
+      default:
+        return data;
+    }
+  }, [chartData, sortOrder]);
 
   // Create unique, stable IDs for gradients and face shadow filter per chart instance
   const greenId = useId().replace(/:/g, '');
@@ -293,12 +327,39 @@ export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
 
   return (
     <>
+      <div className='mb-2 flex items-center justify-between gap-4'>
+        <div>
+          <span className='text-neutral-500 font-light text-base block'>
+            {distributionLabel}
+          </span>
+          <h1 className='text-neutral-800 font-medium text-xl'>
+            {personalityTitle}
+          </h1>
+        </div>
+        <Select
+          value={sortOrder}
+          onValueChange={value => setSortOrder(value as SortOrder)}
+        >
+          <SelectTrigger
+            size='sm'
+            className='min-w-[180px] rounded-full bg-accent/30 gap-2 !h-11'
+          >
+            <SortDesc className='size-4 text-muted-foreground' />
+            <SelectValue placeholder={t('sortBy')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='default'>{t('sortDefault')}</SelectItem>
+            <SelectItem value='highest'>{t('sortHighest')}</SelectItem>
+            <SelectItem value='lowest'>{t('sortLowest')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <ChartContainer
         config={chartConfig}
         className='h-[180px] w-full max-w-[900px] mb-3 justify-start'
       >
         <BarChart
-          data={chartData}
+          data={sortedData}
           margin={{ bottom: 20, left: 0, right: 8, top: 16 }}
           barCategoryGap={8}
         >
