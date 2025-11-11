@@ -142,6 +142,13 @@ const MBTI_GROUP: Record<
 
 type MbtiGroup = 'analyst' | 'diplomat' | 'sentinel' | 'explorer';
 
+const MBTI_LEGEND = [
+  { color: 'bg-violet-500', label: 'Pemikir', group: 'analyst' as const },
+  { color: 'bg-emerald-500', label: 'Empatik', group: 'diplomat' as const },
+  { color: 'bg-sky-500', label: 'Disiplin', group: 'sentinel' as const },
+  { color: 'bg-amber-500', label: 'Eksploratif', group: 'explorer' as const },
+];
+
 function getGroupForType(type: MbtiType): MbtiGroup {
   return MBTI_GROUP[type];
 }
@@ -278,103 +285,117 @@ export function MbtiBarChart({ stats, ready }: MbtiBarChartProps) {
   };
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      className='h-[180px] w-full max-w-[900px] mb-3 justify-start'
-    >
-      <BarChart
-        data={chartData}
-        margin={{ bottom: 20, left: 0, right: 8, top: 16 }}
-        barCategoryGap={8}
+    <>
+      <ChartContainer
+        config={chartConfig}
+        className='h-[180px] w-full max-w-[900px] mb-3 justify-start'
       >
-        <defs>
-          <filter
-            id={faceShadowId}
-            x='-50%'
-            y='-50%'
-            width='200%'
-            height='200%'
-          >
-            <feDropShadow dx='0' dy='2' stdDeviation='4' floodOpacity='0.2' />
-          </filter>
-          <linearGradient id={gradientIds.diplomat} x1='0' y1='0' x2='0' y2='1'>
-            <stop offset='0%' stopColor='oklch(from #6CE9A6 l c h)' />
-            <stop offset='100%' stopColor='oklch(from #3BCC7E l c h)' />
-          </linearGradient>
-          <linearGradient id={gradientIds.analyst} x1='0' y1='0' x2='0' y2='1'>
-            <stop offset='0%' stopColor='oklch(from #9B8AFB l c h)' />
-            <stop offset='100%' stopColor='oklch(from #7A64FA l c h)' />
-          </linearGradient>
-          <linearGradient id={gradientIds.sentinel} x1='0' y1='0' x2='0' y2='1'>
-            <stop offset='0%' stopColor='oklch(from #7CD4FD l c h)' />
-            <stop offset='100%' stopColor='oklch(from #38B8F4 l c h)' />
-          </linearGradient>
-          <linearGradient id={gradientIds.explorer} x1='0' y1='0' x2='0' y2='1'>
-            <stop offset='0%' stopColor='oklch(from #FEC84B l c h)' />
-            <stop offset='100%' stopColor='oklch(from #D7A32A l c h)' />
-          </linearGradient>
-        </defs>
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey='kategori'
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-          tickFormatter={value => value.slice(0, 10)}
-          label={{
-            value: 'Tipe Personality',
-            position: 'insideBottom',
-            offset: -10,
-            style: { textAnchor: 'middle' },
-          }}
-        />
-        <YAxis tickLine={false} axisLine={false} width={28} />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              className='w-[220px]'
-              nameKey='jumlah'
-              labelFormatter={value => `Kategori: ${value}`}
-              formatter={(
-                val,
-                _name: string | number,
-                item: { payload?: { kategori?: string } }
-              ) => {
-                const key = item?.payload?.kategori;
-                return (
-                  <div className='flex items-center gap-2'>
-                    {key ? (
-                      <Image
-                        src={`/mbti-logo-normalized/${key}.svg`}
-                        alt={String(key)}
-                        width={24}
-                        height={24}
-                      />
-                    ) : null}
-                    <span className='text-foreground font-mono font-medium tabular-nums'>
-                      {Number(val).toLocaleString()}
-                    </span>
-                  </div>
-                );
-              }}
+        <BarChart
+          data={chartData}
+          margin={{ bottom: 20, left: 0, right: 8, top: 16 }}
+          barCategoryGap={8}
+        >
+          <defs>
+            <filter
+              id={faceShadowId}
+              x='-50%'
+              y='-50%'
+              width='200%'
+              height='200%'
+            >
+              <feDropShadow dx='0' dy='2' stdDeviation='4' floodOpacity='0.2' />
+            </filter>
+            <linearGradient id={gradientIds.diplomat} x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stopColor='oklch(from #6CE9A6 l c h)' />
+              <stop offset='100%' stopColor='oklch(from #3BCC7E l c h)' />
+            </linearGradient>
+            <linearGradient id={gradientIds.analyst} x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stopColor='oklch(from #9B8AFB l c h)' />
+              <stop offset='100%' stopColor='oklch(from #7A64FA l c h)' />
+            </linearGradient>
+            <linearGradient id={gradientIds.sentinel} x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stopColor='oklch(from #7CD4FD l c h)' />
+              <stop offset='100%' stopColor='oklch(from #38B8F4 l c h)' />
+            </linearGradient>
+            <linearGradient id={gradientIds.explorer} x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stopColor='oklch(from #FEC84B l c h)' />
+              <stop offset='100%' stopColor='oklch(from #D7A32A l c h)' />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey='kategori'
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            tickFormatter={value => value.slice(0, 10)}
+            label={{
+              value: 'Tipe Personality',
+              position: 'insideBottom',
+              offset: -10,
+              style: { textAnchor: 'middle' },
+            }}
+          />
+          <YAxis tickLine={false} axisLine={false} width={28} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                className='w-[220px]'
+                nameKey='jumlah'
+                labelFormatter={value => `Kategori: ${value}`}
+                formatter={(
+                  val,
+                  _name: string | number,
+                  item: { payload?: { kategori?: string } }
+                ) => {
+                  const key = item?.payload?.kategori;
+                  return (
+                    <div className='flex items-center gap-2'>
+                      {key ? (
+                        <Image
+                          src={`/mbti-logo-normalized/${key}.svg`}
+                          alt={String(key)}
+                          width={24}
+                          height={24}
+                        />
+                      ) : null}
+                      <span className='text-foreground font-mono font-medium tabular-nums'>
+                        {Number(val).toLocaleString()}
+                      </span>
+                    </div>
+                  );
+                }}
+              />
+            }
+          />
+          <Bar
+            dataKey='jumlah'
+            shape={(props: MbtiBarShapeProps) => (
+              <MbtiBarShape
+                x={props.x}
+                y={props.y}
+                width={props.width}
+                height={props.height}
+                payload={props.payload}
+                gradientIds={gradientIds}
+                faceShadowId={faceShadowId}
+              />
+            )}
+          />
+        </BarChart>
+      </ChartContainer>
+
+      <div className='flex justify-center items-center gap-4 mt-4'>
+        {MBTI_LEGEND.map(({ color, label, group }) => (
+          <div key={group} className='flex items-center gap-1.5'>
+            <div
+              className={`w-2.5 h-2.5 rounded-full ${color}`}
+              aria-hidden='true'
             />
-          }
-        />
-        <Bar
-          dataKey='jumlah'
-          shape={(props: MbtiBarShapeProps) => (
-            <MbtiBarShape
-              x={props.x}
-              y={props.y}
-              width={props.width}
-              height={props.height}
-              payload={props.payload}
-              gradientIds={gradientIds}
-              faceShadowId={faceShadowId}
-            />
-          )}
-        />
-      </BarChart>
-    </ChartContainer>
+            <span className='text-xs text-gray-600'>{label}</span>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
