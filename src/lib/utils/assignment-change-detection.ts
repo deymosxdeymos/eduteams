@@ -208,6 +208,7 @@ export function analyzeAssignmentEditImpact(
 
 /**
  * Check if there are any structural changes
+ * @public
  */
 export function hasStructuralChanges(changes: AssignmentChanges): boolean {
   return (

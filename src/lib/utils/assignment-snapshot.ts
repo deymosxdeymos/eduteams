@@ -27,6 +27,7 @@ export async function createAssignmentSnapshot(
 
 /**
  * Get the latest snapshot version for an assignment
+ * @public
  */
 export async function getLatestSnapshotVersion(
   assignmentId: string
