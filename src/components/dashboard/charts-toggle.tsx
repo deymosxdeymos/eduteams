@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ interface ChartsToggleProps {
   children: React.ReactNode;
   defaultVisible?: boolean;
   hideToggle?: boolean;
+  incompleteStudentCount?: number;
+  hasTeams?: boolean;
 }
 
 export function ChartsToggle({
@@ -17,6 +19,8 @@ export function ChartsToggle({
   children,
   defaultVisible = true,
   hideToggle = false,
+  incompleteStudentCount = 0,
+  hasTeams = false,
 }: ChartsToggleProps) {
   const t = useTranslations('dashboard.charts');
   const [visible, setVisible] = useState(defaultVisible);
@@ -29,6 +33,8 @@ export function ChartsToggle({
   if (hideToggle) {
     return null;
   }
+
+  const showMissingStudentsBadge = hasTeams && incompleteStudentCount > 0;
 
   return (
     <div className='flex flex-col gap-3'>
@@ -48,9 +54,19 @@ export function ChartsToggle({
             <ChevronRight className='w-4 h-4' />
           )}
         </div>
-        <Badge className='rounded-full bg-emerald-50 text-emerald-700'>
-          {t('completionRate', { percent: Math.round(progressPercent) })}
-        </Badge>
+        {showMissingStudentsBadge ? (
+          <Badge
+            variant='destructive'
+            className='rounded-full bg-red-50 text-red-700 border-transparent'
+          >
+            <AlertCircle className='w-3 h-3' />
+            {t('missingStudents', { count: incompleteStudentCount })}
+          </Badge>
+        ) : (
+          <Badge className='rounded-full bg-emerald-50 text-emerald-700'>
+            {t('completionRate', { percent: Math.round(progressPercent) })}
+          </Badge>
+        )}
       </div>
       {visible && children}
     </div>

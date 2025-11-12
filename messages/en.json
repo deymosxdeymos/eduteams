@@ -360,6 +360,7 @@
         "resetNetworkError": "Network error while resetting.",
         "viewAnswers": "View Student Answers",
         "viewMyAnswers": "View My Answers",
+        "missingStudentsBadge": "{count} Students Without Teams",
         "back": "Back",
         "alreadyProcessing": "Team formation is already running. Please wait until it finishes.",
         "inProgressNotice": "Edu2com is currently forming teams in the background. Refresh in a moment to see the results."
@@ -627,6 +628,7 @@
     "charts": {
       "viewAnalysis": "View Student Answer Analysis",
       "completionRate": "{percent}% of students have completed the quiz",
+      "missingStudents": "{count} Students Without Teams",
       "personalityType": "Personality Type",
       "analyst": "Analyst",
       "diplomat": "Diplomat",

@@ -209,6 +209,8 @@ export function AssignmentContent({
               <ChartsToggle
                 progressPercent={quizCompletionPercent}
                 defaultVisible={false}
+                incompleteStudentCount={incompleteStudentCount}
+                hasTeams={hasTeams}
               >
                 <AssignmentCharts stats={stats} isStudent={isStudent} />
               </ChartsToggle>

@@ -360,6 +360,7 @@
         "resetNetworkError": "Terjadi kesalahan jaringan saat reset.",
         "viewAnswers": "Lihat Jawaban Mahasiswa",
         "viewMyAnswers": "Lihat Jawaban Saya",
+        "missingStudentsBadge": "{count} Mahasiswa Tidak Mendapatkan Kelompok",
         "back": "Kembali",
         "alreadyProcessing": "Masih ada proses pembentukan kelompok yang berjalan. Tunggu hingga selesai sebelum mencoba lagi.",
         "inProgressNotice": "Edu2com sedang membentuk kelompok di latar belakang. Anda akan melihat hasilnya setelah selesai."
@@ -626,6 +627,7 @@
     "charts": {
       "viewAnalysis": "Lihat Analisis Jawaban Mahasiswa",
       "completionRate": "{percent}% mahasiswa telah menyelesaikan kuis",
+      "missingStudents": "{count} Mahasiswa Tidak Mendapatkan Kelompok",
       "personalityType": "Tipe Personality",
       "analyst": "Pemikir",
       "diplomat": "Empatik",
