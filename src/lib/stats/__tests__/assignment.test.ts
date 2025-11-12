@@ -1,5 +1,61 @@
 import { describe, expect, it, mock } from 'bun:test';
 
+describe('lib/stats/calculateQualityMetrics', () => {
+  it('calculates metrics correctly for valid scores', async () => {
+    const { calculateQualityMetrics } = await import('@/lib/stats/assignment');
+
+    const scores = [0.7, 0.8, 0.9, 0.85, 0.75];
+    const result = calculateQualityMetrics(scores);
+
+    expect(result).not.toBeNull();
+    expect(result?.min).toBe(0.7);
+    expect(result?.max).toBe(0.9);
+    expect(result?.mean).toBeCloseTo(0.8, 2);
+    expect(result?.median).toBe(0.8);
+    expect(result?.count).toBe(5);
+    expect(result?.stdDev).toBeGreaterThan(0);
+  });
+
+  it('calculates median correctly for even number of scores', async () => {
+    const { calculateQualityMetrics } = await import('@/lib/stats/assignment');
+
+    const scores = [0.7, 0.8, 0.85, 0.9];
+    const result = calculateQualityMetrics(scores);
+
+    expect(result?.median).toBe(0.825);
+  });
+
+  it('calculates median correctly for odd number of scores', async () => {
+    const { calculateQualityMetrics } = await import('@/lib/stats/assignment');
+
+    const scores = [0.7, 0.8, 0.9];
+    const result = calculateQualityMetrics(scores);
+
+    expect(result?.median).toBe(0.8);
+  });
+
+  it('returns null for empty array', async () => {
+    const { calculateQualityMetrics } = await import('@/lib/stats/assignment');
+
+    const result = calculateQualityMetrics([]);
+    expect(result).toBeNull();
+  });
+
+  it('handles single score', async () => {
+    const { calculateQualityMetrics } = await import('@/lib/stats/assignment');
+
+    const scores = [0.85];
+    const result = calculateQualityMetrics(scores);
+
+    expect(result?.min).toBe(0.85);
+    expect(result?.max).toBe(0.85);
+    expect(result?.mean).toBe(0.85);
+    expect(result?.median).toBe(0.85);
+    expect(result?.stdDev).toBe(0);
+    expect(result?.count).toBe(1);
+  });
+});
+
 // We'll mock prisma's calls used by getAssignmentStats
 const prismaMock: any = {
   courseEnrollment: {
@@ -39,6 +95,7 @@ const prismaMock: any = {
   },
   teamFormationRequest: {
     count: mock(async () => 0),
+    findFirst: mock(async () => null),
   },
   assignmentSubmission: {
     count: mock(async () => 0),
@@ -195,5 +252,132 @@ describe('lib/stats/getAssignmentStats', () => {
     expect(stats.teamsFormed).toBe(true);
     expect(stats.quizSubmissions).toBe(3);
     expect(stats.chartReady).toBe(true);
+  });
+
+  it('calculates team quality metrics when teams are formed', async () => {
+    const { getAssignmentStats } = await import('@/lib/stats/assignment');
+
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
+    prismaMock.assignment.findUnique.mockImplementation(async (args: any) => {
+      const base = {
+        description: JSON.stringify({
+          skills: ['Skill A'],
+          topics: ['Topic A'],
+        }),
+        startAt: new Date('2025-01-01T00:00:00Z'),
+        course: { dosenId: 'd1' },
+      };
+      return {
+        description: args?.select?.description ? base.description : undefined,
+        startAt: args?.select?.startAt ? base.startAt : undefined,
+        course: args?.select?.course ? base.course : undefined,
+      };
+    });
+    prismaMock.assignmentTopic.findMany.mockImplementationOnce(async () => [
+      { id: 't1', name: 'Topic A' },
+    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => []
+    );
+    prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 1);
+    prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(
+      async () => ({
+        teams: [
+          { quality: 0.7 },
+          { quality: 0.8 },
+          { quality: 0.9 },
+          { quality: 0.85 },
+          { quality: 0.75 },
+        ],
+      })
+    );
+
+    const stats = await getAssignmentStats('a3', 'c3');
+
+    expect(stats.teamsFormed).toBe(true);
+    expect(stats.teamQuality).toBeDefined();
+    expect(stats.teamQuality?.min).toBe(0.7);
+    expect(stats.teamQuality?.max).toBe(0.9);
+    expect(stats.teamQuality?.mean).toBeCloseTo(0.8, 2);
+    expect(stats.teamQuality?.count).toBe(5);
+  });
+
+  it('does not calculate team quality when teams are not formed', async () => {
+    const { getAssignmentStats } = await import('@/lib/stats/assignment');
+
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
+    prismaMock.assignment.findUnique.mockImplementation(async (args: any) => {
+      const base = {
+        description: JSON.stringify({
+          skills: ['Skill A'],
+          topics: ['Topic A'],
+        }),
+        startAt: new Date('2025-01-01T00:00:00Z'),
+        course: { dosenId: 'd1' },
+      };
+      return {
+        description: args?.select?.description ? base.description : undefined,
+        startAt: args?.select?.startAt ? base.startAt : undefined,
+        course: args?.select?.course ? base.course : undefined,
+      };
+    });
+    prismaMock.assignmentTopic.findMany.mockImplementationOnce(async () => [
+      { id: 't1', name: 'Topic A' },
+    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => []
+    );
+    prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 0);
+
+    const stats = await getAssignmentStats('a4', 'c4');
+
+    expect(stats.teamsFormed).toBe(false);
+    expect(stats.teamQuality).toBeUndefined();
+  });
+
+  it('handles teams with null quality scores', async () => {
+    const { getAssignmentStats } = await import('@/lib/stats/assignment');
+
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
+    prismaMock.assignment.findUnique.mockImplementation(async (args: any) => {
+      const base = {
+        description: JSON.stringify({
+          skills: ['Skill A'],
+          topics: ['Topic A'],
+        }),
+        startAt: new Date('2025-01-01T00:00:00Z'),
+        course: { dosenId: 'd1' },
+      };
+      return {
+        description: args?.select?.description ? base.description : undefined,
+        startAt: args?.select?.startAt ? base.startAt : undefined,
+        course: args?.select?.course ? base.course : undefined,
+      };
+    });
+    prismaMock.assignmentTopic.findMany.mockImplementationOnce(async () => [
+      { id: 't1', name: 'Topic A' },
+    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => []
+    );
+    prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 1);
+    prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(
+      async () => ({
+        teams: [
+          { quality: 0.7 },
+          { quality: null },
+          { quality: 0.9 },
+          { quality: null },
+        ],
+      })
+    );
+
+    const stats = await getAssignmentStats('a5', 'c5');
+
+    expect(stats.teamsFormed).toBe(true);
+    expect(stats.teamQuality).toBeDefined();
+    expect(stats.teamQuality?.count).toBe(2);
+    expect(stats.teamQuality?.min).toBe(0.7);
+    expect(stats.teamQuality?.max).toBe(0.9);
   });
 });

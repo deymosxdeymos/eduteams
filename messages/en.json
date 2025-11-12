@@ -380,7 +380,13 @@
         "sortBy": "Sort By",
         "sortDefault": "Default",
         "sortHighest": "Highest Count",
-        "sortLowest": "Lowest Count"
+        "sortLowest": "Lowest Count",
+        "qualityDistributionTitle": "Group Score Quality Distribution",
+        "min": "Min",
+        "max": "Max",
+        "mean": "Mean",
+        "median": "Median",
+        "stdDev": "Std Dev"
       },
       "studentWaiting": {
         "alt": "Waiting for team formation",

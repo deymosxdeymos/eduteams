@@ -5,6 +5,15 @@ type MbtiStat = { kategori: MBTIType; jumlah: number };
 type SkillStat = { label: string; value: number };
 type NamedValue = { name: string; value: number };
 
+export interface TeamQualityMetrics {
+  min: number;
+  max: number;
+  mean: number;
+  median: number;
+  stdDev: number;
+  count: number;
+}
+
 export interface AssignmentStats {
   mbti: MbtiStat[];
   gender: NamedValue[]; // names: 'laki' | 'perempuan'
@@ -14,6 +23,40 @@ export interface AssignmentStats {
   quizSubmissions: number;
   chartReady: boolean;
   skillsReady: boolean;
+  teamQuality?: TeamQualityMetrics;
+}
+
+export function calculateQualityMetrics(
+  qualityScores: number[]
+): TeamQualityMetrics | null {
+  if (qualityScores.length === 0) {
+    return null;
+  }
+
+  const sorted = [...qualityScores].sort((a, b) => a - b);
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+  const mean =
+    qualityScores.reduce((sum, val) => sum + val, 0) / qualityScores.length;
+
+  const median =
+    sorted.length % 2 === 0
+      ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+      : sorted[Math.floor(sorted.length / 2)];
+
+  const variance =
+    qualityScores.reduce((sum, val) => sum + (val - mean) ** 2, 0) /
+    qualityScores.length;
+  const stdDev = Math.sqrt(variance);
+
+  return {
+    min,
+    max,
+    mean,
+    median,
+    stdDev,
+    count: qualityScores.length,
+  };
 }
 
 export async function getAssignmentStats(
@@ -204,6 +247,58 @@ export async function getAssignmentStats(
     teamsFormed = tfCount > 0;
   }
 
+  // Calculate team quality metrics from latest completed team formation
+  let teamQuality: TeamQualityMetrics | undefined;
+  if (teamsFormed && assignmentMeta?.course?.dosenId) {
+    const latestFormation = await prisma.teamFormationRequest.findFirst({
+      where: {
+        assignmentId,
+        ownerId: assignmentMeta.course.dosenId,
+        status: 'COMPLETED',
+      },
+      select: {
+        teams: {
+          select: {
+            quality: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!latestFormation && assignmentMeta.startAt) {
+      // Fallback for legacy data
+      const legacyFormation = await prisma.teamFormationRequest.findFirst({
+        where: {
+          ownerId: assignmentMeta.course.dosenId,
+          assignmentId: null,
+          status: 'COMPLETED',
+          createdAt: { gte: assignmentMeta.startAt },
+        },
+        select: {
+          teams: {
+            select: {
+              quality: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (legacyFormation) {
+        const qualityScores = legacyFormation.teams
+          .map(t => t.quality)
+          .filter((q): q is number => q !== null);
+        teamQuality = calculateQualityMetrics(qualityScores) ?? undefined;
+      }
+    } else if (latestFormation) {
+      const qualityScores = latestFormation.teams
+        .map(t => t.quality)
+        .filter((q): q is number => q !== null);
+      teamQuality = calculateQualityMetrics(qualityScores) ?? undefined;
+    }
+  }
+
   return {
     mbti,
     gender,
@@ -213,5 +308,6 @@ export async function getAssignmentStats(
     quizSubmissions: quizSubmissionCount,
     chartReady,
     skillsReady,
+    teamQuality,
   };
 }

@@ -380,7 +380,13 @@
         "sortBy": "Urutkan",
         "sortDefault": "Default",
         "sortHighest": "Tertinggi",
-        "sortLowest": "Terendah"
+        "sortLowest": "Terendah",
+        "qualityDistributionTitle": "Persebaran Kualitas Skor Kelompok",
+        "min": "Min",
+        "max": "Max",
+        "mean": "Mean",
+        "median": "Median",
+        "stdDev": "Std Dev"
       },
       "studentWaiting": {
         "alt": "Menunggu pembagian kelompok",

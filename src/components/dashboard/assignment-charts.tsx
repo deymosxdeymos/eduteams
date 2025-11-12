@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { Suspense } from 'react';
 import type { AssignmentStats } from '@/lib/stats/assignment';
+import { TeamQualitySummary } from './team-quality-summary';
 
 const GenderPieChart = dynamic(
   () =>
@@ -69,6 +70,9 @@ export function AssignmentCharts({ stats, isStudent }: AssignmentChartsProps) {
     <Suspense
       fallback={<div className='flex-1 animate-pulse bg-gray-100 rounded-xl' />}
     >
+      {stats.teamQuality && stats.teamsFormed && (
+        <TeamQualitySummary metrics={stats.teamQuality} />
+      )}
       <div className='flex flex-col justify-start border shadow-sm rounded-xl p-4 shrink-0'>
         <div className='overflow-x-auto'>
           <MbtiBarChart
