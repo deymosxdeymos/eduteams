@@ -79,7 +79,7 @@ export function CreateAssignmentModal({
                 value={skills}
                 onChange={setSkills}
                 placeholder={t('skillsPlaceholder')}
-                suggestionsEndpoint='/api/skills'
+                suggestionsEndpoint={`/api/courses/${classId}/skills`}
                 emptyLabel={t('skillsEmptyLabel')}
                 createLabel={query => t('skillsCreateLabel', { query })}
                 showCombobox={true}

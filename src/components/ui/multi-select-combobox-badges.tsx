@@ -1,7 +1,14 @@
 'use client';
 
 import { Check, Plus, X } from 'lucide-react';
-import { useCallback, useId, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +25,7 @@ import {
   PopoverAnchor,
   PopoverContent,
 } from '@/components/ui/popover';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface MultiSelectComboboxBadgesProps {
   /** Current selected values */
@@ -61,6 +69,9 @@ export function MultiSelectComboboxBadges({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listboxId = useId();
 
+  // Debounce the input value to reduce API calls (300ms delay)
+  const debouncedInputValue = useDebounce(inputValue, 300);
+
   // Fetch suggestions from API
   const fetchSuggestions = useCallback(
     async (query: string) => {
@@ -94,6 +105,13 @@ export function MultiSelectComboboxBadges({
     },
     [suggestionsEndpoint]
   );
+
+  // Fetch suggestions when debounced input changes
+  useEffect(() => {
+    if (suggestionsEndpoint) {
+      fetchSuggestions(debouncedInputValue);
+    }
+  }, [debouncedInputValue, suggestionsEndpoint, fetchSuggestions]);
 
   // Combine static and fetched suggestions
   const allSuggestions = useMemo(() => {
@@ -170,15 +188,9 @@ export function MultiSelectComboboxBadges({
     [showCreate, trimmedInput, addItem, filteredSuggestions]
   );
 
-  const handleInputChange = useCallback(
-    (newValue: string) => {
-      setInputValue(newValue);
-      if (suggestionsEndpoint) {
-        fetchSuggestions(newValue);
-      }
-    },
-    [suggestionsEndpoint, fetchSuggestions]
-  );
+  const handleInputChange = useCallback((newValue: string) => {
+    setInputValue(newValue);
+  }, []);
 
   // Simple input mode (no combobox)
   if (!showCombobox) {
@@ -245,9 +257,7 @@ export function MultiSelectComboboxBadges({
                 onKeyDown={handleKeyDown}
                 onFocus={() => {
                   setPopoverOpen(true);
-                  if (suggestionsEndpoint && fetchedSuggestions.length === 0) {
-                    fetchSuggestions(inputValue);
-                  }
+                  // Initial fetch is handled by useEffect with debounced value
                 }}
                 onBlur={e => {
                   const relatedTarget = e.relatedTarget as HTMLElement | null;
@@ -356,6 +366,7 @@ export function MultiSelectComboboxBadges({
                         onSelect={() => addItem(suggestion)}
                         onMouseDown={e => e.preventDefault()}
                         role='option'
+                        className='flex items-center'
                       >
                         <Check
                           className='mr-2 h-4 w-4 opacity-0'
@@ -377,6 +388,7 @@ export function MultiSelectComboboxBadges({
                       onSelect={() => addItem(trimmedInput)}
                       onMouseDown={e => e.preventDefault()}
                       role='option'
+                      className='flex items-center'
                     >
                       <Plus className='mr-2 h-4 w-4' aria-hidden='true' />
                       <span className='text-sm'>

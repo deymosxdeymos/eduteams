@@ -16,9 +16,9 @@ const CourseSkillAddSchema = z.object({
   name: z.string().min(1).max(100),
 });
 
-// GET /api/courses/[id]/skills
+// GET /api/courses/[id]/skills?q=term (also supports ?search=term)
 export const GET = withAuth<{ id: string }>(
-  async (_request: NextRequest, { user, params }) => {
+  async (request: NextRequest, { user, params }) => {
     try {
       const { id: courseId } = await params;
 
@@ -32,8 +32,22 @@ export const GET = withAuth<{ id: string }>(
       });
       if (!course) return createErrorResponse('Course not found', 404);
 
+      // Support both 'q' and 'search' parameters for filtering
+      const { searchParams } = new URL(request.url);
+      const search =
+        (searchParams.get('q') || searchParams.get('search'))?.trim() || '';
+
+      const where = search
+        ? {
+            courseId,
+            skill: {
+              name: { contains: search, mode: 'insensitive' as const },
+            },
+          }
+        : { courseId };
+
       const courseSkills = await prisma.courseSkill.findMany({
-        where: { courseId },
+        where,
         select: {
           id: true,
           skill: { select: { id: true, name: true } },
