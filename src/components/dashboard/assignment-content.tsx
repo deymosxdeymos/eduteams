@@ -8,7 +8,6 @@ import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
 import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Gender } from '@/generated/prisma';
 import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
@@ -87,7 +86,6 @@ export function AssignmentContent({
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
   const tTeams = useTranslations('dashboard.teams');
-  const tCharts = useTranslations('dashboard.charts');
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const [showError, setShowError] = useState(false);
@@ -203,19 +201,7 @@ export function AssignmentContent({
         ) : (
           <>
             {!hasTeams ? (
-              <div className='flex flex-col gap-3'>
-                <div className='flex items-center justify-between'>
-                  <span className='font-medium text-black'>
-                    {tCharts('viewAnalysis')}
-                  </span>
-                  <Badge className='rounded-full bg-emerald-50 text-emerald-700'>
-                    {tCharts('completionRate', {
-                      percent: Math.round(quizCompletionPercent),
-                    })}
-                  </Badge>
-                </div>
-                <AssignmentCharts stats={stats} isStudent={isStudent} />
-              </div>
+              <AssignmentCharts stats={stats} isStudent={isStudent} />
             ) : (
               <ChartsToggle
                 progressPercent={quizCompletionPercent}

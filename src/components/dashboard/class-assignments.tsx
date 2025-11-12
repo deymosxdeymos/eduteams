@@ -123,7 +123,7 @@ export function ClassAssignments({
 
   return (
     <div className='bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden'>
-      <div className='p-6'>
+      <div className='p-6 pb-0'>
         <div className='flex items-center gap-4'>
           <Button variant='ghost' size='icon' className='rounded-full' asChild>
             <Link href='/dashboard' prefetch>

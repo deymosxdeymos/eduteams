@@ -9,12 +9,14 @@ interface ChartsToggleProps {
   progressPercent: number; // 0..100
   children: React.ReactNode;
   defaultVisible?: boolean;
+  hideToggle?: boolean;
 }
 
 export function ChartsToggle({
   progressPercent,
   children,
   defaultVisible = true,
+  hideToggle = false,
 }: ChartsToggleProps) {
   const t = useTranslations('dashboard.charts');
   const [visible, setVisible] = useState(defaultVisible);
@@ -24,6 +26,10 @@ export function ChartsToggle({
       setVisible(v => !v);
     }
   }, []);
+  if (hideToggle) {
+    return null;
+  }
+
   return (
     <div className='flex flex-col gap-3'>
       <div className='flex items-center justify-between'>
