@@ -51,6 +51,7 @@ interface AssignmentTeamsContentProps {
   searchValue?: string;
   hasSearchResults?: boolean;
   canManage?: boolean;
+  currentUserId?: string;
 }
 
 const mapMemberToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
@@ -93,6 +94,7 @@ export function AssignmentTeamsContent({
   searchValue = '',
   hasSearchResults = true,
   canManage = false,
+  currentUserId,
 }: AssignmentTeamsContentProps) {
   const t = useTranslations('dashboard.teams');
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -157,6 +159,12 @@ export function AssignmentTeamsContent({
   const activeTopicName = activeTeam?.topicName ?? '-';
   const activeQualityScore = activeTeam?.quality ?? 0;
 
+  // Check if current user is a member of the team (for students)
+  const isUserInTeam = (team: Team) => {
+    if (!isStudent || !currentUserId) return true; // Show for non-students or if no currentUserId
+    return team.members.some(member => member.user.id === currentUserId);
+  };
+
   return (
     <div
       className={
@@ -185,23 +193,25 @@ export function AssignmentTeamsContent({
                 key={team.id}
                 className='border rounded-xl shadow-sm p-4 flex flex-col gap-3'
               >
-                <div className='flex items-start justify-between gap-3'>
+                <div className='flex items-start justify-between gap-3 min-h-[60px]'>
                   <div className='flex flex-col items-start gap-1'>
                     <h2 className='font-bold text-2xl text-gray-800 uppercase'>
                       {t('group')} {pad(groupNumber)}
                     </h2>
-                    <button
-                      type='button'
-                      className='flex items-center gap-0.5 p-0 text-sm font-semibold text-blue-500 cursor-pointer hover:underline'
-                      onClick={() => handleOpenTeam(idx)}
-                    >
-                      {t('viewDetails')}
-                      <ChevronRight className='w-4 h-4' />
-                    </button>
+                    {isUserInTeam(team) && (
+                      <button
+                        type='button'
+                        className='flex items-center gap-0.5 p-0 text-sm font-semibold text-blue-500 cursor-pointer hover:underline'
+                        onClick={() => handleOpenTeam(idx)}
+                      >
+                        {t('viewDetails')}
+                        <ChevronRight className='w-4 h-4' />
+                      </button>
+                    )}
                   </div>
                   {isStudent ? (
                     hasTopic ? (
-                      <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
+                      <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs mt-1'>
                         {t('topic')}: {topicName}
                       </div>
                     ) : null
@@ -239,6 +249,7 @@ export function AssignmentTeamsContent({
                   courseId={courseId}
                   searchValue={searchValue}
                   canManage={canManage}
+                  currentUserId={currentUserId}
                 />
               </div>
             );

@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { ExportButtons } from '@/components/dashboard/export-buttons';
@@ -86,24 +87,29 @@ export function AssignmentActions({
   }, [retryFormationModalSignal, canManage]);
 
   const handleModalOpenChange = (open: boolean) => {
-    setModalOpen(open);
+    if (open && incompleteStudentCount > 0) {
+      // Show warning first if there are incomplete students
+      setWarningOpen(true);
+    } else {
+      setModalOpen(open);
+    }
     if (!open) {
       setWarningOpen(false);
     }
   };
 
+  const handleWarningContinue = () => {
+    setWarningOpen(false);
+    setModalOpen(true);
+  };
+
   const handleCreateClick = () => {
     if (!canSubmit) return;
-    if (incompleteStudentCount > 0) {
-      setWarningOpen(true);
-    } else {
-      handleCreate();
-    }
+    handleCreate();
   };
 
   const handleCreate = async () => {
     if (!canSubmit) return;
-    setWarningOpen(false);
     setSubmitting(true);
     setError('');
     setSuccess('');
@@ -141,6 +147,23 @@ export function AssignmentActions({
           <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />
         </Link>
       </Button>
+
+      {isStudent && (
+        <Button
+          variant='outline'
+          className='rounded-full border border-black p-6 w-[14rem]'
+          onClick={() =>
+            router.push(
+              `/dashboard/class/${classId}/assignments/${assignmentId}/quiz`
+            )
+          }
+        >
+          <ChartLineIcon className='w-4 h-4 text-black' />
+          <span className='text-black font-semibold text-sm'>
+            {t('viewMyAnswers')}
+          </span>
+        </Button>
+      )}
 
       <div className='flex items-center gap-4'>
         {canManage && (
@@ -286,6 +309,14 @@ export function AssignmentActions({
                 }}
               >
                 <DialogHeader className='p-6 pb-2'>
+                  <div className='flex justify-center'>
+                    <Image
+                      src='/team-formation-warning.svg'
+                      alt='Warning'
+                      width={160}
+                      height={160}
+                    />
+                  </div>
                   <DialogTitle className='text-xl font-semibold text-left'>
                     {t('warningTitle')}
                   </DialogTitle>
@@ -298,16 +329,14 @@ export function AssignmentActions({
                     <Button
                       className='w-full rounded-full py-6 font-semibold'
                       variant='onboarding'
-                      onClick={handleCreate}
-                      disabled={submitting}
+                      onClick={handleWarningContinue}
                     >
-                      {submitting ? t('submitCreating') : t('warningContinue')}
+                      {t('warningContinue')}
                     </Button>
                     <Button
                       className='w-full rounded-full py-6 font-semibold'
                       variant='outline'
                       onClick={() => setWarningOpen(false)}
-                      disabled={submitting}
                     >
                       {t('warningCancel')}
                     </Button>
@@ -354,23 +383,6 @@ export function AssignmentActions({
             iconClassName='right-5 w-6 h-6'
           />
         </div>
-      )}
-
-      {isStudent && (
-        <Button
-          variant='outline'
-          className='rounded-full border border-black p-6 w-[14rem]'
-          onClick={() =>
-            router.push(
-              `/dashboard/class/${classId}/assignments/${assignmentId}/quiz`
-            )
-          }
-        >
-          <ChartLineIcon className='w-4 h-4 text-black' />
-          <span className='text-black font-semibold text-sm'>
-            {t('viewMyAnswers')}
-          </span>
-        </Button>
       )}
     </div>
   );

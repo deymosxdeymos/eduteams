@@ -44,6 +44,7 @@ interface TeamMemberListClientProps {
   courseId: string;
   searchValue?: string;
   canManage?: boolean;
+  currentUserId?: string;
 }
 
 const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
@@ -87,6 +88,7 @@ export function TeamMemberListClient({
   courseId,
   searchValue = '',
   canManage = false,
+  currentUserId,
 }: TeamMemberListClientProps) {
   const t = useTranslations('dashboard.students');
   const [selectedMember, setSelectedMember] = useState<TeamMemberItem | null>(
@@ -110,6 +112,10 @@ export function TeamMemberListClient({
     const name = member.user.name?.toLowerCase() ?? '';
     const nim = member.user.nim?.toLowerCase() ?? '';
     return name.includes(searchTerm) || nim.includes(searchTerm);
+  };
+
+  const isCurrentUser = (member: TeamMemberItem) => {
+    return currentUserId ? member.user.id === currentUserId : false;
   };
 
   const onRemoveStudent = async (studentId: string) => {
@@ -151,7 +157,9 @@ export function TeamMemberListClient({
               'flex items-center gap-3 p-3 border rounded-2xl transition-all duration-200 cursor-pointer',
               isHighlighted(member)
                 ? 'bg-yellow-50 border-yellow-300 shadow-sm hover:bg-yellow-100'
-                : 'hover:bg-gray-50'
+                : isCurrentUser(member)
+                  ? 'bg-emerald-50 border-emerald-500 hover:bg-emerald-100'
+                  : 'hover:bg-gray-50'
             )}
             role='button'
             tabIndex={0}

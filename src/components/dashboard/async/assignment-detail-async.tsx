@@ -356,6 +356,7 @@ export async function AssignmentDetailAsync({
         taskIdByIndex={taskIdByIndex}
         isTeamFormationProcessing={isTeamFormationProcessing}
         incompleteStudentCount={incompleteCount}
+        currentUserId={user.id}
       />
     </AssignmentLayout>
   );

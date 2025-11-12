@@ -47,6 +47,7 @@ interface AssignmentTeamsClientProps {
   isStudent?: boolean;
   searchValue?: string;
   canManage?: boolean;
+  currentUserId?: string;
 }
 
 export function AssignmentTeamsClient({
@@ -61,6 +62,7 @@ export function AssignmentTeamsClient({
   isStudent = false,
   searchValue: externalSearchValue = '',
   canManage = false,
+  currentUserId,
 }: AssignmentTeamsClientProps) {
   const [internalSearchValue, setInternalSearchValue] = useState('');
   const searchValue = externalSearchValue || internalSearchValue;
@@ -109,6 +111,7 @@ export function AssignmentTeamsClient({
       searchValue={searchValue}
       hasSearchResults={hasSearchResults}
       canManage={canManage}
+      currentUserId={currentUserId}
     />
   );
 }

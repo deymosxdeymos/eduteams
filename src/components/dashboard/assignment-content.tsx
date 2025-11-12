@@ -62,6 +62,7 @@ interface AssignmentContentProps {
   taskIdByIndex?: string[];
   isTeamFormationProcessing?: boolean;
   incompleteStudentCount?: number;
+  currentUserId?: string;
 }
 
 export function AssignmentContent({
@@ -83,6 +84,7 @@ export function AssignmentContent({
   taskIdByIndex = [],
   isTeamFormationProcessing = false,
   incompleteStudentCount = 0,
+  currentUserId,
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
   const tTeams = useTranslations('dashboard.teams');
@@ -153,6 +155,7 @@ export function AssignmentContent({
               isStudent
               searchValue={searchValue}
               canManage={false}
+              currentUserId={currentUserId}
             />
           ) : (
             <div className='flex-1 flex items-center justify-center'>
@@ -221,6 +224,7 @@ export function AssignmentContent({
               courseClassLabel={courseClassLabel}
               searchValue={searchValue}
               canManage={canManage}
+              currentUserId={currentUserId}
             />
           </>
         )}
