@@ -412,25 +412,30 @@ async function assignSkillsToStudent(userId: string): Promise<void> {
   };
 
   for (const skill of skills) {
-    // Create the skill if it doesn't exist
-    await prisma.skill.upsert({
-      where: {
-        id: skill.skillId,
-      },
-      update: {},
-      create: {
-        id: skill.skillId,
-        name: skillNames[skill.skillId] || `Skill ${skill.skillId}`,
-        description: `Auto-generated skill: ${skillNames[skill.skillId] || 'Unknown'}`,
-      },
+    const skillName = skillNames[skill.skillId] || `Skill ${skill.skillId}`;
+
+    // Check if skill already exists by name
+    let existingSkill = await prisma.skill.findUnique({
+      where: { name: skillName },
     });
 
-    // Now create the person skill
+    if (!existingSkill) {
+      // Create the skill if it doesn't exist
+      existingSkill = await prisma.skill.create({
+        data: {
+          id: skill.skillId,
+          name: skillName,
+          description: `Auto-generated skill: ${skillName}`,
+        },
+      });
+    }
+
+    // Now create the person skill using the existing or created skill ID
     await prisma.personSkill.upsert({
       where: {
         personId_skillId: {
           personId: userId,
-          skillId: skill.skillId,
+          skillId: existingSkill.id,
         },
       },
       update: {
@@ -439,7 +444,7 @@ async function assignSkillsToStudent(userId: string): Promise<void> {
       create: {
         id: createId(),
         personId: userId,
-        skillId: skill.skillId,
+        skillId: existingSkill.id,
         level: skill.level,
       },
     });

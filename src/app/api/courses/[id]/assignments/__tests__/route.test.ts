@@ -48,6 +48,20 @@ const prismaMock: any = {
       status: 'BELUM_ISI',
     })),
   },
+  skill: {
+    findMany: mock(async () => []),
+    createMany: mock(async () => ({ count: 0 })),
+  },
+  courseSkill: {
+    createMany: mock(async () => ({ count: 0 })),
+  },
+  assignmentTopic: {
+    createMany: mock(async () => ({ count: 0 })),
+  },
+  $transaction: mock(async (callback: any) => {
+    // Execute callback with prismaMock as transaction context
+    return await callback(prismaMock);
+  }),
 };
 
 mock.module('@/lib/prisma', () => ({ default: prismaMock }));

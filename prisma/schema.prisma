@@ -115,6 +115,7 @@ model Skill {
   targetRelations SkillSimilarity[]          @relation("TargetSkill")
   taskSkills      TaskSkill[]
   studentProfiles StudentCompetencyProfile[]
+  courseSkills    CourseSkill[]
 
   @@index([name])
   @@map("skills")
@@ -293,6 +294,7 @@ model Course {
   dosen             User               @relation(fields: [dosenId], references: [id], onDelete: Cascade)
   enrollments       CourseEnrollment[]
   assignments       Assignment[]
+  courseSkills      CourseSkill[]
 
   @@index([dosenId])
   @@index([tahunAwalPeriode, tahunAkhirPeriode])
@@ -300,6 +302,21 @@ model Course {
   @@index([archivedAt])
   @@index([shareToken])
   @@map("courses")
+}
+
+model CourseSkill {
+  id        String   @id @default(uuid())
+  courseId  String
+  skillId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, skillId])
+  @@index([courseId])
+  @@index([skillId])
+  @@map("course_skills")
 }
 
 model CourseCatalog {

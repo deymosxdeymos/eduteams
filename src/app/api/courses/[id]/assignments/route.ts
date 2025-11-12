@@ -13,6 +13,10 @@ import {
 } from '@/lib/authorization';
 import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
 import prisma from '@/lib/prisma';
+import {
+  ensureSkillsForCourse,
+  ensureTopicsForAssignment,
+} from '@/lib/utils/assignment-skills-topics';
 import { AssignmentCreateSchema } from '@/lib/validation/assignments';
 
 // Prisma requires Node.js runtime
@@ -110,13 +114,15 @@ export const POST = withAuth<{ id: string }>(
       const raw = await request.json();
       const data = AssignmentCreateSchema.parse(raw);
 
-      // Persist skills/topics inside description JSON so downstream stats/UI can read them.
+      // Normalize skills/topics (handles both string and { name: string } inputs)
       const cleanedSkills = (data.skills || [])
-        .map(s => s.trim())
+        .map(s => (typeof s === 'string' ? s.trim() : s.name.trim()))
         .filter(Boolean);
       const cleanedTopics = (data.topics || [])
-        .map(t => t.trim())
+        .map(t => (typeof t === 'string' ? t.trim() : t.name.trim()))
         .filter(Boolean);
+
+      // Persist skills/topics inside description JSON for backward compatibility
       const descJson: Record<string, unknown> = {};
       if (data.description && data.description.trim().length > 0) {
         descJson.text = data.description.trim();
@@ -147,6 +153,12 @@ export const POST = withAuth<{ id: string }>(
           status: true,
         },
       });
+
+      // Persist skills globally + link to course, and persist topics to assignment
+      await Promise.all([
+        ensureSkillsForCourse(courseId, cleanedSkills),
+        ensureTopicsForAssignment(created.id, cleanedTopics),
+      ]);
 
       revalidateTag(DASHBOARD_STATISTICS_TAG);
       return NextResponse.json(

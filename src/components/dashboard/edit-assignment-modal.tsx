@@ -1,9 +1,8 @@
 'use client';
 
-import { Pencil, Plus, X } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { MultiSelectComboboxBadges } from '@/components/ui/multi-select-combobox-badges';
 import { Textarea } from '@/components/ui/textarea';
 import type { EditImpact } from '@/lib/utils/assignment-change-detection';
 import type { ManageAssignmentRow } from '@/types/manage';
@@ -50,9 +50,7 @@ export function EditAssignmentModal({
 }: EditAssignmentModalProps) {
   const t = useTranslations('dashboard.assignments.edit');
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillInput, setSkillInput] = useState('');
   const [topics, setTopics] = useState<string[]>([]);
-  const [topicInput, setTopicInput] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -101,56 +99,6 @@ export function EditAssignmentModal({
 
     onOpenChange(false);
   };
-
-  const addSkill = useCallback(() => {
-    const trimmedInput = skillInput.trim();
-    if (trimmedInput && !skills.includes(trimmedInput)) {
-      setSkills([...skills, trimmedInput]);
-      setSkillInput('');
-    }
-  }, [skillInput, skills]);
-
-  const removeSkill = useCallback(
-    (skillToRemove: string) => {
-      setSkills(skills.filter(skill => skill !== skillToRemove));
-    },
-    [skills]
-  );
-
-  const addTopic = useCallback(() => {
-    const trimmedInput = topicInput.trim();
-    if (trimmedInput && !topics.includes(trimmedInput)) {
-      setTopics([...topics, trimmedInput]);
-      setTopicInput('');
-    }
-  }, [topicInput, topics]);
-
-  const removeTopic = useCallback(
-    (topicToRemove: string) => {
-      setTopics(topics.filter(topic => topic !== topicToRemove));
-    },
-    [topics]
-  );
-
-  const handleSkillKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addSkill();
-      }
-    },
-    [addSkill]
-  );
-
-  const handleTopicKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addTopic();
-      }
-    },
-    [addTopic]
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,42 +240,15 @@ export function EditAssignmentModal({
               <div className='space-y-6'>
                 <div>
                   <h3 className='font-medium text-base mb-2'>{t('skills')}</h3>
-                  <div className='flex items-center gap-x-2 mb-3'>
-                    <InputRounded
-                      className='flex-1'
-                      placeholder={t('skillsPlaceholder')}
-                      value={skillInput}
-                      onChange={e => setSkillInput(e.target.value)}
-                      onKeyDown={handleSkillKeyDown}
-                    />
-                    <Button
-                      type='button'
-                      variant='onboarding'
-                      className='rounded-full w-12 h-12 shrink-0'
-                      onClick={addSkill}
-                      disabled={!skillInput.trim()}
-                    >
-                      <Plus className='w-4 h-4' />
-                    </Button>
-                  </div>
-                  <div className='flex flex-wrap gap-2'>
-                    {skills.map((skill, index) => (
-                      <Badge
-                        key={index}
-                        className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
-                      >
-                        <div className='flex items-center gap-2'>
-                          <span className='text-xs font-medium text-stone-900'>
-                            {skill}
-                          </span>
-                          <X
-                            className='w-3 h-3 cursor-pointer text-stone-900 hover:text-stone-700'
-                            onClick={() => removeSkill(skill)}
-                          />
-                        </div>
-                      </Badge>
-                    ))}
-                  </div>
+                  <MultiSelectComboboxBadges
+                    value={skills}
+                    onChange={setSkills}
+                    placeholder={t('skillsPlaceholder')}
+                    suggestionsEndpoint='/api/skills'
+                    emptyLabel={t('skillsEmptyLabel')}
+                    createLabel={query => t('skillsCreateLabel', { query })}
+                    showCombobox={true}
+                  />
                 </div>
 
                 <div>
@@ -335,42 +256,14 @@ export function EditAssignmentModal({
                     {t('topics')}{' '}
                     <span className='font-light'>({t('optional')})</span>
                   </h3>
-                  <div className='flex items-center gap-x-2 mb-3'>
-                    <InputRounded
-                      className='flex-1'
-                      placeholder={t('topicsPlaceholder')}
-                      value={topicInput}
-                      onChange={e => setTopicInput(e.target.value)}
-                      onKeyDown={handleTopicKeyDown}
-                    />
-                    <Button
-                      type='button'
-                      variant='onboarding'
-                      className='rounded-full w-12 h-12 shrink-0'
-                      onClick={addTopic}
-                      disabled={!topicInput.trim()}
-                    >
-                      <Plus className='w-4 h-4' />
-                    </Button>
-                  </div>
-                  <div className='flex flex-wrap gap-2'>
-                    {topics.map((topic, index) => (
-                      <Badge
-                        key={index}
-                        className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
-                      >
-                        <div className='flex items-center gap-2'>
-                          <span className='text-xs font-medium text-stone-900'>
-                            {topic}
-                          </span>
-                          <X
-                            className='w-3 h-3 cursor-pointer text-stone-900 hover:text-stone-700'
-                            onClick={() => removeTopic(topic)}
-                          />
-                        </div>
-                      </Badge>
-                    ))}
-                  </div>
+                  <MultiSelectComboboxBadges
+                    value={topics}
+                    onChange={setTopics}
+                    placeholder={t('topicsPlaceholder')}
+                    emptyLabel={t('topicsEmptyLabel')}
+                    createLabel={query => t('topicsCreateLabel', { query })}
+                    showCombobox={false}
+                  />
                 </div>
               </div>
             </div>

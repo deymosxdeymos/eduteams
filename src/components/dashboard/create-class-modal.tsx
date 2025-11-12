@@ -715,15 +715,8 @@ export default function CreateClassModal({
                                                 onSelect={() =>
                                                   handleCourseSelect(course)
                                                 }
+                                                className='flex items-center justify-between'
                                               >
-                                                <Check
-                                                  className={`mr-2 h-4 w-4 ${
-                                                    selectedCatalogCourse?.id ===
-                                                    course.id
-                                                      ? 'opacity-100'
-                                                      : 'opacity-0'
-                                                  }`}
-                                                />
                                                 <span className='text-sm'>
                                                   <span className='font-semibold'>
                                                     {course.code}
@@ -733,6 +726,14 @@ export default function CreateClassModal({
                                                     {course.name}
                                                   </span>
                                                 </span>
+                                                <Check
+                                                  className={`mr-2 h-4 w-4 ${
+                                                    selectedCatalogCourse?.id ===
+                                                    course.id
+                                                      ? 'opacity-100'
+                                                      : 'opacity-0'
+                                                  }`}
+                                                />
                                               </CommandItem>
                                             ))}
                                           </CommandGroup>
@@ -886,7 +887,11 @@ export default function CreateClassModal({
                                                 onSelect={() =>
                                                   handleClassSelect(classItem)
                                                 }
+                                                className='flex items-center justify-between'
                                               >
+                                                <span className='text-sm font-semibold'>
+                                                  {classItem.code}
+                                                </span>
                                                 <Check
                                                   className={`mr-2 h-4 w-4 ${
                                                     selectedCatalogClass?.id ===
@@ -895,9 +900,6 @@ export default function CreateClassModal({
                                                       : 'opacity-0'
                                                   }`}
                                                 />
-                                                <span className='text-sm font-semibold'>
-                                                  {classItem.code}
-                                                </span>
                                               </CommandItem>
                                             ))}
                                           </CommandGroup>

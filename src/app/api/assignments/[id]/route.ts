@@ -4,6 +4,10 @@ import { createErrorResponse, handleApiError, withAuth } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 import { analyzeAssignmentEditImpact } from '@/lib/utils/assignment-change-detection';
 import {
+  ensureSkillsForCourse,
+  ensureTopicsForAssignment,
+} from '@/lib/utils/assignment-skills-topics';
+import {
   createAssignmentSnapshot,
   invalidateAssignmentSubmissions,
   markSubmissionsNeedUpdate,
@@ -40,12 +44,12 @@ export const PATCH = withAuth<{ id: string }>(
       const body = await request.json();
       const input = AssignmentUpdateSchema.parse(body);
 
-      // Clean skills/topics arrays
+      // Normalize skills/topics arrays (handles both string and { name: string } inputs)
       const cleanedSkills = (input.skills || [])
-        .map(s => s.trim())
+        .map(s => (typeof s === 'string' ? s.trim() : s.name.trim()))
         .filter(Boolean);
       const cleanedTopics = (input.topics || [])
-        .map(t => t.trim())
+        .map(t => (typeof t === 'string' ? t.trim() : t.name.trim()))
         .filter(Boolean);
 
       // Analyze edit impact if skills/topics are being changed
@@ -149,6 +153,18 @@ export const PATCH = withAuth<{ id: string }>(
           _count: { select: { submissions: true } },
         },
       });
+
+      // Persist skills/topics if they were updated
+      if (input.skills !== undefined || input.topics !== undefined) {
+        await Promise.all([
+          input.skills !== undefined
+            ? ensureSkillsForCourse(assignment.courseId, cleanedSkills)
+            : Promise.resolve(),
+          input.topics !== undefined
+            ? ensureTopicsForAssignment(assignmentId, cleanedTopics)
+            : Promise.resolve(),
+        ]);
+      }
 
       return NextResponse.json({
         success: true,

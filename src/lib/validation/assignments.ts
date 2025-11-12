@@ -8,12 +8,17 @@ const AssignmentStatusSchema = z.enum([
 
 type _AssignmentStatus = z.infer<typeof AssignmentStatusSchema>;
 
+const SkillOrTopicItemSchema = z.union([
+  z.string().min(1),
+  z.object({ name: z.string().min(1) }),
+]);
+
 export const AssignmentCreateSchema = z.object({
   title: z.string().min(1, 'Judul tugas wajib diisi'),
   description: z.string().optional(),
-  // Optional arrays from modal; currently not used in card rendering
-  skills: z.array(z.string().min(1)).optional().default([]),
-  topics: z.array(z.string().min(1)).optional().default([]),
+  // Accept arrays of strings or objects with name field
+  skills: z.array(SkillOrTopicItemSchema).optional().default([]),
+  topics: z.array(SkillOrTopicItemSchema).optional().default([]),
   // Optional start time; default to now if omitted
   startAt: z.coerce.date().optional(),
 });
@@ -40,8 +45,8 @@ export const AssignmentUpdateSchema = z.object({
   description: z.string().optional(),
   startAt: z.coerce.date().optional(),
   status: AssignmentStatusSchema.optional(),
-  skills: z.array(z.string().min(1)).optional(),
-  topics: z.array(z.string().min(1)).optional(),
+  skills: z.array(SkillOrTopicItemSchema).optional(),
+  topics: z.array(SkillOrTopicItemSchema).optional(),
   confirmDestructiveChanges: z.boolean().optional().default(false),
 });
 

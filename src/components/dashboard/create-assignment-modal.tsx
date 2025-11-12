@@ -1,9 +1,8 @@
 'use client';
 
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { MultiSelectComboboxBadges } from '@/components/ui/multi-select-combobox-badges';
 import { Textarea } from '@/components/ui/textarea';
 
 interface CreateAssignmentModalProps {
@@ -28,52 +28,12 @@ export function CreateAssignmentModal({
 }: CreateAssignmentModalProps) {
   const t = useTranslations('dashboard.assignments.create');
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillInput, setSkillInput] = useState('');
   const [topics, setTopics] = useState<string[]>([]);
-  const [topicInput, setTopicInput] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isFormValid = Boolean(title.trim()) && skills.length > 0;
-
-  const addSkill = () => {
-    const trimmedInput = skillInput.trim();
-    if (trimmedInput && !skills.includes(trimmedInput)) {
-      setSkills([...skills, trimmedInput]);
-      setSkillInput('');
-    }
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove));
-  };
-
-  const addTopic = () => {
-    const trimmedInput = topicInput.trim();
-    if (trimmedInput && !topics.includes(trimmedInput)) {
-      setTopics([...topics, trimmedInput]);
-      setTopicInput('');
-    }
-  };
-
-  const removeTopic = (topicToRemove: string) => {
-    setTopics(topics.filter(topic => topic !== topicToRemove));
-  };
-
-  const handleSkillKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addSkill();
-    }
-  };
-
-  const handleTopicKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addTopic();
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,41 +75,15 @@ export function CreateAssignmentModal({
           <div className='space-y-6'>
             <div>
               <h3 className='font-medium text-base mb-2'>{t('skills')}</h3>
-              <div className='flex items-center gap-x-2 mb-3'>
-                <InputRounded
-                  className='flex-1'
-                  placeholder={t('skillsPlaceholder')}
-                  value={skillInput}
-                  onChange={e => setSkillInput(e.target.value)}
-                  onKeyDown={handleSkillKeyDown}
-                />
-                <Button
-                  variant='onboarding'
-                  className='rounded-full w-12 h-12 shrink-0'
-                  onClick={addSkill}
-                  disabled={!skillInput.trim()}
-                >
-                  <Plus className='w-4 h-4' />
-                </Button>
-              </div>
-              <div className='flex flex-wrap gap-2'>
-                {skills.map((skill, index) => (
-                  <Badge
-                    key={index}
-                    className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
-                  >
-                    <div className='flex items-center gap-2'>
-                      <span className='text-xs font-medium text-stone-900'>
-                        {skill}
-                      </span>
-                      <X
-                        className='w-3 h-3 cursor-pointer text-stone-900 hover:text-stone-700'
-                        onClick={() => removeSkill(skill)}
-                      />
-                    </div>
-                  </Badge>
-                ))}
-              </div>
+              <MultiSelectComboboxBadges
+                value={skills}
+                onChange={setSkills}
+                placeholder={t('skillsPlaceholder')}
+                suggestionsEndpoint='/api/skills'
+                emptyLabel={t('skillsEmptyLabel')}
+                createLabel={query => t('skillsCreateLabel', { query })}
+                showCombobox={true}
+              />
             </div>
 
             <div>
@@ -157,41 +91,14 @@ export function CreateAssignmentModal({
                 {t('topics')}{' '}
                 <span className='font-light'>({t('optional')})</span>
               </h3>
-              <div className='flex items-center gap-x-2 mb-3'>
-                <InputRounded
-                  className='flex-1'
-                  placeholder={t('topicsPlaceholder')}
-                  value={topicInput}
-                  onChange={e => setTopicInput(e.target.value)}
-                  onKeyDown={handleTopicKeyDown}
-                />
-                <Button
-                  variant='onboarding'
-                  className='rounded-full w-12 h-12 shrink-0'
-                  onClick={addTopic}
-                  disabled={!topicInput.trim()}
-                >
-                  <Plus className='w-4 h-4' />
-                </Button>
-              </div>
-              <div className='flex flex-wrap gap-2'>
-                {topics.map((topic, index) => (
-                  <Badge
-                    key={index}
-                    className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
-                  >
-                    <div className='flex items-center gap-2'>
-                      <span className='text-xs font-medium text-stone-900'>
-                        {topic}
-                      </span>
-                      <X
-                        className='w-3 h-3 cursor-pointer text-stone-900 hover:text-stone-700'
-                        onClick={() => removeTopic(topic)}
-                      />
-                    </div>
-                  </Badge>
-                ))}
-              </div>
+              <MultiSelectComboboxBadges
+                value={topics}
+                onChange={setTopics}
+                placeholder={t('topicsPlaceholder')}
+                emptyLabel={t('topicsEmptyLabel')}
+                createLabel={query => t('topicsCreateLabel', { query })}
+                showCombobox={false}
+              />
             </div>
           </div>
         </div>

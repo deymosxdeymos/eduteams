@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { MBTIOverviewLayout } from '@/components/dashboard/mbti-overview-layout';
 import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
 import { TeamDetailModalContent } from '@/components/dashboard/team-detail-modal-content';
-import { Button } from '@/components/ui/button';
+
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
 
