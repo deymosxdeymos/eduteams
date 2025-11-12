@@ -4,6 +4,7 @@ This app delegates team formation to the external Edu2Com service. The canonical
 
 ## Request Contract
 - `people`: required array (min 2). Each entry must include `id`, `personality` (`ei`, `sn`, `tf`, `pj` ∈ [-1,1]), at least one `skill` with `level` ∈ [0,1], optional `gender` (`MALE` | `FEMALE`), optional `preferences` with `{ personId, preference ∈ [0,1] }`. Schema: `src/lib/edu2com/contract.ts:24`.
+- **Fallback skill**: If a student has no mapped skills, we inject a fallback skill (first declared skill at level 0) to satisfy the local Zod contract’s min(1) requirement. This prevents silent drops by Edu2com. See `src/app/api/assignments/[id]/form-teams/route.ts:299-303`.
 - `tasks`: required array (min 1) with `id`, `teamSize ≥ 2`, at least one `skill` `{ id, level ∈ [0,1], importance ≥ 1 }`, optional `preferences` identical to people prefs. Schema: `src/lib/edu2com/contract.ts:41`.
 - Optional knobs: `alpha`, `beta`, `gamma`, `delta` (each ∈ [0,1]), `initRandom`, and `similarities` (`{ sourceId, targetId, similarity ∈ [0,1] }`).
 
@@ -14,6 +15,7 @@ Authoritative payload builders live in `src/lib/edu2com/fixtures.ts` so test sui
 - Failure responses are documented as HTTP 400 (“Cannot form the teams with the provided data.”) or 422 (“The experiment is not valid.”). We surface these as `HttpError` instances, preserving the status code.
 
 When background mode is used (default for `/api/assignments/[id]/form-teams`), the HTTP request returns immediately with `PROCESSING` status while the webhook route persists the resulting teams and revalidates dashboard caches.
+- **Unassigned safety**: The webhook detects any input people not present in Edu2com’s response and appends them to the smallest teams before persisting. This guarantees every submitted student is assigned. See `src/app/api/edu2com/webhook/route.ts:88-101`.
 
 ## Testing Strategy
 1. **Schema tests** – `src/lib/edu2com/__tests__/team-formation.contract.test.ts` validates curated fixtures with `edu2comParametersSchema` and exercises the live API only when `EDU2COM_INTEGRATION=1` is set.

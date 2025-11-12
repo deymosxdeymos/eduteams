@@ -47,14 +47,16 @@ type IconTweak = {
 };
 
 const ICON_TWEAKS: Partial<Record<MbtiType, IconTweak>> = {
-  ESTP: { size: 52, dy: 7 },
-  ENFJ: { size: 48, dy: 6 },
-  ENTJ: { size: 48, dy: 3 },
-  ENTP: { size: 48, dy: 3 },
-  ENFP: { size: 48 },
-  ESFJ: { size: 48, dy: 5 },
-  INTP: { size: 48, dx: -3 },
-  INFJ: { size: 48, dx: 3 },
+  ESTP: { size: 62, dy: 7 },
+  ENFJ: { size: 58, dy: 6, dx: -5 },
+  ENTJ: { size: 58, dy: 3 },
+  ENTP: { size: 58, dy: 3 },
+  ENFP: { size: 58 },
+  ESFJ: { size: 58, dy: 5 },
+  INTP: { size: 58, dx: -3 },
+  INFJ: { size: 58, dx: 3 },
+  INFP: { dy: -15, overlap: 0.55 },
+  ISTJ: { dy: -15, overlap: 0.55 },
 };
 
 const chartConfig = {
@@ -179,7 +181,7 @@ function getMascotXY(
   if (anchor === 'right') anchorX = barX + barW;
 
   const x = Math.round(anchorX - iconW / 2 + dx);
-  const y = Math.max(4, Math.round(barY - iconH + iconH * overlap + dy));
+  const y = Math.max(0, Math.round(barY - iconH + iconH * overlap + dy));
   return { x, y };
 }
 
@@ -219,8 +221,7 @@ function MbtiBarShape(
   const mbtiType = payload.kategori as MbtiType;
   const group = getGroupForType(mbtiType);
   const fill = `url(#${gradientIds[group]})`;
-  // Icon layout (match previous sizing/tweaks)
-  const MASCOT_DEFAULT = { size: 42 } as const;
+  const MASCOT_DEFAULT = { size: 52 } as const;
   const tweaks = ICON_TWEAKS[mbtiType] ?? {};
   const size = tweaks.size ?? MASCOT_DEFAULT.size;
   const { x: iconX, y: iconY } = getMascotXY(x, y, width, size, size, tweaks);
@@ -354,14 +355,12 @@ export function MbtiBarChart({
           </SelectContent>
         </Select>
       </div>
-      <ChartContainer
-        config={chartConfig}
-        className='h-[180px] w-full max-w-[900px] mb-3 justify-start'
-      >
+      <ChartContainer config={chartConfig} className='h-[180px] w-full mb-3'>
         <BarChart
           data={sortedData}
-          margin={{ bottom: 20, left: 0, right: 8, top: 16 }}
+          margin={{ bottom: 20, left: 0, right: 0, top: 24 }}
           barCategoryGap={8}
+          maxBarSize={48}
         >
           <defs>
             <filter

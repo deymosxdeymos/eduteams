@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     const requestQueryStart = performance.now();
     const requestRecord = await prisma.teamFormationRequest.findUnique({
       where: { id: requestId },
-      select: { id: true, assignmentId: true },
+      select: { id: true, assignmentId: true, requestData: true },
     });
     const requestQueryTime = performance.now() - requestQueryStart;
     console.log(
@@ -83,6 +83,105 @@ export async function POST(req: Request) {
     console.log(
       `[Webhook] Received ${teamsPayload.teams.length} teams from Edu2com`
     );
+
+    // Ensure all input people are assigned: append any unassigned to smallest teams
+    // Validate requestData structure
+    if (
+      !requestRecord.requestData ||
+      typeof requestRecord.requestData !== 'object' ||
+      !('people' in requestRecord.requestData) ||
+      !Array.isArray((requestRecord.requestData as { people?: unknown }).people)
+    ) {
+      console.error(
+        '[Webhook] Invalid requestData structure - missing people array'
+      );
+      await prisma.teamFormationRequest
+        .update({
+          where: { id: requestId },
+          data: {
+            status: 'FAILED',
+            errorMessage: 'Invalid request data structure',
+          },
+        })
+        .catch(() => {});
+      return NextResponse.json(
+        { success: false, error: 'Invalid request data structure' },
+        { status: 500 }
+      );
+    }
+
+    // Validate that all people elements have valid id fields
+    const peopleArray = (requestRecord.requestData as { people: unknown[] })
+      .people;
+    if (
+      !peopleArray.every(
+        p => p && typeof p === 'object' && 'id' in p && typeof p.id === 'string'
+      )
+    ) {
+      console.error(
+        '[Webhook] Invalid requestData structure - people array contains invalid elements'
+      );
+      await prisma.teamFormationRequest
+        .update({
+          where: { id: requestId },
+          data: {
+            status: 'FAILED',
+            errorMessage: 'Invalid people data structure',
+          },
+        })
+        .catch(() => {});
+      return NextResponse.json(
+        { success: false, error: 'Invalid people data structure' },
+        { status: 500 }
+      );
+    }
+
+    const requestData = requestRecord.requestData as {
+      people: { id: string }[];
+    };
+    const inputPeopleIds = new Set(requestData.people.map(p => p.id));
+    const assignedPeopleIds = new Set(
+      teamsPayload.teams.flatMap(t => t.people.map(m => m.id))
+    );
+    const unassignedIds = Array.from(inputPeopleIds).filter(
+      id => !assignedPeopleIds.has(id)
+    );
+    if (unassignedIds.length > 0) {
+      console.log(
+        `[Webhook] Found ${unassignedIds.length} unassigned students`
+      );
+
+      // Fail if no teams exist to assign students to
+      if (teamsPayload.teams.length === 0) {
+        const errorMsg = `Cannot assign ${unassignedIds.length} students to zero teams`;
+        console.error(`[Webhook] ${errorMsg}`);
+        await prisma.teamFormationRequest
+          .update({
+            where: { id: requestId },
+            data: {
+              status: 'FAILED',
+              errorMessage: errorMsg,
+            },
+          })
+          .catch(() => {});
+        return NextResponse.json(
+          { success: false, error: errorMsg },
+          { status: 400 }
+        );
+      }
+
+      console.log(
+        `[Webhook] Appending ${unassignedIds.length} unassigned students to smallest teams`
+      );
+      // Sort teams by current size ascending
+      const sortedTeams = [...teamsPayload.teams].sort(
+        (a, b) => a.people.length - b.people.length
+      );
+      unassignedIds.forEach((id, idx) => {
+        const targetTeam = sortedTeams[idx % sortedTeams.length];
+        targetTeam.people.push({ id, skillIds: [] });
+      });
+    }
 
     const transactionStart = performance.now();
     try {

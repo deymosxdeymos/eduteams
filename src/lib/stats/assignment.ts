@@ -247,7 +247,8 @@ export async function getAssignmentStats(
     teamsFormed = tfCount > 0;
   }
 
-  // Calculate team quality metrics from latest completed team formation
+  // Calculate team quality metrics from latest completed team formation for THIS assignment only
+  // Group by taskId and compute metrics from per-task averages
   let teamQuality: TeamQualityMetrics | undefined;
   if (teamsFormed && assignmentMeta?.course?.dosenId) {
     const latestFormation = await prisma.teamFormationRequest.findFirst({
@@ -259,6 +260,7 @@ export async function getAssignmentStats(
       select: {
         teams: {
           select: {
+            taskId: true,
             quality: true,
           },
         },
@@ -266,36 +268,45 @@ export async function getAssignmentStats(
       orderBy: { createdAt: 'desc' },
     });
 
-    if (!latestFormation && assignmentMeta.startAt) {
-      // Fallback for legacy data
-      const legacyFormation = await prisma.teamFormationRequest.findFirst({
-        where: {
-          ownerId: assignmentMeta.course.dosenId,
-          assignmentId: null,
-          status: 'COMPLETED',
-          createdAt: { gte: assignmentMeta.startAt },
-        },
-        select: {
-          teams: {
-            select: {
-              quality: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+    if (latestFormation) {
+      // Collect all team qualities
+      const allQualities = latestFormation.teams
+        .filter(team => team.quality !== null)
+        .map(team => team.quality as number);
 
-      if (legacyFormation) {
-        const qualityScores = legacyFormation.teams
-          .map(t => t.quality)
-          .filter((q): q is number => q !== null);
-        teamQuality = calculateQualityMetrics(qualityScores) ?? undefined;
+      // Check if ANY teams have non-null taskIds
+      const hasAnyTaskIds = latestFormation.teams.some(t => t.taskId !== null);
+
+      if (hasAnyTaskIds) {
+        // Group teams by taskId (null → 'unassigned') and calculate average per task
+        const taskQualityMap = new Map<string, number[]>();
+        for (const team of latestFormation.teams) {
+          if (team.quality === null) continue;
+          const taskKey = team.taskId ?? 'unassigned';
+          const existing = taskQualityMap.get(taskKey) ?? [];
+          existing.push(team.quality);
+          taskQualityMap.set(taskKey, existing);
+        }
+
+        // Calculate average quality per task
+        const taskAverages: number[] = [];
+        for (const [, qualities] of taskQualityMap) {
+          if (qualities.length === 0) continue;
+          const avg =
+            qualities.reduce((sum, q) => sum + q, 0) / qualities.length;
+          taskAverages.push(avg);
+        }
+
+        // Calculate metrics from task-level averages
+        if (taskAverages.length > 0) {
+          teamQuality = calculateQualityMetrics(taskAverages) ?? undefined;
+        }
+      } else {
+        // ALL teams have null taskId: compute metrics across individual teams
+        if (allQualities.length > 0) {
+          teamQuality = calculateQualityMetrics(allQualities) ?? undefined;
+        }
       }
-    } else if (latestFormation) {
-      const qualityScores = latestFormation.teams
-        .map(t => t.quality)
-        .filter((q): q is number => q !== null);
-      teamQuality = calculateQualityMetrics(qualityScores) ?? undefined;
     }
   }
 

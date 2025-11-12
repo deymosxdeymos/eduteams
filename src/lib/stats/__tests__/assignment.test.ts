@@ -254,7 +254,7 @@ describe('lib/stats/getAssignmentStats', () => {
     expect(stats.chartReady).toBe(true);
   });
 
-  it('calculates team quality metrics when teams are formed', async () => {
+  it('calculates team quality metrics from task-level averages when teams are formed', async () => {
     const { getAssignmentStats } = await import('@/lib/stats/assignment');
 
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
@@ -283,11 +283,11 @@ describe('lib/stats/getAssignmentStats', () => {
     prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(
       async () => ({
         teams: [
-          { quality: 0.7 },
-          { quality: 0.8 },
-          { quality: 0.9 },
-          { quality: 0.85 },
-          { quality: 0.75 },
+          { taskId: 'task1', quality: 0.7 },
+          { taskId: 'task1', quality: 0.8 },
+          { taskId: 'task2', quality: 0.9 },
+          { taskId: 'task2', quality: 0.85 },
+          { taskId: 'task3', quality: 0.75 },
         ],
       })
     );
@@ -296,10 +296,16 @@ describe('lib/stats/getAssignmentStats', () => {
 
     expect(stats.teamsFormed).toBe(true);
     expect(stats.teamQuality).toBeDefined();
-    expect(stats.teamQuality?.min).toBe(0.7);
-    expect(stats.teamQuality?.max).toBe(0.9);
-    expect(stats.teamQuality?.mean).toBeCloseTo(0.8, 2);
-    expect(stats.teamQuality?.count).toBe(5);
+    // Task1 avg: (0.7 + 0.8) / 2 = 0.75
+    // Task2 avg: (0.9 + 0.85) / 2 = 0.875
+    // Task3 avg: 0.75
+    // Min of task averages: 0.75
+    // Max of task averages: 0.875
+    // Mean of task averages: (0.75 + 0.875 + 0.75) / 3 ≈ 0.792
+    expect(stats.teamQuality?.min).toBeCloseTo(0.75, 2);
+    expect(stats.teamQuality?.max).toBeCloseTo(0.875, 2);
+    expect(stats.teamQuality?.mean).toBeCloseTo(0.792, 2);
+    expect(stats.teamQuality?.count).toBe(3);
   });
 
   it('does not calculate team quality when teams are not formed', async () => {
@@ -335,7 +341,7 @@ describe('lib/stats/getAssignmentStats', () => {
     expect(stats.teamQuality).toBeUndefined();
   });
 
-  it('handles teams with null quality scores', async () => {
+  it('handles teams with null quality scores and groups by task', async () => {
     const { getAssignmentStats } = await import('@/lib/stats/assignment');
 
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
@@ -364,10 +370,10 @@ describe('lib/stats/getAssignmentStats', () => {
     prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(
       async () => ({
         teams: [
-          { quality: 0.7 },
-          { quality: null },
-          { quality: 0.9 },
-          { quality: null },
+          { taskId: 'task1', quality: 0.7 },
+          { taskId: 'task1', quality: null },
+          { taskId: 'task2', quality: 0.9 },
+          { taskId: 'task2', quality: null },
         ],
       })
     );
@@ -376,8 +382,59 @@ describe('lib/stats/getAssignmentStats', () => {
 
     expect(stats.teamsFormed).toBe(true);
     expect(stats.teamQuality).toBeDefined();
+    // Task1 avg: 0.7 (null is skipped)
+    // Task2 avg: 0.9 (null is skipped)
+    // So we have 2 task averages
     expect(stats.teamQuality?.count).toBe(2);
     expect(stats.teamQuality?.min).toBe(0.7);
     expect(stats.teamQuality?.max).toBe(0.9);
+  });
+
+  it('handles teams with null taskId (unassigned teams)', async () => {
+    const { getAssignmentStats } = await import('@/lib/stats/assignment');
+
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
+    prismaMock.assignment.findUnique.mockImplementation(async (args: any) => {
+      const base = {
+        description: JSON.stringify({
+          skills: ['Skill A'],
+          topics: ['Topic A'],
+        }),
+        startAt: new Date('2025-01-01T00:00:00Z'),
+        course: { dosenId: 'd1' },
+      };
+      return {
+        description: args?.select?.description ? base.description : undefined,
+        startAt: args?.select?.startAt ? base.startAt : undefined,
+        course: args?.select?.course ? base.course : undefined,
+      };
+    });
+    prismaMock.assignmentTopic.findMany.mockImplementationOnce(async () => [
+      { id: 't1', name: 'Topic A' },
+    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(
+      async () => []
+    );
+    prismaMock.teamFormationRequest.count.mockImplementationOnce(async () => 1);
+    prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(
+      async () => ({
+        teams: [
+          { taskId: 'task1', quality: 0.7 },
+          { taskId: null, quality: 0.8 },
+          { taskId: null, quality: 0.9 },
+        ],
+      })
+    );
+
+    const stats = await getAssignmentStats('a6', 'c6');
+
+    expect(stats.teamsFormed).toBe(true);
+    expect(stats.teamQuality).toBeDefined();
+    // Task1 avg: 0.7
+    // Unassigned avg: (0.8 + 0.9) / 2 = 0.85
+    // So we have 2 task averages
+    expect(stats.teamQuality?.count).toBe(2);
+    expect(stats.teamQuality?.min).toBeCloseTo(0.7);
+    expect(stats.teamQuality?.max).toBeCloseTo(0.85);
   });
 });

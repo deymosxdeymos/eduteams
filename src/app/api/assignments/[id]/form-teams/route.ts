@@ -288,23 +288,32 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
 
     // Build people payload as required by openapi.json
     // Note: students are already filtered to have valid personality scores
-    const people = students.map(s => ({
-      id: s.id,
-      gender: normalizeGender(s.gender ?? undefined),
-      personality: {
-        ei: s.ei,
-        sn: s.sn,
-        tf: s.tf,
-        pj: s.pj,
-      },
-      skills: (s.personSkills || [])
+    let fallbackSkillAssigned = 0;
+    const people = students.map(s => {
+      const skills = (s.personSkills || [])
         .filter(ps => declaredSkillIds.includes(ps.skillId))
         .map(ps => ({
           id: ps.skillId,
           level: Math.max(0, Math.min(1, ps.level)),
-        })),
-      preferences: [], // person-to-person preferences not collected in this flow
-    }));
+        }));
+      // Ensure at least one skill so student isn't silently dropped by downstream service
+      if (skills.length === 0 && declaredSkillIds.length > 0) {
+        skills.push({ id: declaredSkillIds[0], level: 0 });
+        fallbackSkillAssigned++;
+      }
+      return {
+        id: s.id,
+        gender: normalizeGender(s.gender ?? undefined),
+        personality: { ei: s.ei, sn: s.sn, tf: s.tf, pj: s.pj },
+        skills,
+        preferences: [],
+      };
+    });
+    if (fallbackSkillAssigned > 0) {
+      console.log(
+        `[Team Formation] Added fallback skill to ${fallbackSkillAssigned} students lacking skill data`
+      );
+    }
 
     // Compute group sizes based on method
     const groupSizes: number[] = [];

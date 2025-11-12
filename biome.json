@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.7/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.1/schema.json",
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -34,7 +34,8 @@
       "!**/dist",
       "!**/build",
       "!**/coverage",
-      "!types/bun-test.d.ts"
+      "!types/bun-test.d.ts",
+      "!src/app/globals.css"
     ]
   },
   "overrides": [
@@ -51,7 +52,7 @@
   ],
   "formatter": {
     "enabled": true,
-    "formatWithErrors": false,
+    "formatWithErrors": true,
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
