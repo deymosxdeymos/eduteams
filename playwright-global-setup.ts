@@ -11,10 +11,7 @@ export default async function globalSetup() {
     return;
   }
 
-  // Skip build - using manually built production bundle
-  console.log('Skipping build (using manual production build)...');
-  return;
-
+  // Build production bundle for E2E tests
   console.log('Building production bundle for E2E tests...');
 
   try {

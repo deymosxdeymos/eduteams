@@ -10,7 +10,8 @@ import { getMBTIQuestions } from '@/lib/mbti-questions-simple';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 import type { Course, ExtendedUser } from '@/lib/types';
-import { getMBTICategory } from '@/lib/utils/mbti-colors';
+import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
+import { getMBTIType } from '@/lib/utils/mbti-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -274,23 +275,11 @@ export default async function AssignmentAnswersPage({
     number
   >;
 
-  const category = getMBTICategory(selectedUser.mbtiType);
-  const underlineClass =
-    category === 'diplomats'
-      ? 'bg-emerald-500'
-      : category === 'analysts'
-        ? 'bg-violet-500'
-        : category === 'explorers'
-          ? 'bg-orange-500'
-          : 'bg-blue-500';
-  const textActiveClass =
-    category === 'diplomats'
-      ? 'data-[state=active]:text-emerald-600'
-      : category === 'analysts'
-        ? 'data-[state=active]:text-violet-600'
-        : category === 'explorers'
-          ? 'data-[state=active]:text-orange-600'
-          : 'data-[state=active]:text-blue-600';
+  const mbtiType = getMBTIType(selectedUser);
+  const colorScheme = getMBTIColorScheme(mbtiType);
+  const underlineClass = colorScheme.primaryBg;
+  const textColor600 = colorScheme.gradientFrom.replace('from-', 'text-');
+  const textActiveClass = `data-[state=active]:${textColor600}`;
 
   return (
     <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
