@@ -66,9 +66,8 @@ test.describe('NF-04: Internationalization (i18n)', () => {
     test('should display language switcher on homepage', async ({ page }) => {
       await page.goto('/');
 
-      // Look for language switcher element
-      // The link shows current locale (ID or EN) with a flag icon
-      const localeLink = await page.getByRole('link', { name: /(ID|EN)/i }).count();
+      // Look for language switcher element - it's a link with href="/en" containing "ID" text
+      const localeLink = await page.locator('a[href="/en"]').filter({ hasText: 'ID' }).count();
 
       // Language switching link should exist
       expect(localeLink).toBeGreaterThan(0);
@@ -78,9 +77,8 @@ test.describe('NF-04: Internationalization (i18n)', () => {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      // Find language switcher link (contains "ID" when on Indonesian locale)
-      // Link includes locale code + flag alt text
-      const languageSwitcher = page.getByRole('link', { name: /ID/i }).filter({ has: page.locator('img[alt]') }).first();
+      // Find language switcher link - it's a link with href="/en" containing "ID" text
+      const languageSwitcher = page.locator('a[href="/en"]').filter({ hasText: 'ID' }).first();
       await expect(languageSwitcher).toBeVisible();
 
       // Click to switch to English and wait for navigation
@@ -92,9 +90,12 @@ test.describe('NF-04: Internationalization (i18n)', () => {
       // URL should now include /en
       expect(page.url()).toContain('/en');
 
-      // Link should now show "EN" (current locale)
-      const enLink = page.getByRole('link', { name: /EN/i }).filter({ has: page.locator('img[alt]') });
-      await expect(enLink).toBeVisible();
+      // Link should now show "EN" (current locale) - look for link back to Indonesian
+      // On English page, link back to Indonesian has href="/id" and contains "EN" text
+      // Wait a bit for the page to fully render
+      await page.waitForTimeout(2000);
+      const idLink = page.locator('a[href="/id"]').filter({ hasText: 'EN' });
+      await expect(idLink).toBeVisible();
     });
   });
 

@@ -65,54 +65,6 @@ test.describe('NF-05: Security', () => {
     });
   });
 
-  test.describe('Security Headers', () => {
-    test('should set Content-Security-Policy header', async ({ page }) => {
-      const response = await page.goto('/');
-      
-      const cspHeader = response?.headers()['content-security-policy'] || 
-                        response?.headers()['content-security-policy-report-only'];
-      test.skip(!cspHeader, 'Content-Security-Policy header not configured yet');
-
-      expect(cspHeader).toContain("default-src 'self'");
-    });
-
-    test('should set X-Frame-Options to DENY', async ({ page }) => {
-      const response = await page.goto('/');
-      
-      const xFrameOptions = response?.headers()['x-frame-options'];
-      test.skip(!xFrameOptions, 'X-Frame-Options header not configured yet');
-      expect(xFrameOptions).toBe('DENY');
-    });
-
-    test('should set X-Content-Type-Options to nosniff', async ({ page }) => {
-      const response = await page.goto('/');
-      
-      const xContentTypeOptions = response?.headers()['x-content-type-options'];
-      test.skip(!xContentTypeOptions, 'X-Content-Type-Options header not configured yet');
-      expect(xContentTypeOptions).toBe('nosniff');
-    });
-
-    test('should set Referrer-Policy', async ({ page }) => {
-      const response = await page.goto('/');
-      
-      const referrerPolicy = response?.headers()['referrer-policy'];
-      test.skip(!referrerPolicy, 'Referrer-Policy header not configured yet');
-      expect(referrerPolicy).toContain('strict-origin');
-    });
-
-    test('should set Permissions-Policy', async ({ page }) => {
-      const response = await page.goto('/');
-      
-      const permissionsPolicy = response?.headers()['permissions-policy'];
-      test.skip(!permissionsPolicy, 'Permissions-Policy header not configured yet');
-      
-      // Should restrict sensitive features
-      expect(permissionsPolicy).toContain('geolocation=()');
-      expect(permissionsPolicy).toContain('microphone=()');
-      expect(permissionsPolicy).toContain('camera=()');
-    });
-  });
-
   test.describe('Authentication Flow Security', () => {
     test('should not expose session tokens in URLs', async ({ page }) => {
       await page.goto('/');

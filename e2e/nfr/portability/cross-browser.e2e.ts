@@ -207,7 +207,9 @@ test.describe('NF-02: Portability (Cross-Browser)', () => {
     test('should be mobile-responsive', async ({ page, browserName }) => {
       // This test is specifically for mobile viewport
       if (browserName !== 'chromium' || !page.viewportSize()?.width || page.viewportSize()!.width > 500) {
-        test.skip();
+        // Intentionally fail to show this test only runs on mobile
+        expect(true).toBe(false);
+        return;
       }
       
       await page.goto('/');
@@ -231,7 +233,9 @@ test.describe('NF-02: Portability (Cross-Browser)', () => {
 
     test('should handle touch events on mobile', async ({ page }) => {
       if (!page.viewportSize()?.width || page.viewportSize()!.width > 500) {
-        test.skip();
+        // Intentionally fail to show this test only runs on mobile
+        expect(true).toBe(false);
+        return;
       }
       
       await page.goto('/');
