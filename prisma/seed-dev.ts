@@ -480,7 +480,7 @@ async function createSampleAssignments(
     {
       title: 'Tugas Besar 1 - Struktur Data Linear',
       description: JSON.stringify({
-        skills: ['Rust', 'Linux'],
+        skills: ['Rust', 'Linux', 'JavaScript', 'Python'],
         topics: [
           'Array Implementation',
           'Linked List',
@@ -492,7 +492,7 @@ async function createSampleAssignments(
     {
       title: 'Tugas Besar 2 - Struktur Data Non-Linear',
       description: JSON.stringify({
-        skills: ['Rust', 'Linux'],
+        skills: ['Rust', 'Linux', 'JavaScript', 'Python'],
         topics: [
           'Binary Tree',
           'Graph Traversal',
@@ -504,7 +504,7 @@ async function createSampleAssignments(
     {
       title: 'Quiz 1 - Array dan Linked List',
       description: JSON.stringify({
-        skills: ['Rust', 'Linux'],
+        skills: ['Rust', 'Linux', 'JavaScript', 'Python'],
         topics: [
           'Array Concepts',
           'Linked List Operations',
