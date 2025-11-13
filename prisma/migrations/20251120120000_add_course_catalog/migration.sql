@@ -1,9 +1,6 @@
--- Ensure pgcrypto is available for UUID generation
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 -- CreateTable
 CREATE TABLE "course_catalogs" (
-    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

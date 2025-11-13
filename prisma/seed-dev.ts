@@ -25,7 +25,7 @@ const argsSchema = z.object({
   courseId: z.string().optional(),
   courseName: z.string().optional(),
   courseClass: z.enum(['RA', 'RB', 'RC', 'RD', 'RE']).default('RA'),
-  coursePeriod: z.enum(['ganjil', 'genap']).default('ganjil'),
+  coursePeriod: z.enum(['ganjil', 'genap', 'pendek']).default('ganjil'),
   dosenEmail: z.string().email().optional(),
   mbtiBalanced: z.boolean().default(false),
   listCourses: z.boolean().default(false),

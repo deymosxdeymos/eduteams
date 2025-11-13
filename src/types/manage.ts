@@ -5,7 +5,7 @@ export interface ManageCourseRow {
   periodLabel: string;
   startYear: number;
   endYear: number;
-  semester: 'ganjil' | 'genap';
+  semester: 'ganjil' | 'genap' | 'pendek';
   assignmentsCount: number;
   studentsCount: number;
   isArchived: boolean;

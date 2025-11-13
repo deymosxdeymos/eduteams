@@ -230,7 +230,8 @@
         "periodAutoDetected": "Tahun akademik terdeteksi otomatis berdasarkan tanggal saat ini",
         "options": {
           "odd": "Ganjil",
-          "even": "Genap"
+          "even": "Genap",
+          "short": "Pendek"
         },
         "catalog": {
           "searchPlaceholder": "Cari berdasarkan kode atau nama mata kuliah",

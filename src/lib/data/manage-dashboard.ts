@@ -11,11 +11,13 @@ interface BaseCoursePeriod {
   periode: string;
 }
 
-type AcademicSemester = 'ganjil' | 'genap';
+type AcademicSemester = 'ganjil' | 'genap' | 'pendek';
 
 function resolveSemester(value: string): AcademicSemester {
   const lower = value.toLowerCase();
-  return lower === 'genap' ? 'genap' : 'ganjil';
+  if (lower === 'genap') return 'genap';
+  if (lower === 'pendek') return 'pendek';
+  return 'ganjil';
 }
 
 function normalizePeriodLabel({

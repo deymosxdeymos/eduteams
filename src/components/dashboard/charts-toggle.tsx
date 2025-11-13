@@ -57,13 +57,13 @@ export function ChartsToggle({
         {showMissingStudentsBadge ? (
           <Badge
             variant='destructive'
-            className='rounded-full bg-red-50 text-red-700 border-transparent'
+            className='text-md rounded-full bg-red-50 text-red-700 border-transparent'
           >
             <AlertCircle className='w-3 h-3' />
             {t('missingStudents', { count: incompleteStudentCount })}
           </Badge>
         ) : (
-          <Badge className='rounded-full bg-emerald-50 text-emerald-700'>
+          <Badge className='text-md rounded-full bg-emerald-50 text-emerald-700'>
             {t('completionRate', { percent: Math.round(progressPercent) })}
           </Badge>
         )}

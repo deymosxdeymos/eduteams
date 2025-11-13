@@ -971,6 +971,9 @@ export default function CreateClassModal({
                                 <SelectItem value='genap'>
                                   {academicYear.label} {t('options.even')}
                                 </SelectItem>
+                                <SelectItem value='pendek'>
+                                  {academicYear.label} {t('options.short')}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />

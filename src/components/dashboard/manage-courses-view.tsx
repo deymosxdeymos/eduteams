@@ -106,8 +106,9 @@ const sortOptions: Array<{ value: SortKey; label: string }> = [
 ];
 
 const semesterOrder: Record<ManageCourseRow['semester'], number> = {
-  genap: 2,
   ganjil: 1,
+  genap: 2,
+  pendek: 3,
 };
 
 interface ManageCoursesViewProps {
@@ -657,6 +658,9 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                         </SelectItem>
                         <SelectItem value='genap'>
                           {academicYearLabel} {tOptions('even')}
+                        </SelectItem>
+                        <SelectItem value='pendek'>
+                          {academicYearLabel} {tOptions('short')}
                         </SelectItem>
                       </SelectContent>
                     </Select>

@@ -230,7 +230,8 @@
         "periodAutoDetected": "Academic year automatically detected based on current date",
         "options": {
           "odd": "Odd",
-          "even": "Even"
+          "even": "Even",
+          "short": "Short"
         },
         "catalog": {
           "searchPlaceholder": "Search by course code or name",

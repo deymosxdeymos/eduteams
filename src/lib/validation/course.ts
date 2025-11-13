@@ -4,8 +4,8 @@ import { z } from 'zod';
 export const courseCreateInputSchema = z.object({
   namaMataKuliah: z.string().min(1, 'Nama mata kuliah is required'),
   kelas: z.string().min(1, 'Kelas is required'),
-  periode: z.enum(['ganjil', 'genap'], {
-    message: 'Periode must be either ganjil or genap',
+  periode: z.enum(['ganjil', 'genap', 'pendek'], {
+    message: 'Periode must be either ganjil, genap, or pendek',
   }),
 });
 
@@ -24,8 +24,8 @@ export const courseCreateSchema = z
       .int()
       .min(2000, 'End year must be at least 2000')
       .max(2100, 'End year must be at most 2100'),
-    periode: z.enum(['ganjil', 'genap'], {
-      message: 'Periode must be either ganjil or genap',
+    periode: z.enum(['ganjil', 'genap', 'pendek'], {
+      message: 'Periode must be either ganjil, genap, or pendek',
     }),
   })
   .refine(data => data.tahunAkhirPeriode >= data.tahunAwalPeriode, {

@@ -395,10 +395,80 @@ async function seedClassCatalog() {
   }
 }
 
+async function seedCourseCatalog() {
+  console.log('🌱 Starting course catalog seeding...');
+
+  try {
+    const courses = [
+      { code: 'IF25-11001', name: 'Algoritma dan Pemrograman' },
+      { code: 'IF25-12003', name: 'Algoritma dan Struktur Data' },
+      { code: 'IF25-12004', name: 'Matematika Diskrit' },
+      { code: 'IF25-12005', name: 'Organisasi dan Arsitektur Komputer' },
+      { code: 'IF25-12006', name: 'Matriks dan Ruang Vektor' },
+      { code: 'IF25-21008', name: 'Jaringan Komputer' },
+      { code: 'IF25-22014', name: 'Pengembangan Aplikasi Web' },
+      { code: 'IF25-22015', name: 'Sistem Informasi' },
+      { code: 'IF25-22016', name: 'Inteligensi Buatan' },
+      { code: 'IF25-22018', name: 'Teori Bahasa Formal dan Otomata' },
+      { code: 'IF25-31020', name: 'Pembelajaran Mesin' },
+      { code: 'IF25-31022', name: 'Desain Interaksi' },
+      { code: 'IF25-31023', name: 'Manajemen Proyek Teknologi Informasi' },
+      { code: 'IF25-31024', name: 'Studium Generale' },
+      { code: 'IF25-32025', name: 'Penambangan Data' },
+      { code: 'IF25-32026', name: 'Socio Informatika dan Profesionalisme' },
+      { code: 'IF25-32028', name: 'Proyek Teknologi Informasi' },
+      { code: 'IF25-40032', name: 'Proposal Tugas Akhir' },
+      { code: 'IF25-40033', name: 'Tugas Akhir' },
+      { code: 'IF25-40201', name: 'Komputasi Awan' },
+      { code: 'IF25-40204', name: 'Sistem Informasi Kesehatan' },
+      { code: 'IF25-40301', name: 'Ethical Hacking' },
+      { code: 'IF25-40304', name: 'Pembelajaran Mesin Multimodal' },
+      { code: 'IF25-40305', name: 'Sistem Teknologi Multimedia' },
+      { code: 'IF25-40401', name: 'Pembelajaran Mendalam' },
+      { code: 'IF25-40409', name: 'Pemrosesan Bahasa Alami' },
+      { code: 'IF25-40410', name: 'Pengolahan Citra Digital' },
+      { code: 'IF25-40412', name: 'Teknologi Game' },
+      { code: 'IF25-40413', name: 'Visualisasi Data dan Informasi' },
+      { code: 'IF25-41029', name: 'Metodologi Penelitian' },
+      { code: 'IF25-41031', name: 'Kapita Selekta' },
+      { code: 'WI25-00002', name: 'Dasar Teknologi Digital' },
+      { code: 'WI25-00005', name: 'Pola Hidup Sehat dan Kebugaran Fisik' },
+      { code: 'WI25-00006', name: 'Karier, Etika, dan Kewirausahaan' },
+      { code: 'WU25-00003', name: 'Kewarganegaraan' },
+    ];
+
+    await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        for (const course of courses) {
+          await tx.courseCatalog.upsert({
+            where: { code: course.code },
+            update: { name: course.name },
+            create: withTimestamps({
+              id: `course_${course.code.replace(/-/g, '_')}`,
+              code: course.code,
+              name: course.name,
+            }),
+          });
+        }
+      },
+      {
+        timeout: 15000,
+      }
+    );
+
+    console.log('✅ Seeded course catalog');
+    console.log(`✅ Created/updated ${courses.length} courses`);
+  } catch (error) {
+    console.error('❌ Error seeding course catalog:', error);
+    throw error;
+  }
+}
+
 async function main() {
   try {
     await seedMBTIQuestions();
     await seedClassCatalog();
+    await seedCourseCatalog();
     // Dosen token seeding deprecated: replaced by institutional email domain verification
     // await seedDosenTokens();
   } catch (error) {
@@ -419,4 +489,4 @@ if (isDirectExecution) {
   void main();
 }
 
-export { seedMBTIQuestions, seedClassCatalog };
+export { seedMBTIQuestions, seedClassCatalog, seedCourseCatalog };

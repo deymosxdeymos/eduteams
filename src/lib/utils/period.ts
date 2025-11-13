@@ -11,7 +11,7 @@ interface AcademicYear {
 interface AcademicPeriod {
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
-  periode: 'ganjil' | 'genap';
+  periode: 'ganjil' | 'genap' | 'pendek';
   label: string;
 }
 
@@ -72,7 +72,7 @@ export function getCurrentAcademicPeriod(
 export function formatAcademicPeriodLabel(
   tahunAwal: number,
   tahunAkhir: number,
-  periode: 'ganjil' | 'genap'
+  periode: 'ganjil' | 'genap' | 'pendek'
 ): string {
   return `${tahunAwal}/${tahunAkhir} ${periode.charAt(0).toUpperCase() + periode.slice(1)}`;
 }
