@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, ChartLineIcon, Plus } from 'lucide-react';
+import { ArrowLeft, ChartLineIcon, Pencil, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { InputRounded } from '@/components/ui/input-rounded';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Select,
   SelectContent,
@@ -37,6 +38,10 @@ interface AssignmentActionsProps {
   isTeamFormationProcessing?: boolean;
   incompleteStudentCount?: number;
   retryFormationModalSignal?: number;
+  isEditMode?: boolean;
+  onEditModeChange?: (value: boolean) => void;
+  onSaveClick?: () => void;
+  isSaving?: boolean;
 }
 
 export function AssignmentActions({
@@ -52,6 +57,10 @@ export function AssignmentActions({
   isTeamFormationProcessing = false,
   incompleteStudentCount = 0,
   retryFormationModalSignal = 0,
+  isEditMode = false,
+  onEditModeChange,
+  onSaveClick,
+  isSaving = false,
 }: AssignmentActionsProps) {
   const router = useRouter();
   const t = useTranslations('dashboard.assignment.actions');
@@ -142,13 +151,51 @@ export function AssignmentActions({
 
   return (
     <div className='flex items-center gap-4 shrink-0'>
-      <Button variant='ghost' size='icon' className='rounded-full' asChild>
-        <Link href={`/dashboard/class/${classId}`} prefetch>
-          <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />
-        </Link>
-      </Button>
+      {!isEditMode && (
+        <Button variant='ghost' size='icon' className='rounded-full' asChild>
+          <Link href={`/dashboard/class/${classId}`} prefetch>
+            <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />
+          </Link>
+        </Button>
+      )}
 
-      {isStudent && (
+      {isEditMode && canManage && (
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='ghost'
+            className='rounded-full p-6'
+            onClick={() => onEditModeChange?.(false)}
+          >
+            <ArrowLeft strokeWidth={2} className='w-6 h-6 text-gray-600' />
+            <span className='text-gray-900 font-semibold text-sm'>
+              {tTeams('cancelEdit')}
+            </span>
+          </Button>
+          <Button
+            variant='onboarding'
+            className='rounded-full p-6'
+            onClick={() => {
+              onSaveClick?.();
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <LoadingSpinner size='sm' className='mr-2' />
+                <span className='font-semibold text-sm'>
+                  {t('submitCreating')}
+                </span>
+              </>
+            ) : (
+              <span className='font-semibold text-sm'>
+                {tTeams('saveChanges')}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {isStudent && !isEditMode && (
         <Button
           variant='outline'
           className='rounded-full border border-black p-6 w-[14rem]'
@@ -166,7 +213,7 @@ export function AssignmentActions({
       )}
 
       <div className='flex items-center gap-4'>
-        {canManage && (
+        {canManage && !isEditMode && (
           <div className='flex flex-col gap-2'>
             <Dialog open={modalOpen} onOpenChange={handleModalOpenChange}>
               <DialogTrigger asChild>
@@ -347,7 +394,7 @@ export function AssignmentActions({
           </div>
         )}
 
-        {!isStudent && (
+        {!isStudent && !isEditMode && (
           <Button
             variant='outline'
             className='rounded-full border border-black p-6 w-[15rem]'
@@ -364,14 +411,28 @@ export function AssignmentActions({
           </Button>
         )}
 
-        <ExportButtons
-          assignmentId={assignmentId}
-          hasTeams={hasTeams}
-          canManage={canManage}
-        />
+        {!isEditMode && (
+          <ExportButtons
+            assignmentId={assignmentId}
+            hasTeams={hasTeams}
+            canManage={canManage}
+          />
+        )}
+
+        {canManage && hasTeams && !isEditMode && (
+          <Button
+            variant='outline'
+            size='icon'
+            className='rounded-full border border-gray-600 h-12 w-12'
+            onClick={() => onEditModeChange?.(true)}
+            title={tTeams('editTeams')}
+          >
+            <Pencil className='w-4 h-4 text-gray-600' />
+          </Button>
+        )}
       </div>
 
-      {hasTeams && (
+      {hasTeams && !isEditMode && (
         <div className='ml-auto'>
           <SearchInput
             searchValue={searchValue}

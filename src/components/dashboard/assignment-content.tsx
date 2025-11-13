@@ -42,6 +42,15 @@ interface Team {
   members: TeamMemberItem[];
 }
 
+interface EnrolledStudent {
+  id: string;
+  name: string | null;
+  nim: string | null;
+  email: string | null;
+  mbtiType: string | null;
+  gender: string | null;
+}
+
 interface AssignmentContentProps {
   assignmentId: string;
   classId: string;
@@ -63,6 +72,8 @@ interface AssignmentContentProps {
   isTeamFormationProcessing?: boolean;
   incompleteStudentCount?: number;
   currentUserId?: string;
+  enrolledStudents?: EnrolledStudent[];
+  submittedStudentIds?: Set<string>;
 }
 
 export function AssignmentContent({
@@ -85,6 +96,8 @@ export function AssignmentContent({
   isTeamFormationProcessing = false,
   incompleteStudentCount = 0,
   currentUserId,
+  enrolledStudents = [],
+  submittedStudentIds = new Set(),
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
   const tTeams = useTranslations('dashboard.teams');
@@ -92,6 +105,20 @@ export function AssignmentContent({
   const [searchValue, setSearchValue] = useState('');
   const [showError, setShowError] = useState(false);
   const [retryModalSignal, setRetryModalSignal] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [saveTrigger, setSaveTrigger] = useState(0);
+  const [totalPendingAdditions, setTotalPendingAdditions] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const allAssignedStudentIds = new Set(
+    teams.flatMap(team => team.members.map(m => m.user.id))
+  );
+  const studentsWithoutTeamsCount =
+    enrollmentCount - allAssignedStudentIds.size;
+  const adjustedIncompleteCount = Math.max(
+    0,
+    studentsWithoutTeamsCount - totalPendingAdditions
+  );
 
   const shouldFetchStatus = !isStudent;
   const shouldPollStatus = shouldFetchStatus && isTeamFormationProcessing;
@@ -139,6 +166,10 @@ export function AssignmentContent({
           isTeamFormationProcessing={isTeamFormationProcessing}
           incompleteStudentCount={incompleteStudentCount}
           retryFormationModalSignal={retryModalSignal}
+          isEditMode={isEditMode}
+          onEditModeChange={setIsEditMode}
+          onSaveClick={() => setSaveTrigger(prev => prev + 1)}
+          isSaving={isSaving}
         />
 
         {isStudent ? (
@@ -209,7 +240,7 @@ export function AssignmentContent({
               <ChartsToggle
                 progressPercent={quizCompletionPercent}
                 defaultVisible={false}
-                incompleteStudentCount={incompleteStudentCount}
+                incompleteStudentCount={adjustedIncompleteCount}
                 hasTeams={hasTeams}
               >
                 <AssignmentCharts stats={stats} isStudent={isStudent} />
@@ -227,6 +258,12 @@ export function AssignmentContent({
               searchValue={searchValue}
               canManage={canManage}
               currentUserId={currentUserId}
+              isEditMode={isEditMode}
+              enrolledStudents={enrolledStudents}
+              submittedStudentIds={submittedStudentIds}
+              saveTrigger={saveTrigger}
+              onPendingAdditionsChange={setTotalPendingAdditions}
+              onSavingChange={setIsSaving}
             />
           </>
         )}

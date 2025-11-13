@@ -35,6 +35,15 @@ interface Team {
   groupNumber?: number;
 }
 
+interface EnrolledStudent {
+  id: string;
+  name: string | null;
+  nim: string | null;
+  email: string | null;
+  mbtiType: string | null;
+  gender: string | null;
+}
+
 interface AssignmentTeamsClientProps {
   teams: Team[];
   assignmentId: string;
@@ -48,6 +57,12 @@ interface AssignmentTeamsClientProps {
   searchValue?: string;
   canManage?: boolean;
   currentUserId?: string;
+  isEditMode?: boolean;
+  enrolledStudents?: EnrolledStudent[];
+  submittedStudentIds?: Set<string>;
+  saveTrigger?: number;
+  onPendingAdditionsChange?: (count: number) => void;
+  onSavingChange?: (isSaving: boolean) => void;
 }
 
 export function AssignmentTeamsClient({
@@ -63,6 +78,12 @@ export function AssignmentTeamsClient({
   searchValue: externalSearchValue = '',
   canManage = false,
   currentUserId,
+  isEditMode = false,
+  enrolledStudents = [],
+  submittedStudentIds = new Set(),
+  saveTrigger,
+  onPendingAdditionsChange,
+  onSavingChange,
 }: AssignmentTeamsClientProps) {
   const [internalSearchValue, setInternalSearchValue] = useState('');
   const searchValue = externalSearchValue || internalSearchValue;
@@ -112,6 +133,12 @@ export function AssignmentTeamsClient({
       hasSearchResults={hasSearchResults}
       canManage={canManage}
       currentUserId={currentUserId}
+      isEditMode={isEditMode}
+      enrolledStudents={enrolledStudents}
+      submittedStudentIds={submittedStudentIds}
+      saveTrigger={saveTrigger}
+      onPendingAdditionsChange={onPendingAdditionsChange}
+      onSavingChange={onSavingChange}
     />
   );
 }

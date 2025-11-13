@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { TeamMemberListClient } from '@/components/dashboard/team-member-list-client';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import type { Gender } from '@/generated/prisma';
@@ -40,6 +40,15 @@ interface Team {
   groupNumber?: number;
 }
 
+interface EnrolledStudent {
+  id: string;
+  name: string | null;
+  nim: string | null;
+  email: string | null;
+  mbtiType: string | null;
+  gender: string | null;
+}
+
 interface AssignmentTeamsContentProps {
   teams: Team[];
   assignmentId: string;
@@ -52,6 +61,12 @@ interface AssignmentTeamsContentProps {
   hasSearchResults?: boolean;
   canManage?: boolean;
   currentUserId?: string;
+  isEditMode?: boolean;
+  enrolledStudents?: EnrolledStudent[];
+  submittedStudentIds?: Set<string>;
+  saveTrigger?: number;
+  onPendingAdditionsChange?: (count: number) => void;
+  onSavingChange?: (isSaving: boolean) => void;
 }
 
 const mapMemberToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
@@ -86,6 +101,7 @@ const mapMemberToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
 
 export function AssignmentTeamsContent({
   teams,
+  assignmentId,
   assignmentTitleLabel,
   courseNameLabel,
   courseClassLabel,
@@ -95,11 +111,59 @@ export function AssignmentTeamsContent({
   hasSearchResults = true,
   canManage = false,
   currentUserId,
+  isEditMode = false,
+  enrolledStudents = [],
+  submittedStudentIds = new Set(),
+  saveTrigger,
+  onPendingAdditionsChange,
+  onSavingChange,
 }: AssignmentTeamsContentProps) {
   const t = useTranslations('dashboard.teams');
   const pad = (n: number) => n.toString().padStart(2, '0');
   const [activeTeamIndex, setActiveTeamIndex] = useState<number | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [pendingAdditionsByTeam, setPendingAdditionsByTeam] = useState<
+    Map<string, number>
+  >(new Map());
+  const [savingByTeam, setSavingByTeam] = useState<Map<string, boolean>>(
+    new Map()
+  );
+  const onPendingAdditionsChangeRef = useRef(onPendingAdditionsChange);
+  const onSavingChangeRef = useRef(onSavingChange);
+
+  useEffect(() => {
+    onPendingAdditionsChangeRef.current = onPendingAdditionsChange;
+  }, [onPendingAdditionsChange]);
+
+  useEffect(() => {
+    onSavingChangeRef.current = onSavingChange;
+  }, [onSavingChange]);
+
+  useEffect(() => {
+    const total = Array.from(pendingAdditionsByTeam.values()).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    onPendingAdditionsChangeRef.current?.(total);
+  }, [pendingAdditionsByTeam]);
+
+  useEffect(() => {
+    const isAnySaving = Array.from(savingByTeam.values()).some(
+      saving => saving
+    );
+    onSavingChangeRef.current?.(isAnySaving);
+  }, [savingByTeam]);
+
+  const allAssignedStudentIds = new Set(
+    teams.flatMap(team => team.members.map(m => m.user.id))
+  );
+  const availableStudents = enrolledStudents.filter(
+    s => !allAssignedStudentIds.has(s.id)
+  );
+
+  const missingStudentIds = new Set(
+    availableStudents.filter(s => !submittedStudentIds.has(s.id)).map(s => s.id)
+  );
 
   const activeTeam = activeTeamIndex != null ? teams[activeTeamIndex] : null;
 
@@ -250,6 +314,34 @@ export function AssignmentTeamsContent({
                   searchValue={searchValue}
                   canManage={canManage}
                   currentUserId={currentUserId}
+                  isEditMode={isEditMode}
+                  teamId={team.id}
+                  assignmentId={assignmentId}
+                  availableStudents={availableStudents}
+                  missingStudentIds={missingStudentIds}
+                  saveTrigger={saveTrigger}
+                  onPendingAdditionsChange={count => {
+                    setPendingAdditionsByTeam(prev => {
+                      const next = new Map(prev);
+                      if (count > 0) {
+                        next.set(team.id, count);
+                      } else {
+                        next.delete(team.id);
+                      }
+                      return next;
+                    });
+                  }}
+                  onSavingChange={isSaving => {
+                    setSavingByTeam(prev => {
+                      const next = new Map(prev);
+                      if (isSaving) {
+                        next.set(team.id, true);
+                      } else {
+                        next.delete(team.id);
+                      }
+                      return next;
+                    });
+                  }}
                 />
               </div>
             );
