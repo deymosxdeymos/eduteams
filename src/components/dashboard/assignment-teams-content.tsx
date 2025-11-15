@@ -65,7 +65,7 @@ interface AssignmentTeamsContentProps {
   enrolledStudents?: EnrolledStudent[];
   submittedStudentIds?: Set<string>;
   saveTrigger?: number;
-  onPendingAdditionsChange?: (count: number) => void;
+  onPendingAdditionsChange?: (pendingStudentIds: Set<string>) => void;
   onSavingChange?: (isSaving: boolean) => void;
 }
 
@@ -123,7 +123,7 @@ export function AssignmentTeamsContent({
   const [activeTeamIndex, setActiveTeamIndex] = useState<number | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [pendingAdditionsByTeam, setPendingAdditionsByTeam] = useState<
-    Map<string, number>
+    Map<string, Set<string>>
   >(new Map());
   const [savingByTeam, setSavingByTeam] = useState<Map<string, boolean>>(
     new Map()
@@ -140,11 +140,13 @@ export function AssignmentTeamsContent({
   }, [onSavingChange]);
 
   useEffect(() => {
-    const total = Array.from(pendingAdditionsByTeam.values()).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-    onPendingAdditionsChangeRef.current?.(total);
+    const combined = new Set<string>();
+    pendingAdditionsByTeam.forEach(ids => {
+      ids.forEach(id => {
+        combined.add(id);
+      });
+    });
+    onPendingAdditionsChangeRef.current?.(combined);
   }, [pendingAdditionsByTeam]);
 
   useEffect(() => {
@@ -320,11 +322,11 @@ export function AssignmentTeamsContent({
                   availableStudents={availableStudents}
                   missingStudentIds={missingStudentIds}
                   saveTrigger={saveTrigger}
-                  onPendingAdditionsChange={count => {
+                  onPendingAdditionsChange={pendingIds => {
                     setPendingAdditionsByTeam(prev => {
                       const next = new Map(prev);
-                      if (count > 0) {
-                        next.set(team.id, count);
+                      if (pendingIds.size > 0) {
+                        next.set(team.id, new Set(pendingIds));
                       } else {
                         next.delete(team.id);
                       }

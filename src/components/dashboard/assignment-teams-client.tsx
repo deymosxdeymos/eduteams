@@ -61,7 +61,7 @@ interface AssignmentTeamsClientProps {
   enrolledStudents?: EnrolledStudent[];
   submittedStudentIds?: Set<string>;
   saveTrigger?: number;
-  onPendingAdditionsChange?: (count: number) => void;
+  onPendingAdditionsChange?: (pendingStudentIds: Set<string>) => void;
   onSavingChange?: (isSaving: boolean) => void;
 }
 

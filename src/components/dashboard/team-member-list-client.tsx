@@ -67,7 +67,7 @@ interface TeamMemberListClientProps {
   availableStudents?: EnrolledStudent[];
   missingStudentIds?: Set<string>;
   saveTrigger?: number;
-  onPendingAdditionsChange?: (count: number) => void;
+  onPendingAdditionsChange?: (pendingStudentIds: Set<string>) => void;
   onSavingChange?: (isSaving: boolean) => void;
 }
 
@@ -368,8 +368,8 @@ export function TeamMemberListClient({
   }, [saveTrigger, savePendingChanges]);
 
   useEffect(() => {
-    onPendingAdditionsChangeRef.current?.(pendingAdditions.size);
-  }, [pendingAdditions.size]);
+    onPendingAdditionsChangeRef.current?.(new Set(pendingAdditions));
+  }, [pendingAdditions]);
 
   useEffect(() => {
     onSavingChangeRef.current?.(isSaving);

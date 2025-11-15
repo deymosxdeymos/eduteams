@@ -107,18 +107,22 @@ export function AssignmentContent({
   const [retryModalSignal, setRetryModalSignal] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(0);
-  const [totalPendingAdditions, setTotalPendingAdditions] = useState(0);
+  const [pendingAdditionIds, setPendingAdditionIds] = useState<Set<string>>(
+    new Set()
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const allAssignedStudentIds = new Set(
     teams.flatMap(team => team.members.map(m => m.user.id))
   );
-  const studentsWithoutTeamsCount =
-    enrollmentCount - allAssignedStudentIds.size;
-  const adjustedIncompleteCount = Math.max(
-    0,
-    studentsWithoutTeamsCount - totalPendingAdditions
+  // Calculate missing students (enrolled but not in teams)
+  const missingStudents = enrolledStudents.filter(
+    student => !allAssignedStudentIds.has(student.id)
   );
+  const visibleMissingStudents = missingStudents.filter(
+    student => !pendingAdditionIds.has(student.id)
+  );
+  const adjustedIncompleteCount = visibleMissingStudents.length;
 
   const shouldFetchStatus = !isStudent;
   const shouldPollStatus = shouldFetchStatus && isTeamFormationProcessing;
@@ -242,6 +246,7 @@ export function AssignmentContent({
                 defaultVisible={false}
                 incompleteStudentCount={adjustedIncompleteCount}
                 hasTeams={hasTeams}
+                missingStudents={visibleMissingStudents}
               >
                 <AssignmentCharts stats={stats} isStudent={isStudent} />
               </ChartsToggle>
@@ -262,7 +267,9 @@ export function AssignmentContent({
               enrolledStudents={enrolledStudents}
               submittedStudentIds={submittedStudentIds}
               saveTrigger={saveTrigger}
-              onPendingAdditionsChange={setTotalPendingAdditions}
+              onPendingAdditionsChange={ids =>
+                setPendingAdditionIds(new Set(ids))
+              }
               onSavingChange={setIsSaving}
             />
           </>
