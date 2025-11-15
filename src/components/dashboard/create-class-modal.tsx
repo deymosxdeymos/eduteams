@@ -498,7 +498,7 @@ export default function CreateClassModal({
                     duration: shouldReduceMotion ? 0.2 : 0.32,
                     ease: shouldReduceMotion ? 'easeOut' : [0.23, 1, 0.32, 1],
                   }}
-                  className='flex min-h-[19rem] flex-col items-center justify-center space-y-4 py-8 text-center'
+                  className='flex min-h-76 flex-col items-center justify-center space-y-4 py-8 text-center'
                   role='status'
                   aria-live='polite'
                   layout={shouldReduceMotion ? undefined : true}
@@ -592,7 +592,7 @@ export default function CreateClassModal({
                     duration: shouldReduceMotion ? 0.2 : 0.28,
                     ease: shouldReduceMotion ? 'easeOut' : [0.23, 1, 0.32, 1],
                   }}
-                  className='min-h-[19rem]'
+                  className='min-h-76'
                   layout={shouldReduceMotion ? undefined : true}
                 >
                   <Form {...form}>
@@ -644,7 +644,7 @@ export default function CreateClassModal({
                                   </PopoverTrigger>
                                   <PopoverContent
                                     align='start'
-                                    className='w-[var(--radix-popover-trigger-width)] p-0'
+                                    className='w-(--radix-popover-trigger-width) p-0'
                                     onWheel={e => e.stopPropagation()}
                                     onTouchMove={e => e.stopPropagation()}
                                   >
@@ -813,7 +813,7 @@ export default function CreateClassModal({
                                   </PopoverTrigger>
                                   <PopoverContent
                                     align='start'
-                                    className='w-[var(--radix-popover-trigger-width)] p-0'
+                                    className='w-(--radix-popover-trigger-width) p-0'
                                     onWheel={e => e.stopPropagation()}
                                     onTouchMove={e => e.stopPropagation()}
                                   >
@@ -958,7 +958,7 @@ export default function CreateClassModal({
                               disabled={isPending}
                             >
                               <FormControl>
-                                <SelectTrigger className='!h-12 !min-h-[3rem] file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
+                                <SelectTrigger className='h-12! min-h-12! file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-base shadow-sm transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus:border-neutral-400 focus:ring-2 focus:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'>
                                   <SelectValue
                                     placeholder={t('fields.periodPlaceholder')}
                                   />
@@ -993,7 +993,7 @@ export default function CreateClassModal({
                       <div className='flex justify-end space-x-3 pt-4 text-md'>
                         <Button
                           variant='onboarding'
-                          className='flex flex-1 rounded-full py-6 font-semibold !text-sm'
+                          className='flex flex-1 rounded-full py-6 font-semibold text-sm!'
                           type='submit'
                           disabled={isPending}
                         >
