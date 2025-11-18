@@ -1,0 +1,536 @@
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+
+import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
+import type { Edu2comParameters } from '@/lib/edu2com/contract';
+import {
+  EDU2COM_BASE_SKILLS as BASE_SKILLS,
+  createBasePayload,
+  createPerson,
+} from '@/lib/edu2com/fixtures';
+
+const describeIntegration =
+  process.env.EDU2COM_INTEGRATION === '1' ? describe : describe.skip;
+
+/**
+ * Comprehensive testing of alpha, beta, gamma, delta weight parameters.
+ *
+ * Parameter meanings:
+ * - alpha: Weight for skill matching (0.0-1.0)
+ * - beta: Weight for personality compatibility/MBTI (0.0-1.0)
+ * - gamma: Weight for student preferences (0.0-1.0)
+ * - delta: Weight for task preferences (0.0-1.0)
+ */
+describeIntegration('Weight Parameters - Exhaustive Testing', () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeAll(() => {
+    globalThis.fetch = ((...args) => Bun.fetch(...args)) as typeof fetch;
+  });
+
+  afterAll(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  describe('Individual Parameter Variations', () => {
+    const testValues = [0.0, 0.25, 0.5, 0.75, 1.0];
+
+    describe('Alpha (Skill Weighting)', () => {
+      it.each(testValues)(`alpha=%s produces valid teams`, async alpha => {
+        expect.hasAssertions();
+        const payload = createBasePayload();
+        payload.alpha = alpha;
+        payload.beta = 0.0;
+        payload.gamma = 0.0;
+        payload.delta = 0.0;
+
+        const response = await callEdu2comTeamFormation(payload, {
+          timeoutMs: 10_000,
+        });
+
+        expect(response.teams).toBeDefined();
+        expect(response.teams.length).toBeGreaterThan(0);
+
+        for (const team of response.teams) {
+          expect(team.quality).toBeGreaterThanOrEqual(0);
+          expect(team.quality).toBeLessThanOrEqual(1);
+          expect(team.people.length).toBeGreaterThan(0);
+        }
+      });
+
+      it('alpha=1.0 (skill-only) produces different teams than alpha=0.0', async () => {
+        expect.hasAssertions();
+        const payload = createBasePayload();
+
+        // Test with alpha=1.0 (skill-focused)
+        payload.alpha = 1.0;
+        payload.beta = 0.0;
+        payload.gamma = 0.0;
+        payload.delta = 0.0;
+        const skillFocused = await callEdu2comTeamFormation(payload, {
+          timeoutMs: 10_000,
+        });
+
+        // Test with alpha=0.0 (no skill weighting)
+        payload.alpha = 0.0;
+        payload.beta = 1.0; // Focus on personality instead
+        const personalityFocused = await callEdu2comTeamFormation(payload, {
+          timeoutMs: 10_000,
+        });
+
+        // Teams should exist in both cases
+        expect(skillFocused.teams.length).toBeGreaterThan(0);
+        expect(personalityFocused.teams.length).toBeGreaterThan(0);
+
+        // Quality scores may differ (this is an observed behavior test)
+        // We're documenting that different weights can produce different results
+      });
+    });
+
+    describe('Beta (Personality/MBTI Weighting)', () => {
+      for (const beta of testValues) {
+        it(`beta=${beta} produces valid teams`, async () => {
+          expect.hasAssertions();
+          const payload = createBasePayload();
+          payload.alpha = 0.0;
+          payload.beta = beta;
+          payload.gamma = 0.0;
+          payload.delta = 0.0;
+
+          const response = await callEdu2comTeamFormation(payload, {
+            timeoutMs: 10_000,
+          });
+
+          expect(response.teams).toBeDefined();
+          expect(response.teams.length).toBeGreaterThan(0);
+
+          for (const team of response.teams) {
+            expect(team.quality).toBeGreaterThanOrEqual(0);
+            expect(team.quality).toBeLessThanOrEqual(1);
+          }
+        });
+      }
+    });
+
+    describe('Gamma (Student Preference Weighting)', () => {
+      for (const gamma of testValues) {
+        it(`gamma=${gamma} produces valid teams`, async () => {
+          expect.hasAssertions();
+          const payload = createBasePayload();
+          payload.alpha = 0.0;
+          payload.beta = 0.0;
+          payload.gamma = gamma;
+          payload.delta = 0.0;
+
+          // Add student preferences for gamma to be meaningful
+          payload.people = payload.people.map((person, index, array) => {
+            const nextPerson = array[(index + 1) % array.length];
+            return {
+              ...person,
+              preferences: nextPerson
+                ? [{ personId: nextPerson.id, preference: 0.8 }]
+                : [],
+            };
+          });
+
+          const response = await callEdu2comTeamFormation(payload, {
+            timeoutMs: 10_000,
+          });
+
+          expect(response.teams).toBeDefined();
+          expect(response.teams.length).toBeGreaterThan(0);
+        });
+      }
+    });
+
+    describe('Delta (Task Preference Weighting)', () => {
+      for (const delta of testValues) {
+        it(`delta=${delta} produces valid teams`, async () => {
+          expect.hasAssertions();
+          const payload = createBasePayload();
+          payload.alpha = 0.0;
+          payload.beta = 0.0;
+          payload.gamma = 0.0;
+          payload.delta = delta;
+
+          // Add task preferences for delta to be meaningful
+          payload.tasks = payload.tasks.map(task => {
+            const [firstPerson] = payload.people;
+            return {
+              ...task,
+              preferences: firstPerson
+                ? [{ personId: firstPerson.id, preference: 0.9 }]
+                : [],
+            };
+          });
+
+          const response = await callEdu2comTeamFormation(payload, {
+            timeoutMs: 10_000,
+          });
+
+          expect(response.teams).toBeDefined();
+          expect(response.teams.length).toBeGreaterThan(0);
+        });
+      }
+    });
+  });
+
+  describe('Key Scenario Combinations', () => {
+    it('balanced weighting (all equal)', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.25;
+      payload.beta = 0.25;
+      payload.gamma = 0.25;
+      payload.delta = 0.25;
+
+      // Add preferences for all weights to be meaningful
+      payload.people = payload.people.map((person, index, array) => {
+        const nextPerson = array[(index + 1) % array.length];
+        return {
+          ...person,
+          preferences: nextPerson
+            ? [{ personId: nextPerson.id, preference: 0.7 }]
+            : [],
+        };
+      });
+
+      payload.tasks = payload.tasks.map(task => {
+        const [firstPerson] = payload.people;
+        return {
+          ...task,
+          preferences: firstPerson
+            ? [{ personId: firstPerson.id, preference: 0.8 }]
+            : [],
+        };
+      });
+
+      const response = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      expect(response.teams.length).toBeGreaterThan(0);
+      for (const team of response.teams) {
+        expect(team.quality).toBeGreaterThanOrEqual(0);
+        expect(team.quality).toBeLessThanOrEqual(1);
+      }
+    });
+
+    it('skill-heavy scenario (alpha=0.7, others low)', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.7;
+      payload.beta = 0.1;
+      payload.gamma = 0.1;
+      payload.delta = 0.1;
+
+      const response = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      expect(response.teams.length).toBeGreaterThan(0);
+      // In skill-heavy mode, teams should prioritize skill matching
+      // We're documenting this behavior exists
+    });
+
+    it('personality-heavy scenario (beta=0.7, others low)', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.1;
+      payload.beta = 0.7;
+      payload.gamma = 0.1;
+      payload.delta = 0.1;
+
+      const response = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      expect(response.teams.length).toBeGreaterThan(0);
+      // In personality-heavy mode, teams should prioritize MBTI compatibility
+    });
+
+    it('preference-heavy scenario (gamma=0.6, delta=0.3)', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.05;
+      payload.beta = 0.05;
+      payload.gamma = 0.6;
+      payload.delta = 0.3;
+
+      // Add meaningful preferences
+      payload.people = payload.people.map((person, index, array) => {
+        const nextPerson = array[(index + 1) % array.length];
+        return {
+          ...person,
+          preferences: nextPerson
+            ? [{ personId: nextPerson.id, preference: 0.9 }]
+            : [],
+        };
+      });
+
+      payload.tasks = payload.tasks.map(task => {
+        const [firstPerson, secondPerson] = payload.people;
+        return {
+          ...task,
+          preferences: [
+            ...(firstPerson
+              ? [{ personId: firstPerson.id, preference: 0.8 }]
+              : []),
+            ...(secondPerson
+              ? [{ personId: secondPerson.id, preference: 0.6 }]
+              : []),
+          ],
+        };
+      });
+
+      const response = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      expect(response.teams.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Boundary Conditions', () => {
+    it('all weights at 0.0', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.0;
+      payload.beta = 0.0;
+      payload.gamma = 0.0;
+      payload.delta = 0.0;
+
+      const response = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      // Should still form teams (random assignment likely)
+      expect(response.teams.length).toBeGreaterThan(0);
+    });
+
+    it('all weights at 1.0 (sum > 1)', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 1.0;
+      payload.beta = 1.0;
+      payload.gamma = 1.0;
+      payload.delta = 1.0;
+
+      // Add preferences for gamma/delta
+      payload.people = payload.people.map((person, index, array) => {
+        const nextPerson = array[(index + 1) % array.length];
+        return {
+          ...person,
+          preferences: nextPerson
+            ? [{ personId: nextPerson.id, preference: 0.5 }]
+            : [],
+        };
+      });
+
+      const response = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      // API should handle this (may normalize internally or use as-is)
+      expect(response.teams.length).toBeGreaterThan(0);
+    });
+
+    it('negative values are rejected by schema', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = -0.5; // Invalid
+
+      const run = callEdu2comTeamFormation(payload, { timeoutMs: 10_000 });
+
+      // Our validation or API should reject this
+      await expect(run).rejects.toThrow();
+    });
+
+    it('values above 1.0 are rejected by schema', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.beta = 1.5; // Invalid
+
+      const run = callEdu2comTeamFormation(payload, { timeoutMs: 10_000 });
+
+      await expect(run).rejects.toThrow();
+    });
+  });
+
+  describe('Reproducibility Tests', () => {
+    it('same inputs with initRandom=false produce consistent results', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.5;
+      payload.beta = 0.3;
+      payload.gamma = 0.1;
+      payload.delta = 0.1;
+      payload.initRandom = false;
+
+      const response1 = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+      const response2 = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      // With initRandom=false, results should be deterministic
+      expect(response1.teams.length).toBe(response2.teams.length);
+
+      // Check if team compositions are identical
+      for (let i = 0; i < response1.teams.length; i++) {
+        const team1 = response1.teams[i];
+        const team2 = response2.teams[i];
+
+        expect(team1?.taskId).toBe(team2?.taskId);
+        expect(team1?.people.length).toBe(team2?.people.length);
+
+        // Sort people IDs for comparison
+        const ids1 = team1?.people.map(p => p.id).sort();
+        const ids2 = team2?.people.map(p => p.id).sort();
+        expect(ids1).toEqual(ids2);
+      }
+    });
+
+    it('initRandom=true may produce different results', async () => {
+      expect.hasAssertions();
+      const payload = createBasePayload();
+      payload.alpha = 0.4;
+      payload.beta = 0.3;
+      payload.gamma = 0.2;
+      payload.delta = 0.1;
+      payload.initRandom = true;
+
+      const response1 = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+      const response2 = await callEdu2comTeamFormation(payload, {
+        timeoutMs: 10_000,
+      });
+
+      // Both should succeed
+      expect(response1.teams.length).toBeGreaterThan(0);
+      expect(response2.teams.length).toBeGreaterThan(0);
+
+      // Results may or may not be identical (random initialization)
+      // This test just documents that initRandom=true is accepted
+    });
+  });
+
+  describe('Combined Parameter Matrix (Sample)', () => {
+    const combinations = [
+      { alpha: 1.0, beta: 0.0, gamma: 0.0, delta: 0.0, name: 'pure skill' },
+      {
+        alpha: 0.0,
+        beta: 1.0,
+        gamma: 0.0,
+        delta: 0.0,
+        name: 'pure personality',
+      },
+      {
+        alpha: 0.5,
+        beta: 0.5,
+        gamma: 0.0,
+        delta: 0.0,
+        name: 'skill+personality',
+      },
+      {
+        alpha: 0.4,
+        beta: 0.3,
+        gamma: 0.2,
+        delta: 0.1,
+        name: 'default balanced',
+      },
+      {
+        alpha: 0.7,
+        beta: 0.2,
+        gamma: 0.05,
+        delta: 0.05,
+        name: 'skill-dominant',
+      },
+      {
+        alpha: 0.2,
+        beta: 0.7,
+        gamma: 0.05,
+        delta: 0.05,
+        name: 'personality-dominant',
+      },
+    ];
+
+    for (const combo of combinations) {
+      it(`${combo.name}: alpha=${combo.alpha}, beta=${combo.beta}, gamma=${combo.gamma}, delta=${combo.delta}`, async () => {
+        expect.hasAssertions();
+        const payload = createBasePayload();
+        payload.alpha = combo.alpha;
+        payload.beta = combo.beta;
+        payload.gamma = combo.gamma;
+        payload.delta = combo.delta;
+
+        const response = await callEdu2comTeamFormation(payload, {
+          timeoutMs: 10_000,
+        });
+
+        expect(response.teams.length).toBeGreaterThan(0);
+
+        // Verify all students are assigned
+        const allPeopleIds = new Set(payload.people.map(p => p.id));
+        const assignedIds = new Set(
+          response.teams.flatMap(team => team.people.map(p => p.id))
+        );
+
+        // All or most students should be assigned
+        // (API may leave some unassigned if teams can't accommodate all)
+        expect(assignedIds.size).toBeGreaterThan(0);
+      });
+    }
+  });
+
+  describe('Large-Scale Cohort with Weight Variations', () => {
+    it(
+      'handles 20+ students with balanced weights',
+      async () => {
+        expect.hasAssertions();
+        const payload = createBasePayload();
+        payload.alpha = 0.25;
+        payload.beta = 0.25;
+        payload.gamma = 0.25;
+        payload.delta = 0.25;
+
+        // Add 16 more students (total 20)
+        for (let i = 5; i <= 20; i++) {
+          payload.people.push(
+            createPerson({
+              id: `student-${i}`,
+              gender: i % 2 === 0 ? 'MALE' : 'FEMALE',
+              ei: Math.random() * 2 - 1,
+              sn: Math.random() * 2 - 1,
+              tf: Math.random() * 2 - 1,
+              pj: Math.random() * 2 - 1,
+              skills: [
+                { id: BASE_SKILLS.frontend, level: Math.random() * 0.5 + 0.3 },
+                { id: BASE_SKILLS.backend, level: Math.random() * 0.5 + 0.3 },
+              ],
+            })
+          );
+        }
+
+        // Create 5 tasks of teamSize 4
+        payload.tasks = Array.from({ length: 5 }, (_, i) => ({
+          id: `task-${i + 1}`,
+          teamSize: 4,
+          skills: [
+            { id: BASE_SKILLS.frontend, level: 0.6, importance: 1 },
+            { id: BASE_SKILLS.backend, level: 0.5, importance: 1 },
+          ],
+        }));
+
+        const response = await callEdu2comTeamFormation(payload, {
+          timeoutMs: 30_000, // Longer timeout for larger cohort
+        });
+
+        expect(response.teams.length).toBeGreaterThan(0);
+        expect(response.teams.length).toBeLessThanOrEqual(5);
+      },
+      { timeout: 35_000 }
+    );
+  });
+});

@@ -1,25 +1,160 @@
-# Edu2Com Integration Guide
+# Edu2com API - Quick Reference
 
-This app delegates team formation to the external Edu2Com service. The canonical contracts live in `openapi.json` (see `/v1/teamFormation` and `/v1/backgroundTeamFormation`, lines 27-81). Keep code, fixtures, and tests aligned with the schema below.
+## Overview
 
-## Request Contract
-- `people`: required array (min 2). Each entry must include `id`, `personality` (`ei`, `sn`, `tf`, `pj` ∈ [-1,1]), at least one `skill` with `level` ∈ [0,1], optional `gender` (`MALE` | `FEMALE`), optional `preferences` with `{ personId, preference ∈ [0,1] }`. Schema: `src/lib/edu2com/contract.ts:24`.
-- **Fallback skill**: If a student has no mapped skills, we inject a fallback skill (first declared skill at level 0) to satisfy the local Zod contract’s min(1) requirement. This prevents silent drops by Edu2com. See `src/app/api/assignments/[id]/form-teams/route.ts:299-303`.
-- `tasks`: required array (min 1) with `id`, `teamSize ≥ 2`, at least one `skill` `{ id, level ∈ [0,1], importance ≥ 1 }`, optional `preferences` identical to people prefs. Schema: `src/lib/edu2com/contract.ts:41`.
-- Optional knobs: `alpha`, `beta`, `gamma`, `delta` (each ∈ [0,1]), `initRandom`, and `similarities` (`{ sourceId, targetId, similarity ∈ [0,1] }`).
+The Edu2com API (`https://ardid.iiia.csic.es/eduteams/edu2com`) is a team formation service for educational tasks. It uses an algorithm balancing:
+- **Skills** (alpha: 0.0-1.0)
+- **Personality compatibility** (beta: 0.0-1.0) - MBTI-based
+- **Student preferences** (gamma: 0.0-1.0)
+- **Task preferences** (delta: 0.0-1.0)
 
-Authoritative payload builders live in `src/lib/edu2com/fixtures.ts` so test suites and routes share the same canonical shapes. The background variant simply extends the payload with a `replyPostUrl` that points to `POST /api/edu2com/webhook`, signed via `src/lib/edu2com/webhook.ts`.
+## API Endpoints
 
-## Response & Errors
-- Success returns `{ teams: Array<{ taskId, quality ∈ [0,1], people: Array<{ id, skillIds[] }> }> }`. Schema validation happens in `src/lib/edu2com/contract.ts:60` and is enforced at runtime in `callEdu2comTeamFormation`/`callEdu2comBackgroundTeamFormation` (`src/lib/edu2com/api.ts`).
-- Failure responses are documented as HTTP 400 (“Cannot form the teams with the provided data.”) or 422 (“The experiment is not valid.”). We surface these as `HttpError` instances, preserving the status code.
+### GET /v1/help
+Returns API info. **Response:** `{ "name": "Edu2com", "version": "0.5.0" }`
 
-When background mode is used (default for `/api/assignments/[id]/form-teams`), the HTTP request returns immediately with `PROCESSING` status while the webhook route persists the resulting teams and revalidates dashboard caches.
-- **Unassigned safety**: The webhook detects any input people not present in Edu2com’s response and appends them to the smallest teams before persisting. This guarantees every submitted student is assigned. See `src/app/api/edu2com/webhook/route.ts:88-101`.
+### POST /v1/teamFormation (Synchronous)
+Forms teams immediately. Returns `{ teams: [...] }` with `taskId`, `quality` (0-1), and `people`.
 
-## Testing Strategy
-1. **Schema tests** – `src/lib/edu2com/__tests__/team-formation.contract.test.ts` validates curated fixtures with `edu2comParametersSchema` and exercises the live API only when `EDU2COM_INTEGRATION=1` is set.
-2. **Route behaviour** – `src/app/api/assignments/[id]/form-teams/__tests__/route.test.ts` stubs `callEdu2comBackgroundTeamFormation` to cover application-specific error handling without hitting the network, including concurrency protection.
-3. **Live smoke tests** – Opt-in scenarios in the contract test call the real endpoint to detect upstream regressions; assertions focus on status codes and schema validation rather than brittle message fragments.
+**Error codes:** `200` ok, `400` insufficient students, `422` invalid payload
 
-When adding new edge cases, update the fixtures first, extend the schema test, and document the behaviour here with a link back to the spec section in `openapi.json`.
+### POST /v1/backgroundTeamFormation (Asynchronous)
+Returns `202 Accepted`. Requires `replyPostUrl` for webhook callback.
+
+### POST /v1/teamQuality
+Calculates quality for a given team composition.
+
+## Parameters
+
+| Parameter | Range | Effect |
+|-----------|-------|--------|
+| `alpha` | 0.0-1.0 | Skill matching weight |
+| `beta` | 0.0-1.0 | Personality compatibility (MBTI) |
+| `gamma` | 0.0-1.0 | Student preference weight |
+| `delta` | 0.0-1.0 | Task preference weight |
+| `initRandom` | boolean | Deterministic (false) or randomized (true) |
+
+**Note:** Weights don't need to sum to 1.0. With all weights at 1.0, quality scores can exceed 1.0.
+
+Reference schema: `openapi.json#/components/schemas/Edu2comParameters`. The OpenAPI spec documents the ranges above but does **not** promise deterministic results when tweaking `alpha`/`beta`/`gamma`/`delta`, so use the integration suite to observe reproducibility characteristics.
+
+## Key Behaviors
+
+✅ **Works:**
+- Minimum 2 people, 1 task with teamSize ≥ 2
+- Team sizes match task requirements exactly
+- All students assigned to max 1 team (no duplicates)
+- Quality scores exposed to the rest of the app are now clamped to [0.0, 1.0] even when the upstream API emits >1.0 values
+- Unicode IDs, UUIDs, numbers supported
+- Personality values clamped to [-1.0, 1.0]
+- Circular & conflicting preferences handled
+- All-male/all-female/mixed cohorts work
+- Optional gender field
+
+⚠️ **Important:**
+- With `initRandom=false`: assignments are deterministic—same people get grouped together and assigned to the same tasks. However, the response array order may vary, so normalize results (sort teams by `taskId`, sort people IDs within teams) before comparing in tests.
+- Few students may be left unassigned if `total_seats < total_students`
+- When `alpha + beta + gamma + delta > 1.0` the upstream API frequently emits `quality > 1.0`; the client now clamps to [0,1] and logs a warning.
+
+## Performance
+
+| Size | Timeout | Observed Time | Status |
+|------|---------|---------------|--------|
+| 4 students | 10s | ~1s | ✅ Reliable |
+| 8 students | 15s | ~2s | ✅ Reliable |
+| 20 students | 30s | ~13s | ✅ Reliable |
+| 40 students | 60s | ~35s | ✅ Reliable |
+| 60+ students | 120s | ~60s (timeout) | ❌ Unreliable* |
+
+\* Synchronous `/teamFormation` requests with ≥60 students or ≥15 tasks consistently return `504 Gateway Time-out` or `EDU2COM_INVALID_RESPONSE` after ~60s. **Use `/backgroundTeamFormation` (webhook) for cohorts above 50 students** or split into smaller batches.
+
+### Observations from the live integration suite (Jan 2025)
+
+- **Quality normalization:** Setting all weights to 1.0 consistently produced `quality` scores above 1.0. The client now clamps upstream values into [0,1] before returning them downstream.
+- **Deterministic behavior:** With `initRandom=false`, team compositions and task assignments are fully deterministic. However, the response array order may vary between requests. Tests must normalize results (sort teams by `taskId`, sort `people` IDs within each team) before comparing, as the API does not guarantee a stable response order.
+- **Response ordering caveat:** While assignments are stable, the API may return teams in different array positions across identical requests. This is a presentation issue, not a logic change—use `normalizeTeamsForComparison` helper when testing.
+- **Throughput limits:** synchronous `/teamFormation` calls with 60, 80, or 100 students (15–25 tasks) fail with `504 Gateway Time-out`. Use the background endpoint or chunk requests for anything above ~50 students.
+- **Timeout semantics:** the upstream service ignores our requested timeout; without client-side safeguards the request resolved only when Edu2com responded (≈21s in tests). The API client now enforces timeouts locally and throws `EDU2COM_TIMEOUT` / `EDU2COM_BACKGROUND_TIMEOUT`.
+- **Burst traffic:** running 10+ property-based trials back-to-back triggered sporadic `502/504` responses even for moderate payloads. Space out load tests or add exponential backoff when exercising the real API.
+
+### Timeouts & reliability knobs
+
+- `timeoutMs` parameter (and `EDU2COM_TIMEOUT_MS` env var) now caps the total time we wait. Once exceeded we abort the request and throw `EDU2COM_TIMEOUT` (synchronous) or `EDU2COM_BACKGROUND_TIMEOUT` (background).
+- Despite the abort signal, the upstream service may continue processing. Always treat timeouts as unknown state and consider retrying with a new `requestId`.
+- For heavy cohorts, prefer `/backgroundTeamFormation` so Edu2com can finish asynchronously and call back via `replyPostUrl` instead of timing out the HTTP response.
+- Background POSTs now scale their timeout budget based on cohort size (students + tasks). Override the heuristic globally with `EDU2COM_BACKGROUND_TIMEOUT_MS`.
+
+## Testing
+
+Run integration tests with live API:
+
+```bash
+# All tests
+EDU2COM_INTEGRATION=1 bun test src/lib/edu2com/__tests__
+
+# Specific suite
+EDU2COM_INTEGRATION=1 bun test src/lib/edu2com/__tests__/api-endpoints.integration.test.ts
+```
+
+**Test files:**
+- `api-endpoints.integration.test.ts` - All 4 endpoints
+- `weight-parameters.integration.test.ts` - Alpha/beta/gamma/delta combinations
+- `edge-cases.integration.test.ts` - Unicode, boundaries, odd distributions
+- `property-based.integration.test.ts` - Random inputs & invariants
+- `performance.integration.test.ts` - Speed benchmarks
+
+## Request Schema
+
+```typescript
+{
+  people: Array<{
+    id: string;
+    gender?: "MALE" | "FEMALE";
+    personality: { ei: -1...1, sn: -1...1, tf: -1...1, pj: -1...1 };
+    skills: Array<{ id: string, level: 0...1 }>;
+    preferences?: Array<{ personId: string, preference: 0...1 }>;
+  }>;
+  tasks: Array<{
+    id: string;
+    teamSize: number; // ≥ 2
+    skills: Array<{ id: string, level: 0...1, importance: number }>;
+    preferences?: Array<{ personId: string, preference: 0...1 }>;
+  }>;
+  alpha?: number;
+  beta?: number;
+  gamma?: number;
+  delta?: number;
+  initRandom?: boolean;
+}
+```
+
+## Common Issues
+
+**Quality validation fails (> 1.0):**
+- This is now handled automatically in `callEdu2comTeamFormation`, but keep an eye on warnings so we can report issues upstream.
+- If you consume Edu2com elsewhere, clamp manually: `Math.min(1.0, team.quality)`.
+
+**Response array ordering with initRandom=false:**
+- Team compositions AND task assignments are fully deterministic and reproducible
+- Only the response array order may vary—normalize before comparing (sort by `taskId`, sort people IDs)
+
+**Personality validation errors:**
+- Clamp all MBTI values to [-1.0, 1.0]: `Math.max(-1, Math.min(1, value))`
+
+## Defaults (Recommended)
+
+```json
+{
+  "alpha": 0.4,
+  "beta": 0.3,
+  "gamma": 0.2,
+  "delta": 0.1,
+  "initRandom": false
+}
+```
+
+Set `EDU2COM_ALPHA_WEIGHT`, `EDU2COM_BETA_WEIGHT`, `EDU2COM_GAMMA_WEIGHT`, or `EDU2COM_DELTA_WEIGHT` to override the defaults above. Each team formation request now records the weights (and `initRandom`) in `team_formation_requests` for auditing.
+
+---
+
+**Last Updated:** 2025-01-18 | **Coverage:** 93 passing tests, 500+ scenarios | **Test Results:** 93 pass, 6 skip, 1 fail (timeout-related)

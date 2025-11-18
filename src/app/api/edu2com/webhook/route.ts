@@ -9,6 +9,14 @@ import prisma from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 
+const clampQualityValue = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return null;
+  if (!Number.isFinite(value)) return null;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+};
+
 export async function POST(req: Request) {
   const startTime = performance.now();
   try {
@@ -200,7 +208,7 @@ export async function POST(req: Request) {
               create: teamsPayload.teams.map((team, index) => ({
                 taskId: null, // Set to null since Edu2com's taskId doesn't map to Task table
                 name: `Kelompok ${index + 1} (${team.taskId})`,
-                quality: team.quality ?? null,
+                quality: clampQualityValue(team.quality),
                 members: {
                   create: team.people.map(member => ({
                     userId: member.id,

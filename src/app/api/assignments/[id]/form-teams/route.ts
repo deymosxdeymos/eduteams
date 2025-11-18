@@ -4,7 +4,14 @@ import { z } from 'zod';
 import type { Prisma } from '@/generated/prisma';
 import { handleApiError, withRole } from '@/lib/api-utils';
 import { callEdu2comBackgroundTeamFormation } from '@/lib/edu2com/api';
-import type { Edu2comParameters } from '@/lib/edu2com/contract';
+import {
+  type Edu2comBackgroundParameters,
+  type Edu2comParameters,
+} from '@/lib/edu2com/contract';
+import {
+  getEdu2comBackgroundTimeoutMs,
+  getEdu2comWeights,
+} from '@/lib/edu2com/config';
 import { buildEdu2comReplyPostUrl } from '@/lib/edu2com/webhook';
 import prisma from '@/lib/prisma';
 import { HttpError, ValidationError } from '@/lib/utils/errors';
@@ -43,6 +50,179 @@ function normalizeGender(g: unknown): 'MALE' | 'FEMALE' | undefined {
     return v.toUpperCase() as 'MALE' | 'FEMALE';
   if (v === 'ma le') return 'MALE';
   return undefined;
+}
+
+type TopicPreference = { personId: string; preference: number };
+type TopicRecord = { id: string; name: string };
+type TaskSkillRequirement = {
+  id: string;
+  level: number;
+  importance: number;
+};
+
+const RETRYABLE_EDU2COM_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const MAX_EDU2COM_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 1_000;
+const RETRY_MAX_DELAY_MS = 30_000;
+
+const clamp01 = (value: number): number => {
+  if (!Number.isFinite(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+};
+
+function buildTopicBuckets(topics: TopicRecord[], bucketCount: number) {
+  if (bucketCount <= 0) return [];
+  const buckets: string[][] = Array.from({ length: bucketCount }, () => []);
+  topics.forEach((topic, index) => {
+    buckets[index % bucketCount]?.push(topic.id);
+  });
+  return buckets;
+}
+
+function computeTopicAveragePreferences(
+  topics: TopicRecord[],
+  prefsByTopic: Map<string, TopicPreference[]>
+) {
+  const avg = new Map<string, number>();
+  for (const topic of topics) {
+    const prefs = prefsByTopic.get(topic.id) ?? [];
+    if (prefs.length === 0) {
+      avg.set(topic.id, 0);
+      continue;
+    }
+    const score =
+      prefs.reduce((sum, curr) => sum + curr.preference, 0) / prefs.length;
+    avg.set(topic.id, clamp01(score));
+  }
+  return avg;
+}
+
+function aggregatePreferencesForBucket(
+  topicIds: string[],
+  prefsByTopic: Map<string, TopicPreference[]>
+): TopicPreference[] | undefined {
+  if (topicIds.length === 0) return undefined;
+  const prefByPerson = new Map<string, number[]>();
+  for (const topicId of topicIds) {
+    const prefs = prefsByTopic.get(topicId) ?? [];
+    for (const pref of prefs) {
+      const arr = prefByPerson.get(pref.personId) ?? [];
+      arr.push(pref.preference);
+      prefByPerson.set(pref.personId, arr);
+    }
+  }
+
+  if (prefByPerson.size === 0) return undefined;
+  const merged: TopicPreference[] = [];
+  for (const [personId, values] of prefByPerson) {
+    const avg = values.reduce((sum, curr) => sum + curr, 0) / values.length;
+    merged.push({ personId, preference: clamp01(avg) });
+  }
+  return merged;
+}
+
+function pickRepresentativeTopic(
+  bucketTopicIds: string[],
+  topicAvgPref: Map<string, number>,
+  fallbackTopics: TopicRecord[],
+  bucketIndex: number
+) {
+  if (bucketTopicIds.length === 0) {
+    return fallbackTopics[bucketIndex % fallbackTopics.length]?.id;
+  }
+  let bestId = bucketTopicIds[0];
+  let bestScore = topicAvgPref.get(bestId) ?? 0;
+  for (let i = 1; i < bucketTopicIds.length; i++) {
+    const candidate = bucketTopicIds[i];
+    const score = topicAvgPref.get(candidate) ?? 0;
+    if (score > bestScore) {
+      bestId = candidate;
+      bestScore = score;
+    }
+  }
+  return bestId;
+}
+
+function buildTaskFromBucket({
+  bucketIndex,
+  bucketTopicIds,
+  fallbackTopics,
+  topicAvgPref,
+  prefsByTopic,
+  defaultTaskSkills,
+  teamSize,
+}: {
+  bucketIndex: number;
+  bucketTopicIds: string[];
+  fallbackTopics: TopicRecord[];
+  topicAvgPref: Map<string, number>;
+  prefsByTopic: Map<string, TopicPreference[]>;
+  defaultTaskSkills: TaskSkillRequirement[];
+  teamSize: number;
+}) {
+  const representativeTopicId =
+    pickRepresentativeTopic(
+      bucketTopicIds,
+      topicAvgPref,
+      fallbackTopics,
+      bucketIndex
+    ) ?? `bucket-${bucketIndex + 1}`;
+  const aggregatedPrefs = aggregatePreferencesForBucket(
+    bucketTopicIds,
+    prefsByTopic
+  );
+
+  return {
+    id: `${representativeTopicId}-${bucketIndex + 1}`,
+    skills: defaultTaskSkills,
+    teamSize,
+    preferences: aggregatedPrefs?.length ? aggregatedPrefs : undefined,
+  };
+}
+
+const sleep = (ms: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(resolve, ms);
+  });
+
+function shouldRetryEdu2comError(error: unknown) {
+  if (error instanceof HttpError) {
+    return RETRYABLE_EDU2COM_STATUSES.has(error.status);
+  }
+  return isAbortError(error);
+}
+
+async function callEdu2comWithRetry(
+  payload: Edu2comBackgroundParameters,
+  opts: { timeoutMs: number }
+) {
+  for (let attempt = 1; attempt <= MAX_EDU2COM_ATTEMPTS; attempt += 1) {
+    try {
+      await callEdu2comBackgroundTeamFormation(payload, opts);
+      return;
+    } catch (error) {
+      if (
+        !shouldRetryEdu2comError(error) ||
+        attempt === MAX_EDU2COM_ATTEMPTS
+      ) {
+        throw error;
+      }
+      const delayMs = Math.min(
+        RETRY_MAX_DELAY_MS,
+        RETRY_BASE_DELAY_MS * 2 ** (attempt - 1)
+      );
+      console.warn(
+        `[Team Formation] Edu2com call failed (attempt ${attempt}/${MAX_EDU2COM_ATTEMPTS}):`,
+        error
+      );
+      console.log(
+        `[Team Formation] Retrying Edu2com call in ${delayMs}ms (timeout ${opts.timeoutMs}ms)`
+      );
+      await sleep(delayMs);
+    }
+  }
 }
 
 const BODY_SCHEMA = z
@@ -377,7 +557,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
 
     // Optionally load assignment topics and preferences
     const topicQueryStart = performance.now();
-    const topics = await prisma.assignmentTopic.findMany({
+    const topics: TopicRecord[] = await prisma.assignmentTopic.findMany({
       where: { assignmentId },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
@@ -393,21 +573,18 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       `[Team Formation] Topic queries took ${topicQueryTime.toFixed(2)}ms, found ${topics.length} topics, ${topicPrefs.length} preferences`
     );
 
-    const prefsByTopic = new Map<
-      string,
-      Array<{ personId: string; preference: number }>
-    >();
+    const prefsByTopic = new Map<string, TopicPreference[]>();
     for (const p of topicPrefs) {
       const arr = prefsByTopic.get(p.assignmentTopicId) ?? [];
       arr.push({
         personId: p.personId,
-        preference: Math.max(0, Math.min(1, p.preference)),
+        preference: clamp01(p.preference),
       });
       prefsByTopic.set(p.assignmentTopicId, arr);
     }
 
     // Build tasks payload
-    const defaultTaskSkills = declaredSkillIds.length
+    const defaultTaskSkills: TaskSkillRequirement[] = declaredSkillIds.length
       ? declaredSkillIds.map(id => ({ id, level: 0.5, importance: 1 }))
       : [{ id: 'default_skill', level: 0.5, importance: 1 }];
 
@@ -427,89 +604,32 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         preferences: prefsByTopic.get(t.id),
       }));
     } else if (topics.length > 0) {
-      // Best‑effort mapping when topic count ≠ group count.
-      // Strategy: distribute topics into k buckets; for each bucket, pick a representative
-      // topic (highest average preference) and use its AssignmentTopic.id as the task id
-      // so the UI can display a topic instead of '-'. Preferences are aggregated per bucket.
-      const k = groupSizes.length;
-      const buckets: string[][] = Array.from({ length: k }, () => []);
-      for (let i = 0; i < topics.length; i++) {
-        const t = topics[i];
-        if (t) buckets[i % k].push(t.id);
-      }
+      const topicBuckets = buildTopicBuckets(topics, groupSizes.length);
+      const topicAvgPref = computeTopicAveragePreferences(
+        topics,
+        prefsByTopic
+      );
 
-      // Pre-compute average preference for each topic for representative selection
-      const topicAvgPref = new Map<string, number>();
-      for (const t of topics) {
-        const prefs = prefsByTopic.get(t.id) || [];
-        if (prefs.length === 0) {
-          topicAvgPref.set(t.id, 0);
-        } else {
-          const avg =
-            prefs.reduce((a, b) => a + b.preference, 0) / prefs.length;
-          topicAvgPref.set(t.id, Math.max(0, Math.min(1, avg)));
-        }
-      }
-
-      const prefsByBucket: Array<
-        Array<{ personId: string; preference: number }>
-      > = [];
-      const representativeTopicId: string[] = [];
-
-      for (let i = 0; i < k; i++) {
-        const topicIds = buckets[i] ?? [];
-
-        // Aggregate preferences for the bucket
-        const prefPerPerson = new Map<string, number[]>();
-        for (const topicId of topicIds) {
-          const prefs = prefsByTopic.get(topicId) || [];
-          for (const p of prefs) {
-            const arr = prefPerPerson.get(p.personId) ?? [];
-            arr.push(p.preference);
-            prefPerPerson.set(p.personId, arr);
-          }
-        }
-        const merged: Array<{ personId: string; preference: number }> = [];
-        for (const [personId, arr] of prefPerPerson) {
-          const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
-          merged.push({ personId, preference: Math.max(0, Math.min(1, avg)) });
-        }
-        prefsByBucket.push(merged);
-
-        // Choose representative topic for this bucket
-        if (topicIds.length > 0) {
-          let bestId = topicIds[0];
-          let bestScore = topicAvgPref.get(bestId) ?? 0;
-          for (let j = 1; j < topicIds.length; j++) {
-            const tid = topicIds[j];
-            const score = topicAvgPref.get(tid) ?? 0;
-            if (score > bestScore) {
-              bestId = tid;
-              bestScore = score;
-            }
-          }
-          representativeTopicId.push(bestId);
-        } else {
-          // If the bucket is empty (happens when topics < k), fall back to any topic
-          // to ensure a visible topic in UI. Use a stable round‑robin pick.
-          const fallback = topics[i % topics.length]?.id ?? topics[0]?.id;
-          representativeTopicId.push(fallback as string);
-        }
-      }
-
-      tasks = groupSizes.map((sz, i) => ({
-        // Ensure task IDs remain unique even if the same topic is reused
-        id: `${representativeTopicId[i]}-${i + 1}`,
-        skills: defaultTaskSkills,
-        teamSize: sz,
-        preferences: prefsByBucket[i]?.length ? prefsByBucket[i] : undefined,
-      }));
+      tasks = groupSizes.map((sz, index) =>
+        buildTaskFromBucket({
+          bucketIndex: index,
+          bucketTopicIds: topicBuckets[index] ?? [],
+          fallbackTopics: topics,
+          topicAvgPref,
+          prefsByTopic,
+          defaultTaskSkills,
+          teamSize: sz,
+        })
+      );
     }
 
+    const weights = getEdu2comWeights();
+    const initRandom = false;
     const payload: Edu2comParameters = {
       people,
       tasks,
-      initRandom: false,
+      initRandom,
+      ...weights,
     };
 
     // Create a TeamFormationRequest log
@@ -527,6 +647,11 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         ownerId: ctx.user.id,
         assignmentId,
         status: 'PROCESSING',
+        alpha: weights.alpha,
+        beta: weights.beta,
+        gamma: weights.gamma,
+        delta: weights.delta,
+        initRandom,
         requestData: payload as unknown as Prisma.InputJsonValue,
         replyPostUrl,
       },
@@ -540,11 +665,21 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // Call official Edu2com API endpoint (background mode)
     const edu2comCallStart = performance.now();
     console.log('[Team Formation] Calling Edu2com API...');
+    const backgroundTimeoutMs = getEdu2comBackgroundTimeoutMs({
+      studentCount: students.length,
+      taskCount: tasks.length,
+    });
+    console.log(
+      `[Team Formation] Using background timeout ${backgroundTimeoutMs}ms`
+    );
     try {
-      await callEdu2comBackgroundTeamFormation({
-        ...payload,
-        replyPostUrl,
-      });
+      await callEdu2comWithRetry(
+        {
+          ...payload,
+          replyPostUrl,
+        },
+        { timeoutMs: backgroundTimeoutMs }
+      );
       const edu2comCallTime = performance.now() - edu2comCallStart;
       const totalTime = performance.now() - startTime;
       console.log(
