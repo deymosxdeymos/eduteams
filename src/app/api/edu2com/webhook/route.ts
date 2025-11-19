@@ -17,6 +17,50 @@ const clampQualityValue = (value: number | null | undefined) => {
   return value;
 };
 
+type UnknownRecord = Record<string, unknown>;
+
+function normalizeTeamsPayload(data: unknown): {
+  normalized: unknown;
+  clamped: boolean;
+} {
+  if (typeof data !== 'object' || data === null) {
+    return { normalized: data, clamped: false };
+  }
+
+  const record = data as UnknownRecord;
+  if (!Array.isArray(record.teams)) {
+    return { normalized: data, clamped: false };
+  }
+
+  let clamped = false;
+  const normalizedTeams = (record.teams as unknown[]).map(team => {
+    if (typeof team !== 'object' || team === null) {
+      return team;
+    }
+
+    const teamRecord = { ...(team as UnknownRecord) };
+    const currentQuality = teamRecord.quality;
+
+    if (typeof currentQuality === 'number' && Number.isFinite(currentQuality)) {
+      const normalizedQuality = clampQualityValue(currentQuality);
+      if (normalizedQuality !== currentQuality) {
+        clamped = true;
+      }
+      teamRecord.quality = normalizedQuality;
+    }
+
+    return teamRecord;
+  });
+
+  return {
+    normalized: {
+      ...record,
+      teams: normalizedTeams,
+    },
+    clamped,
+  };
+}
+
 export async function POST(req: Request) {
   const startTime = performance.now();
   try {
@@ -43,8 +87,16 @@ export async function POST(req: Request) {
       );
     }
 
+    // Normalize quality values before schema validation (same as API client)
+    const { normalized, clamped } = normalizeTeamsPayload(payload);
+    if (clamped) {
+      console.warn(
+        '[Webhook] Received quality scores outside [0,1]; clamping to maintain contract.'
+      );
+    }
+
     const parseStart = performance.now();
-    const parsed = edu2comTeamsResponseSchema.safeParse(payload);
+    const parsed = edu2comTeamsResponseSchema.safeParse(normalized);
     const parseTime = performance.now() - parseStart;
     console.log(
       `[Webhook] Payload parsing took ${parseTime.toFixed(2)}ms, valid: ${parsed.success}`
