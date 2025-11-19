@@ -22,17 +22,19 @@ type UnknownRecord = Record<string, unknown>;
 function normalizeTeamsPayload(data: unknown): {
   normalized: unknown;
   clamped: boolean;
+  originalQualities: number[];
 } {
   if (typeof data !== 'object' || data === null) {
-    return { normalized: data, clamped: false };
+    return { normalized: data, clamped: false, originalQualities: [] };
   }
 
   const record = data as UnknownRecord;
   if (!Array.isArray(record.teams)) {
-    return { normalized: data, clamped: false };
+    return { normalized: data, clamped: false, originalQualities: [] };
   }
 
   let clamped = false;
+  const originalQualities: number[] = [];
   const normalizedTeams = (record.teams as unknown[]).map(team => {
     if (typeof team !== 'object' || team === null) {
       return team;
@@ -42,6 +44,7 @@ function normalizeTeamsPayload(data: unknown): {
     const currentQuality = teamRecord.quality;
 
     if (typeof currentQuality === 'number' && Number.isFinite(currentQuality)) {
+      originalQualities.push(currentQuality);
       const normalizedQuality = clampQualityValue(currentQuality);
       if (normalizedQuality !== currentQuality) {
         clamped = true;
@@ -58,6 +61,7 @@ function normalizeTeamsPayload(data: unknown): {
       teams: normalizedTeams,
     },
     clamped,
+    originalQualities,
   };
 }
 
@@ -88,10 +92,11 @@ export async function POST(req: Request) {
     }
 
     // Normalize quality values before schema validation (same as API client)
-    const { normalized, clamped } = normalizeTeamsPayload(payload);
+    const { normalized, clamped, originalQualities } =
+      normalizeTeamsPayload(payload);
     if (clamped) {
       console.warn(
-        '[Webhook] Received quality scores outside [0,1]; clamping to maintain contract.'
+        `[Webhook] Received quality scores outside [0,1]; clamping to maintain contract. Original values: ${originalQualities.map(q => q.toFixed(4)).join(', ')}`
       );
     }
 
