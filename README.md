@@ -61,7 +61,6 @@ bun run i18n:validate               # Validate translations
 - Assignment system with automated team formation
 - Real-time analytics dashboard with MBTI distribution, skills gap analysis
 - Internationalization (English, Indonesian)
-- Optional Upstash Redis for caching and rate limiting
 - 77%+ test coverage
 
 ## Environment Variables
@@ -70,10 +69,14 @@ bun run i18n:validate               # Validate translations
 DATABASE_URL="postgresql://user:password@localhost:5432/eduteams"
 BETTER_AUTH_SECRET="your-secret-key"
 BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-# Optional: Redis for caching and rate limiting
-UPSTASH_REDIS_REST_URL="your-redis-url"
-UPSTASH_REDIS_REST_TOKEN="your-redis-token"
+# OAuth (optional)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Cron jobs (required for production)
+CRON_SECRET="your-cron-secret"
 ```
 
 ## Contributing
