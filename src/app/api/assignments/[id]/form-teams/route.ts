@@ -5,13 +5,13 @@ import type { Prisma } from '@/generated/prisma';
 import { handleApiError, withRole } from '@/lib/api-utils';
 import { callEdu2comBackgroundTeamFormation } from '@/lib/edu2com/api';
 import {
-  type Edu2comBackgroundParameters,
-  type Edu2comParameters,
-} from '@/lib/edu2com/contract';
-import {
   getEdu2comBackgroundTimeoutMs,
   getEdu2comWeights,
 } from '@/lib/edu2com/config';
+import type {
+  Edu2comBackgroundParameters,
+  Edu2comParameters,
+} from '@/lib/edu2com/contract';
 import { buildEdu2comReplyPostUrl } from '@/lib/edu2com/webhook';
 import prisma from '@/lib/prisma';
 import { HttpError, ValidationError } from '@/lib/utils/errors';
@@ -203,10 +203,7 @@ async function callEdu2comWithRetry(
       await callEdu2comBackgroundTeamFormation(payload, opts);
       return;
     } catch (error) {
-      if (
-        !shouldRetryEdu2comError(error) ||
-        attempt === MAX_EDU2COM_ATTEMPTS
-      ) {
+      if (!shouldRetryEdu2comError(error) || attempt === MAX_EDU2COM_ATTEMPTS) {
         throw error;
       }
       const delayMs = Math.min(
@@ -229,6 +226,14 @@ const BODY_SCHEMA = z
   .object({
     method: z.enum(['JUMLAH_KELOMPOK', 'JUMLAH_MHS_PER_KELOMPOK']),
     value: z.number().int().min(1),
+    weights: z
+      .object({
+        alpha: z.number().min(0).max(1).optional(),
+        beta: z.number().min(0).max(1).optional(),
+        gamma: z.number().min(0).max(1).optional(),
+        delta: z.number().min(0).max(1).optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -605,10 +610,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       }));
     } else if (topics.length > 0) {
       const topicBuckets = buildTopicBuckets(topics, groupSizes.length);
-      const topicAvgPref = computeTopicAveragePreferences(
-        topics,
-        prefsByTopic
-      );
+      const topicAvgPref = computeTopicAveragePreferences(topics, prefsByTopic);
 
       tasks = groupSizes.map((sz, index) =>
         buildTaskFromBucket({
@@ -623,7 +625,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       );
     }
 
-    const weights = getEdu2comWeights();
+    const weights = getEdu2comWeights(parsedBody.weights);
     const initRandom = false;
     const payload: Edu2comParameters = {
       people,

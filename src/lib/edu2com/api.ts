@@ -23,9 +23,10 @@ function clampQualityValue(value: number): number {
   return value;
 }
 
-function normalizeTeamsResponse(
-  data: unknown
-): { normalized: unknown; clamped: boolean } {
+function normalizeTeamsResponse(data: unknown): {
+  normalized: unknown;
+  clamped: boolean;
+} {
   if (typeof data !== 'object' || data === null) {
     return { normalized: data, clamped: false };
   }

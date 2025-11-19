@@ -3,11 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
 import type { Edu2comParameters } from '@/lib/edu2com/contract';
 import { EDU2COM_BASE_SKILLS as BASE_SKILLS } from '@/lib/edu2com/fixtures';
-import {
-  normalizeTeamsByMembers,
-  normalizeTeamsForComparison,
-  runEdu2comCall,
-} from './test-helpers';
+import { normalizeTeamsByMembers, runEdu2comCall } from './test-helpers';
 
 const describeIntegration =
   process.env.EDU2COM_INTEGRATION === '1' ? describe : describe.skip;

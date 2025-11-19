@@ -76,9 +76,9 @@ export function getEdu2comBackgroundTimeoutMs(opts: {
 
   const extraStudentBudget =
     Math.max(0, opts.studentCount - 40) * PER_STUDENT_BUDGET_MS;
-  const extraTaskBudget =
-    Math.max(0, opts.taskCount - 10) * PER_TASK_BUDGET_MS;
-  const computed = BASE_BACKGROUND_TIMEOUT_MS + extraStudentBudget + extraTaskBudget;
+  const extraTaskBudget = Math.max(0, opts.taskCount - 10) * PER_TASK_BUDGET_MS;
+  const computed =
+    BASE_BACKGROUND_TIMEOUT_MS + extraStudentBudget + extraTaskBudget;
   return Math.min(MAX_BACKGROUND_TIMEOUT_MS, computed);
 }
 

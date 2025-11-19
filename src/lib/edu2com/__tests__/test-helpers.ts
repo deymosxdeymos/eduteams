@@ -26,7 +26,12 @@ export function normalizeTeamsByMembers(
   response: Edu2comTeamsResponse
 ): string[] {
   return [...response.teams]
-    .map(team => team.people.map(person => person.id).sort().join('|'))
+    .map(team =>
+      team.people
+        .map(person => person.id)
+        .sort()
+        .join('|')
+    )
     .sort((a, b) => a.localeCompare(b));
 }
 
@@ -34,10 +39,12 @@ export type Edu2comCallResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: HttpError };
 
-export function asTransientEdu2comError(
-  error: unknown
-): HttpError | null {
-  if (error instanceof HttpError && error.code && TRANSIENT_ERROR_CODES.has(error.code)) {
+export function asTransientEdu2comError(error: unknown): HttpError | null {
+  if (
+    error instanceof HttpError &&
+    error.code &&
+    TRANSIENT_ERROR_CODES.has(error.code)
+  ) {
     return error;
   }
   return null;
