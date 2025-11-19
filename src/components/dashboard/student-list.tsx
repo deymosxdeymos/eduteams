@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
-import { Badge } from '../ui/badge';
 import { MBTIOverviewLayout } from './mbti-overview-layout';
 import { SearchInput } from './search-input';
 import { StudentProfileContent } from './student-profile-content';

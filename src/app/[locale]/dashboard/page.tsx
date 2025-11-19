@@ -12,6 +12,8 @@ import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
+import { getSidebarData } from '@/lib/dashboard/sidebar-data';
+import { getStudentClasses } from '@/lib/dashboard/student-classes';
 import { protectDashboard } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +46,10 @@ export default async function Dashboard({
   // Get statistics synchronously for dosen
   const statistics = isDosen ? await getStatsOrEmpty(user.id) : null;
 
+  // Get sidebar data and student classes server-side
+  const sidebarData = await getSidebarData();
+  const studentClasses = isMahasiswa ? await getStudentClasses() : [];
+
   return (
     <DashboardClient
       user={user}
@@ -55,14 +61,17 @@ export default async function Dashboard({
           <Nav user={user} />
         </div>
         <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-          <Sidebar />
+          <Sidebar
+            user={sidebarData.user}
+            notStartedCount={sidebarData.notStartedCount}
+          />
           <div className='px-8 pb-0 min-h-0'>
             {isDosen && statistics && (
               <Suspense fallback={<CourseListSkeleton />}>
                 <DashboardCoursesAsync user={user} statistics={statistics} />
               </Suspense>
             )}
-            {isMahasiswa && <StudentDashboard />}
+            {isMahasiswa && <StudentDashboard classes={studentClasses} />}
             {!isDosen && !isMahasiswa && (
               <div className='flex items-center justify-center h-full'>
                 <p className='text-muted-foreground'>{t('unavailable')}</p>

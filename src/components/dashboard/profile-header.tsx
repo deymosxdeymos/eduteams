@@ -2,10 +2,10 @@
 
 import { Mars, Pencil, User, Venus } from 'lucide-react';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
-import { Button } from '../ui/button';
 
 interface ProfileHeaderProps {
   user: ExtendedUser;

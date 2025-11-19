@@ -37,9 +37,18 @@ import { Slider } from '@/components/ui/slider';
 import { Link, useRouter } from '@/i18n/routing';
 
 interface AssignmentActionsProps {
-  assignmentId: string;
   classId: string;
+  assignmentId: string;
   canManage: boolean;
+  disableForm?: boolean;
+  incompleteStudentCount?: number;
+  retryFormationModalSignal?: string;
+  onEditModeChange?: (isEdit: boolean) => void;
+  defaultWeights?: {
+    alpha: number;
+    beta: number;
+    delta: number;
+  };
   isStudent?: boolean;
   hasTeams?: boolean;
   topicCount?: number;
@@ -47,10 +56,7 @@ interface AssignmentActionsProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   isTeamFormationProcessing?: boolean;
-  incompleteStudentCount?: number;
-  retryFormationModalSignal?: number;
   isEditMode?: boolean;
-  onEditModeChange?: (value: boolean) => void;
   onSaveClick?: () => void;
   isSaving?: boolean;
 }
@@ -59,6 +65,11 @@ export function AssignmentActions({
   assignmentId,
   classId,
   canManage,
+  disableForm,
+  incompleteStudentCount = 0,
+  retryFormationModalSignal,
+  onEditModeChange,
+  defaultWeights,
   isStudent = false,
   hasTeams = false,
   topicCount,
@@ -66,10 +77,7 @@ export function AssignmentActions({
   searchValue = '',
   onSearchChange,
   isTeamFormationProcessing = false,
-  incompleteStudentCount = 0,
-  retryFormationModalSignal = 0,
   isEditMode = false,
-  onEditModeChange,
   onSaveClick,
   isSaving = false,
 }: AssignmentActionsProps) {
@@ -97,10 +105,21 @@ export function AssignmentActions({
     ? t('recreateTeamsButton')
     : t('createTeamsButton');
   const isProcessing = Boolean(isTeamFormationProcessing);
-  const disableForm = submitting || isProcessing;
+  const shouldDisableForm = submitting || isProcessing;
 
-  // Fetch default weights from backend on mount
+  // Initialize weights from props or fetch from backend
   useEffect(() => {
+    if (defaultWeights) {
+      // Use provided weights
+      setWeights({
+        skills: defaultWeights.alpha,
+        personality: defaultWeights.beta,
+        taskPreferences: defaultWeights.delta,
+      });
+      return;
+    }
+
+    // Fetch from backend if no props provided
     async function fetchDefaults() {
       try {
         const res = await fetch('/api/edu2com/weights');
@@ -117,10 +136,10 @@ export function AssignmentActions({
       }
     }
     fetchDefaults();
-  }, []);
+  }, [defaultWeights]);
 
   const canSubmit = Boolean(
-    method && value && Number(value) > 0 && !disableForm
+    method && value && Number(value) > 0 && !shouldDisableForm
   );
 
   useEffect(() => {

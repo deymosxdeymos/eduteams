@@ -1,3 +1,4 @@
+import Content from '@/components/dashboard/content';
 import { canAccessDosenFeatures } from '@/lib/authorization';
 import {
   type DosenCourseSummary,
@@ -5,7 +6,6 @@ import {
 } from '@/lib/dashboard/courses';
 import type { DashboardStatistics } from '@/lib/dashboard/statistics';
 import type { ExtendedUser } from '@/lib/types';
-import Content from '../content';
 
 interface DashboardCoursesAsyncProps {
   user: ExtendedUser;

@@ -2,7 +2,7 @@ import type { Course, ExtendedUser } from '@/lib/types';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { ClassAssignments } from './class-assignments';
 import Nav from './nav';
-import Sidebar from './sidebar';
+import SidebarWrapper from './sidebar-wrapper';
 import { StudentList } from './student-list';
 
 type StudentData = {
@@ -41,7 +41,7 @@ export function ClassPageLayout({
         <Nav user={user} className={course} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar />
+        <SidebarWrapper />
         <div className='px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'>
           <ClassAssignments
             classId={classId}

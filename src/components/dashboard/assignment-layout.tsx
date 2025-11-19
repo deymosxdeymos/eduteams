@@ -1,6 +1,6 @@
 import type { Course, ExtendedUser } from '@/lib/types';
 import Nav from './nav';
-import Sidebar from './sidebar';
+import SidebarWrapper from './sidebar-wrapper';
 import { StudentList } from './student-list';
 
 interface AssignmentLayoutProps {
@@ -57,7 +57,7 @@ export function AssignmentLayout({
         />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar />
+        <SidebarWrapper />
         <div
           className={
             hideStudentList

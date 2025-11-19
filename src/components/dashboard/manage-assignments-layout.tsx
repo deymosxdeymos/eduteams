@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import Nav from './nav';
-import Sidebar from './sidebar';
+import SidebarWrapper from './sidebar-wrapper';
 
 interface ManageAssignmentsLayoutProps {
   user: ExtendedUser;
@@ -36,7 +36,7 @@ export async function ManageAssignmentsLayout({
         <Nav user={user} className={courseForNav} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar />
+        <SidebarWrapper />
         <div className='px-8 pb-0 pr-0 min-h-0'>{children}</div>
       </div>
     </main>

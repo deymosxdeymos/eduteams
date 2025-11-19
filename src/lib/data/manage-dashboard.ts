@@ -1,9 +1,9 @@
 import prisma from '@/lib/prisma';
-import type { ManageCourseRow } from '@/types/manage';
 import {
   formatAcademicPeriodLabel,
   getCurrentAcademicPeriod,
-} from '../utils/period';
+} from '@/lib/utils/period';
+import type { ManageCourseRow } from '@/types/manage';
 
 interface BaseCoursePeriod {
   tahunAwalPeriode: number;

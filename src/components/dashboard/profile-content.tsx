@@ -2,9 +2,9 @@
 
 import { Smile } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
-import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import { MBTIDisplay } from './mbti-display';
 import { MBTIOverviewLayout } from './mbti-overview-layout';
 import { PersonalityDescription } from './personality-description';

@@ -30,7 +30,7 @@
 ## Performance
 
 - Use Prisma `select`/`include` to avoid over-fetching
-- Cache with Redis/Next.js cache tags
+- Cache with Next.js cache tags
 - Only mark `"use client"` when necessary
 
 ## Testing

@@ -3,13 +3,13 @@
 import { ArrowLeft, Sparkle, X } from 'lucide-react';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import type { MBTIType } from '@/lib/validation/personality';
-import { Button } from '../ui/button';
 import Nav from './nav';
-import Sidebar from './sidebar';
+import SidebarWrapper from './sidebar-wrapper';
 
 interface MBTIOverviewLayoutProps {
   user: ExtendedUser;
@@ -139,7 +139,7 @@ export function MBTIOverviewLayout({
       <div
         className={`${isModal ? '' : 'grid grid-cols-[auto_1fr] flex-1 min-h-0'}`}
       >
-        {!isModal && <Sidebar />}
+        {!isModal && <SidebarWrapper />}
         <div className={`${isModal ? '' : 'px-8 pb-0 min-h-0'}`}>
           <div
             className={`bg-white rounded-3xl ${isModal ? 'h-full' : 'h-full'} flex flex-col overflow-hidden ${isCompact ? 'p-6 gap-1' : 'p-4 gap-2'}`}

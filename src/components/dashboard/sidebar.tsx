@@ -2,7 +2,6 @@
 
 import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
 import { useMemo } from 'react';
-import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
@@ -11,26 +10,18 @@ const SUPPORTED_LOCALES = ['id', 'en'];
 const ICON_BUTTON_CLASSES =
   'rounded-full w-12 h-12 cursor-pointer transition-transform duration-150 active:scale-[0.96]';
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  return res.json();
-};
+interface SidebarProps {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+  notStartedCount: number;
+}
 
-export default function Sidebar() {
-  const { data: userData } = useSWR('/api/user', fetcher);
-  const user = userData?.data;
-
-  // Fetch not-started count for mahasiswa users only
+export default function Sidebar({ user, notStartedCount }: SidebarProps) {
   const shouldFetchCount = user?.role === 'mahasiswa';
-  const { data: countData } = useSWR(
-    shouldFetchCount ? '/api/student/not-started-count' : null,
-    fetcher,
-    {
-      refreshInterval: 30000, // Refresh every 30 seconds
-    }
-  );
-  const notStartedCount = countData?.count ?? 0;
   const showBadge = shouldFetchCount && notStartedCount > 0;
 
   const router = useRouter();

@@ -3,9 +3,9 @@
 import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ChangeEvent, ComponentProps, ReactNode } from 'react';
+import { Input } from '@/components/ui/input';
 import type { Course } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Input } from '../ui/input';
 import CreateClassModal from './create-class-modal';
 import JoinClassModal from './join-class-modal';
 

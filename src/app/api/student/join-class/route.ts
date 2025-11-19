@@ -1,9 +1,11 @@
 import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 import {
   createApiResponse,
   createErrorResponse,
   withAuth,
+  withValidation,
 } from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
@@ -14,11 +16,18 @@ import type { ExtendedUser } from '@/lib/types';
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
+const joinClassSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
+
 async function joinClass(
   request: NextRequest,
-  { user }: { user: ExtendedUser }
+  {
+    user,
+    validatedData,
+  }: { user?: ExtendedUser; validatedData: { token: string } }
 ) {
-  if (!canAccessMahasiswaFeatures(user)) {
+  if (!user || !canAccessMahasiswaFeatures(user)) {
     return createErrorResponse('Access denied', 403);
   }
 
@@ -27,11 +36,7 @@ async function joinClass(
     return createErrorResponse('Invalid origin', 403);
   }
 
-  const { token } = await request.json();
-
-  if (!token || typeof token !== 'string') {
-    return createErrorResponse('Token is required', 400);
-  }
+  const { token } = validatedData;
 
   try {
     // Find the course by share token
@@ -96,4 +101,6 @@ async function joinClass(
   }
 }
 
-export const POST = withAuth(joinClass);
+export const POST = withAuth(
+  withValidation((data: unknown) => joinClassSchema.parse(data), joinClass)
+);

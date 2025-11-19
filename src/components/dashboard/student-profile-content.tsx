@@ -2,8 +2,8 @@
 
 import { Smile, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 import type { ExtendedUser } from '@/lib/types';
-import { Button } from '../ui/button';
 import { MBTIDisplay } from './mbti-display';
 import { PersonalityDescription } from './personality-description';
 import { PersonalityMetrics } from './personality-metrics';

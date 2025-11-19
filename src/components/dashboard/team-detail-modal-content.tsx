@@ -2,8 +2,8 @@
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 import type { ExtendedUser } from '@/lib/types';
-import { Button } from '../ui/button';
 import { TeamMemberCard } from './team-member-card';
 
 interface TeamMemberDetail extends ExtendedUser {

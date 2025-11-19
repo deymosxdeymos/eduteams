@@ -1,7 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import useSWR from 'swr';
 import { EmptyStudentClassState } from './empty-student-class-state';
 import { SearchInput } from './search-input';
 import { StudentClassGrid } from './student-class-grid';
@@ -18,19 +18,13 @@ interface StudentClass {
   };
 }
 
-const fetcher = (url: string) =>
-  fetch(url).then(res => {
-    if (!res.ok) {
-      throw new Error('Failed to fetch');
-    }
-    return res.json();
-  });
+interface StudentDashboardProps {
+  classes: StudentClass[];
+}
 
-export function StudentDashboard() {
-  const { data, error, mutate } = useSWR('/api/student/classes', fetcher);
+export function StudentDashboard({ classes }: StudentDashboardProps) {
+  const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
-
-  const classes: StudentClass[] = data?.data || [];
 
   const filteredClasses = searchValue
     ? classes.filter(
@@ -43,12 +37,8 @@ export function StudentDashboard() {
     : classes;
 
   const handleClassJoined = () => {
-    mutate();
+    router.refresh();
   };
-
-  if (error) {
-    console.error('Failed to load student classes:', error);
-  }
 
   const hasClasses = classes.length > 0;
   const showNoResults = searchValue.length > 0 && filteredClasses.length === 0;

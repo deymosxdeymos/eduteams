@@ -74,6 +74,7 @@ interface AssignmentContentProps {
   currentUserId?: string;
   enrolledStudents?: EnrolledStudent[];
   submittedStudentIds?: Set<string>;
+  retryFormationModalSignal?: number;
 }
 
 export function AssignmentContent({
@@ -161,17 +162,18 @@ export function AssignmentContent({
           assignmentId={assignmentId}
           classId={classId}
           canManage={canManage}
+          disableForm={!canManage}
+          incompleteStudentCount={incompleteStudentCount}
+          retryFormationModalSignal={retryModalSignal.toString()}
+          onEditModeChange={setIsEditMode}
           isStudent={isStudent}
           hasTeams={hasTeams}
           topicCount={topicCount}
           enrollmentCount={enrollmentCount}
-          onSearchChange={setSearchValue}
           searchValue={searchValue}
+          onSearchChange={setSearchValue}
           isTeamFormationProcessing={isTeamFormationProcessing}
-          incompleteStudentCount={incompleteStudentCount}
-          retryFormationModalSignal={retryModalSignal}
           isEditMode={isEditMode}
-          onEditModeChange={setIsEditMode}
           onSaveClick={() => setSaveTrigger(prev => prev + 1)}
           isSaving={isSaving}
         />

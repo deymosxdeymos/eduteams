@@ -1,7 +1,7 @@
 import type { Course, ExtendedUser } from '@/lib/types';
 import type { AssignmentClient } from '@/lib/validation/assignments';
 import Nav from './nav';
-import Sidebar from './sidebar';
+import SidebarWrapper from './sidebar-wrapper';
 import { StudentClassAssignments } from './student-class-assignments';
 import { StudentList } from './student-list';
 
@@ -38,7 +38,7 @@ export function StudentClassPageLayout({
         <Nav user={user} className={course} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar />
+        <SidebarWrapper />
         <div className='px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'>
           <StudentClassAssignments
             classId={classId}

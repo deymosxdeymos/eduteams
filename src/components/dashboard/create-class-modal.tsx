@@ -10,6 +10,13 @@ import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -49,13 +56,6 @@ import {
   type CourseCreateUserInput,
   courseCreateInputSchema,
 } from '@/lib/validation/course';
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '../ui/command';
 
 const courseCatalogFetcher = async (url: string): Promise<CourseCatalog[]> => {
   const response = await fetch(url);

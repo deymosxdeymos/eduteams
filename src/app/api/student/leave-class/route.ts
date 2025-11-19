@@ -1,9 +1,11 @@
 import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 import {
   createApiResponse,
   createErrorResponse,
   withAuth,
+  withValidation,
 } from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
@@ -14,11 +16,18 @@ import type { ExtendedUser } from '@/lib/types';
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
+const leaveClassSchema = z.object({
+  courseId: z.string().min(1, 'Course ID is required'),
+});
+
 async function leaveClass(
   request: NextRequest,
-  { user }: { user: ExtendedUser }
+  {
+    user,
+    validatedData,
+  }: { user?: ExtendedUser; validatedData: { courseId: string } }
 ) {
-  if (!canAccessMahasiswaFeatures(user)) {
+  if (!user || !canAccessMahasiswaFeatures(user)) {
     return createErrorResponse('Access denied', 403);
   }
 
@@ -27,11 +36,7 @@ async function leaveClass(
     return createErrorResponse('Invalid origin', 403);
   }
 
-  const { courseId } = await request.json();
-
-  if (!courseId || typeof courseId !== 'string') {
-    return createErrorResponse('Course ID is required', 400);
-  }
+  const { courseId } = validatedData;
 
   try {
     // Check if enrollment exists
@@ -80,4 +85,6 @@ async function leaveClass(
   }
 }
 
-export const POST = withAuth(leaveClass);
+export const POST = withAuth(
+  withValidation((data: unknown) => leaveClassSchema.parse(data), leaveClass)
+);

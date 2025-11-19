@@ -6,7 +6,7 @@ import { getManageCoursesForDosen } from '@/lib/data/manage-dashboard';
 import type { ExtendedUser } from '@/lib/types';
 import { DosenManageContent } from './dosen-manage-content';
 import Nav from './nav';
-import Sidebar from './sidebar';
+import SidebarWrapper from './sidebar-wrapper';
 import { StudentManageContent } from './student-manage-content';
 
 interface ManageLayoutProps {
@@ -24,7 +24,7 @@ export async function ManageLayout({ user }: ManageLayoutProps) {
         <Nav user={user} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar />
+        <SidebarWrapper />
         <div className='px-8 pb-0 min-h-0'>
           {isDosen ? (
             <DosenManageContent courses={courses} />
