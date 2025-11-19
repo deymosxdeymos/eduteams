@@ -382,122 +382,130 @@ export function AssignmentActions({
                         <ChevronRight className='h-4 w-4' />
                       )}
                     </button>
-                    {showAdvanced && (
-                      <div className='mt-6 space-y-6 pl-1 animate-in fade-in slide-in-from-top-2 duration-200'>
-                        <div className='space-y-1'>
-                          <h4 className='font-bold text-base text-gray-900'>
-                            {t('weightAdjustmentTitle')}
-                          </h4>
-                          <p className='text-sm text-gray-500 leading-relaxed'>
-                            {t('weightAdjustmentDesc')}
-                          </p>
-                        </div>
-
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8'>
-                          {/* Personality */}
-                          <div className='space-y-4'>
-                            <div className='flex items-center gap-3'>
-                              <div className='p-2 bg-emerald-100 rounded-lg'>
-                                <Brain className='w-5 h-5 text-emerald-600' />
-                              </div>
-                              <span className='text-sm font-medium text-gray-900'>
-                                {t('weightPersonality')}
-                              </span>
-                            </div>
-                            <div className='space-y-1'>
-                              <Slider
-                                value={[weights.personality]}
-                                max={1}
-                                step={0.1}
-                                showSteps
-                                onValueChange={val => {
-                                  setWeights(prev => ({
-                                    ...prev,
-                                    personality: val[0],
-                                  }));
-                                  setWeightsModified(true);
-                                }}
-                              />
-                              <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
-                                <span>0.0</span>
-                                <span className='font-bold text-emerald-700'>
-                                  {weights.personality.toFixed(1)}
-                                </span>
-                                <span>1.0</span>
-                              </div>
-                            </div>
+                    <div
+                      className={`grid transition-all duration-200 ease-out ${
+                        showAdvanced
+                          ? 'grid-rows-[1fr] opacity-100'
+                          : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className='overflow-hidden'>
+                        <div className='mt-6 space-y-6 pl-1'>
+                          <div className='space-y-1'>
+                            <h4 className='font-bold text-base text-gray-900'>
+                              {t('weightAdjustmentTitle')}
+                            </h4>
+                            <p className='text-sm text-gray-500 leading-relaxed'>
+                              {t('weightAdjustmentDesc')}
+                            </p>
                           </div>
 
-                          {/* Skills */}
-                          <div className='space-y-4'>
-                            <div className='flex items-center gap-3'>
-                              <div className='p-2 bg-amber-100 rounded-lg'>
-                                <Lightbulb className='w-5 h-5 text-amber-600' />
-                              </div>
-                              <span className='text-sm font-medium text-gray-900'>
-                                {t('weightSkills')}
-                              </span>
-                            </div>
-                            <div className='space-y-1'>
-                              <Slider
-                                value={[weights.skills]}
-                                max={1}
-                                step={0.1}
-                                showSteps
-                                onValueChange={val => {
-                                  setWeights(prev => ({
-                                    ...prev,
-                                    skills: val[0],
-                                  }));
-                                  setWeightsModified(true);
-                                }}
-                              />
-                              <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
-                                <span>0.0</span>
-                                <span className='font-bold text-amber-700'>
-                                  {weights.skills.toFixed(1)}
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8'>
+                            {/* Personality */}
+                            <div className='space-y-4'>
+                              <div className='flex items-center gap-3'>
+                                <div className='p-2 bg-emerald-100 rounded-lg'>
+                                  <Brain className='w-5 h-5 text-emerald-600' />
+                                </div>
+                                <span className='text-sm font-medium text-gray-900'>
+                                  {t('weightPersonality')}
                                 </span>
-                                <span>1.0</span>
+                              </div>
+                              <div className='space-y-1'>
+                                <Slider
+                                  value={[weights.personality]}
+                                  max={1}
+                                  step={0.1}
+                                  showSteps
+                                  onValueChange={val => {
+                                    setWeights(prev => ({
+                                      ...prev,
+                                      personality: val[0],
+                                    }));
+                                    setWeightsModified(true);
+                                  }}
+                                />
+                                <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
+                                  <span>0.0</span>
+                                  <span className='font-bold text-emerald-700'>
+                                    {weights.personality.toFixed(1)}
+                                  </span>
+                                  <span>1.0</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Task Preferences */}
-                          <div className='space-y-4'>
-                            <div className='flex items-center gap-3'>
-                              <div className='p-2 bg-violet-100 rounded-lg'>
-                                <ClipboardList className='w-5 h-5 text-violet-600' />
-                              </div>
-                              <span className='text-sm font-medium text-gray-900'>
-                                {t('weightTaskPreferences')}
-                              </span>
-                            </div>
-                            <div className='space-y-1'>
-                              <Slider
-                                value={[weights.taskPreferences]}
-                                max={1}
-                                step={0.1}
-                                showSteps
-                                onValueChange={val => {
-                                  setWeights(prev => ({
-                                    ...prev,
-                                    taskPreferences: val[0],
-                                  }));
-                                  setWeightsModified(true);
-                                }}
-                              />
-                              <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
-                                <span>0.0</span>
-                                <span className='font-bold text-violet-700'>
-                                  {weights.taskPreferences.toFixed(1)}
+                            {/* Skills */}
+                            <div className='space-y-4'>
+                              <div className='flex items-center gap-3'>
+                                <div className='p-2 bg-amber-100 rounded-lg'>
+                                  <Lightbulb className='w-5 h-5 text-amber-600' />
+                                </div>
+                                <span className='text-sm font-medium text-gray-900'>
+                                  {t('weightSkills')}
                                 </span>
-                                <span>1.0</span>
+                              </div>
+                              <div className='space-y-1'>
+                                <Slider
+                                  value={[weights.skills]}
+                                  max={1}
+                                  step={0.1}
+                                  showSteps
+                                  onValueChange={val => {
+                                    setWeights(prev => ({
+                                      ...prev,
+                                      skills: val[0],
+                                    }));
+                                    setWeightsModified(true);
+                                  }}
+                                />
+                                <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
+                                  <span>0.0</span>
+                                  <span className='font-bold text-amber-700'>
+                                    {weights.skills.toFixed(1)}
+                                  </span>
+                                  <span>1.0</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Task Preferences */}
+                            <div className='space-y-4'>
+                              <div className='flex items-center gap-3'>
+                                <div className='p-2 bg-violet-100 rounded-lg'>
+                                  <ClipboardList className='w-5 h-5 text-violet-600' />
+                                </div>
+                                <span className='text-sm font-medium text-gray-900'>
+                                  {t('weightTaskPreferences')}
+                                </span>
+                              </div>
+                              <div className='space-y-1'>
+                                <Slider
+                                  value={[weights.taskPreferences]}
+                                  max={1}
+                                  step={0.1}
+                                  showSteps
+                                  onValueChange={val => {
+                                    setWeights(prev => ({
+                                      ...prev,
+                                      taskPreferences: val[0],
+                                    }));
+                                    setWeightsModified(true);
+                                  }}
+                                />
+                                <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
+                                  <span>0.0</span>
+                                  <span className='font-bold text-violet-700'>
+                                    {weights.taskPreferences.toFixed(1)}
+                                  </span>
+                                  <span>1.0</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   {error && (
