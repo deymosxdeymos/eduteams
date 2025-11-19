@@ -70,7 +70,7 @@ Reference schema: `openapi.json#/components/schemas/Edu2comParameters`. The Open
 
 ### Observations from the live integration suite (Jan 2025)
 
-- **Quality normalization:** Setting all weights to 1.0 consistently produced `quality` scores above 1.0. The client now clamps upstream values into [0,1] before returning them downstream.
+- **Quality normalization:** Setting weights that sum > 1.0 consistently produced `quality` scores above 1.0. The client now automatically normalizes weights so they sum to 1.0 before sending to Edu2com (e.g., `1.0, 0.3, 0.2, 0.1` -> `0.625, 0.188, 0.125, 0.063`). This preserves relative importance while ensuring quality scores remain meaningful in the [0, 1] range.
 - **Deterministic behavior:** With `initRandom=false`, team compositions and task assignments are fully deterministic. However, the response array order may vary between requests. Tests must normalize results (sort teams by `taskId`, sort `people` IDs within each team) before comparing, as the API does not guarantee a stable response order.
 - **Response ordering caveat:** While assignments are stable, the API may return teams in different array positions across identical requests. This is a presentation issue, not a logic change—use `normalizeTeamsForComparison` helper when testing.
 - **Throughput limits:** synchronous `/teamFormation` calls with 60, 80, or 100 students (15–25 tasks) fail with `504 Gateway Time-out`. Use the background endpoint or chunk requests for anything above ~50 students.

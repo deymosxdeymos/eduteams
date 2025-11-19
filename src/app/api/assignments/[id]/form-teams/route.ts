@@ -7,6 +7,7 @@ import { callEdu2comBackgroundTeamFormation } from '@/lib/edu2com/api';
 import {
   getEdu2comBackgroundTimeoutMs,
   getEdu2comWeights,
+  normalizeWeights,
 } from '@/lib/edu2com/config';
 import type {
   Edu2comBackgroundParameters,
@@ -675,9 +676,11 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       `[Team Formation] Using background timeout ${backgroundTimeoutMs}ms`
     );
     try {
+      const normalizedWeights = normalizeWeights(weights);
       await callEdu2comWithRetry(
         {
           ...payload,
+          ...normalizedWeights,
           replyPostUrl,
         },
         { timeoutMs: backgroundTimeoutMs }

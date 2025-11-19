@@ -37,12 +37,39 @@ export function getEdu2comWeights(
     delta: parseWeightFromEnv('EDU2COM_DELTA_WEIGHT', DEFAULT_WEIGHTS.delta),
   };
 
-  return {
+  const rawWeights = {
     alpha: overrides.alpha ?? envBackedWeights.alpha,
     beta: overrides.beta ?? envBackedWeights.beta,
     gamma: overrides.gamma ?? envBackedWeights.gamma,
     delta: overrides.delta ?? envBackedWeights.delta,
   };
+
+  return rawWeights;
+}
+
+export function normalizeWeights(weights: Edu2comWeights): Edu2comWeights {
+  const total = weights.alpha + weights.beta + weights.gamma + weights.delta;
+
+  if (total <= 0) return weights;
+
+  // Normalize weights so they sum to 1.0
+  // This prevents quality scores > 1.0 when individual weights are high
+  if (Math.abs(total - 1.0) > 0.001) {
+    const normalized = {
+      alpha: weights.alpha / total,
+      beta: weights.beta / total,
+      gamma: weights.gamma / total,
+      delta: weights.delta / total,
+    };
+    console.warn(
+      `[Edu2com Config] Weights sum to ${total.toFixed(2)} (not 1.0). Normalizing to maintain quality scaling:`,
+      `[${weights.alpha}, ${weights.beta}, ${weights.gamma}, ${weights.delta}] ->`,
+      `[${normalized.alpha.toFixed(3)}, ${normalized.beta.toFixed(3)}, ${normalized.gamma.toFixed(3)}, ${normalized.delta.toFixed(3)}]`
+    );
+    return normalized;
+  }
+
+  return weights;
 }
 
 const BASE_BACKGROUND_TIMEOUT_MS = 120_000;
