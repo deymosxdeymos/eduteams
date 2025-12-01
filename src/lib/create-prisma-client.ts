@@ -1,7 +1,7 @@
-import { PrismaClient } from '@/generated/prisma';
-import type { Prisma } from '@/generated/prisma';
-import { withAccelerate } from '@prisma/extension-accelerate';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { withAccelerate } from '@prisma/extension-accelerate';
+import type { Prisma } from '@/generated/prisma';
+import { PrismaClient } from '@/generated/prisma';
 
 type PrismaClientOverrides = Prisma.PrismaClientOptions;
 
