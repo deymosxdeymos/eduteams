@@ -1,8 +1,8 @@
 import { createId } from '@paralleldrive/cuid2';
-import { PrismaClient } from '@/generated/prisma';
-import type { User, Course, Assignment, AssignmentSubmission } from '@/generated/prisma';
+import type { PrismaClient, User, Course, Assignment, AssignmentSubmission } from '@/generated/prisma';
+import { createPrismaClient } from '@/lib/create-prisma-client';
 
-const prisma = new PrismaClient();
+const prisma: PrismaClient = createPrismaClient();
 
 export async function createTestUser(overrides: Partial<User> = {}): Promise<User> {
   const timestamp = new Date();

@@ -193,13 +193,13 @@ console.error = (...args: any[]) => {
 
 import { beforeAll, afterAll } from 'bun:test';
 import { $ } from 'bun';
-import { PrismaClient } from '@/generated/prisma';
+import { createPrismaClient } from '@/lib/create-prisma-client';
 
 if (GREY_ENABLED) {
   beforeAll(async () => {
     const schema = globalThis.__TEST_SCHEMA__;
     const baseUrl = process.env.DATABASE_URL?.split('?')[0];
-    const tempPrisma = new PrismaClient({
+    const tempPrisma = createPrismaClient({
       datasources: { db: { url: baseUrl } },
     });
 

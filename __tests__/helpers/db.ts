@@ -1,6 +1,7 @@
-import { PrismaClient } from '@/generated/prisma';
+import type { PrismaClient } from '@/generated/prisma';
+import { createPrismaClient } from '@/lib/create-prisma-client';
 
-const prisma = new PrismaClient();
+const prisma: PrismaClient = createPrismaClient();
 
 export async function resetDatabase(): Promise<void> {
   const tables = await prisma.$queryRaw<Array<{ table_name: string }>>`

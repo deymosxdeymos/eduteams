@@ -1,31 +1,18 @@
-import { withAccelerate } from '@prisma/extension-accelerate';
-import { PrismaClient } from '@/generated/prisma';
+import type { PrismaClient } from '@/generated/prisma';
+import { createPrismaClient } from './create-prisma-client';
 
-const globalForPrisma = global as unknown as {
-  prisma: PrismaClient;
+const globalForPrisma = globalThis as typeof globalThis & {
+  prisma?: PrismaClient;
 };
 
-// Use accelerate only for cloud database (when DATABASE_URL contains 'prisma+postgres')
-const isCloudDatabase = process.env.DATABASE_URL?.includes('prisma+postgres');
-
 const prisma =
-  globalForPrisma.prisma ||
-  (isCloudDatabase
-    ? new PrismaClient({
-        log:
-          process.env.NODE_ENV === 'development'
-            ? ['error', 'warn']
-            : ['error'],
-        errorFormat: 'pretty',
-      }).$extends(withAccelerate())
-    : new PrismaClient({
-        log:
-          process.env.NODE_ENV === 'development'
-            ? ['error', 'warn']
-            : ['error'],
-        errorFormat: 'pretty',
-      }));
+  globalForPrisma.prisma ??
+  createPrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 
 export default prisma;

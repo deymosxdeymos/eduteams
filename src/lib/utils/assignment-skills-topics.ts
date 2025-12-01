@@ -2,35 +2,6 @@ import type { Prisma } from '@/generated/prisma';
 import prisma from '@/lib/prisma';
 
 /**
- * Normalize input which can be string | { name: string }
- * Returns unique, trimmed, non-empty names (case-insensitive dedup)
- */
-export function normalizeSkillsOrTopics(
-  input: Array<string | { name: string }> | undefined
-): string[] {
-  if (!input || input.length === 0) return [];
-
-  const names = input.map(item =>
-    typeof item === 'string' ? item.trim() : item.name.trim()
-  );
-
-  // Case-insensitive deduplication
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const name of names) {
-    if (name.length === 0 || name.length > 100) continue;
-    const lowerName = name.toLowerCase();
-    if (!seen.has(lowerName)) {
-      seen.add(lowerName);
-      result.push(name);
-    }
-  }
-
-  return result;
-}
-
-/**
  * Ensure skills exist globally and are linked to the course.
  * Creates missing Skill records and CourseSkill links idempotently.
  * @param courseId - The course to link skills to
