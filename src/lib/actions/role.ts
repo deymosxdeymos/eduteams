@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/api-utils';
 import { isInstitutionalEmail } from '@/lib/email';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
 
@@ -29,7 +30,6 @@ export async function submitRole(
     const validatedData = roleSchema.parse(rawData);
     const { role } = validatedData;
 
-    // Update user role and onboarding progress in a single transaction
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -38,11 +38,9 @@ export async function submitRole(
       },
     });
 
-    // Revalidate relevant paths
     revalidatePath('/dashboard');
     revalidatePath('/onboarding');
 
-    // Redirect to next step (domain-based for dosen)
     if (role === 'dosen') {
       if (isInstitutionalEmail(user.email)) {
         redirect('/onboarding/data-diri/dosen');
@@ -57,7 +55,6 @@ export async function submitRole(
       throw error;
     }
 
-    // Don't catch redirect errors - let them bubble up
     if (
       error &&
       typeof error === 'object' &&
@@ -68,7 +65,7 @@ export async function submitRole(
       throw error;
     }
 
-    console.error('Error submitting role:', error);
+    logger.error('Error submitting role:', error);
     throw new Error('Failed to submit role');
   }
 }
@@ -80,7 +77,6 @@ export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
       throw new AuthError('Authentication required');
     }
 
-    // Skip auto-assignment in development if flag is set and send users to manual selection
     if (process.env.DEV_DISABLE_AUTO_ROLE === 'true') {
       redirect('/onboarding/role');
     }
@@ -111,7 +107,7 @@ export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
       throw error;
     }
 
-    console.error('Error auto-assigning role:', error);
+    logger.error('Error auto-assigning role:', error);
     throw new Error('Failed to auto-assign role');
   }
 }

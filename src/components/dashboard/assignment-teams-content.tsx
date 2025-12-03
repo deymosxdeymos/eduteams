@@ -104,7 +104,7 @@ export function AssignmentTeamsContent({
                       id: m.user.id,
                       name: m.user.name,
                       email: m.user.email,
-                      mbtiType: m.user.mbtiType as unknown as string | null,
+                      mbtiType: m.user.mbtiType,
                       nim: m.user.nim,
                     },
                   }))}

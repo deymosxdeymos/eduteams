@@ -47,7 +47,6 @@ export async function getLatestSnapshotVersion(
 export async function invalidateAssignmentSubmissions(
   assignmentId: string
 ): Promise<number> {
-  // Get all student IDs who submitted
   const submissions = await prisma.assignmentSubmission.findMany({
     where: { assignmentId },
     select: { studentId: true },
@@ -59,9 +58,7 @@ export async function invalidateAssignmentSubmissions(
     return 0;
   }
 
-  // Delete in transaction to ensure data consistency
   await prisma.$transaction(async tx => {
-    // Delete assignment topic preferences
     await tx.assignmentTopicPreference.deleteMany({
       where: {
         topic: {
@@ -70,12 +67,10 @@ export async function invalidateAssignmentSubmissions(
       },
     });
 
-    // Delete assignment topics
     await tx.assignmentTopic.deleteMany({
       where: { assignmentId },
     });
 
-    // Delete assignment submissions
     await tx.assignmentSubmission.deleteMany({
       where: { assignmentId },
     });

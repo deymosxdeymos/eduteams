@@ -15,10 +15,8 @@ export const GET = withAuth<{ id: string }>(
     try {
       const { id } = await context.params;
 
-      // Fetch export data with authorization check
       const exportData = await getAssignmentExportData(id, context.user.id);
 
-      // Handle various error cases
       if (!exportData) {
         throw new HttpError(
           404,
@@ -26,17 +24,14 @@ export const GET = withAuth<{ id: string }>(
         );
       }
 
-      // Generate CSV
       const csvContent = generateTeamFormationCSV(exportData);
 
-      // Create filename with assignment title and date
       const date = new Date().toISOString().split('T')[0];
       const sanitizedTitle = exportData.assignmentTitle
         .replace(/[^a-z0-9]/gi, '-')
         .toLowerCase();
       const filename = `team-formation-${sanitizedTitle}-${date}.csv`;
 
-      // Return CSV file with proper headers
       return new NextResponse(csvContent, {
         status: 200,
         headers: {

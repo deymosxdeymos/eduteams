@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/api-utils';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
 
@@ -34,23 +35,20 @@ export async function submitDataDiri(
     const validatedData = dataDiriSchema.parse(rawData);
     const { namaLengkap, nim, jenisKelamin, role } = validatedData;
 
-    // Validate role-specific fields (only mahasiswa needs NIM, dosen doesn't need NPM)
     if (role === 'mahasiswa' && !nim) {
       throw new ValidationError('NIM is required for mahasiswa');
     }
 
-    // Convert UI gender to enum
     const gender = jenisKelamin === 'laki-laki' ? 'MALE' : 'FEMALE';
 
-    // Update user with data-diri information
     await prisma.user.update({
       where: { id: user.id },
       data: {
         name: namaLengkap,
-        nim: role === 'mahasiswa' ? nim : null, // Only mahasiswa has NIM
+        nim: role === 'mahasiswa' ? nim : null,
         role,
         gender,
-        isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
+        isOnboarded: role === 'dosen',
         onboardingStep: role === 'mahasiswa' ? 'kepribadian' : null,
       },
     });
@@ -58,7 +56,6 @@ export async function submitDataDiri(
     revalidatePath('/dashboard');
     revalidatePath('/onboarding');
 
-    // Navigate based on role
     if (role === 'mahasiswa') {
       redirect('/onboarding/kepribadian');
     } else {
@@ -69,7 +66,6 @@ export async function submitDataDiri(
       throw error;
     }
 
-    // Don't catch redirect errors - let them bubble up
     if (
       error &&
       typeof error === 'object' &&
@@ -80,7 +76,7 @@ export async function submitDataDiri(
       throw error;
     }
 
-    console.error('Error submitting data-diri:', error);
+    logger.error('Error submitting data-diri:', error);
     throw new Error('Failed to submit data-diri');
   }
 }
@@ -106,7 +102,6 @@ export async function getDataDiri(getCurrentUserImpl = getCurrentUser) {
       throw new Error('User not found');
     }
 
-    // Convert enum to UI format
     const jenisKelamin =
       currentUser.gender === 'MALE'
         ? 'laki-laki'
@@ -125,7 +120,7 @@ export async function getDataDiri(getCurrentUserImpl = getCurrentUser) {
       throw error;
     }
 
-    console.error('Error fetching data-diri:', error);
+    logger.error('Error fetching data-diri:', error);
     throw new Error('Failed to fetch data-diri');
   }
 }

@@ -161,12 +161,12 @@ export function withValidation<T>(
   schema: (data: unknown) => T,
   handler: (
     request: NextRequest,
-    context: { user?: ExtendedUser; validatedData: T }
+    context: { user: ExtendedUser; validatedData: T }
   ) => Promise<NextResponse>
 ) {
   return async (
     request: NextRequest,
-    context?: { user: ExtendedUser }
+    context: { user: ExtendedUser }
   ): Promise<NextResponse> => {
     try {
       const body = await request.json();

@@ -210,19 +210,13 @@ export async function AssignmentDetailAsync({
         })),
       }));
 
-      // Try to extract taskId mapping from responseData
-      try {
-        const resp = latest.responseData as unknown as {
-          teams?: Array<{ taskId: string }>;
-        } | null;
-        if (resp?.teams?.length) {
-          taskIdByIndex = resp.teams.map(t => t.taskId);
-        }
-      } catch {
-        // ignore
+      const resp = latest.responseData as {
+        teams?: Array<{ taskId: string }>;
+      } | null;
+      if (resp?.teams?.length) {
+        taskIdByIndex = resp.teams.map(t => t.taskId);
       }
 
-      // If taskId looks like assignmentTopic id, fetch names
       if (taskIdByIndex.length) {
         const topicRecordsWithNames = await prisma.assignmentTopic.findMany({
           where: { assignmentId, id: { in: taskIdByIndex } },

@@ -44,7 +44,6 @@ export async function callEdu2comTeamFormation(
     try {
       data = JSON.parse(text);
     } catch {
-      // If response is not JSON, throw
       throw new HttpError(
         res.status,
         text || 'Invalid response from Edu2com',

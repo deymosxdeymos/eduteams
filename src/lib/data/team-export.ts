@@ -13,7 +13,6 @@ export async function getAssignmentExportData(
   assignmentId: string,
   userId: string
 ): Promise<AssignmentExportData | null> {
-  // Fetch assignment with course and verify ownership
   const assignment = await prisma.assignment.findFirst({
     where: {
       id: assignmentId,
@@ -124,12 +123,10 @@ export async function getAssignmentExportData(
 
   const teamFormationRequest = assignment.teamFormationRequests[0];
 
-  // Return null if no teams in the formation
   if (teamFormationRequest.teams.length === 0) {
     return null;
   }
 
-  // Create a map of topic IDs to topic names for quick lookup
   const topicMap = new Map(
     assignment.AssignmentTopic.map(topic => [topic.id, topic.name])
   );

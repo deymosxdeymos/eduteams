@@ -10,10 +10,8 @@ import { canAccessDosenFeatures } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import prisma from '@/lib/prisma';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
-// DELETE /api/courses/[id]/students/[studentId]
 export const DELETE = withAuth<{ id: string; studentId: string }>(
   async (_request: NextRequest, { user, params }) => {
     try {
@@ -22,10 +20,6 @@ export const DELETE = withAuth<{ id: string; studentId: string }>(
 
       const { id: courseId, studentId } = await params;
 
-      if (!courseId || !studentId)
-        return createErrorResponse('Invalid path', 400);
-
-      // Ensure this course belongs to the requesting dosen
       const course = await prisma.course.findFirst({
         where: { id: courseId, dosenId: user.id },
       });
@@ -41,7 +35,6 @@ export const DELETE = withAuth<{ id: string; studentId: string }>(
         where: { courseId_studentId: { courseId, studentId } },
       });
 
-      // Revalidate caches for dosen courses view and student's classes view
       revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
       revalidateTag(CACHE_TAGS.studentClasses(studentId));
 

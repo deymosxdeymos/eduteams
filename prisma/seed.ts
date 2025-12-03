@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Prisma } from '@/generated/prisma';
+import { PersonalityAxis, type Prisma } from '@/generated/prisma';
 import prisma from '@/lib/prisma';
 
 type PersonalityQuestionSeed = {
@@ -179,47 +179,28 @@ const OJTS_REQUIRED_REVERSED_ORDER_HINTS = new Set([
 ]);
 const DIMENSION_MAP: Record<
   PersonalityQuestionSeed['dimension'],
-  | 'EI'
-  | 'SN'
-  | 'TF'
-  | 'PJ'
-  | 'I'
-  | 'E'
-  | 'S'
-  | 'N'
-  | 'F'
-  | 'T'
-  | 'J'
-  | 'P'
-  | 'NJ'
-  | 'NP'
-  | 'SJ'
-  | 'SP'
-  | 'EF'
-  | 'ET'
-  | 'IF'
-  | 'IT'
+  PersonalityAxis
 > = {
-  ei: 'EI',
-  sn: 'SN',
-  tf: 'TF',
-  pj: 'PJ',
-  i: 'I',
-  e: 'E',
-  s: 'S',
-  n: 'N',
-  f: 'F',
-  t: 'T',
-  j: 'J',
-  p: 'P',
-  nj: 'NJ',
-  np: 'NP',
-  sj: 'SJ',
-  sp: 'SP',
-  ef: 'EF',
-  et: 'ET',
-  if: 'IF',
-  it: 'IT',
+  ei: PersonalityAxis.EI,
+  sn: PersonalityAxis.SN,
+  tf: PersonalityAxis.TF,
+  pj: PersonalityAxis.PJ,
+  i: PersonalityAxis.I,
+  e: PersonalityAxis.E,
+  s: PersonalityAxis.S,
+  n: PersonalityAxis.N,
+  f: PersonalityAxis.F,
+  t: PersonalityAxis.T,
+  j: PersonalityAxis.J,
+  p: PersonalityAxis.P,
+  nj: PersonalityAxis.NJ,
+  np: PersonalityAxis.NP,
+  sj: PersonalityAxis.SJ,
+  sp: PersonalityAxis.SP,
+  ef: PersonalityAxis.EF,
+  et: PersonalityAxis.ET,
+  if: PersonalityAxis.IF,
+  it: PersonalityAxis.IT,
 };
 function validateOJTSStructure(
   items: ReadonlyArray<OJTSPersonalityQuestion>

@@ -15,10 +15,8 @@ import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
 import prisma from '@/lib/prisma';
 import { AssignmentCreateSchema } from '@/lib/validation/assignments';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
-// GET /api/courses/[id]/assignments
 export const GET = withAuth<{ id: string }>(
   async (_request: NextRequest, { user, params }) => {
     try {
@@ -30,7 +28,6 @@ export const GET = withAuth<{ id: string }>(
       if (!isDosen && !isMahasiswa)
         return createErrorResponse('Access denied', 403);
 
-      // Authorization: dosen must own the course; students must be enrolled
       if (isDosen) {
         const course = await prisma.course.findFirst({
           where: { id: courseId, dosenId: user.id },
@@ -96,7 +93,6 @@ export const POST = withAuth<{ id: string }>(
     try {
       const { id: courseId } = await params;
 
-      // Only dosen can create assignments for their course
       const isDosen = canAccessDosenFeatures(user);
       if (!isDosen) return createErrorResponse('Access denied', 403);
 
@@ -108,7 +104,6 @@ export const POST = withAuth<{ id: string }>(
       const raw = await request.json();
       const data = AssignmentCreateSchema.parse(raw);
 
-      // Persist skills/topics inside description JSON so downstream stats/UI can read them.
       const cleanedSkills = (data.skills || [])
         .map(s => s.trim())
         .filter(Boolean);

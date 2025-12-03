@@ -65,7 +65,6 @@ const toLikertValue = (
 ): number | undefined => {
   if (value == null) return undefined;
   const denorm = Math.round(value * 4) + 1;
-  if (Number.isNaN(denorm)) return undefined;
   return Math.min(5, Math.max(1, denorm));
 };
 
@@ -220,7 +219,6 @@ export function AssignmentQuizClient({
       const skills = assignment.skills
         .map((name, idx) => {
           const normalized = toNorm(state.skillsAnswers[idx]);
-          if (!Number.isFinite(normalized)) return null;
           const prefill = assignment.skillPrefills[idx];
           return {
             name,
@@ -244,7 +242,6 @@ export function AssignmentQuizClient({
       const topics = assignment.topics
         .map((name, idx) => {
           const normalized = toNorm(state.topicsAnswers[idx]);
-          if (!Number.isFinite(normalized)) return null;
           const prefill = assignment.topicPrefills[idx];
           return {
             name,

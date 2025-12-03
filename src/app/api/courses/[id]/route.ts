@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 import {
   createApiResponse,
   createErrorResponse,
-  handleApiError,
   withAuth,
 } from '@/lib/api-utils';
 import {
@@ -14,9 +13,7 @@ import { CACHE_TAGS } from '@/lib/cache-tags';
 import prisma from '@/lib/prisma';
 import { courseUpdateSchema } from '@/lib/validation/course';
 
-// Cache for 10 minutes since course data doesn't change frequently
 export const revalidate = 600;
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 type CourseWithDosen = {
@@ -51,11 +48,10 @@ export const GET = withAuth<{ id: string }>(
     let course: CourseWithDosen | null = null;
 
     if (isDosen) {
-      // Dosen can only access their own courses
       course = await prisma.course.findFirst({
         where: {
           id,
-          dosenId: user?.id,
+          dosenId: user.id,
         },
         include: {
           dosen: {
@@ -68,7 +64,6 @@ export const GET = withAuth<{ id: string }>(
         },
       });
     } else if (isMahasiswa) {
-      // Students can only access courses they're enrolled in
       const enrollment = await prisma.courseEnrollment.findUnique({
         where: {
           courseId_studentId: {
@@ -182,46 +177,39 @@ export const PATCH = withAuth<{ id: string }>(
 
 export const DELETE = withAuth<{ id: string }>(
   async (_request: NextRequest, { user, params }) => {
-    try {
-      if (!canAccessDosenFeatures(user)) {
-        return createErrorResponse('Only dosen can delete courses', 403);
-      }
-
-      const { id } = await params;
-      if (!id) {
-        return createErrorResponse('Course ID is required', 400);
-      }
-
-      const course = await prisma.course.findUnique({
-        where: { id },
-        select: { id: true, dosenId: true },
-      });
-
-      if (!course) {
-        return createErrorResponse('Course not found', 404);
-      }
-
-      if (course.dosenId !== user.id) {
-        return createErrorResponse('Access denied', 403);
-      }
-
-      const enrollments = await prisma.courseEnrollment.findMany({
-        where: { courseId: id },
-        select: { studentId: true },
-      });
-
-      await prisma.course.delete({ where: { id } });
-
-      revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
-
-      const studentIds = new Set(enrollments.map(({ studentId }) => studentId));
-      for (const studentId of studentIds) {
-        revalidateTag(CACHE_TAGS.studentClasses(studentId));
-      }
-
-      return createApiResponse({ removed: true }, 'Course deleted');
-    } catch (error) {
-      return handleApiError(error);
+    if (!canAccessDosenFeatures(user)) {
+      return createErrorResponse('Only dosen can delete courses', 403);
     }
+
+    const { id } = await params;
+
+    const course = await prisma.course.findUnique({
+      where: { id },
+      select: { id: true, dosenId: true },
+    });
+
+    if (!course) {
+      return createErrorResponse('Course not found', 404);
+    }
+
+    if (course.dosenId !== user.id) {
+      return createErrorResponse('Access denied', 403);
+    }
+
+    const enrollments = await prisma.courseEnrollment.findMany({
+      where: { courseId: id },
+      select: { studentId: true },
+    });
+
+    await prisma.course.delete({ where: { id } });
+
+    revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
+
+    const studentIds = new Set(enrollments.map(({ studentId }) => studentId));
+    for (const studentId of studentIds) {
+      revalidateTag(CACHE_TAGS.studentClasses(studentId));
+    }
+
+    return createApiResponse({ removed: true }, 'Course deleted');
   }
 );

@@ -87,9 +87,7 @@ export function detectArrayChanges(
     }
   }
 
-  // Detect potential renames (simple heuristic: Levenshtein distance or substring match)
-  // For now, we'll use a simple approach: if one item was removed and one was added,
-  // and they're similar enough, consider it a rename
+  // Detect potential renames using simple heuristic
   if (removed.length === 1 && added.length === 1) {
     const old = removed[0];
     const newItem = added[0];

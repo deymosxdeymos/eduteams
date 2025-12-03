@@ -11,7 +11,6 @@ import { isSameOrigin } from '@/lib/csrf';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 async function leaveClass(
@@ -22,7 +21,6 @@ async function leaveClass(
     return createErrorResponse('Access denied', 403);
   }
 
-  // Basic CSRF protection for browser-initiated POSTs
   if (!isSameOrigin(request)) {
     return createErrorResponse('Invalid origin', 403);
   }
@@ -34,7 +32,6 @@ async function leaveClass(
   }
 
   try {
-    // Check if enrollment exists
     const enrollment = await prisma.courseEnrollment.findUnique({
       where: {
         courseId_studentId: {
@@ -58,7 +55,6 @@ async function leaveClass(
       return createErrorResponse('You are not enrolled in this class.', 404);
     }
 
-    // Delete the enrollment
     await prisma.courseEnrollment.delete({
       where: {
         courseId_studentId: {
@@ -68,7 +64,6 @@ async function leaveClass(
       },
     });
 
-    // Revalidate caches
     revalidateTag(CACHE_TAGS.coursesByDosen(enrollment.course.dosenId));
     revalidateTag(CACHE_TAGS.studentClasses(user.id));
 

@@ -11,7 +11,6 @@ import { isSameOrigin } from '@/lib/csrf';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 async function joinClass(
@@ -22,7 +21,6 @@ async function joinClass(
     return createErrorResponse('Access denied', 403);
   }
 
-  // Basic CSRF protection for browser-initiated POSTs
   if (!isSameOrigin(request)) {
     return createErrorResponse('Invalid origin', 403);
   }
@@ -34,7 +32,6 @@ async function joinClass(
   }
 
   try {
-    // Find the course by share token
     const course = await prisma.course.findUnique({
       where: {
         shareToken: token.trim(),
@@ -52,7 +49,6 @@ async function joinClass(
       return createErrorResponse('Invalid token. Class not found.', 404);
     }
 
-    // Check if student is already enrolled
     const existingEnrollment = await prisma.courseEnrollment.findUnique({
       where: {
         courseId_studentId: {
@@ -69,7 +65,6 @@ async function joinClass(
       );
     }
 
-    // Create enrollment
     await prisma.courseEnrollment.create({
       data: {
         courseId: course.id,
@@ -77,7 +72,6 @@ async function joinClass(
       },
     });
 
-    // Revalidate the dosen's courses cache so student count updates
     revalidateTag(CACHE_TAGS.coursesByDosen(course.dosenId));
 
     return createApiResponse({

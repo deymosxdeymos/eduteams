@@ -24,9 +24,7 @@ const _PERSONALITY_DIMENSIONS = ['ei', 'sn', 'tf', 'pj'] as const;
 const PersonalityScoreSchema = z
   .number()
   .min(-1.0, 'Personality score must be between -1.0 and 1.0')
-  .max(1.0, 'Personality score must be between -1.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Personality score must be a valid number')
-  .refine(val => Number.isFinite(val), 'Personality score must be finite');
+  .max(1.0, 'Personality score must be between -1.0 and 1.0');
 
 export const MBTITypeSchema = z.enum(MBTI_TYPES, {
   message: 'Invalid MBTI type. Must be one of the 16 valid types.',
@@ -41,7 +39,7 @@ export const PersonalityScoresSchema = z
   })
   .strict();
 
-const PartialPersonalityScoresSchema = z
+const _PartialPersonalityScoresSchema = z
   .object({
     ei: PersonalityScoreSchema.optional(),
     sn: PersonalityScoreSchema.optional(),
@@ -89,7 +87,7 @@ const PersonalityDataSchema = z
     return Object.keys(data).length > 0;
   }, 'PersonalityData must contain at least one field (answers, scores, or metadata)');
 
-const CompletePersonalityDataSchema = z
+const _CompletePersonalityDataSchema = z
   .object({
     answers: AnswerRecordSchema,
     scores: PersonalityScoresSchema,
@@ -129,70 +127,52 @@ export const UserPersonalityUpdateSchema = z
     }
 
     return true;
-  }, 'If any personality score is provided, all scores (ei, sn, tf, pj) must be provided. MBTI type requires all scores.');
+  }, 'All personality scores must be provided together');
 
 const SkillLevelSchema = z
   .number()
   .min(0.0, 'Skill level must be between 0.0 and 10.0')
-  .max(10.0, 'Skill level must be between 0.0 and 10.0')
-  .refine(val => !Number.isNaN(val), 'Skill level must be a valid number')
-  .refine(val => Number.isFinite(val), 'Skill level must be finite');
+  .max(10.0, 'Skill level must be between 0.0 and 10.0');
 
 const PreferenceSchema = z
   .number()
   .min(-1.0, 'Preference must be between -1.0 and 1.0')
-  .max(1.0, 'Preference must be between -1.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Preference must be a valid number')
-  .refine(val => Number.isFinite(val), 'Preference must be finite');
+  .max(1.0, 'Preference must be between -1.0 and 1.0');
 
 const SimilaritySchema = z
   .number()
   .min(0.0, 'Similarity must be between 0.0 and 1.0')
-  .max(1.0, 'Similarity must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Similarity must be a valid number')
-  .refine(val => Number.isFinite(val), 'Similarity must be finite');
+  .max(1.0, 'Similarity must be between 0.0 and 1.0');
 
 const ImportanceSchema = z
   .number()
   .min(0.0, 'Importance must be between 0.0 and 1.0')
-  .max(1.0, 'Importance must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Importance must be a valid number')
-  .refine(val => Number.isFinite(val), 'Importance must be finite');
+  .max(1.0, 'Importance must be between 0.0 and 1.0');
 
 const QualitySchema = z
   .number()
   .min(0.0, 'Quality must be between 0.0 and 1.0')
-  .max(1.0, 'Quality must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Quality must be a valid number')
-  .refine(val => Number.isFinite(val), 'Quality must be finite');
+  .max(1.0, 'Quality must be between 0.0 and 1.0');
 
 const AlphaSchema = z
   .number()
   .min(0.0, 'Alpha must be between 0.0 and 1.0')
-  .max(1.0, 'Alpha must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Alpha must be a valid number')
-  .refine(val => Number.isFinite(val), 'Alpha must be finite');
+  .max(1.0, 'Alpha must be between 0.0 and 1.0');
 
 const BetaSchema = z
   .number()
   .min(0.0, 'Beta must be between 0.0 and 1.0')
-  .max(1.0, 'Beta must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Beta must be a valid number')
-  .refine(val => Number.isFinite(val), 'Beta must be finite');
+  .max(1.0, 'Beta must be between 0.0 and 1.0');
 
 const GammaSchema = z
   .number()
   .min(0.0, 'Gamma must be between 0.0 and 1.0')
-  .max(1.0, 'Gamma must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Gamma must be a valid number')
-  .refine(val => Number.isFinite(val), 'Gamma must be finite');
+  .max(1.0, 'Gamma must be between 0.0 and 1.0');
 
 const DeltaSchema = z
   .number()
   .min(0.0, 'Delta must be between 0.0 and 1.0')
-  .max(1.0, 'Delta must be between 0.0 and 1.0')
-  .refine(val => !Number.isNaN(val), 'Delta must be a valid number')
-  .refine(val => Number.isFinite(val), 'Delta must be finite');
+  .max(1.0, 'Delta must be between 0.0 and 1.0');
 
 const TeamSizeSchema = z
   .number()
@@ -200,7 +180,7 @@ const TeamSizeSchema = z
   .min(1, 'Team size must be at least 1')
   .max(100, 'Team size must not exceed 100');
 
-const PersonSkillCreateSchema = z
+const _PersonSkillCreateSchema = z
   .object({
     personId: z.string().uuid('Person ID must be a valid UUID'),
     skillId: z.string().uuid('Skill ID must be a valid UUID'),
@@ -208,7 +188,7 @@ const PersonSkillCreateSchema = z
   })
   .strict();
 
-const PersonPreferenceCreateSchema = z
+const _PersonPreferenceCreateSchema = z
   .object({
     personId: z.string().uuid('Person ID must be a valid UUID'),
     preferredPersonId: z
@@ -221,7 +201,7 @@ const PersonPreferenceCreateSchema = z
     return data.personId !== data.preferredPersonId;
   }, 'A person cannot have a preference for themselves');
 
-const TaskPreferenceCreateSchema = z
+const _TaskPreferenceCreateSchema = z
   .object({
     taskId: z.string().uuid('Task ID must be a valid UUID'),
     personId: z.string().uuid('Person ID must be a valid UUID'),
@@ -229,7 +209,7 @@ const TaskPreferenceCreateSchema = z
   })
   .strict();
 
-const SkillSimilarityCreateSchema = z
+const _SkillSimilarityCreateSchema = z
   .object({
     sourceId: z.string().uuid('Source skill ID must be a valid UUID'),
     targetId: z.string().uuid('Target skill ID must be a valid UUID'),
@@ -240,7 +220,7 @@ const SkillSimilarityCreateSchema = z
     return data.sourceId !== data.targetId;
   }, 'A skill cannot have similarity with itself');
 
-const TaskSkillCreateSchema = z
+const _TaskSkillCreateSchema = z
   .object({
     taskId: z.string().uuid('Task ID must be a valid UUID'),
     skillId: z.string().uuid('Skill ID must be a valid UUID'),
@@ -249,7 +229,7 @@ const TaskSkillCreateSchema = z
   })
   .strict();
 
-const TeamFormationRequestCreateSchema = z
+const _TeamFormationRequestCreateSchema = z
   .object({
     ownerId: z.string().uuid('Owner ID must be a valid UUID'),
     alpha: AlphaSchema.optional(),
@@ -257,12 +237,12 @@ const TeamFormationRequestCreateSchema = z
     gamma: GammaSchema.optional(),
     delta: DeltaSchema.optional(),
     initRandom: z.boolean().default(false),
-    requestData: z.any().optional(),
+    requestData: z.record(z.string(), z.unknown()).optional(),
     replyPostUrl: z.string().url().optional(),
   })
   .strict();
 
-const TeamCreateSchema = z
+const _TeamCreateSchema = z
   .object({
     teamFormationRequestId: z
       .string()
@@ -273,7 +253,7 @@ const TeamCreateSchema = z
   })
   .strict();
 
-const TaskCreateSchema = z
+const _TaskCreateSchema = z
   .object({
     name: z.string().min(1, 'Task name must not be empty'),
     description: z.string().optional(),
@@ -281,21 +261,4 @@ const TaskCreateSchema = z
   })
   .strict();
 
-type _PersonalityScores = z.infer<typeof PersonalityScoresSchema>;
-type _PartialPersonalityScores = z.infer<typeof PartialPersonalityScoresSchema>;
 export type MBTIType = z.infer<typeof MBTITypeSchema>;
-type _AnswerRecord = z.infer<typeof AnswerRecordSchema>;
-type _PersonalityMetadata = z.infer<typeof PersonalityMetadataSchema>;
-type _PersonalityData = z.infer<typeof PersonalityDataSchema>;
-type _CompletePersonalityData = z.infer<typeof CompletePersonalityDataSchema>;
-type _UserPersonalityUpdate = z.infer<typeof UserPersonalityUpdateSchema>;
-type _PersonSkillCreate = z.infer<typeof PersonSkillCreateSchema>;
-type _PersonPreferenceCreate = z.infer<typeof PersonPreferenceCreateSchema>;
-type _TaskPreferenceCreate = z.infer<typeof TaskPreferenceCreateSchema>;
-type _SkillSimilarityCreate = z.infer<typeof SkillSimilarityCreateSchema>;
-type _TaskSkillCreate = z.infer<typeof TaskSkillCreateSchema>;
-type _TeamFormationRequestCreate = z.infer<
-  typeof TeamFormationRequestCreateSchema
->;
-type _TeamCreate = z.infer<typeof TeamCreateSchema>;
-type _TaskCreate = z.infer<typeof TaskCreateSchema>;

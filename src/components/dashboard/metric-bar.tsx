@@ -19,10 +19,7 @@ export function MetricBar({
   isRightAligned = false,
   colorScheme,
 }: MetricBarProps) {
-  const validPercentage =
-    Number.isNaN(percentage) || percentage < 0 || percentage > 100
-      ? 50
-      : percentage;
+  const validPercentage = Math.max(0, Math.min(100, percentage));
 
   return (
     <div className='space-y-2'>

@@ -12,7 +12,6 @@ interface StudentManageContentProps {
 export async function StudentManageContent({
   user,
 }: StudentManageContentProps) {
-  // Get all courses the student is enrolled in
   const enrollments = await prisma.courseEnrollment.findMany({
     where: { studentId: user.id },
     select: {
@@ -32,7 +31,6 @@ export async function StudentManageContent({
   const courseIds = enrollments.map(e => e.courseId);
 
   if (courseIds.length === 0) {
-    // No enrolled courses
     return (
       <section className='flex h-full flex-col rounded-3xl bg-white px-6 py-6'>
         <div className='mb-6'>
@@ -51,7 +49,6 @@ export async function StudentManageContent({
     );
   }
 
-  // Get all active (non-archived) assignments for these courses
   const assignments = await prisma.assignment.findMany({
     where: {
       courseId: { in: courseIds },
@@ -102,7 +99,6 @@ export async function StudentManageContent({
     orderBy: { createdAt: 'desc' },
   });
 
-  // Get all submissions for this student (excluding those that need updates)
   const submissions = await prisma.assignmentSubmission.findMany({
     where: {
       studentId: user.id,
@@ -131,9 +127,7 @@ export async function StudentManageContent({
           if (resp?.teams?.length) {
             taskIdByIndex = resp.teams.map(t => t.taskId);
           }
-        } catch {
-          // ignore
-        }
+        } catch {}
 
         if (taskIdByIndex.length === 0) {
           return { assignmentId: assignment.id, topics: [] };

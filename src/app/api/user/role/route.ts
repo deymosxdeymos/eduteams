@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
-// Prisma requires Node.js runtime
+
 export const runtime = 'nodejs';
 
 const roleSchema = z.object({
@@ -15,9 +15,8 @@ export const POST = withAuth(
     async (_request: NextRequest, { user, validatedData }) => {
       const { role } = validatedData;
 
-      // Update user role in database
       await prisma.user.update({
-        where: { id: user?.id },
+        where: { id: user.id },
         data: { role },
       });
 

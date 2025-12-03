@@ -10,14 +10,7 @@ export type StudentAssignmentStatus = 'my-group' | 'waiting' | 'not-started';
 
 /**
  * Determines the student's status for a specific assignment
- *
- * @param input - Object containing assignment status, submission status, and team membership
- * @returns One of: 'my-group', 'waiting', or 'not-started'
- *
- * Logic:
- * - 'my-group': Student is assigned to a team (team formation completed and student is in a team)
- * - 'waiting': Student has submitted and is waiting for team formation
- * - 'not-started': Student hasn't submitted yet (regardless of assignment status)
+ * @returns 'my-group' | 'waiting' | 'not-started'
  */
 export function getStudentAssignmentStatus(
   input: StatusDetectionInput

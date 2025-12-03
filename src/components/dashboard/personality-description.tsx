@@ -93,13 +93,6 @@ const PERSONALITY_DESCRIPTIONS = {
 export function PersonalityDescription({ user }: PersonalityDescriptionProps) {
   const colorScheme = getMBTIColorScheme(user.mbtiType);
 
-  // Debug logging
-  console.log('PersonalityDescription:', {
-    userMbtiType: user.mbtiType,
-    userMbtiTypeType: typeof user.mbtiType,
-    hasPersonality: !!user.mbtiType,
-  });
-
   // Don't show anything if user doesn't have an MBTI type
   if (!user.mbtiType) {
     return (
@@ -118,13 +111,6 @@ export function PersonalityDescription({ user }: PersonalityDescriptionProps) {
   }
 
   const personality = PERSONALITY_DESCRIPTIONS[user.mbtiType];
-
-  // Debug logging for found personality
-  console.log('PersonalityDescription found:', {
-    mbtiType: user.mbtiType,
-    personalityTitle: personality?.title,
-    hasPersonality: !!personality,
-  });
 
   return (
     <div

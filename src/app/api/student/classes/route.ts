@@ -8,7 +8,6 @@ import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 async function getStudentClasses(
@@ -20,7 +19,6 @@ async function getStudentClasses(
   }
 
   try {
-    // Fetch enrolled courses for the student
     const enrollments = await prisma.courseEnrollment.findMany({
       where: {
         studentId: user.id,

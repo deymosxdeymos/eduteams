@@ -97,7 +97,6 @@ function resolveAnswerValue(
   questionId: string,
   orderIndex: number
 ): number | undefined {
-  // Accept both UUID keyed answers and legacy ordinal keys ("1", "2", ...)
   if (Object.hasOwn(answers, questionId)) {
     return answers[questionId];
   }

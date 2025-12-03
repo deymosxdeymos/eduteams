@@ -8,7 +8,7 @@ import {
 } from '@/lib/mbti-questions-simple';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
 import prisma from '@/lib/prisma';
-// Prisma requires Node.js runtime
+
 export const runtime = 'nodejs';
 
 const completeOnboardingSchema = z.object({
@@ -68,9 +68,8 @@ export const POST = withAuth(
     async (_request: NextRequest, { user, validatedData }) => {
       const { answers } = validatedData;
 
-      // Get current user to check role
       const currentUser = await prisma.user.findUnique({
-        where: { id: user?.id },
+        where: { id: user.id },
         select: { role: true },
       });
 
@@ -80,7 +79,6 @@ export const POST = withAuth(
 
       const updateData: Record<string, unknown> = { isOnboarded: true };
 
-      // If user is mahasiswa and provided answers, calculate personality scores
       if (currentUser.role === 'mahasiswa' && answers) {
         const bank = await resolveBankForAnswers(answers);
         if (!bank) {
@@ -134,9 +132,8 @@ export const POST = withAuth(
         } as unknown as PrismaNS.InputJsonValue;
       }
 
-      // Mark user as fully onboarded and save personality data if applicable
       await prisma.user.update({
-        where: { id: user?.id },
+        where: { id: user.id },
         data: updateData,
       });
 

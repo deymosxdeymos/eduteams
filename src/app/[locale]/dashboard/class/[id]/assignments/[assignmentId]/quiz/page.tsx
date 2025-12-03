@@ -338,27 +338,6 @@ export default async function AssignmentQuizPage({
       number
     >;
 
-    // Debug logs to inspect answers mapping in dev server
-    try {
-      const keys = Object.keys(personalityAnswers);
-      console.log(
-        '[LihatJawaban][kepribadian] userId=%s keys=%d sample=%o',
-        user.id,
-        keys.length,
-        keys.slice(0, 5)
-      );
-      console.log(
-        '[LihatJawaban][kepribadian] q0=%o',
-        mbtiQuestions[0]
-          ? {
-              id: mbtiQuestions[0].id,
-              orderHint: mbtiQuestions[0].orderHint,
-              text: mbtiQuestions[0].text,
-            }
-          : null
-      );
-    } catch {}
-
     const category = getMBTICategory(user.mbtiType);
     const underlineClass =
       category === 'diplomats'

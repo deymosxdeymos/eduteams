@@ -46,7 +46,6 @@ export async function handleAuthRedirect(): Promise<ExtendedUser | null> {
     return null;
   }
 
-  // Check if user needs to complete onboarding
   if (permissions.needsOnboarding(user)) {
     const redirectPath = getRedirectPath(user);
     redirect(redirectPath);

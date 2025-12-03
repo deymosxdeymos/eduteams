@@ -11,7 +11,6 @@ export async function GET() {
       return NextResponse.json({ count: 0 });
     }
 
-    // Get all courses the student is enrolled in
     const enrollments = await prisma.courseEnrollment.findMany({
       where: { studentId: user.id },
       select: { courseId: true },
@@ -23,7 +22,6 @@ export async function GET() {
       return NextResponse.json({ count: 0 });
     }
 
-    // Get all active assignments
     const assignments = await prisma.assignment.findMany({
       where: {
         courseId: { in: courseIds },
@@ -55,7 +53,6 @@ export async function GET() {
       },
     });
 
-    // Get all submissions for this student (excluding those that need updates)
     const submissions = await prisma.assignmentSubmission.findMany({
       where: {
         studentId: user.id,

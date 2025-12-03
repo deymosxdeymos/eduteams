@@ -7,9 +7,7 @@ import {
 import prisma from '@/lib/prisma';
 import { HttpError } from '@/lib/types';
 
-// Cache for 10 minutes since student lists don't change frequently
 export const revalidate = 600;
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 export async function GET(
@@ -31,11 +29,9 @@ export async function GET(
 
     const { id: courseId } = await params;
 
-    // Verify access to the course
     let hasAccess = false;
 
     if (isDosen) {
-      // Dosen can access their own courses
       const course = await prisma.course.findUnique({
         where: {
           id: courseId,
@@ -44,7 +40,6 @@ export async function GET(
       });
       hasAccess = !!course;
     } else if (isMahasiswa) {
-      // Students can access courses they're enrolled in
       const enrollment = await prisma.courseEnrollment.findUnique({
         where: {
           courseId_studentId: {
@@ -60,7 +55,6 @@ export async function GET(
       throw new HttpError(404, 'Course not found or access denied');
     }
 
-    // Fetch all students enrolled in the course
     const enrollments = await prisma.courseEnrollment.findMany({
       where: {
         courseId: courseId,

@@ -15,6 +15,7 @@ import {
   getMBTIType,
 } from '__tests__/helpers/dev-data-generators';
 import { z } from 'zod';
+import type { Prisma } from '@/generated/prisma';
 import prisma from '@/lib/prisma';
 
 const SUPPORTED_PERSONALITY_LOCALES = ['id-ID', 'en-US'] as const;

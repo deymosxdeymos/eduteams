@@ -172,7 +172,6 @@ export function MBTIOverviewLayout({
             <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-4'} h-full`}>
               {/* mbti list stuff */}
               <div className={`flex flex-col gap-y-6 shrink-0`}>
-                {/* purple */}
                 <div className={`flex gap-x-3`}>
                   <div
                     onClick={() => handleMBTIClick('INTJ')}
@@ -275,7 +274,6 @@ export function MBTIOverviewLayout({
                     />
                   </div>
                 </div>
-                {/* green */}
                 <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-3'}`}>
                   <div
                     onClick={() => handleMBTIClick('INFJ')}
@@ -378,7 +376,6 @@ export function MBTIOverviewLayout({
                     />
                   </div>
                 </div>
-                {/* blue */}
                 <div className={`flex ${isCompact ? 'gap-x-2' : 'gap-x-3'}`}>
                   <div
                     onClick={() => handleMBTIClick('ISTJ')}
@@ -481,7 +478,6 @@ export function MBTIOverviewLayout({
                     />
                   </div>
                 </div>
-                {/* amber */}
                 <div className='flex gap-x-2'>
                   <div
                     onClick={() => handleMBTIClick('ISTP')}

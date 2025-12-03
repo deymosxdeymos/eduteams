@@ -13,7 +13,7 @@ function isAbortError(error: unknown): error is Error {
   if (!(error instanceof Error)) return false;
   return (
     error.name === 'AbortError' ||
-    error.message?.toLowerCase?.().includes('aborted')
+    error.message?.toLowerCase().includes('aborted')
   );
 }
 
@@ -38,10 +38,6 @@ function normalizeGender(g: unknown): 'MALE' | 'FEMALE' | undefined {
     v === 'p'
   )
     return 'FEMALE';
-  // Already in expected form
-  if (v === 'male'.toLowerCase() || v === 'female'.toLowerCase())
-    return v.toUpperCase() as 'MALE' | 'FEMALE';
-  if (v === 'ma le') return 'MALE';
   return undefined;
 }
 
@@ -190,15 +186,14 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       );
     }
 
-    // Build people payload as required by openapi.json
     const people = students.map(s => ({
       id: s.id,
       gender: normalizeGender(s.gender ?? undefined),
       personality: {
-        ei: Number.isFinite(s.ei ?? 0) ? (s.ei ?? 0) : 0,
-        sn: Number.isFinite(s.sn ?? 0) ? (s.sn ?? 0) : 0,
-        tf: Number.isFinite(s.tf ?? 0) ? (s.tf ?? 0) : 0,
-        pj: Number.isFinite(s.pj ?? 0) ? (s.pj ?? 0) : 0,
+        ei: s.ei ?? 0,
+        sn: s.sn ?? 0,
+        tf: s.tf ?? 0,
+        pj: s.pj ?? 0,
       },
       skills: (s.personSkills || [])
         .filter(ps => declaredSkillIds.includes(ps.skillId))
@@ -386,7 +381,6 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       }
 
       tasks = groupSizes.map((sz, i) => ({
-        // Ensure task IDs remain unique even if the same topic is reused
         id: `${representativeTopicId[i]}-${i + 1}`,
         skills: defaultTaskSkills,
         teamSize: sz,
@@ -400,10 +394,9 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       initRandom: false,
     };
 
-    // Create a TeamFormationRequest log
     const requestId = randomUUID();
     const replyPostUrl = buildEdu2comReplyPostUrl(requestId);
-    const tf = await prisma.teamFormationRequest.create({
+    await prisma.teamFormationRequest.create({
       data: {
         id: requestId,
         ownerId: ctx.user.id,
@@ -424,7 +417,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
 
       return NextResponse.json({
         success: true,
-        data: { requestId: tf.id, status: 'PROCESSING' },
+        data: { requestId, status: 'PROCESSING' },
         message:
           'Permintaan pembentukan kelompok sedang diproses di latar belakang. Hasil akan muncul setelah Edu2com selesai.',
       });
@@ -438,7 +431,7 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
         : (httpError?.message ??
           'Gagal mengirim permintaan pembentukan kelompok');
       await prisma.teamFormationRequest.update({
-        where: { id: tf.id },
+        where: { id: requestId },
         data: {
           status: 'FAILED',
           errorMessage:

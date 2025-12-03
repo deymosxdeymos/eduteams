@@ -171,10 +171,7 @@ import { PrismaClient } from '@/generated/prisma';
 if (GREY_ENABLED) {
   beforeAll(async () => {
     const schema = globalThis.__TEST_SCHEMA__;
-    const baseUrl = process.env.DATABASE_URL?.split('?')[0];
-    const tempPrisma = new PrismaClient({
-      datasources: { db: { url: baseUrl } },
-    });
+    const tempPrisma = new PrismaClient();
 
     try {
       await tempPrisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);

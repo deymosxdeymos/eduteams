@@ -9,10 +9,8 @@ import { canAccessDosenFeatures } from '@/lib/authorization';
 import { getDashboardStatisticsForUser } from '@/lib/dashboard/statistics';
 import type { ExtendedUser } from '@/lib/types';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
-// GET /api/dashboard/statistics
 export const GET = withAuth(
   async (_request: NextRequest, { user }: { user: ExtendedUser }) => {
     try {

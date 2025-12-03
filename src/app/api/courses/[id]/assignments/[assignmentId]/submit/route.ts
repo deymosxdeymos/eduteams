@@ -24,7 +24,6 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         return createErrorResponse('Access denied', 403);
       }
 
-      // Check if user is enrolled in the course
       const enrollment = await prisma.courseEnrollment.findUnique({
         where: {
           courseId_studentId: { courseId, studentId: user.id },
@@ -35,7 +34,6 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         return createErrorResponse('Not enrolled in this course', 403);
       }
 
-      // Check if assignment exists
       const assignment = await prisma.assignment.findUnique({
         where: { id: assignmentId, courseId },
       });
@@ -44,7 +42,6 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         return createErrorResponse('Assignment not found', 404);
       }
 
-      // Check if user has already submitted
       const existingSubmission = await prisma.assignmentSubmission.findUnique({
         where: {
           assignmentId_studentId: { assignmentId, studentId: user.id },
