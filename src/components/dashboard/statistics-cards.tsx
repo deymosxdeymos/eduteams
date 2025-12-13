@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import {
   type DashboardStatistics,
   EMPTY_DASHBOARD_STATISTICS,
-} from '@/lib/dashboard/statistics';
+} from '@/lib/dashboard/statistics-types';
 
 interface StatisticsCardsProps {
   statistics?: DashboardStatistics;

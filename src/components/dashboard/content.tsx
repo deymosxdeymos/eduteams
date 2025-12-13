@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DosenCourseSummary } from '@/lib/dashboard/courses';
-import type { DashboardStatistics } from '@/lib/dashboard/statistics';
+import type { DashboardStatistics } from '@/lib/dashboard/statistics-types';
 import { ClassGrid, type ClassSummary } from './class-grid';
 import { EmptyClassState } from './empty-class-state';
 import { SearchInput } from './search-input';
