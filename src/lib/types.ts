@@ -5,7 +5,7 @@ import type {
   CourseCatalog as PrismaCourseCatalog,
   CourseEnrollment as PrismaCourseEnrollment,
   User as PrismaUser,
-} from '@/generated/prisma';
+} from '@/generated/prisma/client';
 
 export type UserRole = 'dosen' | 'mahasiswa' | 'admin';
 

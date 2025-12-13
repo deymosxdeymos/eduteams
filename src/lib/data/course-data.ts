@@ -37,7 +37,7 @@ export async function getInitialAssignments(
     },
   });
 
-  return rows.map(r => ({
+  return rows.map((r: (typeof rows)[number]) => ({
     id: r.id,
     courseId: r.courseId,
     title: r.title,
@@ -80,7 +80,7 @@ export async function getStudentsData(
     orderBy: { student: { name: 'asc' } },
   });
 
-  return enrollments.map(enrollment => ({
+  return enrollments.map((enrollment: (typeof enrollments)[number]) => ({
     id: enrollment.student.id,
     name: enrollment.student.name || 'Unknown',
     nim: enrollment.student.nim || 'N/A',

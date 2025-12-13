@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { CompetencyKind } from '@/generated/prisma';
+import { CompetencyKind } from '@/generated/prisma/client';
 import {
   createApiResponse,
   createErrorResponse,
@@ -9,7 +9,7 @@ import {
 } from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import { normalizeTopicKey } from '@/lib/data/student-competency-profiles';
-import prisma from '@/lib/prisma';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 import { HttpError } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -186,7 +186,12 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
           where: { name: { in: uniqueSkillNames } },
           select: { id: true, name: true },
         });
-        const existingByName = new Map(existingSkills.map(s => [s.name, s.id]));
+        const existingByName = new Map(
+          existingSkills.map((s: { id: string; name: string }) => [
+            s.name,
+            s.id,
+          ])
+        );
         const missing = uniqueSkillNames.filter(n => !existingByName.has(n));
         if (missing.length > 0) {
           await prisma.skill.createMany({
@@ -199,7 +204,9 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         where: { name: { in: uniqueSkillNames } },
         select: { id: true, name: true },
       });
-      const nameToSkillId = new Map(allSkills.map(s => [s.name, s.id]));
+      const nameToSkillId = new Map<string, string>(
+        allSkills.map((s: { id: string; name: string }) => [s.name, s.id])
+      );
 
       // 2) Topics: create/find AssignmentTopic per name
       const uniqueTopicNames = Array.from(
@@ -240,7 +247,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         }
       }
 
-      await prisma.$transaction(async tx => {
+      await prisma.$transaction(async (tx: TransactionClient) => {
         // Upsert skills
         for (const s of skillsToPersist) {
           const skillId = nameToSkillId.get(s.name);

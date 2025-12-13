@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TeamFormationStatus } from '@/generated/prisma';
+import type { TeamFormationStatus } from '@/generated/prisma/client';
 
 interface UseTeamFormationStatusOptions {
   assignmentId: string;

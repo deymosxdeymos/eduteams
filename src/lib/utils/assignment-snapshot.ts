@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 
 export interface CreateSnapshotOptions {
   assignmentId: string;
@@ -54,14 +54,14 @@ export async function invalidateAssignmentSubmissions(
     select: { studentId: true },
   });
 
-  const studentIds = submissions.map(s => s.studentId);
+  const studentIds = submissions.map((s: { studentId: string }) => s.studentId);
 
   if (studentIds.length === 0) {
     return 0;
   }
 
   // Delete in transaction to ensure data consistency
-  await prisma.$transaction(async tx => {
+  await prisma.$transaction(async (tx: TransactionClient) => {
     // Delete assignment topic preferences
     await tx.assignmentTopicPreference.deleteMany({
       where: {

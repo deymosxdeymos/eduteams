@@ -1,4 +1,4 @@
-import type { Gender, MBTIType } from '@/generated/prisma';
+import type { Gender, MBTIType } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
 
 type MbtiStat = { kategori: MBTIType; jumlah: number };
@@ -162,15 +162,15 @@ export async function getAssignmentStats(
       })
     : [];
   const skillIdByName = new Map<string, string>(
-    skillRecords.map(s => [s.name, s.id])
+    skillRecords.map((s: { id: string; name: string }) => [s.name, s.id])
   );
-  const studentIds = enrollments.map(e => e.studentId);
+  const studentIds = enrollments.map((e: { studentId: string }) => e.studentId);
 
   const personSkills = studentIds.length
     ? await prisma.personSkill.findMany({
         where: {
           personId: { in: studentIds },
-          skillId: { in: skillRecords.map(s => s.id) },
+          skillId: { in: skillRecords.map((s: { id: string }) => s.id) },
         },
         select: { personId: true, skillId: true, level: true },
       })
@@ -197,14 +197,15 @@ export async function getAssignmentStats(
 
   // Assignment topics preference distribution
   // Prefer labels from description if present; fallback to DB topics
-  const topicRows = await prisma.assignmentTopic.findMany({
-    where: topicNames.length
-      ? { assignmentId, name: { in: topicNames } }
-      : { assignmentId },
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
-  });
-  const topicIds = topicRows.map(t => t.id);
+  const topicRows: { id: string; name: string }[] =
+    await prisma.assignmentTopic.findMany({
+      where: topicNames.length
+        ? { assignmentId, name: { in: topicNames } }
+        : { assignmentId },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  const topicIds = topicRows.map((t: { id: string }) => t.id);
   const topicPrefs = topicIds.length
     ? await prisma.assignmentTopicPreference.findMany({
         where: { assignmentTopicId: { in: topicIds } },
@@ -213,23 +214,28 @@ export async function getAssignmentStats(
     : [];
 
   const prefSumsById = new Map<string, { sum: number; count: number }>();
-  for (const p of topicPrefs) {
+  for (const p of topicPrefs as {
+    assignmentTopicId: string;
+    preference: number;
+  }[]) {
     const cur = prefSumsById.get(p.assignmentTopicId) ?? { sum: 0, count: 0 };
     cur.sum += p.preference;
     cur.count += 1;
     prefSumsById.set(p.assignmentTopicId, cur);
   }
-  const idToName = new Map(topicRows.map(t => [t.id, t.name] as const));
+  const idToName = new Map(
+    topicRows.map((t: { id: string; name: string }) => [t.id, t.name] as const)
+  );
   const avgByName = new Map<string, number>();
   for (const [id, agg] of prefSumsById) {
     const name = idToName.get(id);
     if (!name) continue;
     avgByName.set(name, Math.round((agg.sum / agg.count) * 100));
   }
-  const topicLabelList = topicNames.length
+  const topicLabelList: string[] = topicNames.length
     ? topicNames
-    : topicRows.map(t => t.name);
-  const topicPreferences: NamedValue[] = topicLabelList.map(name => ({
+    : topicRows.map((t: { name: string }) => t.name);
+  const topicPreferences: NamedValue[] = topicLabelList.map((name: string) => ({
     name,
     value: avgByName.get(name) ?? 0,
   }));
@@ -269,18 +275,21 @@ export async function getAssignmentStats(
     });
 
     if (latestFormation) {
+      type TeamRow = { taskId: string | null; quality: number | null };
+      const teams = latestFormation.teams as TeamRow[];
+
       // Collect all team qualities
-      const allQualities = latestFormation.teams
-        .filter(team => team.quality !== null)
-        .map(team => team.quality as number);
+      const allQualities = teams
+        .filter((team: TeamRow) => team.quality !== null)
+        .map((team: TeamRow) => team.quality as number);
 
       // Check if ANY teams have non-null taskIds
-      const hasAnyTaskIds = latestFormation.teams.some(t => t.taskId !== null);
+      const hasAnyTaskIds = teams.some((t: TeamRow) => t.taskId !== null);
 
       if (hasAnyTaskIds) {
         // Group teams by taskId (null → 'unassigned') and calculate average per task
         const taskQualityMap = new Map<string, number[]>();
-        for (const team of latestFormation.teams) {
+        for (const team of teams) {
           if (team.quality === null) continue;
           const taskKey = team.taskId ?? 'unassigned';
           const existing = taskQualityMap.get(taskKey) ?? [];

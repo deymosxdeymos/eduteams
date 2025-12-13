@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma';
+import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma/client';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import {
   type ActivePersonalityBank,

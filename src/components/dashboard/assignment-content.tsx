@@ -9,7 +9,7 @@ import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-c
 import { ChartsToggle } from '@/components/dashboard/charts-toggle';
 import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
 import { Button } from '@/components/ui/button';
-import type { Gender } from '@/generated/prisma';
+import type { Gender } from '@/generated/prisma/client';
 import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
 import { useRouter } from '@/i18n/routing';
 import type { AssignmentStats } from '@/lib/stats/assignment';

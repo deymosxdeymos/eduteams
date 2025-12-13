@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Prisma } from '@/generated/prisma';
+import type { PersonalityAxis, Prisma } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
 
 type PersonalityQuestionSeed = {
@@ -177,49 +177,33 @@ const OJTS_V21_TRANSLATIONS: Record<string, readonly string[]> = {
 const OJTS_REQUIRED_REVERSED_ORDER_HINTS = new Set([
   4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23, 24,
 ]);
+// Prisma v7 with @map() expects enum KEY names ('I'), not VALUES ('i')
+// The PersonalityAxis enum object returns values, so we use literal key strings
+// Cast to PersonalityAxis to satisfy TypeScript (runtime accepts uppercase keys)
 const DIMENSION_MAP: Record<
   PersonalityQuestionSeed['dimension'],
-  | 'EI'
-  | 'SN'
-  | 'TF'
-  | 'PJ'
-  | 'I'
-  | 'E'
-  | 'S'
-  | 'N'
-  | 'F'
-  | 'T'
-  | 'J'
-  | 'P'
-  | 'NJ'
-  | 'NP'
-  | 'SJ'
-  | 'SP'
-  | 'EF'
-  | 'ET'
-  | 'IF'
-  | 'IT'
+  PersonalityAxis
 > = {
-  ei: 'EI',
-  sn: 'SN',
-  tf: 'TF',
-  pj: 'PJ',
-  i: 'I',
-  e: 'E',
-  s: 'S',
-  n: 'N',
-  f: 'F',
-  t: 'T',
-  j: 'J',
-  p: 'P',
-  nj: 'NJ',
-  np: 'NP',
-  sj: 'SJ',
-  sp: 'SP',
-  ef: 'EF',
-  et: 'ET',
-  if: 'IF',
-  it: 'IT',
+  ei: 'EI' as PersonalityAxis,
+  sn: 'SN' as PersonalityAxis,
+  tf: 'TF' as PersonalityAxis,
+  pj: 'PJ' as PersonalityAxis,
+  i: 'I' as PersonalityAxis,
+  e: 'E' as PersonalityAxis,
+  s: 'S' as PersonalityAxis,
+  n: 'N' as PersonalityAxis,
+  f: 'F' as PersonalityAxis,
+  t: 'T' as PersonalityAxis,
+  j: 'J' as PersonalityAxis,
+  p: 'P' as PersonalityAxis,
+  nj: 'NJ' as PersonalityAxis,
+  np: 'NP' as PersonalityAxis,
+  sj: 'SJ' as PersonalityAxis,
+  sp: 'SP' as PersonalityAxis,
+  ef: 'EF' as PersonalityAxis,
+  et: 'ET' as PersonalityAxis,
+  if: 'IF' as PersonalityAxis,
+  it: 'IT' as PersonalityAxis,
 };
 function validateOJTSStructure(
   items: ReadonlyArray<OJTSPersonalityQuestion>

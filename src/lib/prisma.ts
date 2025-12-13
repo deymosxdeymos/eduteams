@@ -1,8 +1,11 @@
-import type { PrismaClient } from '@/generated/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import { createPrismaClient } from './create-prisma-client';
 
+export type PrismaClientInstance = ReturnType<typeof createPrismaClient>;
+export type TransactionClient = Prisma.TransactionClient;
+
 const globalForPrisma = globalThis as typeof globalThis & {
-  prisma?: PrismaClient;
+  prisma?: PrismaClientInstance;
 };
 
 const prisma =

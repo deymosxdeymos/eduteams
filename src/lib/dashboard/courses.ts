@@ -49,7 +49,7 @@ async function fetchCoursesForDosen(
     orderBy: { createdAt: 'desc' },
   });
 
-  return rows.map(row => ({
+  return rows.map((row: (typeof rows)[number]) => ({
     id: row.id,
     namaMataKuliah: row.namaMataKuliah,
     kelas: row.kelas,

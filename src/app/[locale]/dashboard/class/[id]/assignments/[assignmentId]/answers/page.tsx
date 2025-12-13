@@ -64,7 +64,7 @@ async function getSubmittedStudents(assignmentId: string) {
     },
     orderBy: { student: { name: 'asc' } },
   });
-  return submissions.map(s => s.student);
+  return submissions.map((s: (typeof submissions)[number]) => s.student);
 }
 
 async function getAssignmentAnswersView(
@@ -119,19 +119,24 @@ async function getAssignmentAnswersView(
         },
       },
     });
-    const byName = new Map(
-      skillRows.map(r => [r.name, r.personSkills[0]?.level ?? null])
+    const byName = new Map<string, number | null>(
+      skillRows.map((r: (typeof skillRows)[number]) => [
+        r.name,
+        (r.personSkills[0]?.level ?? null) as number | null,
+      ])
     );
-    skillAnswers = skills.map(name => ({
+    skillAnswers = skills.map((name: string) => ({
       name,
       level: byName.get(name) ?? null,
     }));
   }
 
-  const topicAnswers = assignment.AssignmentTopic.map(t => ({
-    name: t.name,
-    preference: t.preferences[0]?.preference ?? null,
-  }));
+  const topicAnswers = assignment.AssignmentTopic.map(
+    (t: (typeof assignment.AssignmentTopic)[number]) => ({
+      name: t.name,
+      preference: t.preferences[0]?.preference ?? null,
+    })
+  );
 
   return {
     title: assignment.title,
@@ -206,14 +211,16 @@ export default async function AssignmentAnswersPage({
   if (!course) notFound();
 
   const students = await getSubmittedStudents(assignmentId);
-  const studentsLite = students.map(s => ({
+  const studentsLite = students.map((s: (typeof students)[number]) => ({
     id: s.id,
     name: s.name ?? 'Mahasiswa',
   }));
   const sp = await searchParams;
   let currentIndex = 0;
   if (sp.studentId) {
-    const idx = students.findIndex(s => s.id === sp.studentId);
+    const idx = students.findIndex(
+      (s: (typeof students)[number]) => s.id === sp.studentId
+    );
     currentIndex = idx >= 0 ? idx : 0;
   }
   const selected = students[currentIndex];
@@ -380,18 +387,23 @@ export default async function AssignmentAnswersPage({
                         </tr>
                       </thead>
                       <tbody className='divide-y'>
-                        {(answersView?.skills ?? []).map((s, i) => (
-                          <tr key={s.name} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3'>{i + 1}</td>
-                            <td className='px-4 py-3'>
-                              Seberapa mahir kamu dengan keahlian{' '}
-                              <strong>{s.name}</strong>?
-                            </td>
-                            <td className='px-4 py-3'>
-                              {toSkillLabel(s.level)}
-                            </td>
-                          </tr>
-                        ))}
+                        {(answersView?.skills ?? []).map(
+                          (
+                            s: { name: string; level: number | null },
+                            i: number
+                          ) => (
+                            <tr key={s.name} className='hover:bg-gray-50'>
+                              <td className='px-4 py-3'>{i + 1}</td>
+                              <td className='px-4 py-3'>
+                                Seberapa mahir kamu dengan keahlian{' '}
+                                <strong>{s.name}</strong>?
+                              </td>
+                              <td className='px-4 py-3'>
+                                {toSkillLabel(s.level)}
+                              </td>
+                            </tr>
+                          )
+                        )}
                         {(!answersView?.skills ||
                           answersView.skills.length === 0) && (
                           <tr>
@@ -418,21 +430,26 @@ export default async function AssignmentAnswersPage({
                         </tr>
                       </thead>
                       <tbody className='divide-y'>
-                        {(answersView?.topics ?? []).map((t, i) => (
-                          <tr key={t.name} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3'>{i + 1}</td>
-                            <td className='px-4 py-3'>
-                              Seberapa Tertarik Anda dengan topik{' '}
-                              <strong>
-                                #{i + 1}: {t.name}
-                              </strong>
-                              ?
-                            </td>
-                            <td className='px-4 py-3'>
-                              {toPreferenceLabel(t.preference)}
-                            </td>
-                          </tr>
-                        ))}
+                        {(answersView?.topics ?? []).map(
+                          (
+                            t: { name: string; preference: number | null },
+                            i: number
+                          ) => (
+                            <tr key={t.name} className='hover:bg-gray-50'>
+                              <td className='px-4 py-3'>{i + 1}</td>
+                              <td className='px-4 py-3'>
+                                Seberapa Tertarik Anda dengan topik{' '}
+                                <strong>
+                                  #{i + 1}: {t.name}
+                                </strong>
+                                ?
+                              </td>
+                              <td className='px-4 py-3'>
+                                {toPreferenceLabel(t.preference)}
+                              </td>
+                            </tr>
+                          )
+                        )}
                         {(!answersView?.topics ||
                           answersView.topics.length === 0) && (
                           <tr>

@@ -1,23 +1,25 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { withAccelerate } from '@prisma/extension-accelerate';
-import type { Prisma } from '@/generated/prisma';
-import { PrismaClient } from '@/generated/prisma';
+import type { Prisma } from '@/generated/prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 
-type PrismaClientOverrides = Prisma.PrismaClientOptions;
+type PrismaClientOptions = Omit<Prisma.PrismaClientOptions, 'adapter'>;
+
+interface CreatePrismaClientOptions extends PrismaClientOptions {
+  url?: string;
+}
 
 const DEFAULT_ERROR_FORMAT: Prisma.ErrorFormat = 'pretty';
 const DEFAULT_DEV_LOG_LEVELS: Prisma.LogLevel[] = ['error', 'warn'];
 const CLOUD_SIGNATURE = 'prisma+postgres';
 
-function resolveDatabaseUrl(
-  overrides?: PrismaClientOverrides
-): string | undefined {
-  return overrides?.datasources?.db?.url ?? process.env.DATABASE_URL;
+function resolveDatabaseUrl(overrideUrl?: string): string | undefined {
+  return overrideUrl ?? process.env.DATABASE_URL;
 }
 
 function resolveBaseOptions(
-  overrides: PrismaClientOverrides = {}
-): Prisma.PrismaClientOptions {
+  overrides: PrismaClientOptions = {}
+): PrismaClientOptions {
   const isDev = process.env.NODE_ENV === 'development';
 
   return {
@@ -27,26 +29,25 @@ function resolveBaseOptions(
   };
 }
 
-export function createPrismaClient(
-  overrides: PrismaClientOverrides = {}
-): PrismaClient {
-  const databaseUrl = resolveDatabaseUrl(overrides);
+export function createPrismaClient(overrides: CreatePrismaClientOptions = {}) {
+  const { url, ...rest } = overrides;
+  const databaseUrl = resolveDatabaseUrl(url);
   if (!databaseUrl)
     throw new Error('DATABASE_URL environment variable is not defined.');
 
-  const baseOptions = resolveBaseOptions(overrides);
+  const baseOptions = resolveBaseOptions(rest);
   const shouldUseAccelerate =
     databaseUrl.includes(CLOUD_SIGNATURE) ||
     Boolean(process.env.PRISMA_ACCELERATE_URL);
 
-  if (shouldUseAccelerate && !baseOptions.adapter) {
-    return new PrismaClient(baseOptions).$extends(withAccelerate());
+  if (shouldUseAccelerate) {
+    return new PrismaClient({
+      ...baseOptions,
+      accelerateUrl: process.env.PRISMA_ACCELERATE_URL ?? databaseUrl,
+    }).$extends(withAccelerate());
   }
 
-  if (!baseOptions.adapter) {
-    const adapter = new PrismaPg({ connectionString: databaseUrl });
-    return new PrismaClient({ ...baseOptions, adapter });
-  }
-
-  return new PrismaClient(baseOptions);
+  const { accelerateUrl: _, ...adapterOptions } = baseOptions;
+  const adapter = new PrismaPg({ connectionString: databaseUrl });
+  return new PrismaClient({ ...adapterOptions, adapter });
 }

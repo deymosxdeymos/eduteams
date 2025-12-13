@@ -14,6 +14,21 @@ import type { Course, ExtendedUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+type EnrollmentWithStudent = {
+  enrolledAt: Date;
+  student: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    nim: string | null;
+    mbtiType: string | null;
+    ei: number | null;
+    sn: number | null;
+    tf: number | null;
+    pj: number | null;
+  };
+};
+
 export async function generateMetadata({
   params,
 }: {
@@ -67,7 +82,7 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
       }),
     ]);
 
-    const students = enrollments.map(e => ({
+    const students = enrollments.map((e: EnrollmentWithStudent) => ({
       id: e.student.id,
       name: e.student.name || 'Unknown',
       nim: e.student.nim || 'N/A',
@@ -115,18 +130,20 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
 
   if (!enrollment) return { course: null, students: [] };
 
-  const students = enrollment.course.enrollments.map(e => ({
-    id: e.student.id,
-    name: e.student.name || 'Unknown',
-    nim: e.student.nim || 'N/A',
-    email: e.student.email || 'N/A',
-    mbtiType: e.student.mbtiType,
-    ei: e.student.ei,
-    sn: e.student.sn,
-    tf: e.student.tf,
-    pj: e.student.pj,
-    enrolledAt: e.enrolledAt,
-  }));
+  const students = enrollment.course.enrollments.map(
+    (e: EnrollmentWithStudent) => ({
+      id: e.student.id,
+      name: e.student.name || 'Unknown',
+      nim: e.student.nim || 'N/A',
+      email: e.student.email || 'N/A',
+      mbtiType: e.student.mbtiType,
+      ei: e.student.ei,
+      sn: e.student.sn,
+      tf: e.student.tf,
+      pj: e.student.pj,
+      enrolledAt: e.enrolledAt,
+    })
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { enrollments: _ignored, ...course } = enrollment.course;

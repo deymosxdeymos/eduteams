@@ -31,7 +31,7 @@ export async function getManageAssignmentsForCourse(
     orderBy: { createdAt: 'desc' },
   });
 
-  return assignments.map(assignment => ({
+  return assignments.map((assignment: (typeof assignments)[number]) => ({
     id: assignment.id,
     title: assignment.title,
     description: assignment.description,

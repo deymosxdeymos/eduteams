@@ -9,7 +9,7 @@ async function main() {
   });
 
   console.log('Dosen accounts:');
-  dosen.forEach(d => {
+  dosen.forEach((d: { id: string; name: string; email: string }) => {
     console.log(`- ${d.name} (${d.email})`);
   });
 
@@ -21,11 +21,11 @@ async function main() {
   });
 
   console.log('\nAll courses:');
-  courses.forEach(c => {
+  for (const c of courses) {
     console.log(
       `- ${c.namaMataKuliah} (${c.kelas}) [Dosen: ${c.dosen.name}]: ${c._count.enrollments} students`
     );
-  });
+  }
 
   // Check bukangalin specifically
   console.log('\nCourses for bukangalin:');
@@ -49,11 +49,11 @@ async function main() {
   if (bukangalinCourses.length === 0) {
     console.log('  No courses found for bukangalin@example.com');
   } else {
-    bukangalinCourses.forEach(c => {
+    for (const c of bukangalinCourses) {
       console.log(
         `- ${c.namaMataKuliah} (${c.kelas}): ${c._count.enrollments} students`
       );
-    });
+    }
   }
 }
 

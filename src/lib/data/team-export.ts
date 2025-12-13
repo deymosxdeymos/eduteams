@@ -1,5 +1,45 @@
+import type { Gender, MBTIType } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
-import type { AssignmentExportData } from '@/types/export';
+import type { AssignmentExportData, TeamExportData } from '@/types/export';
+
+// Type definitions for Prisma query results
+interface PersonSkillResult {
+  skillId: string;
+  level: number;
+  skill: {
+    id: string;
+    name: string;
+  };
+}
+
+interface UserResult {
+  id: string;
+  name: string;
+  email: string;
+  nim: string | null;
+  mbtiType: MBTIType | null;
+  gender: Gender | null;
+  ei: number | null;
+  sn: number | null;
+  tf: number | null;
+  pj: number | null;
+  personSkills: PersonSkillResult[];
+}
+
+interface MemberResult {
+  id: string;
+  userId: string;
+  assignedSkillIds: string[];
+  user: UserResult;
+}
+
+interface TeamResult {
+  id: string;
+  name: string | null;
+  quality: number | null;
+  taskId: string | null;
+  members: MemberResult[];
+}
 
 /**
  * Retrieves comprehensive team formation data for export purposes.
@@ -130,8 +170,11 @@ export async function getAssignmentExportData(
   }
 
   // Create a map of topic IDs to topic names for quick lookup
-  const topicMap = new Map(
-    assignment.AssignmentTopic.map(topic => [topic.id, topic.name])
+  const topicMap = new Map<string, string>(
+    assignment.AssignmentTopic.map((topic: { id: string; name: string }) => [
+      topic.id,
+      topic.name,
+    ])
   );
 
   // Derive topic names using taskId information persisted in responseData
@@ -141,7 +184,7 @@ export async function getAssignmentExportData(
       teams?: Array<{ taskId?: string | null }>;
     } | null;
     if (response?.teams?.length) {
-      topicNamesByIndex = response.teams.map(team => {
+      topicNamesByIndex = response.teams.map((team): string | null => {
         if (!team?.taskId) return null;
         const match = team.taskId.match(/^(.+)-\d+$/);
         const topicId = match ? match[1] : team.taskId;
@@ -153,38 +196,40 @@ export async function getAssignmentExportData(
   }
 
   // Transform teams data
-  const teams = teamFormationRequest.teams.map((team, index) => {
-    const topicName =
-      topicNamesByIndex[index] ??
-      (team.taskId ? topicMap.get(team.taskId) || null : null);
+  const teams: TeamExportData[] = teamFormationRequest.teams.map(
+    (team: TeamResult, index: number) => {
+      const topicName =
+        topicNamesByIndex[index] ??
+        (team.taskId ? topicMap.get(team.taskId) || null : null);
 
-    return {
-      teamNumber: index + 1,
-      teamName: team.name || `Team ${index + 1}`,
-      topicName,
-      quality: team.quality,
-      members: team.members.map(member => ({
-        id: member.user.id,
-        name: member.user.name,
-        email: member.user.email,
-        nim: member.user.nim,
-        mbtiType: member.user.mbtiType,
-        gender: member.user.gender,
-        personalityScores: {
-          ei: member.user.ei,
-          sn: member.user.sn,
-          tf: member.user.tf,
-          pj: member.user.pj,
-        },
-        skills: member.user.personSkills.map(ps => ({
-          skillId: ps.skill.id,
-          skillName: ps.skill.name,
-          level: ps.level,
+      return {
+        teamNumber: index + 1,
+        teamName: team.name || `Team ${index + 1}`,
+        topicName,
+        quality: team.quality,
+        members: team.members.map((member: MemberResult) => ({
+          id: member.user.id,
+          name: member.user.name,
+          email: member.user.email,
+          nim: member.user.nim,
+          mbtiType: member.user.mbtiType,
+          gender: member.user.gender,
+          personalityScores: {
+            ei: member.user.ei,
+            sn: member.user.sn,
+            tf: member.user.tf,
+            pj: member.user.pj,
+          },
+          skills: member.user.personSkills.map((ps: PersonSkillResult) => ({
+            skillId: ps.skill.id,
+            skillName: ps.skill.name,
+            level: ps.level,
+          })),
+          assignedSkillIds: member.assignedSkillIds,
         })),
-        assignedSkillIds: member.assignedSkillIds,
-      })),
-    };
-  });
+      };
+    }
+  );
 
   // Calculate metadata
   const totalStudents = teams.reduce(

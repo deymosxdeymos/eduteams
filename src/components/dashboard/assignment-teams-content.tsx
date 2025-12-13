@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { TeamMemberListClient } from '@/components/dashboard/team-member-list-client';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import type { Gender } from '@/generated/prisma';
+import type { Gender } from '@/generated/prisma/client';
 import type { ExtendedUser } from '@/lib/types';
 import { TeamDetailModalContent } from './team-detail-modal-content';
 

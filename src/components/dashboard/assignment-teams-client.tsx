@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Gender } from '@/generated/prisma';
+import type { Gender } from '@/generated/prisma/client';
 import { AssignmentTeamsContent } from './assignment-teams-content';
 
 interface TeamMemberUser {

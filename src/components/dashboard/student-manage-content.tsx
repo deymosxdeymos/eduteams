@@ -29,7 +29,9 @@ export async function StudentManageContent({
     },
   });
 
-  const courseIds = enrollments.map(e => e.courseId);
+  const courseIds = enrollments.map(
+    (e: (typeof enrollments)[number]) => e.courseId
+  );
 
   if (courseIds.length === 0) {
     // No enrolled courses
@@ -106,19 +108,24 @@ export async function StudentManageContent({
   const submissions = await prisma.assignmentSubmission.findMany({
     where: {
       studentId: user.id,
-      assignmentId: { in: assignments.map(a => a.id) },
+      assignmentId: {
+        in: assignments.map((a: (typeof assignments)[number]) => a.id),
+      },
       needsUpdate: false,
     },
     select: { assignmentId: true },
   });
 
-  const submissionSet = new Set(submissions.map(s => s.assignmentId));
+  const submissionSet = new Set(
+    submissions.map((s: (typeof submissions)[number]) => s.assignmentId)
+  );
 
   // Fetch topic names for assignments with team formations
+  type Assignment = (typeof assignments)[number];
   const assignmentsWithTopics = await Promise.all(
     assignments
-      .filter(a => a.teamFormationRequests[0]?.responseData)
-      .map(async assignment => {
+      .filter((a: Assignment) => a.teamFormationRequests[0]?.responseData)
+      .map(async (assignment: Assignment) => {
         const teamFormation = assignment.teamFormationRequests[0];
         if (!teamFormation) return { assignmentId: assignment.id, topics: [] };
 
@@ -152,7 +159,9 @@ export async function StudentManageContent({
           select: { id: true, name: true },
         });
 
-        const topicMap = new Map(topics.map(t => [t.id, t.name]));
+        const topicMap = new Map(
+          topics.map((t: (typeof topics)[number]) => [t.id, t.name])
+        );
         return {
           assignmentId: assignment.id,
           topics: originalTopicIds.map(id => topicMap.get(id) || '-'),
@@ -160,15 +169,19 @@ export async function StudentManageContent({
       })
   );
 
-  const topicsByAssignment = new Map(
-    assignmentsWithTopics.map(a => [a.assignmentId, a.topics])
+  const topicsByAssignment = new Map<string, string[]>(
+    assignmentsWithTopics.map((a: (typeof assignmentsWithTopics)[number]) => [
+      a.assignmentId,
+      a.topics,
+    ])
   );
 
   // Map to GroupListItem with status
+  type Enrollment = (typeof enrollments)[number];
   const items: GroupListItem[] = await Promise.all(
-    assignments.map(async assignment => {
+    assignments.map(async (assignment: Assignment) => {
       const enrollment = enrollments.find(
-        e => e.courseId === assignment.courseId
+        (e: Enrollment) => e.courseId === assignment.courseId
       );
       const course = enrollment?.course;
 
@@ -190,8 +203,10 @@ export async function StudentManageContent({
         }
       }
 
-      const studentTeam = teamFormation?.teams.find(team =>
-        team.members.some(m => m.userId === user.id)
+      type Team = NonNullable<typeof teamFormation>['teams'][number];
+      type Member = Team['members'][number];
+      const studentTeam = teamFormation?.teams.find((team: Team) =>
+        team.members.some((m: Member) => m.userId === user.id)
       );
       const isInTeam = !!studentTeam;
 
@@ -212,7 +227,7 @@ export async function StudentManageContent({
       let topicName: string | undefined;
 
       if (studentTeam) {
-        teamMembers = studentTeam.members.map(m => ({
+        teamMembers = studentTeam.members.map((m: Member) => ({
           id: m.id,
           user: {
             id: m.user.id,
@@ -226,7 +241,7 @@ export async function StudentManageContent({
 
         // Get topic name for this team
         const teamIndex = teamFormation?.teams.findIndex(
-          t => t.id === studentTeam.id
+          (t: Team) => t.id === studentTeam.id
         );
         const topics = topicsByAssignment.get(assignment.id);
         if (

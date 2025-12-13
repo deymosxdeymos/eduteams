@@ -3,6 +3,9 @@ import { getCurrentUser } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 import { getStudentAssignmentStatus } from '@/lib/utils/student-status';
 
+type TeamMember = { userId: string };
+type TeamWithMembers = { members: TeamMember[] };
+
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -17,7 +20,7 @@ export async function GET() {
       select: { courseId: true },
     });
 
-    const courseIds = enrollments.map(e => e.courseId);
+    const courseIds = enrollments.map((e: { courseId: string }) => e.courseId);
 
     if (courseIds.length === 0) {
       return NextResponse.json({ count: 0 });
@@ -55,28 +58,34 @@ export async function GET() {
       },
     });
 
+    type Assignment = (typeof assignments)[number];
+
     // Get all submissions for this student (excluding those that need updates)
     const submissions = await prisma.assignmentSubmission.findMany({
       where: {
         studentId: user.id,
-        assignmentId: { in: assignments.map(a => a.id) },
+        assignmentId: { in: assignments.map((a: Assignment) => a.id) },
         needsUpdate: false,
       },
       select: { assignmentId: true },
     });
 
-    const submissionSet = new Set(submissions.map(s => s.assignmentId));
+    const submissionSet = new Set(
+      submissions.map((s: { assignmentId: string }) => s.assignmentId)
+    );
 
     // Batch fetch all legacy team formations to avoid N+1 query
     const assignmentsNeedingLegacy = assignments.filter(
-      a => a.teamFormationRequests.length === 0
+      (a: Assignment) => a.teamFormationRequests.length === 0
     );
     const legacyTeamFormations =
       assignmentsNeedingLegacy.length > 0
         ? await prisma.teamFormationRequest.findMany({
             where: {
               ownerId: {
-                in: assignmentsNeedingLegacy.map(a => a.createdById),
+                in: assignmentsNeedingLegacy.map(
+                  (a: Assignment) => a.createdById
+                ),
               },
               assignmentId: null,
               status: 'COMPLETED',
@@ -126,8 +135,8 @@ export async function GET() {
         }
       }
 
-      const isInTeam = teamFormation?.teams.some(team =>
-        team.members.some(m => m.userId === user.id)
+      const isInTeam = teamFormation?.teams.some((team: TeamWithMembers) =>
+        team.members.some((m: TeamMember) => m.userId === user.id)
       );
 
       const status = getStudentAssignmentStatus({

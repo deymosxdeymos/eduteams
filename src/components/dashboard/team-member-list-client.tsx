@@ -20,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import type { Gender } from '@/generated/prisma';
+import type { Gender } from '@/generated/prisma/client';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';

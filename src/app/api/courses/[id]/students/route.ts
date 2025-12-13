@@ -89,18 +89,20 @@ export async function GET(
       },
     });
 
-    const students = enrollments.map(enrollment => ({
-      id: enrollment.student.id,
-      name: enrollment.student.name || 'Unknown',
-      nim: enrollment.student.nim || 'N/A',
-      email: enrollment.student.email || 'N/A',
-      mbtiType: enrollment.student.mbtiType,
-      ei: enrollment.student.ei,
-      sn: enrollment.student.sn,
-      tf: enrollment.student.tf,
-      pj: enrollment.student.pj,
-      enrolledAt: enrollment.enrolledAt,
-    }));
+    const students = enrollments.map(
+      (enrollment: (typeof enrollments)[number]) => ({
+        id: enrollment.student.id,
+        name: enrollment.student.name || 'Unknown',
+        nim: enrollment.student.nim || 'N/A',
+        email: enrollment.student.email || 'N/A',
+        mbtiType: enrollment.student.mbtiType,
+        ei: enrollment.student.ei,
+        sn: enrollment.student.sn,
+        tf: enrollment.student.tf,
+        pj: enrollment.student.pj,
+        enrolledAt: enrollment.enrolledAt,
+      })
+    );
 
     return NextResponse.json({
       success: true,

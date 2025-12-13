@@ -281,8 +281,10 @@ export const DELETE = withAuth<{ id: string }>(
 
       revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
-      const studentIds = new Set(enrollments.map(({ studentId }) => studentId));
-      for (const studentId of studentIds) {
+      const studentIds = new Set(
+        enrollments.map(({ studentId }: { studentId: string }) => studentId)
+      );
+      for (const studentId of studentIds as Set<string>) {
         revalidateTag(CACHE_TAGS.studentClasses(studentId));
       }
 

@@ -1,4 +1,4 @@
-import { CompetencyKind } from '@/generated/prisma';
+import { CompetencyKind } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
 
 export interface SkillPrefill {
@@ -26,6 +26,33 @@ export function normalizeTopicKey(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 256);
 }
 
+interface SkillRecord {
+  id: string;
+  name: string;
+}
+
+interface SkillProfileRecord {
+  id: string;
+  skillId: string | null;
+  value: number;
+  updatedAt: Date;
+  sourceAssignmentId: string | null;
+}
+
+interface PersonSkillRecord {
+  skillId: string;
+  level: number;
+  updatedAt: Date;
+}
+
+interface TopicProfileRecord {
+  id: string;
+  topicKey: string | null;
+  value: number;
+  updatedAt: Date;
+  sourceAssignmentId: string | null;
+}
+
 export async function getStudentCompetencyPrefills({
   studentId,
   skillNames,
@@ -47,41 +74,45 @@ export async function getStudentCompetencyPrefills({
     new Set(normalizedTopicEntries.map(entry => entry.key))
   );
 
-  const skills = uniqueSkillNames.length
-    ? await prisma.skill.findMany({
-        where: { name: { in: uniqueSkillNames } },
-        select: { id: true, name: true },
-      })
-    : [];
+  let skills: SkillRecord[] = [];
+  if (uniqueSkillNames.length) {
+    skills = await prisma.skill.findMany({
+      where: { name: { in: uniqueSkillNames } },
+      select: { id: true, name: true },
+    });
+  }
 
   const skillIdByName = new Map(skills.map(skill => [skill.name, skill.id]));
+  const skillIds = skills.map(skill => skill.id);
 
-  const skillProfiles = skills.length
-    ? await prisma.studentCompetencyProfile.findMany({
-        where: {
-          studentId,
-          competencyKind: CompetencyKind.SKILL,
-          skillId: { in: skills.map(skill => skill.id) },
-        },
-        select: {
-          id: true,
-          skillId: true,
-          value: true,
-          updatedAt: true,
-          sourceAssignmentId: true,
-        },
-      })
-    : [];
+  let skillProfiles: SkillProfileRecord[] = [];
+  if (skillIds.length) {
+    skillProfiles = await prisma.studentCompetencyProfile.findMany({
+      where: {
+        studentId,
+        competencyKind: CompetencyKind.SKILL,
+        skillId: { in: skillIds },
+      },
+      select: {
+        id: true,
+        skillId: true,
+        value: true,
+        updatedAt: true,
+        sourceAssignmentId: true,
+      },
+    });
+  }
 
-  const personSkills = skills.length
-    ? await prisma.personSkill.findMany({
-        where: {
-          personId: studentId,
-          skillId: { in: skills.map(skill => skill.id) },
-        },
-        select: { skillId: true, level: true, updatedAt: true },
-      })
-    : [];
+  let personSkills: PersonSkillRecord[] = [];
+  if (skillIds.length) {
+    personSkills = await prisma.personSkill.findMany({
+      where: {
+        personId: studentId,
+        skillId: { in: skillIds },
+      },
+      select: { skillId: true, level: true, updatedAt: true },
+    });
+  }
 
   const profileBySkillId = new Map(
     skillProfiles.map(profile => [profile.skillId ?? '', profile])
@@ -106,22 +137,23 @@ export async function getStudentCompetencyPrefills({
     };
   });
 
-  const topicProfiles = uniqueTopicKeys.length
-    ? await prisma.studentCompetencyProfile.findMany({
-        where: {
-          studentId,
-          competencyKind: CompetencyKind.TOPIC,
-          topicKey: { in: uniqueTopicKeys },
-        },
-        select: {
-          id: true,
-          topicKey: true,
-          value: true,
-          updatedAt: true,
-          sourceAssignmentId: true,
-        },
-      })
-    : [];
+  let topicProfiles: TopicProfileRecord[] = [];
+  if (uniqueTopicKeys.length) {
+    topicProfiles = await prisma.studentCompetencyProfile.findMany({
+      where: {
+        studentId,
+        competencyKind: CompetencyKind.TOPIC,
+        topicKey: { in: uniqueTopicKeys },
+      },
+      select: {
+        id: true,
+        topicKey: true,
+        value: true,
+        updatedAt: true,
+        sourceAssignmentId: true,
+      },
+    });
+  }
 
   const topicProfileByKey = new Map(
     topicProfiles.map(profile => [profile.topicKey ?? '', profile])

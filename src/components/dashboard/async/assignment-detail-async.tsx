@@ -4,6 +4,39 @@ import prisma from '@/lib/prisma';
 import { getAssignmentStats } from '@/lib/stats/assignment';
 import type { Course, ExtendedUser } from '@/lib/types';
 
+type TeamMemberFromQuery = {
+  id: string;
+  assignedSkillIds: string[];
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    mbtiType: string | null;
+    nim: string | null;
+    ei: number | null;
+    sn: number | null;
+    tf: number | null;
+    pj: number | null;
+    gender: string | null;
+    personSkills: Array<{
+      skillId: string;
+      level: number;
+      skill: { id: string; name: string };
+    }>;
+    AssignmentTopicPreference: Array<{
+      preference: number;
+      topic: { id: string; name: string };
+    }>;
+  };
+};
+
+type TeamFromQuery = {
+  id: string;
+  quality: number | null;
+  createdAt: Date;
+  members: TeamMemberFromQuery[];
+};
+
 interface AssignmentDetailAsyncProps {
   user: ExtendedUser;
   course: Course;
@@ -64,7 +97,7 @@ export async function AssignmentDetailAsync({
     select: { studentId: true },
   });
   const submittedStudentIds = new Set<string>(
-    submittedForAssignment.map(s => s.studentId)
+    submittedForAssignment.map((s: { studentId: string }) => s.studentId)
   );
 
   // Server-side: gather counts for UI and teams percentage
@@ -136,7 +169,9 @@ export async function AssignmentDetailAsync({
     });
     if (latest) {
       const memberIds = new Set(
-        latest.teams.flatMap(t => t.members.map(m => m.userId))
+        latest.teams.flatMap((t: { members: { userId: string }[] }) =>
+          t.members.map((m: { userId: string }) => m.userId)
+        )
       );
       const total = enrollments.length;
       percentAssigned =
@@ -173,14 +208,25 @@ export async function AssignmentDetailAsync({
     orderBy: { student: { name: 'asc' } },
   });
 
-  const enrolledStudentsList = enrolledStudents.map(e => ({
-    id: e.student.id,
-    name: e.student.name,
-    nim: e.student.nim,
-    email: e.student.email,
-    mbtiType: e.student.mbtiType,
-    gender: e.student.gender,
-  }));
+  const enrolledStudentsList = enrolledStudents.map(
+    (e: {
+      student: {
+        id: string;
+        name: string;
+        nim: string | null;
+        email: string;
+        mbtiType: string | null;
+        gender: string | null;
+      };
+    }) => ({
+      id: e.student.id,
+      name: e.student.name,
+      nim: e.student.nim,
+      email: e.student.email,
+      mbtiType: e.student.mbtiType,
+      gender: e.student.gender,
+    })
+  );
 
   // Fetch teams data if teams are formed
   let teamsData: Array<{
@@ -266,16 +312,21 @@ export async function AssignmentDetailAsync({
     });
 
     if (latest && latest.teams.length > 0) {
-      teamsData = latest.teams.map(team => ({
+      teamsData = latest.teams.map((team: TeamFromQuery) => ({
         id: team.id,
         quality: team.quality,
         createdAt: team.createdAt,
-        members: team.members.map(member => {
+        members: team.members.map((member: TeamMemberFromQuery) => {
           const assignedSkillIds = member.assignedSkillIds ?? [];
           const assignedSkillSet = new Set(assignedSkillIds);
 
+          type PersonSkillItem = {
+            skillId: string;
+            level: number;
+            skill: { id: string; name: string };
+          };
           const personSkills =
-            member.user.personSkills?.map(skill => ({
+            member.user.personSkills?.map((skill: PersonSkillItem) => ({
               skillId: skill.skillId,
               level: skill.level ?? 0,
               name: skill.skill?.name ?? null,
@@ -295,15 +346,25 @@ export async function AssignmentDetailAsync({
             new Set(relevantSkills.map(skill => skill.name).filter(Boolean))
           ) as string[];
 
+          type TopicPrefItem = {
+            preference: number;
+            topic: { id: string; name: string };
+          };
           const topicPreferences =
-            member.user.AssignmentTopicPreference?.map(pref => ({
-              name: pref.topic?.name ?? null,
-              preference: pref.preference ?? 0,
-            })) ?? [];
+            member.user.AssignmentTopicPreference?.map(
+              (pref: TopicPrefItem) => ({
+                name: pref.topic?.name ?? null,
+                preference: pref.preference ?? 0,
+              })
+            ) ?? [];
+          type TopicPrefMapped = { name: string | null; preference: number };
           const preferredTopics = topicPreferences
-            .filter(pref => pref.name)
-            .sort((a, b) => (b.preference ?? 0) - (a.preference ?? 0))
-            .map(pref => pref.name as string);
+            .filter((pref: TopicPrefMapped) => pref.name)
+            .sort(
+              (a: TopicPrefMapped, b: TopicPrefMapped) =>
+                (b.preference ?? 0) - (a.preference ?? 0)
+            )
+            .map((pref: TopicPrefMapped) => pref.name as string);
 
           return {
             id: member.id,
@@ -345,7 +406,9 @@ export async function AssignmentDetailAsync({
           select: { id: true, name: true },
         });
         topicNames = Object.fromEntries(
-          topicRecordsWithNames.map(r => [r.id, r.name] as const)
+          topicRecordsWithNames.map(
+            (r: { id: string; name: string }) => [r.id, r.name] as const
+          )
         );
       }
     }

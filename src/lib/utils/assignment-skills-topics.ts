@@ -1,5 +1,5 @@
-import type { Prisma } from '@/generated/prisma';
-import prisma from '@/lib/prisma';
+import type { Prisma } from '@/generated/prisma/client';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 
 /**
  * Ensure skills exist globally and are linked to the course.
@@ -14,7 +14,7 @@ export async function ensureSkillsForCourse(
   if (skillNames.length === 0) return;
 
   // Use a transaction to ensure atomicity
-  await prisma.$transaction(async tx => {
+  await prisma.$transaction(async (tx: TransactionClient) => {
     // Step 1: Ensure all Skill records exist
     // Note: Skill.name has @unique constraint, so we handle case-insensitive matching manually
     const existing = await tx.skill.findMany({
@@ -22,7 +22,10 @@ export async function ensureSkillsForCourse(
     });
 
     const existingMap = new Map(
-      existing.map(s => [s.name.toLowerCase(), { id: s.id, name: s.name }])
+      existing.map((s: { id: string; name: string }) => [
+        s.name.toLowerCase(),
+        { id: s.id, name: s.name },
+      ])
     );
 
     // Create missing skills
@@ -49,7 +52,10 @@ export async function ensureSkillsForCourse(
     });
 
     const skillIdMap = new Map(
-      allSkills.map(s => [s.name.toLowerCase(), s.id])
+      allSkills.map((s: { id: string; name: string }) => [
+        s.name.toLowerCase(),
+        s.id,
+      ])
     );
 
     // Step 3: Create CourseSkill links (idempotent)

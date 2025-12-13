@@ -116,8 +116,11 @@ async function getAssignmentData(
           },
         },
       });
-      const byName = new Map(
-        skillRows.map(r => [r.name, r.personSkills[0]?.level ?? null])
+      const byName = new Map<string, number | null>(
+        skillRows.map(
+          (r: { name: string; personSkills: Array<{ level: number }> }) =>
+            [r.name, r.personSkills[0]?.level ?? null] as const
+        )
       );
       skillAnswers = skills.map(name => ({
         name,
@@ -125,10 +128,12 @@ async function getAssignmentData(
       }));
     }
 
-    const topicAnswers = assignment.AssignmentTopic.map(t => ({
-      name: t.name,
-      preference: t.preferences[0]?.preference ?? null,
-    }));
+    const topicAnswers = assignment.AssignmentTopic.map(
+      (t: { name: string; preferences: Array<{ preference: number }> }) => ({
+        name: t.name,
+        preference: t.preferences[0]?.preference ?? null,
+      })
+    );
 
     return {
       hasSubmitted: true as const,

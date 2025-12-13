@@ -51,17 +51,19 @@ async function getStudentClasses(
       ],
     });
 
-    const courses = enrollments.map(enrollment => ({
-      id: enrollment.course.id,
-      namaMataKuliah: enrollment.course.namaMataKuliah,
-      kelas: enrollment.course.kelas,
-      tahunAwalPeriode: enrollment.course.tahunAwalPeriode,
-      tahunAkhirPeriode: enrollment.course.tahunAkhirPeriode,
-      periode: enrollment.course.periode,
-      dosen: enrollment.course.dosen,
-      enrolledAt: enrollment.enrolledAt,
-      studentCount: enrollment.course._count.enrollments,
-    }));
+    const courses = enrollments.map(
+      (enrollment: (typeof enrollments)[number]) => ({
+        id: enrollment.course.id,
+        namaMataKuliah: enrollment.course.namaMataKuliah,
+        kelas: enrollment.course.kelas,
+        tahunAwalPeriode: enrollment.course.tahunAwalPeriode,
+        tahunAkhirPeriode: enrollment.course.tahunAkhirPeriode,
+        periode: enrollment.course.periode,
+        dosen: enrollment.course.dosen,
+        enrolledAt: enrollment.enrolledAt,
+        studentCount: enrollment.course._count.enrollments,
+      })
+    );
 
     return createApiResponse(courses);
   } catch {

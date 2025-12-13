@@ -1,6 +1,6 @@
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
-import type { Prisma } from '@/generated/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import { handleApiError } from '@/lib/api-utils';
 import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
 import { edu2comTeamsResponseSchema } from '@/lib/edu2com/contract';
@@ -301,7 +301,7 @@ export async function POST(req: Request) {
             completedAt: new Date(),
           },
         })
-        .catch(e => {
+        .catch((e: unknown) => {
           console.error(
             `[Edu2com Webhook] Failed to mark request ${requestId} as FAILED:`,
             e

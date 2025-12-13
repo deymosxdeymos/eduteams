@@ -1,7 +1,7 @@
-import type { PrismaClient } from '@/generated/prisma';
+import type { PrismaClientInstance } from '@/lib/prisma';
 import { createPrismaClient } from '@/lib/create-prisma-client';
 
-const prisma: PrismaClient = createPrismaClient();
+const prisma: PrismaClientInstance = createPrismaClient();
 
 export async function resetDatabase(): Promise<void> {
   const tables = await prisma.$queryRaw<Array<{ table_name: string }>>`
@@ -13,7 +13,7 @@ export async function resetDatabase(): Promise<void> {
 
   if (tables.length === 0) return;
 
-  const tableNames = tables.map((t) => t.table_name).join(', ');
+  const tableNames = tables.map((t: { table_name: string }) => t.table_name).join(', ');
   await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tableNames} CASCADE`);
 }
 

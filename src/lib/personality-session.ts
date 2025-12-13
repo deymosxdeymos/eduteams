@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from 'node:crypto';
-import type { MBTIType, Prisma } from '@/generated/prisma';
+import type { MBTIType, Prisma } from '@/generated/prisma/client';
 import {
   type ActivePersonalityBank,
   getActivePersonalityBank,
@@ -11,8 +11,15 @@ import {
   getMBTIType,
   type PersonalityScores,
 } from '@/lib/personality';
-import prisma from '@/lib/prisma';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
+
+interface PersonalityQuestionRow {
+  id: string;
+  dimension: string;
+  reversed: boolean;
+  isAttentionCheck: boolean;
+}
 
 const ATTENTION_CHECK_EXPECTED = 4;
 const SPEEDER_THRESHOLD_MS = 60_000;
@@ -465,7 +472,9 @@ export async function submitPersonalitySession(options: {
     },
   });
 
-  const questionMap = new Map(questions.map(q => [q.id, q] as const));
+  const questionMap = new Map<string, PersonalityQuestionRow>(
+    questions.map((q: PersonalityQuestionRow) => [q.id, q] as const)
+  );
 
   const orderedQuestions: QuestionForScoring[] = presentedOrder.map(id => {
     const q = questionMap.get(id);
@@ -558,7 +567,7 @@ export async function submitPersonalitySession(options: {
   );
   const mbtiType = getMBTIType(scores);
 
-  const result = await prisma.$transaction(async tx => {
+  const result = await prisma.$transaction(async (tx: TransactionClient) => {
     await tx.personalityResponse.deleteMany({ where: { sessionId } });
     await tx.personalityResponse.createMany({
       data: responsePayload,

@@ -1,4 +1,4 @@
-import type { MBTIType, Gender } from '@/generated/prisma';
+import type { MBTIType, Gender } from '@/generated/prisma/client';
 
 export interface PersonalityScores {
   ei: number;

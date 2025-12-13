@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { Prisma } from '@/generated/prisma';
+import { Prisma } from '@/generated/prisma/client';
 import {
   createApiResponse,
   createErrorResponse,

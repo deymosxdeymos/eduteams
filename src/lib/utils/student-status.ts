@@ -1,4 +1,4 @@
-import type { AssignmentStatus } from '@/generated/prisma';
+import type { AssignmentStatus } from '@/generated/prisma/client';
 
 interface StatusDetectionInput {
   assignmentStatus: AssignmentStatus;

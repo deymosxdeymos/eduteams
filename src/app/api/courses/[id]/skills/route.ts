@@ -55,7 +55,7 @@ export const GET = withAuth<{ id: string }>(
         orderBy: { skill: { name: 'asc' } },
       });
 
-      const skills = courseSkills.map(cs => ({
+      const skills = courseSkills.map((cs: (typeof courseSkills)[number]) => ({
         id: cs.skill.id,
         name: cs.skill.name,
       }));

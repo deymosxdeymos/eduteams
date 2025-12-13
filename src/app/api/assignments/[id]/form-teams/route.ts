@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import type { Prisma } from '@/generated/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import { handleApiError, withRole } from '@/lib/api-utils';
 import { callEdu2comBackgroundTeamFormation } from '@/lib/edu2com/api';
 import {
@@ -369,7 +369,9 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       where: { assignmentId },
       select: { studentId: true },
     });
-    const submittedStudentIds = new Set(submissions.map(s => s.studentId));
+    const submittedStudentIds = new Set(
+      submissions.map((s: { studentId: string }) => s.studentId)
+    );
     const submissionQueryTime = performance.now() - submissionQueryStart;
     console.log(
       `[Team Formation] Submission query took ${submissionQueryTime.toFixed(2)}ms, found ${submissions.length} submissions`
@@ -412,9 +414,20 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // Filter to only include students who:
     // 1. Have submitted the assignment quiz
     // 2. Have valid personality scores (MBTI)
-    const allStudents = enrollments.map(e => e.student);
+    type EnrolledStudent = {
+      id: string;
+      gender: string | null;
+      ei: number | null;
+      sn: number | null;
+      tf: number | null;
+      pj: number | null;
+      personSkills: { skillId: string; level: number }[];
+    };
+    const allStudents = enrollments.map(
+      (e: { student: EnrolledStudent }) => e.student
+    );
     const students = allStudents
-      .filter(s => submittedStudentIds.has(s.id))
+      .filter((s: EnrolledStudent) => submittedStudentIds.has(s.id))
       .filter(hasValidPersonality);
 
     const totalEnrolled = allStudents.length;
@@ -452,14 +465,17 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
 
     // Determine skills from DB (no hardcoding):
     // Use union of students' PersonSkill.skillId. If empty, fallback to all Skill ids available.
+    type PersonSkill = { skillId: string; level: number };
     let declaredSkillIds: string[] = Array.from(
       new Set(
-        students.flatMap(s => (s.personSkills || []).map(ps => ps.skillId))
+        students.flatMap((s: PersonalityComplete<EnrolledStudent>) =>
+          (s.personSkills || []).map((ps: PersonSkill) => ps.skillId)
+        )
       )
     );
     if (declaredSkillIds.length === 0) {
       const allSkills = await prisma.skill.findMany({ select: { id: true } });
-      declaredSkillIds = allSkills.map(s => s.id);
+      declaredSkillIds = allSkills.map((s: { id: string }) => s.id);
     }
     if (declaredSkillIds.length === 0) {
       return NextResponse.json(
@@ -475,10 +491,10 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // Build people payload as required by openapi.json
     // Note: students are already filtered to have valid personality scores
     let fallbackSkillAssigned = 0;
-    const people = students.map(s => {
+    const people = students.map((s: PersonalityComplete<EnrolledStudent>) => {
       const skills = (s.personSkills || [])
-        .filter(ps => declaredSkillIds.includes(ps.skillId))
-        .map(ps => ({
+        .filter((ps: PersonSkill) => declaredSkillIds.includes(ps.skillId))
+        .map((ps: PersonSkill) => ({
           id: ps.skillId,
           level: Math.max(0, Math.min(1, ps.level)),
         }));

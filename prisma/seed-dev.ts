@@ -118,11 +118,11 @@ async function listCourses(): Promise<void> {
   }
 
   console.log('\n📚 Available Courses:');
-  courses.forEach((course, i) => {
+  for (const [i, course] of courses.entries()) {
     console.log(
       `  [${i + 1}] ${course.id} | ${course.namaMataKuliah} | Kelas ${course.kelas} | ${course.dosen.name} (${course.dosen.email})`
     );
-  });
+  }
 }
 
 async function listDosen(): Promise<void> {
@@ -142,9 +142,9 @@ async function listDosen(): Promise<void> {
   }
 
   console.log('\n👨‍🏫 Available Dosen:');
-  dosen.forEach((d, i) => {
+  for (const [i, d] of dosen.entries()) {
     console.log(`  [${i + 1}] ${d.name} (${d.email})`);
-  });
+  }
 }
 
 async function selectDosen(): Promise<string> {
@@ -170,9 +170,9 @@ async function selectDosen(): Promise<string> {
   }
 
   console.log('\n👨‍🏫 Available Dosen:');
-  dosen.forEach((d, i) => {
+  for (const [i, d] of dosen.entries()) {
     console.log(`  [${i + 1}] ${d.name} (${d.email})`);
-  });
+  }
 
   console.log(`Which dosen should own this course? [1-${dosen.length}]:`);
   const selection = await new Promise<string>(resolve => {
@@ -298,7 +298,7 @@ async function generateCompletePersonalitySession(
   const submittedAt = new Date();
   const durationMs = submittedAt.getTime() - startedAt.getTime();
 
-  await prisma.$transaction(async tx => {
+  await prisma.$transaction(async (tx: typeof prisma) => {
     // Create personality session
     const session = await tx.personalitySession.create({
       data: {
@@ -674,7 +674,7 @@ async function seedStudents(args: Args): Promise<void> {
         '⚠️  No personality questions found in database. Skipping personality data.'
       );
     } else {
-      const questionIds = questions.map(q => q.id);
+      const questionIds = questions.map((q: { id: string }) => q.id);
 
       for (let i = 0; i < studentIds.length; i++) {
         await generateCompletePersonalitySession(

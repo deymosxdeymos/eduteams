@@ -69,7 +69,7 @@ export const GET = withAuth<{ id: string }>(
           _count: { select: { submissions: true } },
         },
       });
-      const assignments = rows.map(r => ({
+      const assignments = rows.map((r: (typeof rows)[number]) => ({
         id: r.id,
         courseId: r.courseId,
         title: r.title,

@@ -86,7 +86,7 @@ export async function getManageCoursesForDosen(
     ],
   });
 
-  return courses.map(course => ({
+  return courses.map((course: (typeof courses)[number]) => ({
     id: course.id,
     name: course.namaMataKuliah,
     classCode: course.kelas,

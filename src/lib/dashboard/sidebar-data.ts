@@ -2,6 +2,24 @@ import { getCurrentUser } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 import { getStudentAssignmentStatus } from '@/lib/utils/student-status';
 
+interface TeamMember {
+  userId: string;
+}
+
+interface Team {
+  members: TeamMember[];
+}
+
+interface AssignmentWithTeams {
+  id: string;
+  status: string;
+  createdById: string;
+  startAt: Date | null;
+  teamFormationRequests: {
+    teams: Team[];
+  }[];
+}
+
 export async function getSidebarData() {
   const user = await getCurrentUser();
 
@@ -21,7 +39,7 @@ export async function getSidebarData() {
       select: { courseId: true },
     });
 
-    const courseIds = enrollments.map(e => e.courseId);
+    const courseIds = enrollments.map((e: { courseId: string }) => e.courseId);
 
     if (courseIds.length > 0) {
       // Get all active assignments
@@ -60,24 +78,28 @@ export async function getSidebarData() {
       const submissions = await prisma.assignmentSubmission.findMany({
         where: {
           studentId: user.id,
-          assignmentId: { in: assignments.map(a => a.id) },
+          assignmentId: { in: assignments.map((a: { id: string }) => a.id) },
           needsUpdate: false,
         },
         select: { assignmentId: true },
       });
 
-      const submissionSet = new Set(submissions.map(s => s.assignmentId));
+      const submissionSet = new Set(
+        submissions.map((s: { assignmentId: string }) => s.assignmentId)
+      );
 
       // Batch fetch all legacy team formations to avoid N+1 query
       const assignmentsNeedingLegacy = assignments.filter(
-        a => a.teamFormationRequests.length === 0
+        (a: AssignmentWithTeams) => a.teamFormationRequests.length === 0
       );
       const legacyTeamFormations =
         assignmentsNeedingLegacy.length > 0
           ? await prisma.teamFormationRequest.findMany({
               where: {
                 ownerId: {
-                  in: assignmentsNeedingLegacy.map(a => a.createdById),
+                  in: assignmentsNeedingLegacy.map(
+                    (a: AssignmentWithTeams) => a.createdById
+                  ),
                 },
                 assignmentId: null,
                 status: 'COMPLETED',
@@ -126,8 +148,8 @@ export async function getSidebarData() {
           }
         }
 
-        const isInTeam = teamFormation?.teams.some(team =>
-          team.members.some(m => m.userId === user.id)
+        const isInTeam = teamFormation?.teams.some((team: Team) =>
+          team.members.some((m: TeamMember) => m.userId === user.id)
         );
 
         const status = getStudentAssignmentStatus({

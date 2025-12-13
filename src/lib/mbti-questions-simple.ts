@@ -1,7 +1,7 @@
-import type { PersonalityAxis } from '@/generated/prisma';
+import type { PersonalityAxis } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
 
-type PersonalityAxisKey = Lowercase<PersonalityAxis>;
+type PersonalityAxisKey = PersonalityAxis;
 
 export interface PersonalityQuestionRecord {
   id: string;
@@ -21,26 +21,26 @@ export interface ActivePersonalityBank {
 }
 
 const DIMENSION_NORMALIZER: Record<PersonalityAxis, PersonalityAxisKey> = {
-  EI: 'ei',
-  SN: 'sn',
-  TF: 'tf',
-  PJ: 'pj',
-  I: 'i',
-  E: 'e',
-  S: 's',
-  N: 'n',
-  F: 'f',
-  T: 't',
-  J: 'j',
-  P: 'p',
-  NJ: 'nj',
-  NP: 'np',
-  SJ: 'sj',
-  SP: 'sp',
-  EF: 'ef',
-  ET: 'et',
-  IF: 'if',
-  IT: 'it',
+  ei: 'ei',
+  sn: 'sn',
+  tf: 'tf',
+  pj: 'pj',
+  i: 'i',
+  e: 'e',
+  s: 's',
+  n: 'n',
+  f: 'f',
+  t: 't',
+  j: 'j',
+  p: 'p',
+  nj: 'nj',
+  np: 'np',
+  sj: 'sj',
+  sp: 'sp',
+  ef: 'ef',
+  et: 'et',
+  if: 'if',
+  it: 'it',
 };
 
 const DEFAULT_LOCALE = 'id-ID';
@@ -111,19 +111,30 @@ async function loadBankForLocale(
   return {
     bankVersion: latest.bankVersion,
     locale,
-    questions: questions.map(question => {
-      const dimension = DIMENSION_NORMALIZER[question.dimension];
-      return {
-        id: question.id,
-        bankVersion: question.bankVersion,
-        locale: question.locale,
-        text: question.text,
-        dimension,
-        orderHint: question.orderHint,
-        reversed: question.reversed ?? false,
-        isAttentionCheck: question.isAttentionCheck ?? false,
-      } satisfies PersonalityQuestionRecord;
-    }),
+    questions: questions.map(
+      (question: {
+        id: string;
+        bankVersion: number;
+        locale: string;
+        text: string;
+        dimension: PersonalityAxis;
+        orderHint: number;
+        reversed: boolean | null;
+        isAttentionCheck: boolean | null;
+      }) => {
+        const dimension = DIMENSION_NORMALIZER[question.dimension];
+        return {
+          id: question.id,
+          bankVersion: question.bankVersion,
+          locale: question.locale,
+          text: question.text,
+          dimension,
+          orderHint: question.orderHint,
+          reversed: question.reversed ?? false,
+          isAttentionCheck: question.isAttentionCheck ?? false,
+        } satisfies PersonalityQuestionRecord;
+      }
+    ),
   };
 }
 

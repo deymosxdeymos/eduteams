@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Prisma } from '@/generated/prisma';
+import { Prisma } from '@/generated/prisma/client';
 
 const createSession = (userId: string) => ({
   user: { id: userId },
