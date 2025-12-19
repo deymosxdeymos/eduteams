@@ -3,6 +3,11 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+  output   = "./dbml"
+}
+
 datasource db {
   provider = "postgresql"
 }
@@ -13,12 +18,12 @@ model User {
   email                     String                      @unique
   emailVerified             Boolean
   image                     String?
-  createdAt                 DateTime
-  updatedAt                 DateTime
+  createdAt                 DateTime                     @default(now())
+  updatedAt                 DateTime                     @updatedAt
   isOnboarded               Boolean                     @default(false)
   hasSeenWelcomeSplash      Boolean                     @default(false)
   nim                       String?
-  role                      String?
+  role                      RoleName?
   onboardingData            Json?
   onboardingStep            String?
   ei                        Float?
@@ -45,7 +50,6 @@ model User {
   AssignmentTopicPreference AssignmentTopicPreference[]
   competencyProfiles        StudentCompetencyProfile[]
 
-  @@index([email])
   @@index([role])
   @@index([isOnboarded])
   @@index([onboardingStep])
@@ -63,8 +67,8 @@ model Session {
   id        String   @id
   expiresAt DateTime
   token     String   @unique
-  createdAt DateTime
-  updatedAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
   userId    String
@@ -85,8 +89,8 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
@@ -97,8 +101,8 @@ model Verification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@map("verification")
 }
@@ -254,7 +258,7 @@ model Team {
   createdAt              DateTime             @default(now())
   updatedAt              DateTime             @updatedAt
   members                TeamMember[]
-  task                   Task?                @relation(fields: [taskId], references: [id])
+  task                   Task?                @relation(fields: [taskId], references: [id], onDelete: SetNull)
   teamFormationRequest   TeamFormationRequest @relation(fields: [teamFormationRequestId], references: [id], onDelete: Cascade)
 
   @@index([teamFormationRequestId])
@@ -299,7 +303,6 @@ model Course {
   @@index([tahunAwalPeriode, tahunAkhirPeriode])
   @@index([periode])
   @@index([archivedAt])
-  @@index([shareToken])
   @@map("courses")
 }
 
@@ -363,7 +366,6 @@ model DosenToken {
   updatedAt   DateTime          @updatedAt
   usages      DosenTokenUsage[]
 
-  @@index([token])
   @@map("dosen_tokens")
 }
 
@@ -549,6 +551,7 @@ model AssignmentTopicPreference {
   @@map("assignment_topic_preferences")
 }
 
+// SKILL rows must provide skillId (topicKey null) while TOPIC rows do the inverse.
 model StudentCompetencyProfile {
   id                 String         @id @default(uuid())
   studentId          String
@@ -563,8 +566,8 @@ model StudentCompetencyProfile {
   skill              Skill?         @relation(fields: [skillId], references: [id], onDelete: Cascade)
   sourceAssignment   Assignment?    @relation(fields: [sourceAssignmentId], references: [id], onDelete: SetNull)
 
-  @@unique([studentId, competencyKind, skillId])
-  @@unique([studentId, competencyKind, topicKey])
+  @@unique([studentId, skillId])
+  @@unique([studentId, topicKey])
   @@index([studentId])
   @@index([skillId])
   @@index([topicKey])
