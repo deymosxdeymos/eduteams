@@ -614,16 +614,15 @@ export async function submitPersonalitySession(options: {
       });
 
       if (latestValid?.id === sessionId) {
-        await tx.user.update({
-          where: { id: userId },
-          data: {
+        await tx.personalityProfile.upsert({
+          where: { userId },
+          create: {
+            userId,
             ei: scores.ei,
             sn: scores.sn,
             tf: scores.tf,
             pj: scores.pj,
             mbtiType: mbtiType as MBTIType,
-            isOnboarded: true,
-            onboardingStep: null,
             personalityData: {
               answers: answersSnapshot,
               scores: {
@@ -641,6 +640,37 @@ export async function submitPersonalitySession(options: {
                 attentionPassed,
               },
             } as Prisma.InputJsonValue,
+          },
+          update: {
+            ei: scores.ei,
+            sn: scores.sn,
+            tf: scores.tf,
+            pj: scores.pj,
+            mbtiType: mbtiType as MBTIType,
+            personalityData: {
+              answers: answersSnapshot,
+              scores: {
+                ei: scores.ei,
+                sn: scores.sn,
+                tf: scores.tf,
+                pj: scores.pj,
+                mbtiType,
+              },
+              metadata: {
+                sessionId,
+                bankVersion: session.bankVersion,
+                submittedAt: submittedAt.toISOString(),
+                durationMs,
+                attentionPassed,
+              },
+            } as Prisma.InputJsonValue,
+          },
+        });
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            isOnboarded: true,
+            onboardingStep: null,
           },
         });
       }

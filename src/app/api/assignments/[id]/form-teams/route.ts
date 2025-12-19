@@ -349,10 +349,9 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
           select: {
             id: true,
             gender: true,
-            ei: true,
-            sn: true,
-            tf: true,
-            pj: true,
+            personalityProfile: {
+              select: { ei: true, sn: true, tf: true, pj: true },
+            },
             personSkills: { select: { skillId: true, level: true } },
           },
         },
@@ -414,6 +413,17 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
     // Filter to only include students who:
     // 1. Have submitted the assignment quiz
     // 2. Have valid personality scores (MBTI)
+    type EnrollmentStudent = {
+      id: string;
+      gender: string | null;
+      personalityProfile: {
+        ei: number | null;
+        sn: number | null;
+        tf: number | null;
+        pj: number | null;
+      } | null;
+      personSkills: { skillId: string; level: number }[];
+    };
     type EnrolledStudent = {
       id: string;
       gender: string | null;
@@ -423,9 +433,18 @@ export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
       pj: number | null;
       personSkills: { skillId: string; level: number }[];
     };
-    const allStudents = enrollments.map(
-      (e: { student: EnrolledStudent }) => e.student
-    );
+    const allStudents = enrollments.map((e: { student: EnrollmentStudent }) => {
+      const profile = e.student.personalityProfile;
+      return {
+        id: e.student.id,
+        gender: e.student.gender,
+        ei: profile?.ei ?? null,
+        sn: profile?.sn ?? null,
+        tf: profile?.tf ?? null,
+        pj: profile?.pj ?? null,
+        personSkills: e.student.personSkills,
+      };
+    });
     const students = allStudents
       .filter((s: EnrolledStudent) => submittedStudentIds.has(s.id))
       .filter(hasValidPersonality);

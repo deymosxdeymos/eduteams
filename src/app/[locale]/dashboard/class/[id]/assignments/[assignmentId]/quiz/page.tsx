@@ -333,9 +333,12 @@ export default async function AssignmentQuizPage({
     const mbtiQuestions = await getMBTIQuestions(locale);
     const userRecord = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { personalityData: true },
+      select: {
+        personalityProfile: { select: { personalityData: true } },
+      },
     });
-    const personalityJson = userRecord?.personalityData as unknown as {
+    const personalityJson = userRecord?.personalityProfile
+      ?.personalityData as unknown as {
       answers?: Record<string, number>;
     } | null;
     const personalityAnswers = (personalityJson?.answers ?? {}) as Record<

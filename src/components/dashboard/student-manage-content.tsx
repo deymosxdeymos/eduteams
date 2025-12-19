@@ -89,7 +89,11 @@ export async function StudentManageContent({
                     select: {
                       id: true,
                       name: true,
-                      mbtiType: true,
+                      personalityProfile: {
+                        select: {
+                          mbtiType: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -232,7 +236,7 @@ export async function StudentManageContent({
           user: {
             id: m.user.id,
             name: m.user.name,
-            mbtiType: m.user.mbtiType as string | null,
+            mbtiType: m.user.personalityProfile?.mbtiType as string | null,
           },
         }));
 

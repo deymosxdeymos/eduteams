@@ -18,21 +18,16 @@ model User {
   email                     String                      @unique
   emailVerified             Boolean
   image                     String?
-  createdAt                 DateTime                     @default(now())
-  updatedAt                 DateTime                     @updatedAt
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
   isOnboarded               Boolean                     @default(false)
   hasSeenWelcomeSplash      Boolean                     @default(false)
   nim                       String?
   role                      RoleName?
   onboardingData            Json?
   onboardingStep            String?
-  ei                        Float?
   gender                    Gender?
-  pj                        Float?
-  sn                        Float?
-  tf                        Float?
-  mbtiType                  MBTIType?
-  personalityData           Json?
+  personalityProfile        PersonalityProfile?
   personalitySessions       PersonalitySession[]
   accounts                  Account[]
   personPreferences         PersonPreference[]
@@ -54,12 +49,6 @@ model User {
   @@index([isOnboarded])
   @@index([onboardingStep])
   @@index([onboardingData], type: Gin)
-  @@index([mbtiType])
-  @@index([ei])
-  @@index([sn])
-  @@index([tf])
-  @@index([pj])
-  @@index([personalityData], type: Gin)
   @@map("user")
 }
 
@@ -89,20 +78,20 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
 
 model Verification {
-  id         String    @id
+  id         String   @id
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("verification")
 }
@@ -566,8 +555,8 @@ model StudentCompetencyProfile {
   skill              Skill?         @relation(fields: [skillId], references: [id], onDelete: Cascade)
   sourceAssignment   Assignment?    @relation(fields: [sourceAssignmentId], references: [id], onDelete: SetNull)
 
-  @@unique([studentId, skillId])
-  @@unique([studentId, topicKey])
+  @@unique([studentId, competencyKind, skillId])
+  @@unique([studentId, competencyKind, topicKey])
   @@index([studentId])
   @@index([skillId])
   @@index([topicKey])
@@ -617,6 +606,27 @@ model PersonalitySession {
   @@index([createdAt])
   @@index([submittedAt])
   @@map("personality_sessions")
+}
+
+model PersonalityProfile {
+  userId          String    @id
+  ei              Float?
+  sn              Float?
+  tf              Float?
+  pj              Float?
+  mbtiType        MBTIType?
+  personalityData Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([mbtiType])
+  @@index([ei])
+  @@index([sn])
+  @@index([tf])
+  @@index([pj])
+  @@index([personalityData], type: Gin)
+  @@map("personality_profiles")
 }
 
 model PersonalityResponse {

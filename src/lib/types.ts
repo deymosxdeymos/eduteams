@@ -1,5 +1,6 @@
 import type {
   MBTIType,
+  Prisma,
   ClassCatalog as PrismaClassCatalog,
   Course as PrismaCourse,
   CourseCatalog as PrismaCourseCatalog,
@@ -9,7 +10,9 @@ import type {
 
 export type UserRole = 'dosen' | 'mahasiswa' | 'admin';
 
-export interface ExtendedUser extends PrismaUser {
+type PrismaUserBase = Omit<PrismaUser, 'role'>;
+
+export interface ExtendedUser extends PrismaUserBase {
   role: UserRole | null;
   nim: string | null;
   isOnboarded: boolean;
@@ -19,6 +22,55 @@ export interface ExtendedUser extends PrismaUser {
   sn: number | null;
   tf: number | null;
   pj: number | null;
+  personalityData: Prisma.JsonValue | null;
+}
+
+export const personalityProfileSelect = {
+  mbtiType: true,
+  ei: true,
+  sn: true,
+  tf: true,
+  pj: true,
+  personalityData: true,
+} as const;
+
+export const extendedUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  emailVerified: true,
+  image: true,
+  createdAt: true,
+  updatedAt: true,
+  role: true,
+  nim: true,
+  gender: true,
+  isOnboarded: true,
+  hasSeenWelcomeSplash: true,
+  onboardingStep: true,
+  onboardingData: true,
+  personalityProfile: {
+    select: personalityProfileSelect,
+  },
+} satisfies Prisma.UserSelect;
+
+export type ExtendedUserResult = Prisma.UserGetPayload<{
+  select: typeof extendedUserSelect;
+}>;
+
+export function mapToExtendedUser(user: ExtendedUserResult): ExtendedUser {
+  const { personalityProfile, ...baseUser } = user;
+
+  return {
+    ...baseUser,
+    role: (baseUser.role as UserRole | null) ?? null,
+    mbtiType: personalityProfile?.mbtiType ?? null,
+    ei: personalityProfile?.ei ?? null,
+    sn: personalityProfile?.sn ?? null,
+    tf: personalityProfile?.tf ?? null,
+    pj: personalityProfile?.pj ?? null,
+    personalityData: personalityProfile?.personalityData ?? null,
+  };
 }
 
 export interface ApiResponse<T = unknown> {

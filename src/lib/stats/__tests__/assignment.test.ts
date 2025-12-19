@@ -169,9 +169,27 @@ describe('lib/stats/getAssignmentStats', () => {
 
     // Enrollments with MBTI & gender
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
-      { studentId: 's1', student: { mbtiType: 'ENFP', gender: 'MALE' } },
-      { studentId: 's2', student: { mbtiType: 'ENFP', gender: 'MALE' } },
-      { studentId: 's3', student: { mbtiType: 'INTJ', gender: 'FEMALE' } },
+      {
+        studentId: 's1',
+        student: {
+          gender: 'MALE',
+          personalityProfile: { mbtiType: 'ENFP' },
+        },
+      },
+      {
+        studentId: 's2',
+        student: {
+          gender: 'MALE',
+          personalityProfile: { mbtiType: 'ENFP' },
+        },
+      },
+      {
+        studentId: 's3',
+        student: {
+          gender: 'FEMALE',
+          personalityProfile: { mbtiType: 'INTJ' },
+        },
+      },
     ]);
 
     // Assignment config declares skills & topics

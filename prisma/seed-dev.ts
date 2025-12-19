@@ -340,17 +340,18 @@ async function generateCompletePersonalitySession(
       },
     });
 
-    // Update user with personality data
-    await tx.user.update({
-      where: { id: userId },
-      data: {
+    // Upsert personality profile snapshot
+    await tx.personalityProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
         ei: scores.ei,
         sn: scores.sn,
         tf: scores.tf,
         pj: scores.pj,
         mbtiType: finalMbtiType,
-        isOnboarded: true,
-        onboardingStep: null,
+        createdAt: submittedAt,
+        updatedAt: submittedAt,
         personalityData: {
           answers: responses,
           scores: {
@@ -368,6 +369,39 @@ async function generateCompletePersonalitySession(
             attentionPassed: true,
           },
         } satisfies Record<string, unknown>,
+      },
+      update: {
+        ei: scores.ei,
+        sn: scores.sn,
+        tf: scores.tf,
+        pj: scores.pj,
+        mbtiType: finalMbtiType,
+        personalityData: {
+          answers: responses,
+          scores: {
+            ei: scores.ei,
+            sn: scores.sn,
+            tf: scores.tf,
+            pj: scores.pj,
+            mbtiType: finalMbtiType,
+          },
+          metadata: {
+            sessionId: session.id,
+            bankVersion: 4,
+            submittedAt: submittedAt.toISOString(),
+            durationMs,
+            attentionPassed: true,
+          },
+        } satisfies Record<string, unknown>,
+        updatedAt: submittedAt,
+      },
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        isOnboarded: true,
+        onboardingStep: null,
       },
     });
   });

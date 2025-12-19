@@ -21,11 +21,13 @@ type EnrollmentWithStudent = {
     name: string | null;
     email: string | null;
     nim: string | null;
-    mbtiType: string | null;
-    ei: number | null;
-    sn: number | null;
-    tf: number | null;
-    pj: number | null;
+    personalityProfile: {
+      mbtiType: string | null;
+      ei: number | null;
+      sn: number | null;
+      tf: number | null;
+      pj: number | null;
+    } | null;
   };
 };
 
@@ -70,11 +72,15 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
               name: true,
               email: true,
               nim: true,
-              mbtiType: true,
-              ei: true,
-              sn: true,
-              tf: true,
-              pj: true,
+              personalityProfile: {
+                select: {
+                  mbtiType: true,
+                  ei: true,
+                  sn: true,
+                  tf: true,
+                  pj: true,
+                },
+              },
             },
           },
         },
@@ -87,11 +93,11 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
       name: e.student.name || 'Unknown',
       nim: e.student.nim || 'N/A',
       email: e.student.email || 'N/A',
-      mbtiType: e.student.mbtiType,
-      ei: e.student.ei,
-      sn: e.student.sn,
-      tf: e.student.tf,
-      pj: e.student.pj,
+      mbtiType: e.student.personalityProfile?.mbtiType ?? null,
+      ei: e.student.personalityProfile?.ei ?? null,
+      sn: e.student.personalityProfile?.sn ?? null,
+      tf: e.student.personalityProfile?.tf ?? null,
+      pj: e.student.personalityProfile?.pj ?? null,
       enrolledAt: e.enrolledAt,
     }));
 
@@ -113,11 +119,15 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
                   name: true,
                   email: true,
                   nim: true,
-                  mbtiType: true,
-                  ei: true,
-                  sn: true,
-                  tf: true,
-                  pj: true,
+                  personalityProfile: {
+                    select: {
+                      mbtiType: true,
+                      ei: true,
+                      sn: true,
+                      tf: true,
+                      pj: true,
+                    },
+                  },
                 },
               },
             },
@@ -136,11 +146,11 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
       name: e.student.name || 'Unknown',
       nim: e.student.nim || 'N/A',
       email: e.student.email || 'N/A',
-      mbtiType: e.student.mbtiType,
-      ei: e.student.ei,
-      sn: e.student.sn,
-      tf: e.student.tf,
-      pj: e.student.pj,
+      mbtiType: e.student.personalityProfile?.mbtiType ?? null,
+      ei: e.student.personalityProfile?.ei ?? null,
+      sn: e.student.personalityProfile?.sn ?? null,
+      tf: e.student.personalityProfile?.tf ?? null,
+      pj: e.student.personalityProfile?.pj ?? null,
       enrolledAt: e.enrolledAt,
     })
   );

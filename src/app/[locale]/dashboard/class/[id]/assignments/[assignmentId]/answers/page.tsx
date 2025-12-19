@@ -53,18 +53,33 @@ async function getSubmittedStudents(assignmentId: string) {
           role: true,
           image: true,
           gender: true,
-          mbtiType: true,
-          ei: true,
-          sn: true,
-          tf: true,
-          pj: true,
-          personalityData: true,
+          personalityProfile: {
+            select: {
+              mbtiType: true,
+              ei: true,
+              sn: true,
+              tf: true,
+              pj: true,
+              personalityData: true,
+            },
+          },
         },
       },
     },
     orderBy: { student: { name: 'asc' } },
   });
-  return submissions.map((s: (typeof submissions)[number]) => s.student);
+  return submissions.map((s: (typeof submissions)[number]) => {
+    const { personalityProfile, ...rest } = s.student;
+    return {
+      ...rest,
+      mbtiType: personalityProfile?.mbtiType ?? null,
+      ei: personalityProfile?.ei ?? null,
+      sn: personalityProfile?.sn ?? null,
+      tf: personalityProfile?.tf ?? null,
+      pj: personalityProfile?.pj ?? null,
+      personalityData: personalityProfile?.personalityData ?? null,
+    };
+  });
 }
 
 async function getAssignmentAnswersView(

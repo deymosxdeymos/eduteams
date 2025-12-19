@@ -7,9 +7,19 @@ import {
   getActivePersonalityBank,
 } from '@/lib/mbti-questions-simple';
 import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
-import prisma from '@/lib/prisma';
+import prisma, { type TransactionClient } from '@/lib/prisma';
+import { AuthError } from '@/lib/types';
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
+
+type PersonalityProfileUpdate = {
+  ei: number;
+  sn: number;
+  tf: number;
+  pj: number;
+  mbtiType: MBTIType;
+  personalityData: PrismaNS.InputJsonValue;
+};
 
 const completeOnboardingSchema = z.object({
   answers: z.record(z.string(), z.number().min(1).max(5)).optional(),
@@ -66,11 +76,15 @@ export const POST = withAuth(
   withValidation(
     (data: unknown) => completeOnboardingSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
+      if (!user) {
+        throw new AuthError();
+      }
+
       const { answers } = validatedData;
 
       // Get current user to check role
       const currentUser = await prisma.user.findUnique({
-        where: { id: user?.id },
+        where: { id: user.id },
         select: { role: true },
       });
 
@@ -79,6 +93,7 @@ export const POST = withAuth(
       }
 
       const updateData: Record<string, unknown> = { isOnboarded: true };
+      let personalityUpdate: PersonalityProfileUpdate | null = null;
 
       // If user is mahasiswa and provided answers, calculate personality scores
       if (currentUser.role === 'mahasiswa' && answers) {
@@ -122,22 +137,38 @@ export const POST = withAuth(
         const questions = bank.questions.filter(q => !q.isAttentionCheck);
         const scores = calculatePersonalityScores(normalizedAnswers, questions);
         const mbtiType = getMBTIType(scores) as MBTIType;
-        updateData.ei = scores.ei;
-        updateData.sn = scores.sn;
-        updateData.tf = scores.tf;
-        updateData.pj = scores.pj;
-        updateData.mbtiType = mbtiType;
-        updateData.personalityData = {
-          answers: normalizedAnswers,
-          scores,
-          metadata: { completedAt: new Date().toISOString() },
-        } as unknown as PrismaNS.InputJsonValue;
+        const payload = {
+          ei: scores.ei,
+          sn: scores.sn,
+          tf: scores.tf,
+          pj: scores.pj,
+          mbtiType,
+          personalityData: {
+            answers: normalizedAnswers,
+            scores,
+            metadata: { completedAt: new Date().toISOString() },
+          } as unknown as PrismaNS.InputJsonValue,
+        };
+        personalityUpdate = payload;
       }
 
       // Mark user as fully onboarded and save personality data if applicable
-      await prisma.user.update({
-        where: { id: user?.id },
-        data: updateData,
+      await prisma.$transaction(async (tx: TransactionClient) => {
+        await tx.user.update({
+          where: { id: user.id },
+          data: updateData,
+        });
+
+        if (personalityUpdate) {
+          await tx.personalityProfile.upsert({
+            where: { userId: user.id },
+            create: {
+              userId: user.id,
+              ...personalityUpdate,
+            },
+            update: personalityUpdate,
+          });
+        }
       });
 
       return createApiResponse({ success: true });

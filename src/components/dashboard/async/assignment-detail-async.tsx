@@ -11,13 +11,15 @@ type TeamMemberFromQuery = {
     id: string;
     name: string | null;
     email: string;
-    mbtiType: string | null;
     nim: string | null;
-    ei: number | null;
-    sn: number | null;
-    tf: number | null;
-    pj: number | null;
     gender: string | null;
+    personalityProfile: {
+      mbtiType: string | null;
+      ei: number | null;
+      sn: number | null;
+      tf: number | null;
+      pj: number | null;
+    } | null;
     personSkills: Array<{
       skillId: string;
       level: number;
@@ -113,10 +115,14 @@ export async function AssignmentDetailAsync({
         studentId: true,
         student: {
           select: {
-            ei: true,
-            sn: true,
-            tf: true,
-            pj: true,
+            personalityProfile: {
+              select: {
+                ei: true,
+                sn: true,
+                tf: true,
+                pj: true,
+              },
+            },
           },
         },
       },
@@ -200,7 +206,11 @@ export async function AssignmentDetailAsync({
           name: true,
           nim: true,
           email: true,
-          mbtiType: true,
+          personalityProfile: {
+            select: {
+              mbtiType: true,
+            },
+          },
           gender: true,
         },
       },
@@ -215,7 +225,7 @@ export async function AssignmentDetailAsync({
         name: string;
         nim: string | null;
         email: string;
-        mbtiType: string | null;
+        personalityProfile: { mbtiType: string | null } | null;
         gender: string | null;
       };
     }) => ({
@@ -223,7 +233,7 @@ export async function AssignmentDetailAsync({
       name: e.student.name,
       nim: e.student.nim,
       email: e.student.email,
-      mbtiType: e.student.mbtiType,
+      mbtiType: e.student.personalityProfile?.mbtiType ?? null,
       gender: e.student.gender,
     })
   );
@@ -272,12 +282,16 @@ export async function AssignmentDetailAsync({
                     id: true,
                     name: true,
                     email: true,
-                    mbtiType: true,
                     nim: true,
-                    ei: true,
-                    sn: true,
-                    tf: true,
-                    pj: true,
+                    personalityProfile: {
+                      select: {
+                        mbtiType: true,
+                        ei: true,
+                        sn: true,
+                        tf: true,
+                        pj: true,
+                      },
+                    },
                     gender: true,
                     personSkills: {
                       select: {
@@ -373,12 +387,12 @@ export async function AssignmentDetailAsync({
               id: member.user.id,
               name: member.user.name,
               email: member.user.email,
-              mbtiType: member.user.mbtiType,
+              mbtiType: member.user.personalityProfile?.mbtiType ?? null,
               nim: member.user.nim,
-              ei: member.user.ei,
-              sn: member.user.sn,
-              tf: member.user.tf,
-              pj: member.user.pj,
+              ei: member.user.personalityProfile?.ei ?? null,
+              sn: member.user.personalityProfile?.sn ?? null,
+              tf: member.user.personalityProfile?.tf ?? null,
+              pj: member.user.personalityProfile?.pj ?? null,
               gender: member.user.gender,
             },
             topSkills,

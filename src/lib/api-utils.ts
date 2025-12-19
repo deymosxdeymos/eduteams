@@ -10,7 +10,9 @@ import {
   AuthError,
   AuthorizationError,
   type ExtendedUser,
+  extendedUserSelect,
   HttpError,
+  mapToExtendedUser,
   type UserRole,
   ValidationError,
 } from '@/lib/types';
@@ -208,30 +210,13 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
     // Fetch fresh user data from database to ensure we have latest onboardingStep
     const freshUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        emailVerified: true,
-        image: true,
-        createdAt: true,
-        updatedAt: true,
-        role: true,
-        nim: true,
-        gender: true,
-        isOnboarded: true,
-        hasSeenWelcomeSplash: true,
-        onboardingStep: true,
-        onboardingData: true,
-        mbtiType: true,
-        ei: true,
-        sn: true,
-        tf: true,
-        pj: true,
-      },
+      select: extendedUserSelect,
     });
+    if (!freshUser) {
+      return null;
+    }
 
-    return freshUser as ExtendedUser;
+    return mapToExtendedUser(freshUser);
   } catch (error) {
     logger.error('Error getting current user:', error);
     return null;

@@ -99,6 +99,15 @@ const prismaMock: any = {
     findUnique: mock(async () => ({ id: 'u1', role: 'mahasiswa' })),
     update: mock(async () => ({})),
   },
+  personalityProfile: {
+    upsert: mock(async () => ({})),
+  },
+  $transaction: mock(async (cb: any) =>
+    cb({
+      user: prismaMock.user,
+      personalityProfile: prismaMock.personalityProfile,
+    })
+  ),
 };
 
 const getActivePersonalityBankMock = mock(
@@ -120,6 +129,9 @@ describe('POST /api/user/complete-onboarding', () => {
 
     prismaMock.user.update.mockReset();
     prismaMock.user.update.mockImplementation(async () => ({}));
+    prismaMock.personalityProfile.upsert.mockReset();
+    prismaMock.personalityProfile.upsert.mockImplementation(async () => ({}));
+    prismaMock.$transaction.mockClear();
 
     getActivePersonalityBankMock.mockReset();
     getActivePersonalityBankMock.mockImplementation(
@@ -141,7 +153,7 @@ describe('POST /api/user/complete-onboarding', () => {
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(200);
-    expect(prismaMock.user.update).toHaveBeenCalled();
+    expect(prismaMock.personalityProfile.upsert).toHaveBeenCalled();
   });
 
   it('uses matching bank when answers are keyed by question id', async () => {
@@ -178,9 +190,9 @@ describe('POST /api/user/complete-onboarding', () => {
         ([locale]) => locale === 'en-US'
       )
     ).toBe(true);
-    expect(prismaMock.user.update).toHaveBeenCalled();
-    const updateArg = prismaMock.user.update.mock.calls[0][0];
-    const personalityData = (updateArg.data.personalityData as any) ?? {};
+    expect(prismaMock.personalityProfile.upsert).toHaveBeenCalled();
+    const profileArg = prismaMock.personalityProfile.upsert.mock.calls[0][0];
+    const personalityData = (profileArg.create.personalityData as any) ?? {};
     expect(personalityData.answers['en-q1']).toBe(5);
   });
 
@@ -233,5 +245,6 @@ describe('POST /api/user/complete-onboarding', () => {
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(400);
     expect(prismaMock.user.update).not.toHaveBeenCalled();
+    expect(prismaMock.personalityProfile.upsert).not.toHaveBeenCalled();
   });
 });

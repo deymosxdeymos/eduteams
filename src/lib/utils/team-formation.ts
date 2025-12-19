@@ -28,7 +28,11 @@ export async function getTeamFormationForAssignment(
                 select: {
                   id: true,
                   name: true,
-                  mbtiType: true,
+                  personalityProfile: {
+                    select: {
+                      mbtiType: true,
+                    },
+                  },
                 },
               },
             },
@@ -70,7 +74,11 @@ export async function getTeamFormationForAssignment(
                 select: {
                   id: true,
                   name: true,
-                  mbtiType: true,
+                  personalityProfile: {
+                    select: {
+                      mbtiType: true,
+                    },
+                  },
                 },
               },
             },

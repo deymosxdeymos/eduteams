@@ -16,13 +16,8 @@ Table user {
   role RoleName
   onboardingData Json
   onboardingStep String
-  ei Float
   gender Gender
-  pj Float
-  sn Float
-  tf Float
-  mbtiType MBTIType
-  personalityData Json
+  personalityProfile personality_profiles
   personalitySessions personality_sessions [not null]
   accounts account [not null]
   personPreferences person_preferences [not null]
@@ -411,8 +406,8 @@ Table student_competency_profiles {
   sourceAssignment assignments
 
   indexes {
-    (studentId, skillId) [unique]
-    (studentId, topicKey) [unique]
+    (studentId, competencyKind, skillId) [unique]
+    (studentId, competencyKind, topicKey) [unique]
   }
 }
 
@@ -449,6 +444,19 @@ Table personality_sessions {
   user user [not null]
   responses personality_responses [not null]
   score personality_scores
+}
+
+Table personality_profiles {
+  userId String [pk]
+  ei Float
+  sn Float
+  tf Float
+  pj Float
+  mbtiType MBTIType
+  personalityData Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user user [not null]
 }
 
 Table personality_responses {
@@ -628,6 +636,8 @@ Ref: student_competency_profiles.skillId > skills.id [delete: Cascade]
 Ref: student_competency_profiles.sourceAssignmentId > assignments.id [delete: Set Null]
 
 Ref: personality_sessions.userId > user.id [delete: Cascade]
+
+Ref: personality_profiles.userId - user.id [delete: Cascade]
 
 Ref: personality_responses.sessionId > personality_sessions.id [delete: Cascade]
 

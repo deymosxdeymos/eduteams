@@ -69,7 +69,12 @@ export async function getAssignmentStats(
       where: { courseId },
       select: {
         studentId: true,
-        student: { select: { mbtiType: true, gender: true } },
+        student: {
+          select: {
+            gender: true,
+            personalityProfile: { select: { mbtiType: true } },
+          },
+        },
       },
     }),
     prisma.assignment.findUnique({
@@ -90,7 +95,7 @@ export async function getAssignmentStats(
   // MBTI distribution
   const mbtiCountsMap = new Map<MBTIType, number>();
   for (const e of enrollments) {
-    const t = e.student.mbtiType as MBTIType | null;
+    const t = e.student.personalityProfile?.mbtiType as MBTIType | null;
     if (!t) continue;
     mbtiCountsMap.set(t, (mbtiCountsMap.get(t) ?? 0) + 1);
   }

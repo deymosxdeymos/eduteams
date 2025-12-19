@@ -1,8 +1,8 @@
 import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
 import {
-  type DashboardStatistics,
   DASHBOARD_STATISTICS_TAG,
+  type DashboardStatistics,
 } from './statistics-types';
 
 export type { DashboardStatistics };

@@ -32,10 +32,7 @@ const prismaMock: any = {
           student: {
             id: 's1',
             gender: 'MALE',
-            ei: 0,
-            sn: 0,
-            tf: 0,
-            pj: 0,
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
             personSkills: [{ skillId: 'sk1', level: 0.8 }],
           },
         },
@@ -43,10 +40,7 @@ const prismaMock: any = {
           student: {
             id: 's2',
             gender: 'FEMALE',
-            ei: 0,
-            sn: 0,
-            tf: 0,
-            pj: 0,
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
             personSkills: [{ skillId: 'sk1', level: 0.6 }],
           },
         },
@@ -54,10 +48,7 @@ const prismaMock: any = {
           student: {
             id: 's3',
             gender: 'MALE',
-            ei: 0,
-            sn: 0,
-            tf: 0,
-            pj: 0,
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
             personSkills: [{ skillId: 'sk1', level: 0.7 }],
           },
         },
@@ -65,10 +56,7 @@ const prismaMock: any = {
           student: {
             id: 's4',
             gender: 'FEMALE',
-            ei: 0,
-            sn: 0,
-            tf: 0,
-            pj: 0,
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
             personSkills: [{ skillId: 'sk1', level: 0.5 }],
           },
         },
@@ -156,7 +144,13 @@ describe('POST /api/assignments/[id]/form-teams', () => {
 
   it('rejects when less than 2 students', async () => {
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
-      { student: { id: 's1', personSkills: [] } },
+      {
+        student: {
+          id: 's1',
+          personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+          personSkills: [],
+        },
+      },
     ]);
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/assignments/a1/form-teams', {
@@ -229,10 +223,7 @@ describe('POST /api/assignments/[id]/form-teams', () => {
         student: {
           id: 's1',
           gender: 'MALE',
-          ei: 0,
-          sn: 0,
-          tf: 0,
-          pj: 0,
+          personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
           personSkills: [],
         },
       },
@@ -240,10 +231,7 @@ describe('POST /api/assignments/[id]/form-teams', () => {
         student: {
           id: 's2',
           gender: 'FEMALE',
-          ei: 0,
-          sn: 0,
-          tf: 0,
-          pj: 0,
+          personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
           personSkills: [],
         },
       },

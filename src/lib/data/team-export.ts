@@ -17,12 +17,14 @@ interface UserResult {
   name: string;
   email: string;
   nim: string | null;
-  mbtiType: MBTIType | null;
   gender: Gender | null;
-  ei: number | null;
-  sn: number | null;
-  tf: number | null;
-  pj: number | null;
+  personalityProfile: {
+    mbtiType: MBTIType | null;
+    ei: number | null;
+    sn: number | null;
+    tf: number | null;
+    pj: number | null;
+  } | null;
   personSkills: PersonSkillResult[];
 }
 
@@ -111,12 +113,16 @@ export async function getAssignmentExportData(
                       name: true,
                       email: true,
                       nim: true,
-                      mbtiType: true,
                       gender: true,
-                      ei: true,
-                      sn: true,
-                      tf: true,
-                      pj: true,
+                      personalityProfile: {
+                        select: {
+                          mbtiType: true,
+                          ei: true,
+                          sn: true,
+                          tf: true,
+                          pj: true,
+                        },
+                      },
                       personSkills: {
                         select: {
                           skillId: true,
@@ -207,26 +213,29 @@ export async function getAssignmentExportData(
         teamName: team.name || `Team ${index + 1}`,
         topicName,
         quality: team.quality,
-        members: team.members.map((member: MemberResult) => ({
-          id: member.user.id,
-          name: member.user.name,
-          email: member.user.email,
-          nim: member.user.nim,
-          mbtiType: member.user.mbtiType,
-          gender: member.user.gender,
-          personalityScores: {
-            ei: member.user.ei,
-            sn: member.user.sn,
-            tf: member.user.tf,
-            pj: member.user.pj,
-          },
-          skills: member.user.personSkills.map((ps: PersonSkillResult) => ({
-            skillId: ps.skill.id,
-            skillName: ps.skill.name,
-            level: ps.level,
-          })),
-          assignedSkillIds: member.assignedSkillIds,
-        })),
+        members: team.members.map((member: MemberResult) => {
+          const profile = member.user.personalityProfile;
+          return {
+            id: member.user.id,
+            name: member.user.name,
+            email: member.user.email,
+            nim: member.user.nim,
+            mbtiType: profile?.mbtiType ?? null,
+            gender: member.user.gender,
+            personalityScores: {
+              ei: profile?.ei ?? null,
+              sn: profile?.sn ?? null,
+              tf: profile?.tf ?? null,
+              pj: profile?.pj ?? null,
+            },
+            skills: member.user.personSkills.map((ps: PersonSkillResult) => ({
+              skillId: ps.skill.id,
+              skillName: ps.skill.name,
+              level: ps.level,
+            })),
+            assignedSkillIds: member.assignedSkillIds,
+          };
+        }),
       };
     }
   );
