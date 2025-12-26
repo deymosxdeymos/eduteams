@@ -32,8 +32,7 @@ export function AssignmentLayout({
   user,
   course,
   classId,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  assignmentId: _assignmentId,
+  assignmentId: _,
   students,
   canManage,
   hideStudentList = false,
@@ -42,7 +41,6 @@ export function AssignmentLayout({
   submittedStudentIds,
   children,
 }: AssignmentLayoutProps) {
-  // Calculate submission stats for display in student list
   const submittedCount = submittedStudentIds ? submittedStudentIds.length : 0;
   const totalStudents = students.length;
 

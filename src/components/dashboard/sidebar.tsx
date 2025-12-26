@@ -54,12 +54,8 @@ export default function Sidebar({ user, notStartedCount }: SidebarProps) {
   };
 
   const handleLogout = async () => {
-    try {
-      await authClient.signOut();
-      router.push('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+    await authClient.signOut();
+    router.push('/');
   };
 
   // Helper function to determine if a route is active

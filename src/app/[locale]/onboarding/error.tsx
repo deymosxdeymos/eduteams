@@ -10,7 +10,6 @@ export default function OnboardingError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error('Onboarding error:', error);
   }, [error]);
 

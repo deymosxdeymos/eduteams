@@ -35,13 +35,7 @@ export default function RoleFormClient({
   const handleSubmit = async (formData: FormData) => {
     if (!selectedRole || isDosenInvalid) return;
 
-    startTransition(async () => {
-      try {
-        await submitRole(formData);
-      } catch (error) {
-        console.error('Error submitting role:', error);
-      }
-    });
+    startTransition(() => submitRole(formData));
   };
 
   const handleBlockedClick = (e: React.MouseEvent) => {

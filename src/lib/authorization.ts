@@ -58,11 +58,9 @@ export function needsRoleSelection(user: ExtendedUser): boolean {
 }
 
 export function needsDataDiri(user: ExtendedUser): boolean {
-  // Mahasiswa needs NIM, dosen only needs name and gender
   if (user.role === 'mahasiswa') {
     return !user.nim;
   }
-  // Dosen needs data-diri but not NIM
   if (user.role === 'dosen') {
     return !user.name || !user.gender;
   }
@@ -78,7 +76,6 @@ export function getNextOnboardingStep(user: ExtendedUser): string | null {
     return '/onboarding/resume';
   }
 
-  // Check if user needs data-diri (mahasiswa needs NIM, dosen needs name/gender)
   if (needsDataDiri(user)) {
     return `/onboarding/data-diri/${user.role}`;
   }

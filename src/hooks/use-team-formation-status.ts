@@ -5,11 +5,11 @@ import type { TeamFormationStatus } from '@/generated/prisma/client';
 
 interface UseTeamFormationStatusOptions {
   assignmentId: string;
-  enabled: boolean; // Allow fetching when enabled
-  shouldPoll?: boolean; // Continue polling only while true
-  onComplete?: () => void; // Callback when status transitions to COMPLETED
-  onFailed?: (error: string | null) => void; // Callback when status becomes FAILED
-  pollInterval?: number; // Polling interval in ms (default: 3000)
+  enabled: boolean;
+  shouldPoll?: boolean;
+  onComplete?: () => void;
+  onFailed?: (error: string | null) => void;
+  pollInterval?: number;
 }
 
 interface TeamFormationStatusResult {

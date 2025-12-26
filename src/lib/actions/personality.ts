@@ -1,12 +1,10 @@
 'use server';
-'use server';
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { getCurrentUser } from '@/lib/api-utils';
-import { logger } from '@/lib/logger';
 import {
   createPersonalitySessionForUser,
   getUserPersonalitySessionStatus,
@@ -39,63 +37,44 @@ export async function submitPersonalityTest(
   formData: FormData,
   getCurrentUserImpl?: typeof getCurrentUser
 ) {
-  try {
-    const resolveUser = getCurrentUserImpl ?? getCurrentUser;
-    const user = await resolveUser();
-    if (!user) {
-      throw new AuthError('Authentication required');
-    }
-
-    const answersJson = formData.get('answers');
-    const sessionId = formData.get('sessionId');
-
-    if (typeof answersJson !== 'string' || typeof sessionId !== 'string') {
-      throw new ValidationError('Jawaban dan sesi wajib diisi');
-    }
-
-    const parsedData = personalitySubmissionSchema.parse({
-      sessionId,
-      answers: JSON.parse(answersJson),
-    });
-
-    const result = await submitPersonalitySession({
-      sessionId: parsedData.sessionId,
-      userId: user.id,
-      answers: parsedData.answers,
-    });
-
-    if (result.status === 'attention_check_failed') {
-      throw new ValidationError(
-        'Tes perhatian tidak lolos. Ikuti instruksi dan coba lagi.'
-      );
-    }
-    if (result.status === 'speeding') {
-      throw new ValidationError(
-        'Waktu pengerjaan terlalu singkat. Mohon isi dengan lebih teliti.'
-      );
-    }
-    if (result.status === 'incomplete') {
-      throw new ValidationError('Lengkapi semua pernyataan sebelum mengirim.');
-    }
-
-    revalidatePath('/dashboard');
-    redirect('/dashboard?firstVisit=true');
-  } catch (error) {
-    if (error instanceof AuthError || error instanceof ValidationError) {
-      throw error;
-    }
-
-    if (
-      error &&
-      typeof error === 'object' &&
-      'digest' in error &&
-      typeof error.digest === 'string' &&
-      error.digest.includes('NEXT_REDIRECT')
-    ) {
-      throw error;
-    }
-
-    logger.error('Error submitting personality test:', error);
-    throw new Error('Failed to submit personality test');
+  const resolveUser = getCurrentUserImpl ?? getCurrentUser;
+  const user = await resolveUser();
+  if (!user) {
+    throw new AuthError('Authentication required');
   }
+
+  const answersJson = formData.get('answers');
+  const sessionId = formData.get('sessionId');
+
+  if (typeof answersJson !== 'string' || typeof sessionId !== 'string') {
+    throw new ValidationError('Jawaban dan sesi wajib diisi');
+  }
+
+  const parsedData = personalitySubmissionSchema.parse({
+    sessionId,
+    answers: JSON.parse(answersJson),
+  });
+
+  const result = await submitPersonalitySession({
+    sessionId: parsedData.sessionId,
+    userId: user.id,
+    answers: parsedData.answers,
+  });
+
+  if (result.status === 'attention_check_failed') {
+    throw new ValidationError(
+      'Tes perhatian tidak lolos. Ikuti instruksi dan coba lagi.'
+    );
+  }
+  if (result.status === 'speeding') {
+    throw new ValidationError(
+      'Waktu pengerjaan terlalu singkat. Mohon isi dengan lebih teliti.'
+    );
+  }
+  if (result.status === 'incomplete') {
+    throw new ValidationError('Lengkapi semua pernyataan sebelum mengirim.');
+  }
+
+  revalidatePath('/dashboard');
+  redirect('/dashboard?firstVisit=true');
 }

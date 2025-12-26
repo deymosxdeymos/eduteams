@@ -7,8 +7,6 @@ async function requireAuth(): Promise<ExtendedUser> {
   const user = await getCurrentUser();
 
   if (!user) {
-    // Redirect to route handler that clears invalid session cookies
-    // This prevents the infinite redirect loop
     redirect('/api/auth/clear-session?redirect=/');
   }
 
@@ -46,7 +44,6 @@ export async function handleAuthRedirect(): Promise<ExtendedUser | null> {
     return null;
   }
 
-  // Check if user needs to complete onboarding
   if (permissions.needsOnboarding(user)) {
     const redirectPath = getRedirectPath(user);
     redirect(redirectPath);
@@ -58,7 +55,6 @@ export async function handleAuthRedirect(): Promise<ExtendedUser | null> {
 export async function protectOnboardingPage(): Promise<ExtendedUser> {
   const user = await requireAuth();
 
-  // If user is already onboarded, redirect to dashboard
   if (user.isOnboarded) {
     redirect('/dashboard');
   }
@@ -69,7 +65,6 @@ export async function protectOnboardingPage(): Promise<ExtendedUser> {
 export async function protectDashboard(): Promise<ExtendedUser> {
   const user = await requireAuth();
 
-  // If user hasn't completed onboarding, redirect to onboarding
   if (!permissions.canAccessDashboard(user)) {
     const redirectPath = getRedirectPath(user);
     redirect(redirectPath);

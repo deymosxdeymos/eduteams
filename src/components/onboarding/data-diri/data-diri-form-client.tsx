@@ -127,12 +127,7 @@ export default function DataDiriFormClient({
         formData.append('nim', values.nim as string);
       }
 
-      try {
-        await submitDataDiri(formData);
-      } catch (error) {
-        console.error('Error submitting data-diri:', error);
-        // Handle error appropriately in production
-      }
+      await submitDataDiri(formData);
     });
   }
 

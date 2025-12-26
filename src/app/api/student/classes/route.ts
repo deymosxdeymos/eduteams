@@ -8,7 +8,6 @@ import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
-// Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
 async function getStudentClasses(
@@ -19,56 +18,51 @@ async function getStudentClasses(
     return createErrorResponse('Access denied', 403);
   }
 
-  try {
-    // Fetch enrolled courses for the student
-    const enrollments = await prisma.courseEnrollment.findMany({
-      where: {
-        studentId: user.id,
-      },
-      select: {
-        enrolledAt: true,
-        course: {
-          select: {
-            id: true,
-            namaMataKuliah: true,
-            kelas: true,
-            tahunAwalPeriode: true,
-            tahunAkhirPeriode: true,
-            periode: true,
-            dosen: {
-              select: {
-                name: true,
-              },
+  const enrollments = await prisma.courseEnrollment.findMany({
+    where: {
+      studentId: user.id,
+    },
+    select: {
+      enrolledAt: true,
+      course: {
+        select: {
+          id: true,
+          namaMataKuliah: true,
+          kelas: true,
+          tahunAwalPeriode: true,
+          tahunAkhirPeriode: true,
+          periode: true,
+          dosen: {
+            select: {
+              name: true,
             },
-            _count: { select: { enrollments: true } },
           },
+          _count: { select: { enrollments: true } },
         },
       },
-      orderBy: [
-        { course: { tahunAwalPeriode: 'desc' } },
-        { course: { periode: 'desc' } },
-        { course: { namaMataKuliah: 'asc' } },
-      ],
-    });
+    },
+    orderBy: [
+      { course: { tahunAwalPeriode: 'desc' } },
+      { course: { periode: 'desc' } },
+      { course: { namaMataKuliah: 'asc' } },
+    ],
+  });
 
-    const courses = enrollments.map(
-      (enrollment: (typeof enrollments)[number]) => ({
-        id: enrollment.course.id,
-        namaMataKuliah: enrollment.course.namaMataKuliah,
-        kelas: enrollment.course.kelas,
-        tahunAwalPeriode: enrollment.course.tahunAwalPeriode,
-        tahunAkhirPeriode: enrollment.course.tahunAkhirPeriode,
-        periode: enrollment.course.periode,
-        dosen: enrollment.course.dosen,
-        enrolledAt: enrollment.enrolledAt,
-        studentCount: enrollment.course._count.enrollments,
-      })
-    );
+  const courses = enrollments.map(
+    (enrollment: (typeof enrollments)[number]) => ({
+      id: enrollment.course.id,
+      namaMataKuliah: enrollment.course.namaMataKuliah,
+      kelas: enrollment.course.kelas,
+      tahunAwalPeriode: enrollment.course.tahunAwalPeriode,
+      tahunAkhirPeriode: enrollment.course.tahunAkhirPeriode,
+      periode: enrollment.course.periode,
+      dosen: enrollment.course.dosen,
+      enrolledAt: enrollment.enrolledAt,
+      studentCount: enrollment.course._count.enrollments,
+    })
+  );
 
-    return createApiResponse(courses);
-  } catch {
-    return createErrorResponse('Failed to fetch classes', 500);
-  }
+  return createApiResponse(courses);
 }
 
 export const GET = withAuth(getStudentClasses);

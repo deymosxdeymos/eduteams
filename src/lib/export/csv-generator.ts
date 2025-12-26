@@ -1,12 +1,5 @@
 import type { AssignmentExportData } from '@/types/export';
 
-/**
- * Escapes a value for safe use in CSV format.
- * Handles quotes, commas, and newlines according to RFC 4180.
- *
- * @param value - The value to escape
- * @returns Escaped string safe for CSV
- */
 function escapeCsvValue(value: string | number | null | undefined): string {
   if (value === null || value === undefined) {
     return '';
@@ -14,8 +7,6 @@ function escapeCsvValue(value: string | number | null | undefined): string {
 
   const strValue = String(value);
 
-  // If the value contains quotes, commas, or newlines, wrap it in quotes
-  // and escape any quotes within by doubling them
   if (
     strValue.includes('"') ||
     strValue.includes(',') ||
@@ -28,12 +19,6 @@ function escapeCsvValue(value: string | number | null | undefined): string {
   return strValue;
 }
 
-/**
- * Formats a date to a readable string for CSV export.
- *
- * @param date - The date to format
- * @returns Formatted date string (YYYY-MM-DD HH:mm:ss)
- */
 function formatDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -45,21 +30,10 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-/**
- * Generates a CSV file from team formation data.
- * The CSV includes a metadata header section followed by a flat data structure
- * with one row per team member.
- *
- * @param data - The assignment export data
- * @returns CSV string with UTF-8 BOM for Excel compatibility
- */
 export function generateTeamFormationCSV(data: AssignmentExportData): string {
   const rows: string[] = [];
-
-  // Add UTF-8 BOM for Excel compatibility
   const BOM = '\uFEFF';
 
-  // Metadata header section
   rows.push(escapeCsvValue('Team Formation Report'));
   rows.push('');
   rows.push(
@@ -75,8 +49,6 @@ export function generateTeamFormationCSV(data: AssignmentExportData): string {
     `${escapeCsvValue('Formation Date:')},${escapeCsvValue(formatDate(data.formationDate))}`
   );
   rows.push('');
-
-  // Summary statistics
   rows.push(
     `${escapeCsvValue('Total Students:')},${escapeCsvValue(data.metadata.totalStudents)}`
   );
@@ -94,7 +66,6 @@ export function generateTeamFormationCSV(data: AssignmentExportData): string {
   rows.push('');
   rows.push('');
 
-  // Data table header
   const headers = [
     'Team Number',
     'Team Name',
@@ -116,13 +87,11 @@ export function generateTeamFormationCSV(data: AssignmentExportData): string {
   ];
   rows.push(headers.map(escapeCsvValue).join(','));
 
-  // Data rows (one row per team member)
   for (const team of data.teams) {
     team.members.forEach((member, memberIndex) => {
       const qualityPercent =
         team.quality !== null ? (team.quality * 100).toFixed(1) : '';
 
-      // Format skills as comma-separated list
       const skillNames = member.skills.map(s => s.skillName).join('; ');
       const skillLevels = member.skills.map(s => s.level.toFixed(2)).join('; ');
       const assignedSkills = member.assignedSkillIds.join('; ');
@@ -151,6 +120,5 @@ export function generateTeamFormationCSV(data: AssignmentExportData): string {
     });
   }
 
-  // Join all rows with newlines and prepend BOM
   return BOM + rows.join('\n');
 }

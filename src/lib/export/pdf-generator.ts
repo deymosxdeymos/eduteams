@@ -1,12 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { AssignmentExportData } from '@/types/export';
 
-/**
- * Formats a date to a readable string for PDF display.
- *
- * @param date - The date to format
- * @returns Formatted date string (DD/MM/YYYY HH:mm)
- */
 function formatDate(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -17,28 +11,17 @@ function formatDate(date: Date): string {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
-/**
- * Adds a header section to the PDF with assignment and course information.
- *
- * @param doc - The jsPDF document instance
- * @param data - The assignment export data
- * @returns The Y position after the header
- */
 function addHeader(doc: jsPDF, data: AssignmentExportData): number {
   let y = 20;
-
-  // Title
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.text('Team Formation Report', 105, y, { align: 'center' });
   y += 12;
 
-  // Assignment title
   doc.setFontSize(16);
   doc.text(data.assignmentTitle, 105, y, { align: 'center' });
   y += 10;
 
-  // Course and instructor info
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text(`Course: ${data.courseName} - ${data.courseClass}`, 105, y, {
@@ -52,7 +35,6 @@ function addHeader(doc: jsPDF, data: AssignmentExportData): number {
   });
   y += 10;
 
-  // Divider line
   doc.setDrawColor(200, 200, 200);
   doc.line(20, y, 190, y);
   y += 10;
@@ -60,14 +42,6 @@ function addHeader(doc: jsPDF, data: AssignmentExportData): number {
   return y;
 }
 
-/**
- * Adds a summary statistics section to the PDF.
- *
- * @param doc - The jsPDF document instance
- * @param data - The assignment export data
- * @param y - The starting Y position
- * @returns The Y position after the summary
- */
 function addSummary(doc: jsPDF, data: AssignmentExportData, y: number): number {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
@@ -100,15 +74,6 @@ function addSummary(doc: jsPDF, data: AssignmentExportData, y: number): number {
   return y;
 }
 
-/**
- * Adds a single team section to the PDF with member details in a table.
- *
- * @param doc - The jsPDF document instance
- * @param data - The assignment export data
- * @param teamIndex - The index of the team to add
- * @param y - The starting Y position
- * @returns The Y position after the team section, or null if a new page was started
- */
 function addTeam(
   doc: jsPDF,
   data: AssignmentExportData,
@@ -118,13 +83,11 @@ function addTeam(
   const team = data.teams[teamIndex];
   const pageHeight = doc.internal.pageSize.height;
 
-  // Check if we need a new page (team header + at least 1 member row)
   if (y > pageHeight - 50) {
     doc.addPage();
     y = 20;
   }
 
-  // Team header
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   const teamHeader = `${team.teamNumber}. ${team.teamName}`;
@@ -146,13 +109,12 @@ function addTeam(
 
   y += 3;
 
-  // Table header
   const tableStartY = y;
   const rowHeight = 6;
   const _colWidths = [10, 40, 25, 15, 15, 12, 12, 12, 12, 40];
   const colX = [20, 30, 70, 95, 110, 125, 137, 149, 161, 173];
 
-  doc.setFillColor(79, 70, 229); // Primary blue
+  doc.setFillColor(79, 70, 229);
   doc.rect(20, y, 190, rowHeight, 'F');
 
   doc.setFontSize(8);
@@ -179,9 +141,7 @@ function addTeam(
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'normal');
 
-  // Table rows (members)
   team.members.forEach((member, idx) => {
-    // Check if we need a new page
     if (y > pageHeight - 20) {
       doc.addPage();
       y = 20;
@@ -199,13 +159,11 @@ function addTeam(
       doc.setFont('helvetica', 'normal');
     }
 
-    // Alternating row colors
     if (idx % 2 === 0) {
       doc.setFillColor(249, 250, 251);
       doc.rect(20, y, 190, rowHeight, 'F');
     }
 
-    // Format skills list (limit to 3 skills for space)
     const skillsList = member.skills
       .slice(0, 3)
       .map(s => s.skillName)
@@ -213,7 +171,6 @@ function addTeam(
     const skillsDisplay =
       member.skills.length > 3 ? `${skillsList}...` : skillsList;
 
-    // Row data
     const rowData = [
       String(idx + 1),
       member.name.length > 25
@@ -236,7 +193,6 @@ function addTeam(
     y += rowHeight;
   });
 
-  // Table border
   doc.setDrawColor(200, 200, 200);
   doc.rect(20, tableStartY, 190, y - tableStartY);
 
@@ -244,11 +200,6 @@ function addTeam(
   return y;
 }
 
-/**
- * Adds page numbers to all pages in the PDF.
- *
- * @param doc - The jsPDF document instance
- */
 function addPageNumbers(doc: jsPDF): void {
   const totalPages = doc.getNumberOfPages();
   const pageHeight = doc.internal.pageSize.height;
@@ -265,36 +216,23 @@ function addPageNumbers(doc: jsPDF): void {
   }
 }
 
-/**
- * Generates a PDF document from team formation data.
- * The PDF includes a header, summary statistics, and detailed team information.
- *
- * @param data - The assignment export data
- * @returns Promise resolving to a Buffer containing the PDF data
- */
 export async function generateTeamFormationPDF(
   data: AssignmentExportData
 ): Promise<Buffer> {
-  // Create new PDF document (A4 size, portrait orientation)
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
 
-  // Add header section
   let y = addHeader(doc, data);
-
-  // Add summary section
   y = addSummary(doc, data, y);
 
-  // Add teams section
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('Team Details', 20, y);
   y += 10;
 
-  // Add each team
   for (let i = 0; i < data.teams.length; i++) {
     const newY = addTeam(doc, data, i, y);
     if (newY === null) {
@@ -304,10 +242,8 @@ export async function generateTeamFormationPDF(
     }
   }
 
-  // Add page numbers to all pages
   addPageNumbers(doc);
 
-  // Convert to Buffer
   const pdfOutput = doc.output('arraybuffer');
   return Buffer.from(pdfOutput);
 }
