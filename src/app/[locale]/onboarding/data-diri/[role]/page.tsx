@@ -124,6 +124,7 @@ export default async function DataDiriPage({
           width={80}
           height={80}
           alt='question icon'
+          priority
         />
       </div>
       <div className='flex flex-col items-center justify-center py-14 px-8'>
