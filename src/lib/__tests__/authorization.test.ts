@@ -28,7 +28,7 @@ const baseUser: ExtendedUser = {
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   isOnboarded: false,
   hasSeenWelcomeSplash: false,
-  role: 'mahasiswa',
+  role: 'STUDENT',
   nim: '123456789',
   onboardingData: null,
   onboardingStep: null,
@@ -67,12 +67,12 @@ const createMockUser = (
 describe('Authorization Functions', () => {
   describe('canAccessDashboard', () => {
     it('returns true for onboarded user with role', () => {
-      const user = createMockUser({ isOnboarded: true, role: 'mahasiswa' });
+      const user = createMockUser({ isOnboarded: true, role: 'STUDENT' });
       expect(canAccessDashboard(user)).toBe(true);
     });
 
     it('returns false for non-onboarded user', () => {
-      const user = createMockUser({ isOnboarded: false, role: 'mahasiswa' });
+      const user = createMockUser({ isOnboarded: false, role: 'STUDENT' });
       expect(canAccessDashboard(user)).toBe(false);
     });
 
@@ -101,78 +101,78 @@ describe('Authorization Functions', () => {
 
   describe('canAccessRole', () => {
     it('returns true when user has matching role', () => {
-      const user = createMockUser({ role: 'mahasiswa' });
-      expect(canAccessRole(user, 'mahasiswa')).toBe(true);
+      const user = createMockUser({ role: 'STUDENT' });
+      expect(canAccessRole(user, 'STUDENT')).toBe(true);
     });
 
     it('returns false when user has different role', () => {
-      const user = createMockUser({ role: 'mahasiswa' });
-      expect(canAccessRole(user, 'dosen')).toBe(false);
+      const user = createMockUser({ role: 'STUDENT' });
+      expect(canAccessRole(user, 'TEACHER')).toBe(false);
     });
 
     it('returns false when user has no role', () => {
       const user = createMockUser({ role: undefined });
-      expect(canAccessRole(user, 'mahasiswa')).toBe(false);
+      expect(canAccessRole(user, 'STUDENT')).toBe(false);
     });
   });
 
   describe('canAccessMahasiswaFeatures', () => {
     it('returns true for onboarded mahasiswa', () => {
-      const user = createMockUser({ role: 'mahasiswa', isOnboarded: true });
+      const user = createMockUser({ role: 'STUDENT', isOnboarded: true });
       expect(canAccessMahasiswaFeatures(user)).toBe(true);
     });
 
     it('returns false for non-onboarded mahasiswa', () => {
-      const user = createMockUser({ role: 'mahasiswa', isOnboarded: false });
+      const user = createMockUser({ role: 'STUDENT', isOnboarded: false });
       expect(canAccessMahasiswaFeatures(user)).toBe(false);
     });
 
     it('returns false for dosen', () => {
-      const user = createMockUser({ role: 'dosen', isOnboarded: true });
+      const user = createMockUser({ role: 'TEACHER', isOnboarded: true });
       expect(canAccessMahasiswaFeatures(user)).toBe(false);
     });
 
     it('returns false for admin', () => {
-      const user = createMockUser({ role: 'admin', isOnboarded: true });
+      const user = createMockUser({ role: 'ADMIN', isOnboarded: true });
       expect(canAccessMahasiswaFeatures(user)).toBe(false);
     });
   });
 
   describe('canAccessDosenFeatures', () => {
     it('returns true for onboarded dosen', () => {
-      const user = createMockUser({ role: 'dosen', isOnboarded: true });
+      const user = createMockUser({ role: 'TEACHER', isOnboarded: true });
       expect(canAccessDosenFeatures(user)).toBe(true);
     });
 
     it('returns false for non-onboarded dosen', () => {
-      const user = createMockUser({ role: 'dosen', isOnboarded: false });
+      const user = createMockUser({ role: 'TEACHER', isOnboarded: false });
       expect(canAccessDosenFeatures(user)).toBe(false);
     });
 
     it('returns false for mahasiswa', () => {
-      const user = createMockUser({ role: 'mahasiswa', isOnboarded: true });
+      const user = createMockUser({ role: 'STUDENT', isOnboarded: true });
       expect(canAccessDosenFeatures(user)).toBe(false);
     });
 
     it('returns false for admin', () => {
-      const user = createMockUser({ role: 'admin', isOnboarded: true });
+      const user = createMockUser({ role: 'ADMIN', isOnboarded: true });
       expect(canAccessDosenFeatures(user)).toBe(false);
     });
   });
 
   describe('canAccessAdminFeatures', () => {
     it('returns true for admin user', () => {
-      const user = createMockUser({ role: 'admin' });
+      const user = createMockUser({ role: 'ADMIN' });
       expect(canAccessAdminFeatures(user)).toBe(true);
     });
 
     it('returns false for mahasiswa', () => {
-      const user = createMockUser({ role: 'mahasiswa' });
+      const user = createMockUser({ role: 'STUDENT' });
       expect(canAccessAdminFeatures(user)).toBe(false);
     });
 
     it('returns false for dosen', () => {
-      const user = createMockUser({ role: 'dosen' });
+      const user = createMockUser({ role: 'TEACHER' });
       expect(canAccessAdminFeatures(user)).toBe(false);
     });
 
@@ -189,12 +189,12 @@ describe('Authorization Functions', () => {
     });
 
     it('returns true when admin modifies another user', () => {
-      const admin = createMockUser({ id: 'admin-123', role: 'admin' });
+      const admin = createMockUser({ id: 'admin-123', role: 'ADMIN' });
       expect(canModifyUser(admin, 'user-456')).toBe(true);
     });
 
     it('returns false when non-admin tries to modify another user', () => {
-      const user = createMockUser({ id: 'user-123', role: 'mahasiswa' });
+      const user = createMockUser({ id: 'user-123', role: 'STUDENT' });
       expect(canModifyUser(user, 'user-456')).toBe(false);
     });
   });
@@ -206,17 +206,17 @@ describe('Authorization Functions', () => {
     });
 
     it('returns true when admin views another user profile', () => {
-      const admin = createMockUser({ id: 'admin-123', role: 'admin' });
+      const admin = createMockUser({ id: 'admin-123', role: 'ADMIN' });
       expect(canViewUserProfile(admin, 'user-456')).toBe(true);
     });
 
     it('returns true when dosen views another user profile', () => {
-      const dosen = createMockUser({ id: 'dosen-123', role: 'dosen' });
+      const dosen = createMockUser({ id: 'dosen-123', role: 'TEACHER' });
       expect(canViewUserProfile(dosen, 'user-456')).toBe(true);
     });
 
     it('returns false when mahasiswa tries to view another user profile', () => {
-      const mahasiswa = createMockUser({ id: 'user-123', role: 'mahasiswa' });
+      const mahasiswa = createMockUser({ id: 'user-123', role: 'STUDENT' });
       expect(canViewUserProfile(mahasiswa, 'user-456')).toBe(false);
     });
   });
@@ -226,7 +226,7 @@ describe('Authorization Functions', () => {
       const user = createMockUser({
         name: 'Test User',
         email: 'test@example.com',
-        role: 'mahasiswa',
+        role: 'STUDENT',
         isOnboarded: true,
       });
       expect(isCompleteProfile(user)).toBe(true);
@@ -272,20 +272,20 @@ describe('Authorization Functions', () => {
     });
 
     it('returns false when user has role', () => {
-      const user = createMockUser({ role: 'mahasiswa' });
+      const user = createMockUser({ role: 'STUDENT' });
       expect(needsRoleSelection(user)).toBe(false);
     });
   });
 
   describe('needsDataDiri', () => {
     it('returns true for mahasiswa without nim', () => {
-      const user = createMockUser({ role: 'mahasiswa', nim: undefined });
+      const user = createMockUser({ role: 'STUDENT', nim: undefined });
       expect(needsDataDiri(user)).toBe(true);
     });
 
     it('returns true for dosen without name', () => {
       const user = createMockUser({
-        role: 'dosen',
+        role: 'TEACHER',
         name: undefined,
         gender: 'MALE',
       });
@@ -294,7 +294,7 @@ describe('Authorization Functions', () => {
 
     it('returns true for dosen without gender', () => {
       const user = createMockUser({
-        role: 'dosen',
+        role: 'TEACHER',
         name: 'Test',
         gender: null,
       });
@@ -302,13 +302,13 @@ describe('Authorization Functions', () => {
     });
 
     it('returns false for mahasiswa with nim', () => {
-      const user = createMockUser({ role: 'mahasiswa', nim: '123456789' });
+      const user = createMockUser({ role: 'STUDENT', nim: '123456789' });
       expect(needsDataDiri(user)).toBe(false);
     });
 
     it('returns false for dosen with name and gender', () => {
       const user = createMockUser({
-        role: 'dosen',
+        role: 'TEACHER',
         name: 'Test',
         gender: 'MALE',
       });
@@ -316,7 +316,7 @@ describe('Authorization Functions', () => {
     });
 
     it('returns false for admin (no data-diri required)', () => {
-      const user = createMockUser({ role: 'admin', nim: undefined });
+      const user = createMockUser({ role: 'ADMIN', nim: undefined });
       expect(needsDataDiri(user)).toBe(false);
     });
 
@@ -328,22 +328,22 @@ describe('Authorization Functions', () => {
 
   describe('needsKepribadianTest', () => {
     it('returns true for mahasiswa who is not onboarded', () => {
-      const user = createMockUser({ role: 'mahasiswa', isOnboarded: false });
+      const user = createMockUser({ role: 'STUDENT', isOnboarded: false });
       expect(needsKepribadianTest(user)).toBe(true);
     });
 
     it('returns false for onboarded mahasiswa', () => {
-      const user = createMockUser({ role: 'mahasiswa', isOnboarded: true });
+      const user = createMockUser({ role: 'STUDENT', isOnboarded: true });
       expect(needsKepribadianTest(user)).toBe(false);
     });
 
     it('returns false for dosen', () => {
-      const user = createMockUser({ role: 'dosen', isOnboarded: false });
+      const user = createMockUser({ role: 'TEACHER', isOnboarded: false });
       expect(needsKepribadianTest(user)).toBe(false);
     });
 
     it('returns false for admin', () => {
-      const user = createMockUser({ role: 'admin', isOnboarded: false });
+      const user = createMockUser({ role: 'ADMIN', isOnboarded: false });
       expect(needsKepribadianTest(user)).toBe(false);
     });
   });
@@ -355,7 +355,7 @@ describe('Authorization Functions', () => {
     });
 
     it('returns data-diri for mahasiswa without nim', () => {
-      const user = createMockUser({ role: 'mahasiswa', nim: undefined });
+      const user = createMockUser({ role: 'STUDENT', nim: undefined });
       expect(getNextOnboardingStep(user)).toBe(
         '/onboarding/data-diri/mahasiswa'
       );
@@ -363,7 +363,7 @@ describe('Authorization Functions', () => {
 
     it('returns data-diri for dosen without name or gender', () => {
       const user = createMockUser({
-        role: 'dosen',
+        role: 'TEACHER',
         name: undefined,
         gender: null,
       });
@@ -372,7 +372,7 @@ describe('Authorization Functions', () => {
 
     it('returns kepribadian test for mahasiswa with nim but not onboarded', () => {
       const user = createMockUser({
-        role: 'mahasiswa',
+        role: 'STUDENT',
         nim: '123456789',
         isOnboarded: false,
       });
@@ -381,7 +381,7 @@ describe('Authorization Functions', () => {
 
     it('returns resume for dosen with name and gender but not onboarded', () => {
       const user = createMockUser({
-        role: 'dosen',
+        role: 'TEACHER',
         name: 'Test',
         gender: 'MALE',
         isOnboarded: false,
@@ -391,7 +391,7 @@ describe('Authorization Functions', () => {
 
     it('returns null for fully onboarded user', () => {
       const user = createMockUser({
-        role: 'mahasiswa',
+        role: 'STUDENT',
         nim: '123456789',
         isOnboarded: true,
       });
@@ -400,7 +400,7 @@ describe('Authorization Functions', () => {
 
     it('returns resume for admin user', () => {
       const user = createMockUser({
-        role: 'admin',
+        role: 'ADMIN',
         nim: undefined,
         isOnboarded: false,
       });
@@ -416,7 +416,7 @@ describe('Authorization Functions', () => {
 
     it('returns dashboard when no next step', () => {
       const user = createMockUser({
-        role: 'mahasiswa',
+        role: 'STUDENT',
         nim: '123456789',
         isOnboarded: true,
       });

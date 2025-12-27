@@ -9,7 +9,9 @@ import prisma from '@/lib/prisma';
 import { AuthError } from '@/lib/types';
 
 const roleSchema = z.object({
-  role: z.enum(['dosen', 'mahasiswa']),
+  role: z
+    .enum(['dosen', 'mahasiswa'])
+    .transform(val => (val === 'dosen' ? 'TEACHER' : 'STUDENT')),
 });
 
 export async function submitRole(
@@ -39,14 +41,16 @@ export async function submitRole(
   revalidatePath('/dashboard');
   revalidatePath('/onboarding');
 
-  if (role === 'dosen') {
+  const roleSlug = role === 'TEACHER' ? 'dosen' : 'mahasiswa';
+
+  if (role === 'TEACHER') {
     if (isInstitutionalEmail(user.email)) {
       redirect('/onboarding/data-diri/dosen');
     } else {
       redirect('/onboarding/role?err=dosen_email');
     }
   } else {
-    redirect(`/onboarding/data-diri/${role}`);
+    redirect(`/onboarding/data-diri/${roleSlug}`);
   }
 }
 
@@ -60,7 +64,8 @@ export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
     redirect('/onboarding/role');
   }
 
-  const role = isInstitutionalEmail(user.email) ? 'dosen' : 'mahasiswa';
+  const role = isInstitutionalEmail(user.email) ? 'TEACHER' : 'STUDENT';
+  const roleSlug = role === 'TEACHER' ? 'dosen' : 'mahasiswa';
 
   await prisma.user.update({
     where: { id: user.id },
@@ -70,5 +75,5 @@ export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
     },
   });
 
-  redirect(`/onboarding/data-diri/${role}`);
+  redirect(`/onboarding/data-diri/${roleSlug}`);
 }

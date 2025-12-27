@@ -5,7 +5,7 @@ const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
       name: 'Dosen',
       email: 'dosen@example.com',
@@ -59,7 +59,7 @@ describe('GET /api/dashboard/statistics', () => {
     // Change user role to mahasiswa
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'mahasiswa',
+      role: 'STUDENT',
       isOnboarded: true,
       name: 'Student',
       email: 'student@example.com',

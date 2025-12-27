@@ -34,7 +34,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
 
   const handleJoinClass = async () => {
     // Check if user is a student
-    if (user.role !== 'mahasiswa') {
+    if (user.role !== 'STUDENT') {
       setError(t('errors.studentsOnly'));
       return;
     }
@@ -107,7 +107,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
             </p>
             <p className='text-sm text-gray-600'>
               <span className='font-medium'>{t('role')}</span>{' '}
-              {user.role === 'mahasiswa' ? t('roleStudent') : user.role}
+              {user.role === 'STUDENT' ? t('roleStudent') : user.role}
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export function JoinClassClient({ user, token }: JoinClassClientProps) {
           {error && (
             <div className='mb-6 p-4 bg-red-50 border border-red-200 rounded-lg'>
               <p className='text-sm text-red-700'>{error}</p>
-              {user.role !== 'mahasiswa' && (
+              {user.role !== 'STUDENT' && (
                 <div className='mt-3 space-y-2'>
                   <Button
                     onClick={handleGoToLogin}

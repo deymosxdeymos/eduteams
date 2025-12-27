@@ -13,6 +13,14 @@ const DEFAULT_ERROR_FORMAT: Prisma.ErrorFormat = 'pretty';
 const DEFAULT_DEV_LOG_LEVELS: Prisma.LogLevel[] = ['error', 'warn'];
 const CLOUD_SIGNATURE = 'prisma+postgres';
 
+// Connection pool settings to prevent exhaustion
+// See: https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
+const POOL_CONFIG = {
+  max: 20, // Maximum connections in pool (default: 10)
+  idleTimeoutMillis: 30_000, // Close idle connections after 30s (default: 10s)
+  connectionTimeoutMillis: 10_000, // Fail if can't connect in 10s (default: 0 = no timeout)
+};
+
 function resolveDatabaseUrl(overrideUrl?: string): string | undefined {
   return overrideUrl ?? process.env.DATABASE_URL;
 }
@@ -48,6 +56,12 @@ export function createPrismaClient(overrides: CreatePrismaClientOptions = {}) {
   }
 
   const { accelerateUrl: _, ...adapterOptions } = baseOptions;
-  const adapter = new PrismaPg({ connectionString: databaseUrl });
+
+  // Pass pool config directly to PrismaPg (Prisma ORM v7 approach)
+  const adapter = new PrismaPg({
+    connectionString: databaseUrl,
+    ...POOL_CONFIG,
+  });
+
   return new PrismaClient({ ...adapterOptions, adapter });
 }

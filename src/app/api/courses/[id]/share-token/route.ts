@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
 
 export const GET = withAuth<{ id: string }>(
   async (_request: NextRequest, { user, params }) => {
-    if (user?.role !== 'dosen') {
+    if (user?.role !== 'TEACHER') {
       return createErrorResponse('Only dosen can access share tokens', 403);
     }
 
@@ -60,7 +60,7 @@ export const GET = withAuth<{ id: string }>(
 
 export const POST = withAuth<{ id: string }>(
   async (request: NextRequest, { user, params }) => {
-    if (user?.role !== 'dosen') {
+    if (user?.role !== 'TEACHER') {
       return createErrorResponse('Only dosen can regenerate share tokens', 403);
     }
 

@@ -50,7 +50,7 @@ export const POST = withAuth(
       const userInput = validatedData as CourseCreateUserInput;
 
       // Only dosen can create courses
-      if (user?.role !== 'dosen') {
+      if (user?.role !== 'TEACHER') {
         return createErrorResponse('Only dosen can create courses', 403);
       }
 
@@ -112,7 +112,7 @@ export const POST = withAuth(
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
   // Only dosen can view their courses
-  if (user?.role !== 'dosen') {
+  if (user?.role !== 'TEACHER') {
     return createErrorResponse('Only dosen can view courses', 403);
   }
 

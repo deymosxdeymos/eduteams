@@ -96,7 +96,7 @@ export const POST = withAuth(
       let personalityUpdate: PersonalityProfileUpdate | null = null;
 
       // If user is mahasiswa and provided answers, calculate personality scores
-      if (currentUser.role === 'mahasiswa' && answers) {
+      if (currentUser.role === 'STUDENT' && answers) {
         const bank = await resolveBankForAnswers(answers);
         if (!bank) {
           return createApiResponse(null, 'Personality bank unavailable', 400);

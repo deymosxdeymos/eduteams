@@ -16,22 +16,22 @@ export function canAccessRole(
 }
 
 export function canAccessMahasiswaFeatures(user: ExtendedUser): boolean {
-  return user.role === 'mahasiswa' && user.isOnboarded;
+  return user.role === 'STUDENT' && user.isOnboarded;
 }
 
 export function canAccessDosenFeatures(user: ExtendedUser): boolean {
-  return user.role === 'dosen' && user.isOnboarded;
+  return user.role === 'TEACHER' && user.isOnboarded;
 }
 
 export function canAccessAdminFeatures(user: ExtendedUser): boolean {
-  return user.role === 'admin';
+  return user.role === 'ADMIN';
 }
 
 export function canModifyUser(
   currentUser: ExtendedUser,
   targetUserId: string
 ): boolean {
-  return currentUser.id === targetUserId || currentUser.role === 'admin';
+  return currentUser.id === targetUserId || currentUser.role === 'ADMIN';
 }
 
 export function canViewUserProfile(
@@ -40,8 +40,8 @@ export function canViewUserProfile(
 ): boolean {
   return (
     currentUser.id === targetUserId ||
-    currentUser.role === 'admin' ||
-    currentUser.role === 'dosen'
+    currentUser.role === 'ADMIN' ||
+    currentUser.role === 'TEACHER'
   );
 }
 
@@ -58,17 +58,17 @@ export function needsRoleSelection(user: ExtendedUser): boolean {
 }
 
 export function needsDataDiri(user: ExtendedUser): boolean {
-  if (user.role === 'mahasiswa') {
+  if (user.role === 'STUDENT') {
     return !user.nim;
   }
-  if (user.role === 'dosen') {
+  if (user.role === 'TEACHER') {
     return !user.name || !user.gender;
   }
   return false;
 }
 
 export function needsKepribadianTest(user: ExtendedUser): boolean {
-  return user.role === 'mahasiswa' && !user.isOnboarded;
+  return user.role === 'STUDENT' && !user.isOnboarded;
 }
 
 export function getNextOnboardingStep(user: ExtendedUser): string | null {
@@ -76,11 +76,13 @@ export function getNextOnboardingStep(user: ExtendedUser): string | null {
     return '/onboarding/resume';
   }
 
+  const roleSlug = user.role === 'TEACHER' ? 'dosen' : 'mahasiswa';
+
   if (needsDataDiri(user)) {
-    return `/onboarding/data-diri/${user.role}`;
+    return `/onboarding/data-diri/${roleSlug}`;
   }
 
-  if (user.role === 'mahasiswa' && !user.isOnboarded) {
+  if (user.role === 'STUDENT' && !user.isOnboarded) {
     return '/onboarding/kepribadian';
   }
 

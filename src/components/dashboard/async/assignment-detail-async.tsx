@@ -69,54 +69,63 @@ export async function AssignmentDetailAsync({
   isDosen,
   isMahasiswa,
 }: AssignmentDetailAsyncProps) {
-  // For mahasiswa, determine submission status
-  const hasSubmitted = isMahasiswa
-    ? !!(await prisma.assignmentSubmission.findUnique({
-        where: {
-          assignmentId_studentId: { assignmentId, studentId: user.id },
-        },
-      }))
-    : false;
-
-  // Fetch assignment title for breadcrumbs
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: {
-      title: true,
-      description: true,
-      startAt: true,
-      course: { select: { dosenId: true } },
-    },
-  });
-  const assignmentTitle = assignment?.title ?? 'Tugas';
-
-  // Stats for graphs
-  const stats = await getAssignmentStats(assignmentId, classId);
-
-  // Submissions for this assignment
-  const submittedForAssignment = await prisma.assignmentSubmission.findMany({
-    where: { assignmentId },
-    select: { studentId: true },
-  });
-  const submittedStudentIds = new Set<string>(
-    submittedForAssignment.map((s: { studentId: string }) => s.studentId)
-  );
-
-  // Server-side: gather counts for UI and teams percentage
-  // Topics count and enrollments
-  const [topicRecords, enrollments] = await Promise.all([
+  // Parallel fetch: all independent queries at once
+  const [
+    submissionCheck,
+    assignment,
+    stats,
+    submittedForAssignment,
+    topicRecords,
+    enrollments,
+    pendingFormation,
+    latestFormation,
+  ] = await Promise.all([
+    // For mahasiswa, determine submission status
+    isMahasiswa
+      ? prisma.assignmentSubmission.findUnique({
+          where: {
+            assignmentId_studentId: { assignmentId, studentId: user.id },
+          },
+          select: { id: true },
+        })
+      : null,
+    // Fetch assignment title for breadcrumbs
+    prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      select: {
+        title: true,
+        description: true,
+        startAt: true,
+        course: { select: { dosenId: true } },
+      },
+    }),
+    // Stats for graphs
+    getAssignmentStats(assignmentId, classId),
+    // Submissions for this assignment
+    prisma.assignmentSubmission.findMany({
+      where: { assignmentId },
+      select: { studentId: true },
+    }),
+    // Topics - fetch id and name for both count and topic name lookup
     prisma.assignmentTopic.findMany({
       where: { assignmentId },
-      select: { id: true },
+      select: { id: true, name: true },
     }),
+    // Enrollments - single query for both personality data and student list
     prisma.courseEnrollment.findMany({
       where: { courseId: classId },
       select: {
         studentId: true,
         student: {
           select: {
+            id: true,
+            name: true,
+            nim: true,
+            email: true,
+            gender: true,
             personalityProfile: {
               select: {
+                mbtiType: true,
                 ei: true,
                 sn: true,
                 tf: true,
@@ -126,143 +135,19 @@ export async function AssignmentDetailAsync({
           },
         },
       },
+      orderBy: { student: { name: 'asc' } },
     }),
-  ]);
-
-  // Topics are optional: prefer assignment's current description JSON;
-  // fall back to historical topic records only if parsing fails.
-  let topicCount = 0;
-  if (assignment?.description) {
-    try {
-      const parsed = JSON.parse(assignment.description) as {
-        topics?: unknown;
-      };
-      if (Array.isArray(parsed?.topics)) {
-        topicCount = parsed.topics
-          .map(topic => (typeof topic === 'string' ? topic.trim() : ''))
-          .filter(Boolean).length;
-      } else {
-        topicCount = 0;
-      }
-    } catch {
-      topicCount = topicRecords.length;
-    }
-  } else {
-    topicCount = topicRecords.length;
-  }
-
-  const pendingFormation = await prisma.teamFormationRequest.findFirst({
-    where: {
-      assignmentId,
-      status: { in: ['PENDING', 'PROCESSING'] },
-    },
-    orderBy: { createdAt: 'desc' },
-    select: { id: true },
-  });
-  const isTeamFormationProcessing = Boolean(pendingFormation);
-
-  let percentAssigned = 0;
-  if (assignment) {
-    const latest = await prisma.teamFormationRequest.findFirst({
+    // Pending formation check
+    prisma.teamFormationRequest.findFirst({
       where: {
         assignmentId,
-        status: 'COMPLETED',
+        status: { in: ['PENDING', 'PROCESSING'] },
       },
       orderBy: { createdAt: 'desc' },
-      include: {
-        teams: { include: { members: true } },
-      },
-    });
-    if (latest) {
-      const memberIds = new Set(
-        latest.teams.flatMap((t: { members: { userId: string }[] }) =>
-          t.members.map((m: { userId: string }) => m.userId)
-        )
-      );
-      const total = enrollments.length;
-      percentAssigned =
-        total > 0 ? Math.round((memberIds.size / total) * 100) : 0;
-    }
-  }
-
-  const totalEnrollments = enrollments.length;
-  const quizCompletionPercent = totalEnrollments
-    ? Math.round(
-        (Math.min(stats.quizSubmissions, totalEnrollments) / totalEnrollments) *
-          100
-      )
-    : 0;
-
-  // Calculate how many students haven't submitted the assignment quiz
-  const incompleteCount = totalEnrollments - submittedStudentIds.size;
-
-  // Build enrolled students list for edit mode
-  const enrolledStudents = await prisma.courseEnrollment.findMany({
-    where: { courseId: classId },
-    select: {
-      student: {
-        select: {
-          id: true,
-          name: true,
-          nim: true,
-          email: true,
-          personalityProfile: {
-            select: {
-              mbtiType: true,
-            },
-          },
-          gender: true,
-        },
-      },
-    },
-    orderBy: { student: { name: 'asc' } },
-  });
-
-  const enrolledStudentsList = enrolledStudents.map(
-    (e: {
-      student: {
-        id: string;
-        name: string;
-        nim: string | null;
-        email: string;
-        personalityProfile: { mbtiType: string | null } | null;
-        gender: string | null;
-      };
-    }) => ({
-      id: e.student.id,
-      name: e.student.name,
-      nim: e.student.nim,
-      email: e.student.email,
-      mbtiType: e.student.personalityProfile?.mbtiType ?? null,
-      gender: e.student.gender,
-    })
-  );
-
-  // Fetch teams data if teams are formed
-  let teamsData: Array<{
-    id: string;
-    quality: number | null;
-    createdAt: Date;
-    members: Array<{
-      id: string;
-      user: {
-        id: string;
-        name: string | null;
-        email: string | null;
-        mbtiType: string | null;
-        nim: string | null;
-        ei: number | null;
-        sn: number | null;
-        tf: number | null;
-        pj: number | null;
-      };
-    }>;
-  }> = [];
-  let topicNames: Record<string, string> = {};
-  let taskIdByIndex: string[] = [];
-
-  if (assignment && percentAssigned > 0) {
-    const latest = await prisma.teamFormationRequest.findFirst({
+      select: { id: true },
+    }),
+    // Completed team formation - for percentage calc and team display
+    prisma.teamFormationRequest.findFirst({
       where: {
         assignmentId,
         status: 'COMPLETED',
@@ -276,6 +161,7 @@ export async function AssignmentDetailAsync({
               orderBy: { createdAt: 'asc' },
               select: {
                 id: true,
+                userId: true,
                 assignedSkillIds: true,
                 user: {
                   select: {
@@ -323,108 +209,191 @@ export async function AssignmentDetailAsync({
           },
         },
       },
-    });
+    }),
+  ]);
 
-    if (latest && latest.teams.length > 0) {
-      teamsData = latest.teams.map((team: TeamFromQuery) => ({
-        id: team.id,
-        quality: team.quality,
-        createdAt: team.createdAt,
-        members: team.members.map((member: TeamMemberFromQuery) => {
-          const assignedSkillIds = member.assignedSkillIds ?? [];
-          const assignedSkillSet = new Set(assignedSkillIds);
+  const hasSubmitted = !!submissionCheck;
+  const assignmentTitle = assignment?.title ?? 'Tugas';
+  const submittedStudentIds = new Set<string>(
+    submittedForAssignment.map((s: { studentId: string }) => s.studentId)
+  );
+  const isTeamFormationProcessing = Boolean(pendingFormation);
 
-          type PersonSkillItem = {
-            skillId: string;
-            level: number;
-            skill: { id: string; name: string };
-          };
-          const personSkills =
-            member.user.personSkills?.map((skill: PersonSkillItem) => ({
-              skillId: skill.skillId,
-              level: skill.level ?? 0,
-              name: skill.skill?.name ?? null,
-            })) ?? [];
-
-          const sortedSkills = [...personSkills].sort(
-            (a, b) => (b.level ?? 0) - (a.level ?? 0)
-          );
-          const filteredSkills = sortedSkills.filter(skill =>
-            assignedSkillSet.size === 0
-              ? true
-              : assignedSkillSet.has(skill.skillId)
-          );
-          const relevantSkills =
-            filteredSkills.length > 0 ? filteredSkills : sortedSkills;
-          const topSkills = Array.from(
-            new Set(relevantSkills.map(skill => skill.name).filter(Boolean))
-          ) as string[];
-
-          type TopicPrefItem = {
-            preference: number;
-            topic: { id: string; name: string };
-          };
-          const topicPreferences =
-            member.user.AssignmentTopicPreference?.map(
-              (pref: TopicPrefItem) => ({
-                name: pref.topic?.name ?? null,
-                preference: pref.preference ?? 0,
-              })
-            ) ?? [];
-          type TopicPrefMapped = { name: string | null; preference: number };
-          const preferredTopics = topicPreferences
-            .filter((pref: TopicPrefMapped) => pref.name)
-            .sort(
-              (a: TopicPrefMapped, b: TopicPrefMapped) =>
-                (b.preference ?? 0) - (a.preference ?? 0)
-            )
-            .map((pref: TopicPrefMapped) => pref.name as string);
-
-          return {
-            id: member.id,
-            assignedSkillIds,
-            user: {
-              id: member.user.id,
-              name: member.user.name,
-              email: member.user.email,
-              mbtiType: member.user.personalityProfile?.mbtiType ?? null,
-              nim: member.user.nim,
-              ei: member.user.personalityProfile?.ei ?? null,
-              sn: member.user.personalityProfile?.sn ?? null,
-              tf: member.user.personalityProfile?.tf ?? null,
-              pj: member.user.personalityProfile?.pj ?? null,
-              gender: member.user.gender,
-            },
-            topSkills,
-            preferredTopics,
-          };
-        }),
-      }));
-
-      // Try to extract taskId mapping from responseData
-      try {
-        const resp = latest.responseData as unknown as {
-          teams?: Array<{ taskId: string }>;
-        } | null;
-        if (resp?.teams?.length) {
-          taskIdByIndex = resp.teams.map(t => t.taskId);
-        }
-      } catch {
-        // ignore
+  // Topics are optional: prefer assignment's current description JSON;
+  // fall back to historical topic records only if parsing fails.
+  let topicCount = 0;
+  if (assignment?.description) {
+    try {
+      const parsed = JSON.parse(assignment.description) as {
+        topics?: unknown;
+      };
+      if (Array.isArray(parsed?.topics)) {
+        topicCount = parsed.topics
+          .map(topic => (typeof topic === 'string' ? topic.trim() : ''))
+          .filter(Boolean).length;
+      } else {
+        topicCount = 0;
       }
+    } catch {
+      topicCount = topicRecords.length;
+    }
+  } else {
+    topicCount = topicRecords.length;
+  }
 
-      // If taskId looks like assignmentTopic id, fetch names
-      if (taskIdByIndex.length) {
-        const topicRecordsWithNames = await prisma.assignmentTopic.findMany({
-          where: { assignmentId, id: { in: taskIdByIndex } },
-          select: { id: true, name: true },
-        });
-        topicNames = Object.fromEntries(
-          topicRecordsWithNames.map(
-            (r: { id: string; name: string }) => [r.id, r.name] as const
-          )
+  const totalEnrollments = enrollments.length;
+  const quizCompletionPercent = totalEnrollments
+    ? Math.round(
+        (Math.min(stats.quizSubmissions, totalEnrollments) / totalEnrollments) *
+          100
+      )
+    : 0;
+
+  // Calculate how many students haven't submitted the assignment quiz
+  const incompleteCount = totalEnrollments - submittedStudentIds.size;
+
+  const enrolledStudentsList = enrollments.map(
+    (e: (typeof enrollments)[number]) => ({
+      id: e.student.id,
+      name: e.student.name,
+      nim: e.student.nim,
+      email: e.student.email,
+      mbtiType: e.student.personalityProfile?.mbtiType ?? null,
+      gender: e.student.gender,
+    })
+  );
+
+  // Teams data derived from latestFormation query in Promise.all
+  let teamsData: Array<{
+    id: string;
+    quality: number | null;
+    createdAt: Date;
+    members: Array<{
+      id: string;
+      user: {
+        id: string;
+        name: string | null;
+        email: string | null;
+        mbtiType: string | null;
+        nim: string | null;
+        ei: number | null;
+        sn: number | null;
+        tf: number | null;
+        pj: number | null;
+      };
+    }>;
+  }> = [];
+  let topicNames: Record<string, string> = {};
+  let taskIdByIndex: string[] = [];
+  let percentAssigned = 0;
+
+  // Calculate percentage from latestFormation query result
+  if (latestFormation) {
+    const memberIds = new Set(
+      latestFormation.teams.flatMap((t: { members: { userId: string }[] }) =>
+        t.members.map((m: { userId: string }) => m.userId)
+      )
+    );
+    percentAssigned =
+      totalEnrollments > 0
+        ? Math.round((memberIds.size / totalEnrollments) * 100)
+        : 0;
+  }
+
+  if (latestFormation && latestFormation.teams.length > 0) {
+    teamsData = latestFormation.teams.map((team: TeamFromQuery) => ({
+      id: team.id,
+      quality: team.quality,
+      createdAt: team.createdAt,
+      members: team.members.map((member: TeamMemberFromQuery) => {
+        const assignedSkillIds = member.assignedSkillIds ?? [];
+        const assignedSkillSet = new Set(assignedSkillIds);
+
+        type PersonSkillItem = {
+          skillId: string;
+          level: number;
+          skill: { id: string; name: string };
+        };
+        const personSkills =
+          member.user.personSkills?.map((skill: PersonSkillItem) => ({
+            skillId: skill.skillId,
+            level: skill.level ?? 0,
+            name: skill.skill?.name ?? null,
+          })) ?? [];
+
+        const sortedSkills = [...personSkills].sort(
+          (a, b) => (b.level ?? 0) - (a.level ?? 0)
         );
+        const filteredSkills = sortedSkills.filter(skill =>
+          assignedSkillSet.size === 0
+            ? true
+            : assignedSkillSet.has(skill.skillId)
+        );
+        const relevantSkills =
+          filteredSkills.length > 0 ? filteredSkills : sortedSkills;
+        const topSkills = Array.from(
+          new Set(relevantSkills.map(skill => skill.name).filter(Boolean))
+        ) as string[];
+
+        type TopicPrefItem = {
+          preference: number;
+          topic: { id: string; name: string };
+        };
+        const topicPreferences =
+          member.user.AssignmentTopicPreference?.map((pref: TopicPrefItem) => ({
+            name: pref.topic?.name ?? null,
+            preference: pref.preference ?? 0,
+          })) ?? [];
+        type TopicPrefMapped = { name: string | null; preference: number };
+        const preferredTopics = topicPreferences
+          .filter((pref: TopicPrefMapped) => pref.name)
+          .sort(
+            (a: TopicPrefMapped, b: TopicPrefMapped) =>
+              (b.preference ?? 0) - (a.preference ?? 0)
+          )
+          .map((pref: TopicPrefMapped) => pref.name as string);
+
+        return {
+          id: member.id,
+          assignedSkillIds,
+          user: {
+            id: member.user.id,
+            name: member.user.name,
+            email: member.user.email,
+            mbtiType: member.user.personalityProfile?.mbtiType ?? null,
+            nim: member.user.nim,
+            ei: member.user.personalityProfile?.ei ?? null,
+            sn: member.user.personalityProfile?.sn ?? null,
+            tf: member.user.personalityProfile?.tf ?? null,
+            pj: member.user.personalityProfile?.pj ?? null,
+            gender: member.user.gender,
+          },
+          topSkills,
+          preferredTopics,
+        };
+      }),
+    }));
+
+    // Try to extract taskId mapping from responseData
+    try {
+      const resp = latestFormation.responseData as unknown as {
+        teams?: Array<{ taskId: string }>;
+      } | null;
+      if (resp?.teams?.length) {
+        taskIdByIndex = resp.teams.map(t => t.taskId);
       }
+    } catch {
+      // ignore
+    }
+
+    // Build topic name lookup from already-fetched topicRecords
+    if (taskIdByIndex.length) {
+      const taskIdSet = new Set(taskIdByIndex);
+      topicNames = Object.fromEntries(
+        topicRecords
+          .filter((r: { id: string; name: string }) => taskIdSet.has(r.id))
+          .map((r: { id: string; name: string }) => [r.id, r.name] as const)
+      );
     }
   }
 

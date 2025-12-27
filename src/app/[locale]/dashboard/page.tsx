@@ -43,12 +43,12 @@ export default async function Dashboard({
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
-  // Get statistics synchronously for dosen
-  const statistics = isDosen ? await getStatsOrEmpty(user.id) : null;
-
-  // Get sidebar data and student classes server-side
-  const sidebarData = await getSidebarData();
-  const studentClasses = isMahasiswa ? await getStudentClasses() : [];
+  // Parallel fetch: all independent data at once
+  const [statistics, sidebarData, studentClasses] = await Promise.all([
+    isDosen ? getStatsOrEmpty(user.id) : null,
+    getSidebarData(),
+    isMahasiswa ? getStudentClasses() : [],
+  ]);
 
   return (
     <DashboardClient

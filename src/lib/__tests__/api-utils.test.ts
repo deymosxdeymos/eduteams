@@ -10,7 +10,7 @@ const prismaMock: any = {
           id: 'u1',
           name: 'U',
           email: 'u@example.com',
-          role: 'dosen',
+          role: 'TEACHER',
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -30,7 +30,7 @@ const prismaMock: any = {
           id: 'u2',
           name: 'U2',
           email: 'u2@example.com',
-          role: 'mahasiswa',
+          role: 'STUDENT',
           isOnboarded: false,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -126,7 +126,7 @@ describe('api-utils', () => {
       }));
 
       const { withRole } = await import('@/lib/api-utils');
-      const handler = withRole('dosen', async (_req, ctx) => {
+      const handler = withRole('TEACHER', async (_req, ctx) => {
         return NextResponse.json({ success: true, role: ctx.user.role });
       });
       const res = await handler(
@@ -135,7 +135,7 @@ describe('api-utils', () => {
       );
       expect(res.status).toBe(200);
       const json = (await res.json()) as any;
-      expect(json.role).toBe('dosen');
+      expect(json.role).toBe('TEACHER');
     });
 
     it('denies access when user lacks required role', async () => {
@@ -158,7 +158,7 @@ describe('api-utils', () => {
       }));
 
       const { withRole } = await import('@/lib/api-utils');
-      const handler = withRole('dosen', async () =>
+      const handler = withRole('TEACHER', async () =>
         NextResponse.json({ ok: true })
       );
       const res = await handler(
@@ -409,18 +409,18 @@ describe('api-utils', () => {
   describe('requireRole', () => {
     it('passes when user has required role', async () => {
       const { requireRole } = await import('@/lib/api-utils');
-      const user = { id: 'u1', role: 'dosen' as const, isOnboarded: true };
-      expect(() => requireRole('dosen', user as any)).not.toThrow();
+      const user = { id: 'u1', role: 'TEACHER' as const, isOnboarded: true };
+      expect(() => requireRole('TEACHER', user as any)).not.toThrow();
     });
 
     it('throws when user lacks required role', async () => {
       const { requireRole } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
-      const user = { id: 'u1', role: 'mahasiswa' as const, isOnboarded: true };
-      expect(() => requireRole('dosen', user as any)).toThrow(
+      const user = { id: 'u1', role: 'STUDENT' as const, isOnboarded: true };
+      expect(() => requireRole('TEACHER', user as any)).toThrow(
         AuthorizationError
       );
-      expect(() => requireRole('dosen', user as any)).toThrow(
+      expect(() => requireRole('TEACHER', user as any)).toThrow(
         'Insufficient permissions'
       );
     });
@@ -429,7 +429,7 @@ describe('api-utils', () => {
       const { requireRole } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
       const user = { id: 'u1', role: null, isOnboarded: true };
-      expect(() => requireRole('dosen', user as any)).toThrow(
+      expect(() => requireRole('TEACHER', user as any)).toThrow(
         AuthorizationError
       );
     });
@@ -438,14 +438,14 @@ describe('api-utils', () => {
   describe('requireOnboarded', () => {
     it('passes when user is onboarded', async () => {
       const { requireOnboarded } = await import('@/lib/api-utils');
-      const user = { id: 'u1', role: 'dosen' as const, isOnboarded: true };
+      const user = { id: 'u1', role: 'TEACHER' as const, isOnboarded: true };
       expect(() => requireOnboarded(user as any)).not.toThrow();
     });
 
     it('throws when user is not onboarded', async () => {
       const { requireOnboarded } = await import('@/lib/api-utils');
       const { AuthorizationError } = await import('@/lib/utils/errors');
-      const user = { id: 'u1', role: 'dosen' as const, isOnboarded: false };
+      const user = { id: 'u1', role: 'TEACHER' as const, isOnboarded: false };
       expect(() => requireOnboarded(user as any)).toThrow(AuthorizationError);
       expect(() => requireOnboarded(user as any)).toThrow(
         'User must complete onboarding first'

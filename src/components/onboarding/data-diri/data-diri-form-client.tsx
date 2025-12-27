@@ -2,11 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import { UserRound } from 'lucide-react';
+import { ArrowRight, UserRound } from 'lucide-react';
 import Image from 'next/image';
 import { useId, useRef, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -362,18 +363,31 @@ export default function DataDiriFormClient({
             </FormItem>
           )}
         />
+      </form>
 
-        <button
+      {/* Visible submit button with pending state */}
+      <div className='flex items-center justify-center gap-x-6 pt-8'>
+        <Button
           type='submit'
           form='data-diri-form'
+          variant='onboarding'
+          size='long'
           disabled={isPending}
-          className='hidden'
         >
           {isPending
             ? dict.onboarding.dataDiri.saving
             : dict.onboarding.dataDiri.continue}
-        </button>
-      </form>
+          {!isPending && (
+            <ArrowRight
+              strokeWidth={3}
+              className='font-bold text-white text-lg'
+            />
+          )}
+          {isPending && (
+            <span className='ml-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' />
+          )}
+        </Button>
+      </div>
     </Form>
   );
 }

@@ -6,7 +6,7 @@ import prisma from '@/lib/prisma';
 export const runtime = 'nodejs';
 
 const roleSchema = z.object({
-  role: z.enum(['dosen', 'mahasiswa', 'admin']),
+  role: z.enum(['TEACHER', 'STUDENT', 'ADMIN']),
 });
 
 export const POST = withAuth(

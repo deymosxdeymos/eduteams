@@ -8,7 +8,7 @@ const clearCacheSchema = z.object({
 });
 
 export const POST = withRole(
-  'admin',
+  'ADMIN',
   withValidation(
     (data: unknown) => clearCacheSchema.parse(data),
     async (_request: NextRequest, { validatedData }) => {

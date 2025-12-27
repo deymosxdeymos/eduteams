@@ -6,7 +6,7 @@ const prismaMock: any = {
       id: 'u1',
       name: 'User',
       nim: '123',
-      role: 'mahasiswa',
+      role: 'STUDENT',
       gender: 'MALE',
     })),
     update: mock(async () => ({})),
@@ -28,7 +28,7 @@ describe('user/data-diri API', () => {
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.data.jenisKelamin).toBe('laki-laki');
-    expect(json.data.role).toBe('mahasiswa');
+    expect(json.data.role).toBe('STUDENT');
   });
 
   it('POST updates user and requires role-specific fields', async () => {
@@ -42,7 +42,7 @@ describe('user/data-diri API', () => {
       body: JSON.stringify({
         namaLengkap: 'U',
         jenisKelamin: 'laki-laki',
-        role: 'dosen',
+        role: 'TEACHER',
         npm: 'X',
       }),
     });
@@ -55,7 +55,7 @@ describe('user/data-diri API', () => {
       body: JSON.stringify({
         namaLengkap: 'U',
         jenisKelamin: 'perempuan',
-        role: 'mahasiswa',
+        role: 'STUDENT',
       }),
     });
     const resFail = await POST(reqFail as any, undefined as any);

@@ -54,7 +54,7 @@ export function ClassPageLayout({
             classId={classId}
             initialData={studentsData}
             currentUserId={user.id}
-            canManage={user.role === 'dosen' && user.id === dosenId}
+            canManage={user.role === 'TEACHER' && user.id === dosenId}
           />
         </div>
       </div>

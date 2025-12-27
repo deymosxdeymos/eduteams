@@ -242,7 +242,7 @@ export const runtime = 'nodejs';
 const STUCK_REQUEST_TIMEOUT_MS = 3 * 60 * 1000; // Auto-fail background requests after 3 minutes
 
 // POST /api/assignments/[id]/form-teams
-export const POST = withRole<{ id: string }>('dosen', async (req, ctx) => {
+export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
   const startTime = performance.now();
   try {
     const { id: assignmentId } = await ctx.params;

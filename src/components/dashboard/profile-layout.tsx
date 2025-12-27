@@ -17,7 +17,7 @@ export function ProfileLayout({ user }: ProfileLayoutProps) {
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
         <SidebarWrapper />
         <div className='px-8 pb-0 min-h-0'>
-          {user.role === 'dosen' ? (
+          {user.role === 'TEACHER' ? (
             <DosenProfileContent user={user} />
           ) : (
             <ProfileContent user={user} />

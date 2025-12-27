@@ -4,7 +4,7 @@ const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     })),
   },
@@ -89,7 +89,7 @@ describe('courses/[id]/assignments API', () => {
     // Auth: mahasiswa s1
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 's1',
-      role: 'mahasiswa',
+      role: 'STUDENT',
       isOnboarded: true,
     }));
     mock.module('@/lib/auth', () => ({
@@ -151,7 +151,7 @@ describe('courses/[id]/assignments API', () => {
     // Auth: mahasiswa s1
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 's1',
-      role: 'mahasiswa',
+      role: 'STUDENT',
       isOnboarded: true,
     }));
     mock.module('@/lib/auth', () => ({

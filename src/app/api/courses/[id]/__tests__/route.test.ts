@@ -18,7 +18,7 @@ const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     })),
   },
@@ -100,7 +100,7 @@ describe('GET /api/courses/[id]', () => {
     // Auth session: mahasiswa s1
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 's1',
-      role: 'mahasiswa',
+      role: 'STUDENT',
       isOnboarded: true,
     }));
     mock.module('@/lib/auth', () => ({
@@ -122,7 +122,7 @@ describe('GET /api/courses/[id]', () => {
     // Auth session: admin (not dosen/mahasiswa-onboarded path)
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'a1',
-      role: 'admin',
+      role: 'ADMIN',
       isOnboarded: true,
     }));
     mock.module('@/lib/auth', () => ({
@@ -148,7 +148,7 @@ describe('DELETE /api/courses/[id]', () => {
   it('dosen can delete their own course and revalidate caches', async () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     }));
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
@@ -185,7 +185,7 @@ describe('DELETE /api/courses/[id]', () => {
   it('returns 403 when deleting course not owned by dosen', async () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     }));
     prismaMock.course.findUnique.mockImplementationOnce(async () => ({
@@ -212,7 +212,7 @@ describe('DELETE /api/courses/[id]', () => {
   it('returns 404 when course is not found', async () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     }));
     prismaMock.course.findUnique.mockImplementationOnce(async () => null);
@@ -239,7 +239,7 @@ describe('PATCH /api/courses/[id]', () => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     }));
     // Mock findUnique for the ownership check
@@ -279,7 +279,7 @@ describe('PATCH /api/courses/[id]', () => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     }));
     prismaMock.course.findUnique.mockImplementationOnce(async () => ({
@@ -307,7 +307,7 @@ describe('PATCH /api/courses/[id]', () => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
-      role: 'dosen',
+      role: 'TEACHER',
       isOnboarded: true,
     }));
     mock.module('@/lib/auth', () => ({

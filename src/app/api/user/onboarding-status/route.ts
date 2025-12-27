@@ -16,7 +16,7 @@ export const GET = async () => {
     let redirectUrl: string | null = null;
     let sessionStatus: UserPersonalitySessionStatus | null = null;
 
-    if (user.role === 'mahasiswa') {
+    if (user.role === 'STUDENT') {
       sessionStatus = await getUserPersonalitySessionStatus(user.id);
     }
 
@@ -25,8 +25,9 @@ export const GET = async () => {
         redirectUrl = '/onboarding/resume';
       } else if (needsDataDiri(user)) {
         // Check if user needs data-diri (mahasiswa needs NIM, dosen needs name/gender)
-        redirectUrl = `/onboarding/data-diri/${user.role}`;
-      } else if (user.role === 'mahasiswa') {
+        const roleSlug = user.role === 'TEACHER' ? 'dosen' : 'mahasiswa';
+        redirectUrl = `/onboarding/data-diri/${roleSlug}`;
+      } else if (user.role === 'STUDENT') {
         if (sessionStatus && sessionStatus.status === 'completed_valid') {
           redirectUrl = '/dashboard?firstVisit=true';
         } else {

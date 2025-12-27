@@ -38,7 +38,7 @@ const courseCatalogCreateSchema = z.object({
 type CourseCatalogCreateInput = z.infer<typeof courseCatalogCreateSchema>;
 
 export const GET = withAuth(async (request: NextRequest, { user }) => {
-  if (user.role !== 'dosen') {
+  if (user.role !== 'TEACHER') {
     return createErrorResponse('Only dosen can view course catalog', 403);
   }
 
@@ -65,7 +65,7 @@ export const POST = withAuth(
   withValidation(
     (data: unknown) => courseCatalogCreateSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
-      if (user?.role !== 'dosen') {
+      if (user?.role !== 'TEACHER') {
         return createErrorResponse('Only dosen can create courses', 403);
       }
 

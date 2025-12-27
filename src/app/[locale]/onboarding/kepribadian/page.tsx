@@ -48,8 +48,8 @@ export default async function KepribadianPage({
   };
 
   // Admin users shouldn't reach onboarding, but handle gracefully
-  const userRole =
-    user.role === 'admin' ? 'mahasiswa' : user.role || 'mahasiswa';
+  // Default to mahasiswa for null/unset roles since this is a student-only flow
+  const userRole = user.role === 'TEACHER' ? 'dosen' : 'mahasiswa';
 
   return (
     <PersonalityTestClient

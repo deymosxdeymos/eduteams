@@ -22,7 +22,7 @@ export default async function RolePage({
   const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
 
   if (!devDisableAutoRole) {
-    if (user.role === 'dosen' && isInstitutionalEmail(user.email)) {
+    if (user.role === 'TEACHER' && isInstitutionalEmail(user.email)) {
       // Dosen only needs name and gender (no NPM requirement)
       if (!user.name || !user.gender) {
         redirect({ href: '/onboarding/data-diri/dosen', locale });
@@ -30,7 +30,7 @@ export default async function RolePage({
       redirect({ href: '/dashboard?firstVisit=true', locale });
     }
 
-    if (user.role === 'mahasiswa') {
+    if (user.role === 'STUDENT') {
       // Mahasiswa needs NIM
       if (!user.nim) {
         redirect({ href: '/onboarding/data-diri/mahasiswa', locale });

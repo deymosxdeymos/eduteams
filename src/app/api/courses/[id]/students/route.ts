@@ -31,43 +31,36 @@ export async function GET(
 
     const { id: courseId } = await params;
 
-    // Verify access to the course
-    let hasAccess = false;
+    // Verify access first before fetching student data
+    const [courseAccess, enrollmentAccess] = await Promise.all([
+      // Dosen access check
+      isDosen
+        ? prisma.course.findUnique({
+            where: { id: courseId, dosenId: user.id },
+            select: { id: true },
+          })
+        : null,
+      // Mahasiswa access check
+      isMahasiswa
+        ? prisma.courseEnrollment.findUnique({
+            where: {
+              courseId_studentId: { courseId, studentId: user.id },
+            },
+            select: { courseId: true },
+          })
+        : null,
+    ]);
 
-    if (isDosen) {
-      // Dosen can access their own courses
-      const course = await prisma.course.findUnique({
-        where: {
-          id: courseId,
-          dosenId: user.id,
-        },
-        select: { id: true },
-      });
-      hasAccess = !!course;
-    } else if (isMahasiswa) {
-      // Students can access courses they're enrolled in
-      const enrollment = await prisma.courseEnrollment.findUnique({
-        where: {
-          courseId_studentId: {
-            courseId: courseId,
-            studentId: user.id,
-          },
-        },
-        select: { courseId: true },
-      });
-      hasAccess = !!enrollment;
-    }
-
+    const hasAccess = isDosen ? !!courseAccess : !!enrollmentAccess;
     if (!hasAccess) {
       throw new HttpError(404, 'Course not found or access denied');
     }
 
-    // Fetch all students enrolled in the course
+    // Only fetch students after access is validated
     const enrollments = await prisma.courseEnrollment.findMany({
-      where: {
-        courseId: courseId,
-      },
-      include: {
+      where: { courseId },
+      select: {
+        enrolledAt: true,
         student: {
           select: {
             id: true,
@@ -86,11 +79,7 @@ export async function GET(
           },
         },
       },
-      orderBy: {
-        student: {
-          name: 'asc',
-        },
-      },
+      orderBy: { student: { name: 'asc' } },
     });
 
     const students = enrollments.map(

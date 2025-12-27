@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/assignments/[id]/form-teams/status
 // Returns the current status of team formation for an assignment
-export const GET = withRole<{ id: string }>('dosen', async (_req, ctx) => {
+export const GET = withRole<{ id: string }>('TEACHER', async (_req, ctx) => {
   const startTime = performance.now();
   const params = await ctx.params;
   const assignmentId = params.id;

@@ -8,7 +8,7 @@ import type {
   User as PrismaUser,
 } from '@/generated/prisma/client';
 
-export type UserRole = 'dosen' | 'mahasiswa' | 'admin';
+export type UserRole = 'TEACHER' | 'STUDENT' | 'ADMIN';
 
 type PrismaUserBase = Omit<PrismaUser, 'role'>;
 

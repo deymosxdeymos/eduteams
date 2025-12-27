@@ -38,13 +38,14 @@ export async function submitDataDiri(
   }
 
   const gender = jenisKelamin === 'laki-laki' ? 'MALE' : 'FEMALE';
+  const dbRole = role === 'dosen' ? 'TEACHER' : 'STUDENT';
 
   await prisma.user.update({
     where: { id: user.id },
     data: {
       name: namaLengkap,
       nim: role === 'mahasiswa' ? nim : null,
-      role,
+      role: dbRole,
       gender,
       isOnboarded: role === 'dosen',
       onboardingStep: role === 'mahasiswa' ? 'kepribadian' : null,

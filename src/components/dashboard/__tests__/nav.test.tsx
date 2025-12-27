@@ -6,7 +6,7 @@ const baseUser: any = {
   id: 'u1',
   name: 'Dosen',
   email: 'd@example.com',
-  role: 'dosen',
+  role: 'TEACHER',
   isOnboarded: true,
 };
 

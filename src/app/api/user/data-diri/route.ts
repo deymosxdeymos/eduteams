@@ -9,7 +9,7 @@ const dataDiriSchema = z.object({
   namaLengkap: z.string().min(1, 'Nama lengkap is required'),
   nim: z.string().optional(),
   jenisKelamin: z.enum(['laki-laki', 'perempuan']),
-  role: z.enum(['dosen', 'mahasiswa']),
+  role: z.enum(['TEACHER', 'STUDENT']),
 });
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
@@ -49,8 +49,8 @@ export const POST = withAuth(
     async (_request: NextRequest, { user, validatedData }) => {
       const { namaLengkap, nim, jenisKelamin, role } = validatedData;
 
-      // Validate role-specific fields (only mahasiswa needs NIM, dosen doesn't need NPM)
-      if (role === 'mahasiswa' && !nim) {
+      // Validate role-specific fields (only STUDENT needs NIM, TEACHER doesn't need NPM)
+      if (role === 'STUDENT' && !nim) {
         return createApiResponse(null, 'NIM is required for mahasiswa', 400);
       }
 
@@ -62,10 +62,10 @@ export const POST = withAuth(
         where: { id: user?.id },
         data: {
           name: namaLengkap,
-          nim: role === 'mahasiswa' ? nim : null, // Only mahasiswa has NIM
+          nim: role === 'STUDENT' ? nim : null, // Only STUDENT has NIM
           role,
           gender,
-          isOnboarded: role === 'dosen', // dosen is fully onboarded after data-diri
+          isOnboarded: role === 'TEACHER', // TEACHER is fully onboarded after data-diri
         },
       });
 

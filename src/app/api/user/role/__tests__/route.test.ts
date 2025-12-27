@@ -29,7 +29,7 @@ describe('POST /api/user/role', () => {
     const req = new Request('http://localhost/api/user/role', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ role: 'dosen' }),
+      body: JSON.stringify({ role: 'TEACHER' }),
     });
 
     const res = await POST(req as any, undefined as any);
@@ -38,7 +38,7 @@ describe('POST /api/user/role', () => {
     expect(json.success).toBe(true);
     expect(prismaMock.user.update).toHaveBeenCalledWith({
       where: { id: 'u1' },
-      data: { role: 'dosen' },
+      data: { role: 'TEACHER' },
     });
   });
 

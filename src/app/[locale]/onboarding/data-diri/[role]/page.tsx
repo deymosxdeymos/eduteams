@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getMessages } from 'next-intl/server';
@@ -66,8 +66,11 @@ export default async function DataDiriPage({
   // Check if auto-role is disabled (show back button) or enabled (hide back button)
   const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
 
-  if (user.role && user.role !== role) {
-    redirect({ href: `/onboarding/data-diri/${user.role}`, locale });
+  // Convert URL slug to database role for comparison
+  const expectedDbRole = role === 'dosen' ? 'TEACHER' : 'STUDENT';
+  if (user.role && user.role !== expectedDbRole) {
+    const userRoleSlug = user.role === 'TEACHER' ? 'dosen' : 'mahasiswa';
+    redirect({ href: `/onboarding/data-diri/${userRoleSlug}`, locale });
   }
 
   // For dosen, ensure institutional email domain
@@ -123,40 +126,28 @@ export default async function DataDiriPage({
           alt='question icon'
         />
       </div>
-      <div className='flex items-start justify-center py-14 px-8'>
+      <div className='flex flex-col items-center justify-center py-14 px-8'>
+        {devDisableAutoRole && (
+          <div className='mb-4'>
+            <Link href={user.role ? '/onboarding/role' : '/onboarding/resume'}>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='rounded-full w-14 h-14 border border-black'
+              >
+                <ArrowLeft
+                  strokeWidth={3}
+                  className='font-bold text-black text-lg'
+                />
+              </Button>
+            </Link>
+          </div>
+        )}
         <DataDiriFormClient
           role={role}
           initialData={initialData}
           dict={messages}
         />
-      </div>
-      <div className='flex items-center justify-center gap-x-6'>
-        {devDisableAutoRole && (
-          <Link href={user.role ? '/onboarding/role' : '/onboarding/resume'}>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='rounded-full w-14 h-14 border border-black'
-            >
-              <ArrowLeft
-                strokeWidth={3}
-                className='font-bold text-black text-lg'
-              />
-            </Button>
-          </Link>
-        )}
-        <Button
-          variant='onboarding'
-          size='long'
-          form='data-diri-form'
-          type='submit'
-        >
-          {messages.onboarding.dataDiri.continue}
-          <ArrowRight
-            strokeWidth={3}
-            className='font-bold text-white text-lg'
-          />
-        </Button>
       </div>
     </main>
   );

@@ -36,13 +36,13 @@ export default async function ResumePage({
   }
 
   const isOnboardingRole =
-    !user.role || user.role === 'dosen' || user.role === 'mahasiswa';
+    !user.role || user.role === 'TEACHER' || user.role === 'STUDENT';
 
   if (!isOnboardingRole) {
     redirect({ href: '/dashboard?firstVisit=true', locale });
   }
 
-  const expectedRole = isInstitutionalEmail(user.email) ? 'dosen' : 'mahasiswa';
+  const expectedRole = isInstitutionalEmail(user.email) ? 'TEACHER' : 'STUDENT';
   const shouldAutoAssign = !user.role || user.role !== expectedRole;
 
   if (shouldAutoAssign) {
@@ -50,9 +50,10 @@ export default async function ResumePage({
   }
 
   const targetRole = user.role ?? expectedRole;
+  const targetRoleSlug = targetRole === 'TEACHER' ? 'dosen' : 'mahasiswa';
 
   const sessionStatus =
-    targetRole === 'mahasiswa'
+    targetRole === 'STUDENT'
       ? await getUserPersonalitySessionStatus(user.id, locale)
       : null;
 
@@ -61,10 +62,10 @@ export default async function ResumePage({
   }
 
   if (needsDataDiri(user)) {
-    redirect({ href: `/onboarding/data-diri/${targetRole}`, locale });
+    redirect({ href: `/onboarding/data-diri/${targetRoleSlug}`, locale });
   }
 
-  if (targetRole === 'mahasiswa') {
+  if (targetRole === 'STUDENT') {
     if (!sessionStatus || sessionStatus.status !== 'completed_valid') {
       redirect({ href: '/onboarding/kepribadian', locale });
     }

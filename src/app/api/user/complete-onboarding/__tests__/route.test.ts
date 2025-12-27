@@ -96,7 +96,7 @@ const englishBank = {
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 'u1', role: 'mahasiswa' })),
+    findUnique: mock(async () => ({ id: 'u1', role: 'STUDENT' })),
     update: mock(async () => ({})),
   },
   personalityProfile: {
@@ -124,7 +124,7 @@ describe('POST /api/user/complete-onboarding', () => {
     prismaMock.user.findUnique.mockReset();
     prismaMock.user.findUnique.mockImplementation(async () => ({
       id: 'u1',
-      role: 'mahasiswa',
+      role: 'STUDENT',
     }));
 
     prismaMock.user.update.mockReset();

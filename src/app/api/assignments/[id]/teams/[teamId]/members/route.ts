@@ -13,7 +13,7 @@ const RemoveMemberSchema = z.object({
 });
 
 export const POST = withRole<{ id: string; teamId: string }>(
-  'dosen',
+  'TEACHER',
   async (req, ctx) => {
     try {
       const { id: assignmentId, teamId } = await ctx.params;
@@ -104,7 +104,7 @@ export const POST = withRole<{ id: string; teamId: string }>(
 );
 
 export const DELETE = withRole<{ id: string; teamId: string }>(
-  'dosen',
+  'TEACHER',
   async (req, ctx) => {
     try {
       const { id: assignmentId, teamId } = await ctx.params;

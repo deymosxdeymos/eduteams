@@ -21,7 +21,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, notStartedCount }: SidebarProps) {
-  const shouldFetchCount = user?.role === 'mahasiswa';
+  const shouldFetchCount = user?.role === 'STUDENT';
   const showBadge = shouldFetchCount && notStartedCount > 0;
 
   const router = useRouter();

@@ -5,7 +5,7 @@ const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
       id: 's1',
-      role: 'mahasiswa',
+      role: 'STUDENT',
       isOnboarded: true,
     })),
   },

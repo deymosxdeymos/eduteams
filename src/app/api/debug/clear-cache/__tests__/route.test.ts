@@ -14,7 +14,7 @@ describe('POST /api/debug/clear-cache', () => {
         user: {
           findUnique: async () => ({
             id: 'a1',
-            role: 'admin',
+            role: 'ADMIN',
             isOnboarded: true,
           }),
         },

@@ -6,7 +6,7 @@ const baseUser: any = {
   id: 'u1',
   name: 'User',
   email: 'u@example.com',
-  role: 'mahasiswa',
+  role: 'STUDENT',
   isOnboarded: true,
   mbtiType: null,
   ei: null,
