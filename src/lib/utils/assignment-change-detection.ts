@@ -54,7 +54,18 @@ export function parseAssignmentStructure(description: string | null): {
 }
 
 /**
- * Detect changes between two arrays of strings
+ * Check if two strings are similar enough to be considered a rename.
+ * Uses substring matching (case-insensitive).
+ */
+function isSimilar(a: string, b: string): boolean {
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+  return aLower.includes(bLower) || bLower.includes(aLower);
+}
+
+/**
+ * Detect changes between two arrays of strings.
+ * Supports detecting multiple renames using substring matching.
  */
 export function detectArrayChanges(
   oldArr: string[],
@@ -67,43 +78,57 @@ export function detectArrayChanges(
   const oldMap = new Map(oldArr.map(s => [s.toLowerCase().trim(), s]));
   const newMap = new Map(newArr.map(s => [s.toLowerCase().trim(), s]));
 
-  const added: string[] = [];
-  const removed: string[] = [];
-  const renamed: Array<{ old: string; new: string }> = [];
+  // Find initially added and removed items
+  const initiallyAdded: string[] = [];
+  const initiallyRemoved: string[] = [];
 
-  // Find added items
   for (const item of newSet) {
     if (!oldSet.has(item)) {
       const value = newMap.get(item);
-      if (value) added.push(value);
+      if (value) initiallyAdded.push(value);
     }
   }
 
-  // Find removed items
   for (const item of oldSet) {
     if (!newSet.has(item)) {
       const value = oldMap.get(item);
-      if (value) removed.push(value);
+      if (value) initiallyRemoved.push(value);
     }
   }
 
-  // Detect potential renames (simple heuristic: Levenshtein distance or substring match)
-  // For now, we'll use a simple approach: if one item was removed and one was added,
-  // and they're similar enough, consider it a rename
-  if (removed.length === 1 && added.length === 1) {
-    const old = removed[0];
-    const newItem = added[0];
+  // Detect renames by matching removed items to added items
+  const renamed: Array<{ old: string; new: string }> = [];
+  const matchedRemoved = new Set<string>();
+  const matchedAdded = new Set<string>();
 
-    // Check if one contains the other (case-insensitive)
-    if (
-      old.toLowerCase().includes(newItem.toLowerCase()) ||
-      newItem.toLowerCase().includes(old.toLowerCase())
-    ) {
-      renamed.push({ old, new: newItem });
-      removed.length = 0;
-      added.length = 0;
+  // For each removed item, find the best matching added item
+  for (const oldItem of initiallyRemoved) {
+    let bestMatch: string | null = null;
+    let bestScore = 0;
+
+    for (const newItem of initiallyAdded) {
+      if (matchedAdded.has(newItem)) continue;
+
+      if (isSimilar(oldItem, newItem)) {
+        // Score by length of common substring (prefer longer matches)
+        const score = Math.min(oldItem.length, newItem.length);
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = newItem;
+        }
+      }
+    }
+
+    if (bestMatch) {
+      renamed.push({ old: oldItem, new: bestMatch });
+      matchedRemoved.add(oldItem);
+      matchedAdded.add(bestMatch);
     }
   }
+
+  // Filter out matched items from added/removed
+  const added = initiallyAdded.filter(item => !matchedAdded.has(item));
+  const removed = initiallyRemoved.filter(item => !matchedRemoved.has(item));
 
   return { added, removed, renamed };
 }

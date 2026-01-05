@@ -121,7 +121,7 @@ export async function getStudentCompetencyPrefills({
     personSkills.map(record => [record.skillId, record])
   );
 
-  const skillPrefills: SkillPrefill[] = normalizedSkillNames.map(name => {
+  const skillPrefills: SkillPrefill[] = uniqueSkillNames.map(name => {
     const skillId = skillIdByName.get(name);
     const profile = skillId ? profileBySkillId.get(skillId) : undefined;
     const fallback = skillId ? personSkillBySkillId.get(skillId) : undefined;
@@ -159,7 +159,14 @@ export async function getStudentCompetencyPrefills({
     topicProfiles.map(profile => [profile.topicKey ?? '', profile])
   );
 
-  const topicPrefills: TopicPrefill[] = normalizedTopicEntries.map(entry => {
+  const seenTopicKeys = new Set<string>();
+  const uniqueTopicEntries = normalizedTopicEntries.filter(entry => {
+    if (seenTopicKeys.has(entry.key)) return false;
+    seenTopicKeys.add(entry.key);
+    return true;
+  });
+
+  const topicPrefills: TopicPrefill[] = uniqueTopicEntries.map(entry => {
     const profile = topicProfileByKey.get(entry.key);
     return {
       name: entry.name,
