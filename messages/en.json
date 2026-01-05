@@ -674,6 +674,33 @@
       "activeClasses": "Active Classes",
       "pendingTasks": "Pending Tasks",
       "completedTasks": "Completed Tasks"
+    },
+    "studentManage": {
+      "title": "Manage Classes",
+      "subtitle": "Hello {name}, manage your groups and assignments here.",
+      "tabs": {
+        "myGroup": "My Group",
+        "waiting": "Waiting for Assignment",
+        "notStarted": "Not Started"
+      },
+      "sort": {
+        "placeholder": "Sort by",
+        "name": "Name",
+        "year": "Academic Year"
+      },
+      "search": {
+        "placeholder": "Search classes..."
+      },
+      "empty": {
+        "noClasses": "No classes found."
+      },
+      "card": {
+        "yourTeam": "Your Team",
+        "topic": "Topic: {name}",
+        "noName": "No Name",
+        "waitingBadge": "Waiting for Assignment",
+        "notFilledBadge": "You haven't filled the questionnaire"
+      }
     }
   },
   "joinClass": {

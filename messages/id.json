@@ -673,6 +673,33 @@
       "activeClasses": "Kelas Aktif",
       "pendingTasks": "Tugas Pending",
       "completedTasks": "Tugas Selesai"
+    },
+    "studentManage": {
+      "title": "Kelola Kelas",
+      "subtitle": "Halo {name}, kelola kelompok dan tugasmu di sini.",
+      "tabs": {
+        "myGroup": "Kelompok Saya",
+        "waiting": "Menunggu Pembagian",
+        "notStarted": "Belum Dikerjakan"
+      },
+      "sort": {
+        "placeholder": "Urutkan",
+        "name": "Nama",
+        "year": "Tahun Akademik"
+      },
+      "search": {
+        "placeholder": "Mencari kelas..."
+      },
+      "empty": {
+        "noClasses": "Tidak ada kelas ditemukan."
+      },
+      "card": {
+        "yourTeam": "Tim Anda",
+        "topic": "Topik: {name}",
+        "noName": "Tanpa Nama",
+        "waitingBadge": "Menunggu Pembagian",
+        "notFilledBadge": "Anda belum mengisi kuesioner"
+      }
     }
   },
   "joinClass": {

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 import { getStudentAssignmentStatus } from '@/lib/utils/student-status';
@@ -12,6 +13,8 @@ interface StudentManageContentProps {
 export async function StudentManageContent({
   user,
 }: StudentManageContentProps) {
+  const t = await getTranslations('dashboard.studentManage');
+
   // Get all courses the student is enrolled in
   const enrollments = await prisma.courseEnrollment.findMany({
     where: { studentId: user.id },
@@ -39,11 +42,10 @@ export async function StudentManageContent({
       <section className='flex h-full flex-col rounded-3xl bg-white px-6 py-6'>
         <div className='mb-6'>
           <h1 className='text-2xl font-semibold text-neutral-900'>
-            Kelola Kelas
+            {t('title')}
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Halo {user.name ?? 'Mahasiswa'}, kelola kelompok dan tugasmu di
-            sini.
+            {t('subtitle', { name: user.name ?? 'Student' })}
           </p>
         </div>
         <div className='flex-1 min-h-0'>
@@ -279,10 +281,10 @@ export async function StudentManageContent({
     <section className='flex h-full flex-col rounded-3xl bg-white px-6 py-6'>
       <div className='mb-6'>
         <h1 className='text-2xl font-semibold text-neutral-900'>
-          Kelola Kelas
+          {t('title')}
         </h1>
         <p className='mt-1 text-sm text-muted-foreground'>
-          Halo {user.name ?? 'Mahasiswa'}, kelola kelompok dan tugasmu di sini.
+          {t('subtitle', { name: user.name ?? 'Student' })}
         </p>
       </div>
       <div className='flex-1 min-h-0'>

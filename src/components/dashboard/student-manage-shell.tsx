@@ -2,6 +2,7 @@
 
 import { Search, SortDesc } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { GroupCard } from '@/components/dashboard/group-card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -20,18 +21,21 @@ interface StudentManageShellProps {
   isLoading?: boolean;
 }
 
-const tabKeys = ['kelompok-saya', 'menunggu', 'belum-dikerjakan'] as const;
+const tabKeys = ['my-group', 'waiting', 'not-started'] as const;
 type TabKey = (typeof tabKeys)[number];
 
-function getTabLabel(key: TabKey): string {
-  switch (key) {
-    case 'kelompok-saya':
-      return 'Kelompok Saya';
-    case 'menunggu':
-      return 'Menunggu Pembagian';
-    case 'belum-dikerjakan':
-      return 'Belum Dikerjakan';
-  }
+// Map legacy tab values to new ones for backward compatibility
+const legacyTabMap: Record<string, TabKey> = {
+  'kelompok-saya': 'my-group',
+  menunggu: 'waiting',
+  'belum-dikerjakan': 'not-started',
+};
+
+function normalizeTab(value: string | null): TabKey {
+  if (!value) return 'my-group';
+  if (tabKeys.includes(value as TabKey)) return value as TabKey;
+  if (value in legacyTabMap) return legacyTabMap[value];
+  return 'my-group';
 }
 
 function filterAndSort(
@@ -42,11 +46,11 @@ function filterAndSort(
 ): GroupListItem[] {
   let filtered = items.filter(item => {
     switch (activeTab) {
-      case 'kelompok-saya':
+      case 'my-group':
         return item.status === 'my-group';
-      case 'menunggu':
+      case 'waiting':
         return item.status === 'waiting';
-      case 'belum-dikerjakan':
+      case 'not-started':
         return item.status === 'not-started';
       default:
         return false;
@@ -73,11 +77,12 @@ export function StudentManageShell({
   items,
   isLoading,
 }: StudentManageShellProps) {
+  const t = useTranslations('dashboard.studentManage');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const tab = (searchParams.get('tab') as TabKey) || 'kelompok-saya';
+  const tab = normalizeTab(searchParams.get('tab'));
   const sort = (searchParams.get('sort') as SortKey) || 'name';
   const query = searchParams.get('q') || '';
 
@@ -124,8 +129,10 @@ export function StudentManageShell({
               className='group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 transition-colors flex flex-col items-center gap-1 data-[state=active]:text-blue-600'
             >
               <span className='flex items-center gap-2 group-hover:underline'>
-                {getTabLabel(key)}
-                {key === 'belum-dikerjakan' && notStartedCount > 0 && (
+                {key === 'my-group' && t('tabs.myGroup')}
+                {key === 'waiting' && t('tabs.waiting')}
+                {key === 'not-started' && t('tabs.notStarted')}
+                {key === 'not-started' && notStartedCount > 0 && (
                   <Badge
                     variant='destructive'
                     className='h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]'
@@ -147,11 +154,11 @@ export function StudentManageShell({
                 className='min-w-[180px] rounded-full bg-accent/30 gap-2 !h-11'
               >
                 <SortDesc className='size-4 text-muted-foreground' />
-                <SelectValue placeholder='Urutkan' />
+                <SelectValue placeholder={t('sort.placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='name'>Nama</SelectItem>
-                <SelectItem value='year'>Tahun Akademik</SelectItem>
+                <SelectItem value='name'>{t('sort.name')}</SelectItem>
+                <SelectItem value='year'>{t('sort.year')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -160,7 +167,7 @@ export function StudentManageShell({
               type='search'
               value={query}
               onChange={event => handleSearchChange(event.target.value)}
-              placeholder='Mencari kelas...'
+              placeholder={t('search.placeholder')}
               className='h-11 rounded-full pl-4 pr-11'
             />
             <Search className='absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
@@ -168,9 +175,9 @@ export function StudentManageShell({
         </div>
 
         {tabKeys.map(key => {
-          // Use multi-column grid for "kelompok-saya" tab, single column for others
+          // Use multi-column grid for "my-group" tab, single column for others
           const gridClass =
-            key === 'kelompok-saya'
+            key === 'my-group'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
               : 'grid grid-cols-1 gap-4';
 
@@ -188,7 +195,7 @@ export function StudentManageShell({
               ) : filtered.length === 0 ? (
                 <div className='flex flex-col items-center justify-center h-64 text-center'>
                   <p className='text-muted-foreground'>
-                    Tidak ada kelas ditemukan.
+                    {t('empty.noClasses')}
                   </p>
                 </div>
               ) : (

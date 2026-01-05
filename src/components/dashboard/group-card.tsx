@@ -3,6 +3,7 @@
 import { Calendar } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { GroupListItem } from '@/types/manage';
 
@@ -11,6 +12,8 @@ interface GroupCardProps {
 }
 
 export function GroupCard({ item }: GroupCardProps) {
+  const t = useTranslations('dashboard.studentManage.card');
+  const locale = useLocale();
   const router = useRouter();
 
   const handleClick = () => {
@@ -71,11 +74,11 @@ export function GroupCard({ item }: GroupCardProps) {
             {/* Team Header */}
             <div className='flex items-start justify-between gap-3'>
               <h2 className='font-semibold text-lg text-gray-800'>
-                {item.teamName || 'Tim Anda'}
+                {item.teamName || t('yourTeam')}
               </h2>
               {item.topicName && (
                 <div className='rounded-full bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs'>
-                  Topik: {item.topicName}
+                  {t('topic', { name: item.topicName })}
                 </div>
               )}
             </div>
@@ -104,7 +107,7 @@ export function GroupCard({ item }: GroupCardProps) {
                   )}
                   <div className='flex-1 min-w-0'>
                     <p className='font-medium text-gray-900 truncate'>
-                      {member.user.name || 'No Name'}
+                      {member.user.name || t('noName')}
                     </p>
                   </div>
                 </div>
@@ -120,34 +123,31 @@ export function GroupCard({ item }: GroupCardProps) {
   const getBadgeInfo = () => {
     if (item.status === 'waiting') {
       return {
-        text: 'Menunggu Pembagian',
+        text: t('waitingBadge'),
         color: 'bg-sky-50 text-sky-900',
       };
     }
     return {
-      text: 'Anda belum mengisi kuesioner',
+      text: t('notFilledBadge'),
       color: 'bg-red-50 text-red-900',
     };
   };
 
   const badge = getBadgeInfo();
 
-  // Format date/time
-  const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+  // Format date/time based on locale
+  const dateTimeFormatter = new Intl.DateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-  });
-
-  const dateFormatter = new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
 
-  const formatIdTimeDate = (input: Date | string) => {
+  const formatDateTime = (input: Date | string) => {
     const d = new Date(input);
-    return `${timeFormatter.format(d)}, ${dateFormatter.format(d)}`;
+    return dateTimeFormatter.format(d);
   };
 
   // Extract description text (handle JSON format)
@@ -185,7 +185,7 @@ export function GroupCard({ item }: GroupCardProps) {
         {item.startAt && (
           <span className='inline-flex items-center gap-1'>
             <Calendar className='w-4 h-4' />
-            {formatIdTimeDate(item.startAt)}
+            {formatDateTime(item.startAt)}
           </span>
         )}
       </div>
