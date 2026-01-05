@@ -1,39 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import Sidebar from './sidebar';
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export default function SidebarWrapper() {
-  const [sidebarData, setSidebarData] = useState({
-    user: null,
-    notStartedCount: 0,
-  });
+  const { data: userData } = useSWR('/api/user', fetcher);
+  const { data: countData } = useSWR('/api/student/not-started-count', fetcher);
 
-  useEffect(() => {
-    // Fetch data client-side for non-dashboard pages
-    const fetchSidebarData = async () => {
-      try {
-        const [userResponse, countResponse] = await Promise.all([
-          fetch('/api/user'),
-          fetch('/api/student/not-started-count'),
-        ]);
-
-        const userData = await userResponse.json();
-        const countData = countResponse.ok
-          ? await countResponse.json()
-          : { count: 0 };
-
-        setSidebarData({
-          user: userData.data,
-          notStartedCount: countData.count,
-        });
-      } catch (error) {
-        console.error('Failed to fetch sidebar data:', error);
-      }
-    };
-
-    fetchSidebarData();
-  }, []);
-
-  return <Sidebar {...sidebarData} />;
+  return (
+    <Sidebar
+      user={userData?.data ?? null}
+      notStartedCount={countData?.count ?? 0}
+    />
+  );
 }

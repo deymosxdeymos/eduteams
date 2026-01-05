@@ -14,6 +14,7 @@ import {
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
+import useSWR from 'swr';
 import { ExportButtons } from '@/components/dashboard/export-buttons';
 import { SearchInput } from '@/components/dashboard/search-input';
 import { Button } from '@/components/ui/button';
@@ -95,7 +96,7 @@ export function AssignmentActions({
   const [success, setSuccess] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [weights, setWeights] = useState({
-    personality: 0.3, // Will be updated from API defaults
+    personality: 0.3,
     skills: 0.4,
     taskPreferences: 0.1,
   });
@@ -107,36 +108,38 @@ export function AssignmentActions({
   const isProcessing = Boolean(isTeamFormationProcessing);
   const shouldDisableForm = submitting || isProcessing;
 
-  // Initialize weights from props or fetch from backend
-  useEffect(() => {
-    if (defaultWeights) {
-      // Use provided weights
-      setWeights({
-        skills: defaultWeights.alpha,
-        personality: defaultWeights.beta,
-        taskPreferences: defaultWeights.delta,
-      });
-      return;
-    }
-
-    // Fetch from backend if no props provided
-    async function fetchDefaults() {
-      try {
-        const res = await fetch('/api/edu2com/weights');
-        if (res.ok) {
-          const data = await res.json();
+  // Fetch default weights from backend (skip if provided via props)
+  useSWR(
+    defaultWeights ? null : '/api/edu2com/weights',
+    (url: string) => fetch(url).then(res => res.json()),
+    {
+      onSuccess: data => {
+        if (!weightsModified) {
           setWeights({
             skills: data.alpha,
             personality: data.beta,
             taskPreferences: data.delta,
           });
         }
-      } catch (error) {
-        console.error('Failed to fetch default weights:', error);
-      }
+      },
     }
-    fetchDefaults();
-  }, [defaultWeights]);
+  );
+
+  // Sync weights when defaultWeights prop changes
+  if (defaultWeights && !weightsModified) {
+    const propsWeights = {
+      skills: defaultWeights.alpha,
+      personality: defaultWeights.beta,
+      taskPreferences: defaultWeights.delta,
+    };
+    if (
+      weights.skills !== propsWeights.skills ||
+      weights.personality !== propsWeights.personality ||
+      weights.taskPreferences !== propsWeights.taskPreferences
+    ) {
+      setWeights(propsWeights);
+    }
+  }
 
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !shouldDisableForm

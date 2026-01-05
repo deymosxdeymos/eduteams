@@ -1,0 +1,7 @@
+`try { $body } catch ($err) { throw $err }` where {
+    register_diagnostic(
+        span = $body,
+        message = "Unnecessary try-catch that just rethrows. Remove the try-catch block.",
+        severity = "warn"
+    )
+}
