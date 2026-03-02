@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "target": "ESNext",
     "lib": ["ESNext", "dom", "dom.iterable"],
     "allowJs": true,
@@ -25,9 +24,10 @@
     "paths": {
       "@/*": ["./src/*"],
       "@tests/*": ["./__tests__/*"],
-      "better-call": ["types/stubs/better-call.d.ts"],
-      "nanostores/map-creator": ["types/stubs/nanostores-map-creator.d.ts"],
-      "zod/v4/core": ["types/stubs/zod-v4-core.d.ts"]
+      "__tests__/*": ["./__tests__/*"],
+      "better-call": ["./types/stubs/better-call.d.ts"],
+      "nanostores/map-creator": ["./types/stubs/nanostores-map-creator.d.ts"],
+      "zod/v4/core": ["./types/stubs/zod-v4-core.d.ts"]
     }
   },
   "include": [

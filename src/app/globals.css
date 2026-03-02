@@ -48,6 +48,7 @@
   --shadow-glow: 0 0 20px oklch(0.646 0.222 264.376 / 0.5);
   --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -238,6 +239,7 @@ body {
     animation-fill-mode: both;
     will-change: transform, opacity, filter;
   }
+
   .scroll-top-button {
     height: 40px;
     width: 40px;
@@ -259,14 +261,23 @@ body {
   }
 
   .scroll-top-button svg {
-    transition: transform 220ms ease-in-out;
+    transition: transform 200ms ease;
   }
 
-  .scroll-top-button:hover svg:first-child {
-    transform: translateY(-100%);
+  @media (hover: hover) and (pointer: fine) {
+    .scroll-top-button:hover svg:first-child {
+      transform: translateY(-100%);
+    }
+
+    .scroll-top-button:hover svg:nth-child(2) {
+      transform: translateY(calc(-50% - 1px));
+    }
   }
 
-  .scroll-top-button:hover svg:nth-child(2) {
-    transform: translateY(calc(-50% - 1px));
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-top-button svg {
+      transition: none;
+    }
   }
 }
+

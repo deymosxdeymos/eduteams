@@ -14,7 +14,7 @@ import {
   generateRandomSkills,
   generateScoresForMBTI,
   getMBTIType,
-} from '__tests__/helpers/dev-data-generators';
+} from '../__tests__/helpers/dev-data-generators';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 

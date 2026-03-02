@@ -1,7 +1,13 @@
 'use client';
 
-import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
-import { useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+import {
+  AnimatePresence,
+  MotionConfig,
+  motion,
+  useReducedMotion,
+} from 'framer-motion';
+import { useMemo, useState } from 'react';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CHART_DIMENSIONS, getMBTIColorScheme } from '@/lib/utils/mbti-colors';
@@ -12,7 +18,14 @@ import {
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import { ChartTypeTabs } from './chart-type-tabs';
 import { MetricBar } from './metric-bar';
-import { PersonalityRadarChart } from './personality-radar-chart';
+
+const PersonalityRadarChart = dynamic(
+  () =>
+    import('./personality-radar-chart').then(mod => ({
+      default: mod.PersonalityRadarChart,
+    })),
+  { ssr: false }
+);
 
 type ChartType = 'bar' | 'radar';
 
@@ -23,16 +36,30 @@ interface PersonalityMetricsProps {
 export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
   const mbtiType = getMBTIType(user);
   const colorScheme = getMBTIColorScheme(mbtiType);
-  const [chartType, setChartType] = useState<ChartType>('bar');
+  const shouldReduceMotion = useReducedMotion();
+  const [{ chartType, direction }, setChartState] = useState<{
+    chartType: ChartType;
+    direction: number;
+  }>({
+    chartType: 'bar',
+    direction: 1,
+  });
 
-  const prevChartTypeRef = useRef<ChartType>(chartType);
-  const directionRef = useRef<number>(1);
+  const handleChartTypeChange = (nextChartType: ChartType) => {
+    setChartState(currentState => {
+      if (currentState.chartType === nextChartType) {
+        return currentState;
+      }
 
-  if (prevChartTypeRef.current !== chartType) {
-    directionRef.current =
-      prevChartTypeRef.current === 'bar' && chartType === 'radar' ? 1 : -1;
-    prevChartTypeRef.current = chartType;
-  }
+      return {
+        chartType: nextChartType,
+        direction:
+          currentState.chartType === 'bar' && nextChartType === 'radar'
+            ? 1
+            : -1,
+      };
+    });
+  };
 
   const { dimensionMetrics, radarData } = useMemo(() => {
     const metrics = computeAllDimensionMetrics(user);
@@ -47,12 +74,6 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
       radarData: buildRadarData(byKey),
     };
   }, [user]);
-
-  const mediaQueryList =
-    typeof window === 'undefined'
-      ? undefined
-      : window.matchMedia('(prefers-reduced-motion: reduce)');
-  const shouldReduceMotion = mediaQueryList?.matches ?? false;
 
   const chartVariants = {
     initial: (custom: number) => ({
@@ -73,7 +94,7 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
     <div className='flex flex-1 flex-col gap-4'>
       <ChartTypeTabs
         value={chartType}
-        onChange={setChartType}
+        onChange={handleChartTypeChange}
         colorScheme={colorScheme}
         options={[
           { value: 'bar', label: 'Bar Chart' },
@@ -101,7 +122,7 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
           <AnimatePresence
             mode='wait'
             initial={false}
-            custom={directionRef.current}
+            custom={direction}
           >
             {chartType === 'bar' && (
               <motion.div
@@ -110,7 +131,7 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
                 initial='initial'
                 animate='animate'
                 exit='exit'
-                custom={directionRef.current}
+                custom={direction}
               >
                 <div className='space-y-6'>
                   {dimensionMetrics.map(dimension => (
@@ -134,7 +155,7 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
                 initial='initial'
                 animate='animate'
                 exit='exit'
-                custom={directionRef.current}
+                custom={direction}
                 className='flex items-center justify-center'
               >
                 <PersonalityRadarChart

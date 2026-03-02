@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
+import { getSidebarDataForUser } from '@/lib/dashboard/sidebar-data';
 import type { ExtendedUser } from '@/lib/types';
 import Nav from './nav';
-import SidebarWrapper from './sidebar-wrapper';
+import Sidebar from './sidebar';
 
 interface ManageAssignmentsLayoutProps {
   user: ExtendedUser;
@@ -21,6 +22,7 @@ export async function ManageAssignmentsLayout({
   course,
   children,
 }: ManageAssignmentsLayoutProps) {
+  const sidebarData = await getSidebarDataForUser(user);
   const courseForNav = {
     ...course,
     dosenId: user.id,
@@ -36,7 +38,10 @@ export async function ManageAssignmentsLayout({
         <Nav user={user} className={courseForNav} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <SidebarWrapper />
+        <Sidebar
+          user={sidebarData.user}
+          notStartedCount={sidebarData.notStartedCount}
+        />
         <div className='px-8 pb-0 pr-0 min-h-0'>{children}</div>
       </div>
     </main>

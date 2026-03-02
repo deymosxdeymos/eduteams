@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import useSWR from 'swr';
 import type { TeamFormationStatus } from '@/generated/prisma/client';
 
 interface UseTeamFormationStatusOptions {
@@ -20,6 +21,11 @@ interface TeamFormationStatusResult {
   reset: () => void;
 }
 
+interface TeamFormationStatusResponse {
+  status: TeamFormationStatus | null;
+  errorMessage: string | null;
+}
+
 export function useTeamFormationStatus({
   assignmentId,
   enabled,
@@ -28,19 +34,42 @@ export function useTeamFormationStatus({
   onFailed,
   pollInterval = 3000,
 }: UseTeamFormationStatusOptions): TeamFormationStatusResult {
-  const [status, setStatus] = useState<TeamFormationStatus | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
-  const previousStatusRef = useRef<TeamFormationStatus | null>(null);
+  const key = enabled
+    ? `/api/assignments/${assignmentId}/form-teams/status`
+    : null;
   const onCompleteRef = useRef(onComplete);
   const onFailedRef = useRef(onFailed);
+  const enabledRef = useRef(enabled);
+  const previousShouldPollRef = useRef(shouldPoll);
   const shouldPollRef = useRef(shouldPoll);
-  const reset = useCallback(() => {
-    previousStatusRef.current = null;
-    setStatus(null);
-    setErrorMessage(null);
-    setIsPolling(false);
-  }, []);
+  const hasStartedNetworkRequestRef = useRef<{
+    assignmentId: string;
+    hasStarted: boolean;
+  }>({
+    assignmentId,
+    hasStarted: false,
+  });
+  const hasFreshStatusRef = useRef<{
+    assignmentId: string;
+    hasFreshStatus: boolean;
+  }>({
+    assignmentId,
+    hasFreshStatus: false,
+  });
+  const lastHandledTerminalStatusRef = useRef<{
+    assignmentId: string;
+    status: TeamFormationStatus | null;
+  }>({
+    assignmentId,
+    status: null,
+  });
+  const previousStatusRef = useRef<{
+    assignmentId: string;
+    status: TeamFormationStatus | null;
+  }>({
+    assignmentId,
+    status: null,
+  });
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -51,92 +80,220 @@ export function useTeamFormationStatus({
   }, [onFailed]);
 
   useEffect(() => {
-    reset();
-  }, [assignmentId, reset]);
+    enabledRef.current = enabled;
+  }, [enabled]);
 
   useEffect(() => {
-    const wasPolling = shouldPollRef.current;
     shouldPollRef.current = shouldPoll;
+  }, [shouldPoll]);
 
-    if (shouldPoll && !wasPolling) {
-      reset();
-    }
-  }, [shouldPoll, reset]);
+  const fetcher = useCallback(
+    async (url: string): Promise<TeamFormationStatusResponse> => {
+      hasStartedNetworkRequestRef.current = {
+        assignmentId,
+        hasStarted: true,
+      };
 
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await fetch(
-        `/api/assignments/${assignmentId}/form-teams/status`,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       if (!res.ok) {
-        console.error('Failed to fetch team formation status:', res.status);
-        return;
+        throw new Error(`Failed to fetch team formation status: ${res.status}`);
       }
 
-      const data = await res.json();
-      setStatus(data.status);
-      setErrorMessage(data.errorMessage);
+      return res.json();
+    },
+    [assignmentId]
+  );
 
-      const previousStatus = previousStatusRef.current;
-      previousStatusRef.current = data.status;
+  const { data, mutate } = useSWR<TeamFormationStatusResponse>(key, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: pollInterval,
+    refreshInterval: currentData => {
+      if (!enabled || !shouldPoll) {
+        return 0;
+      }
 
-      // Trigger callbacks only on meaningful transitions
+      const currentStatus = currentData?.status ?? null;
+      const shouldContinuePolling =
+        currentStatus === null ||
+        currentStatus === 'PENDING' ||
+        currentStatus === 'PROCESSING';
+
+      return shouldContinuePolling ? pollInterval : 0;
+    },
+    onSuccess: nextData => {
+      const nextStatus = nextData.status ?? null;
+      const currentAssignmentId = assignmentId;
+      const previousStatus =
+        previousStatusRef.current.assignmentId === currentAssignmentId
+          ? previousStatusRef.current.status
+          : null;
+      const lastHandledTerminalStatus =
+        lastHandledTerminalStatusRef.current.assignmentId === currentAssignmentId
+          ? lastHandledTerminalStatusRef.current.status
+          : null;
+      const hasStartedNetworkRequest =
+        hasStartedNetworkRequestRef.current.assignmentId === currentAssignmentId
+          ? hasStartedNetworkRequestRef.current.hasStarted
+          : false;
+
       const wasInProgress =
         previousStatus === 'PENDING' ||
         previousStatus === 'PROCESSING' ||
-        (previousStatus === null && shouldPollRef.current);
+        (previousStatus === null &&
+          enabledRef.current &&
+          shouldPollRef.current &&
+          hasStartedNetworkRequest);
 
-      if (data.status === 'COMPLETED' && wasInProgress) {
-        onCompleteRef.current?.();
-      } else if (data.status === 'FAILED') {
-        onFailedRef.current?.(data.errorMessage);
+      if (hasStartedNetworkRequest) {
+        hasFreshStatusRef.current = {
+          assignmentId: currentAssignmentId,
+          hasFreshStatus: true,
+        };
       }
-    } catch (error) {
-      console.error('Error fetching team formation status:', error);
-    }
-  }, [assignmentId]);
+
+      if (
+        nextStatus === 'COMPLETED' &&
+        wasInProgress &&
+        lastHandledTerminalStatus !== 'COMPLETED'
+      ) {
+        onCompleteRef.current?.();
+        lastHandledTerminalStatusRef.current = {
+          assignmentId: currentAssignmentId,
+          status: 'COMPLETED',
+        };
+      } else if (
+        nextStatus === 'FAILED' &&
+        wasInProgress &&
+        lastHandledTerminalStatus !== 'FAILED'
+      ) {
+        onFailedRef.current?.(nextData.errorMessage ?? null);
+        lastHandledTerminalStatusRef.current = {
+          assignmentId: currentAssignmentId,
+          status: 'FAILED',
+        };
+      } else if (
+        nextStatus === null ||
+        nextStatus === 'PENDING' ||
+        nextStatus === 'PROCESSING'
+      ) {
+        lastHandledTerminalStatusRef.current = {
+          assignmentId: currentAssignmentId,
+          status: null,
+        };
+      }
+
+      previousStatusRef.current = {
+        assignmentId: currentAssignmentId,
+        status: nextStatus,
+      };
+    },
+  });
+
+  const status = enabled ? data?.status ?? null : null;
+  const errorMessage = enabled ? data?.errorMessage ?? null : null;
+  const isPolling =
+    enabled &&
+    shouldPoll &&
+    (status === null || status === 'PENDING' || status === 'PROCESSING');
 
   useEffect(() => {
     if (!enabled) {
-      setIsPolling(false);
-      return;
+      previousStatusRef.current = { assignmentId, status: null };
+      hasStartedNetworkRequestRef.current = {
+        assignmentId,
+        hasStarted: false,
+      };
+      hasFreshStatusRef.current = { assignmentId, hasFreshStatus: false };
+      lastHandledTerminalStatusRef.current = { assignmentId, status: null };
     }
-
-    fetchStatus();
-  }, [enabled, fetchStatus]);
+  }, [assignmentId, enabled]);
 
   useEffect(() => {
-    if (!enabled || !shouldPoll) {
-      setIsPolling(false);
+    const hasFreshStatusForAssignment =
+      hasFreshStatusRef.current.assignmentId === assignmentId &&
+      hasFreshStatusRef.current.hasFreshStatus;
+    const hasCachedTerminalStatus =
+      status === 'COMPLETED' || status === 'FAILED';
+
+    if (
+      !enabled ||
+      !shouldPoll ||
+      !hasCachedTerminalStatus ||
+      hasFreshStatusForAssignment
+    ) {
       return;
     }
 
-    const shouldContinuePolling =
-      status === 'PENDING' || status === 'PROCESSING' || status === null;
-
-    if (!shouldContinuePolling) {
-      setIsPolling(false);
-      return;
-    }
-
-    setIsPolling(true);
-    const interval = setInterval(fetchStatus, pollInterval);
-    return () => {
-      clearInterval(interval);
-      setIsPolling(false);
+    previousStatusRef.current = { assignmentId, status: null };
+    hasStartedNetworkRequestRef.current = {
+      assignmentId,
+      hasStarted: false,
     };
-  }, [enabled, shouldPoll, status, pollInterval, fetchStatus]);
+    lastHandledTerminalStatusRef.current = { assignmentId, status: null };
+    void mutate(
+      {
+        status: null,
+        errorMessage: null,
+      },
+      { revalidate: true }
+    );
+  }, [assignmentId, enabled, mutate, shouldPoll, status]);
+
+  useEffect(() => {
+    const wasPolling = previousShouldPollRef.current;
+    previousShouldPollRef.current = shouldPoll;
+
+    if (!enabled || !shouldPoll || wasPolling) {
+      return;
+    }
+
+    previousStatusRef.current = { assignmentId, status: null };
+    hasStartedNetworkRequestRef.current = {
+      assignmentId,
+      hasStarted: false,
+    };
+    hasFreshStatusRef.current = { assignmentId, hasFreshStatus: false };
+    lastHandledTerminalStatusRef.current = { assignmentId, status: null };
+    void mutate(
+      {
+        status: null,
+        errorMessage: null,
+      },
+      { revalidate: true }
+    );
+  }, [assignmentId, enabled, mutate, shouldPoll]);
+
+  const refetch = useCallback(async () => {
+    await mutate();
+  }, [mutate]);
+
+  const reset = useCallback(() => {
+    previousStatusRef.current = { assignmentId, status: null };
+    hasStartedNetworkRequestRef.current = {
+      assignmentId,
+      hasStarted: false,
+    };
+    hasFreshStatusRef.current = { assignmentId, hasFreshStatus: false };
+    lastHandledTerminalStatusRef.current = { assignmentId, status: null };
+    void mutate(
+      {
+        status: null,
+        errorMessage: null,
+      },
+      { revalidate: false }
+    );
+  }, [assignmentId, mutate]);
 
   return {
     status,
     errorMessage,
     isPolling,
-    refetch: fetchStatus,
+    refetch,
     reset,
   };
 }

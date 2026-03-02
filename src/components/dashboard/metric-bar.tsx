@@ -53,11 +53,11 @@ export function MetricBar({
         >
           <div
             className={cn(
-              'h-full border-[1px] border-white transition-all rounded-full',
+              'h-full w-full border-[1px] border-white rounded-full transition-transform duration-200 ease-[cubic-bezier(0.455,0.03,0.515,0.955)]',
               colorScheme.primaryBg,
-              isRightAligned && 'ml-auto'
+              isRightAligned ? 'origin-right' : 'origin-left'
             )}
-            style={{ width: `${validPercentage}%` }}
+            style={{ transform: `scaleX(${validPercentage / 100})` }}
           />
         </div>
         <span

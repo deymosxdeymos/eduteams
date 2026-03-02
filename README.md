@@ -35,9 +35,9 @@ bun test --coverage                 # With coverage report
 bun test --test-name-pattern "xyz"  # Run specific tests
 
 # Code Quality
-bun run lint                        # Lint code
-bun run format                      # Format with Biome
-bun run type-check                  # Type checking
+bun run lint                        # Lint with ESLint
+bun run format                      # Apply ESLint autofixes
+bun run tsgo                        # Type checking
 
 # Database
 bun prisma migrate dev              # Run migrations
@@ -49,6 +49,11 @@ bun run db:reset                    # Reset & re-seed
 bun run assets:normalize-mbti       # Normalize MBTI SVG assets
 bun run i18n:validate               # Validate translations
 ```
+
+`tsgo` is the default type checker for this repo. The CSS module declaration in [types/css.d.ts](/home/deymos/Documents/eduteams/types/css.d.ts) is intentional and currently needed for Next global CSS imports.
+
+ESLint with `eslint-config-next` is the single lint tool for this repo.
+The old Playwright/e2e stack has been removed.
 
 ## Stack & Features
 
@@ -82,9 +87,9 @@ CRON_SECRET="your-cron-secret"
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Test & lint: `bun test` && `bun run lint`
-4. Commit: `git commit -m 'Add amazing feature'`
+2. Create a feature branch or change with `jj`
+3. Test, type-check, and lint: `bun test` && `bun run tsgo` && `bun run lint`
+4. Commit with `jj`
 5. Push & open a PR
 
 ## Deployment

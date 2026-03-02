@@ -21,14 +21,12 @@ export default async function ResumePage({
     return <SessionClearClient />;
   }
 
-  let userOnboarded = user.isOnboarded;
   const markUserOnboarded = async () => {
-    if (userOnboarded) return;
+    if (user.isOnboarded) return;
     await prisma.user.update({
       where: { id: user.id },
       data: { isOnboarded: true },
     });
-    userOnboarded = true;
   };
 
   if (user.isOnboarded) {

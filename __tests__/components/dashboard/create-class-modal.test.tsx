@@ -336,7 +336,7 @@ describe('CreateClassModal', () => {
 
   describe('Component integration', () => {
     it('should render with onClassCreated callback prop', () => {
-      const mockCallback = mock((course: Course) => {});
+      const mockCallback = mock((_course: Course) => {});
       const { container } = render(<CreateClassModal onClassCreated={mockCallback} />);
       expect(container).toBeTruthy();
     });

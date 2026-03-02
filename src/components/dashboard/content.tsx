@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { DosenCourseSummary } from '@/lib/dashboard/courses';
 import type { DashboardStatistics } from '@/lib/dashboard/statistics-types';
 import { ClassGrid, type ClassSummary } from './class-grid';
@@ -71,12 +71,23 @@ function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
 
 export default function Content({ statistics, courses }: ContentProps) {
   const router = useRouter();
-  const [courseList, setCourseList] = useState<DosenCourseSummary[]>(courses);
+  const [optimisticCourses, setOptimisticCourses] = useState<
+    DosenCourseSummary[]
+  >([]);
   const [searchValue, setSearchValue] = useState('');
 
-  useEffect(() => {
-    setCourseList(courses);
-  }, [courses]);
+  const courseList = useMemo(() => {
+    if (optimisticCourses.length === 0) {
+      return courses;
+    }
+
+    const serverCourseIds = new Set(courses.map(course => course.id));
+    const pendingOptimisticCourses = optimisticCourses.filter(
+      course => !serverCourseIds.has(course.id)
+    );
+
+    return [...pendingOptimisticCourses, ...courses];
+  }, [courses, optimisticCourses]);
 
   const classes: ClassSummary[] = useMemo(
     () =>
@@ -108,16 +119,9 @@ export default function Content({ statistics, courses }: ContentProps) {
       if (course) {
         const normalized = normalizeCourseSummary(course);
         if (normalized) {
-          setCourseList(prev => {
-            const existingIndex = prev.findIndex(
-              item => item.id === normalized.id
-            );
-            if (existingIndex !== -1) {
-              const next = [...prev];
-              next[existingIndex] = normalized;
-              return next;
-            }
-            return [normalized, ...prev];
+          setOptimisticCourses(prev => {
+            const next = prev.filter(item => item.id !== normalized.id);
+            return [normalized, ...next];
           });
         }
       }
@@ -133,7 +137,7 @@ export default function Content({ statistics, courses }: ContentProps) {
     <div className='h-full flex flex-col gap-4'>
       <StatisticsCards statistics={statistics} />
       <div className='bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden'>
-        {hasClasses && (
+        {hasClasses ? (
           <div className='p-6 pb-0'>
             <SearchInput
               onClassCreated={handleClassCreated}
@@ -141,7 +145,7 @@ export default function Content({ statistics, courses }: ContentProps) {
               onSearchChange={setSearchValue}
             />
           </div>
-        )}
+        ) : null}
         <div className='flex-1 px-6 min-h-0 overflow-hidden'>
           {hasClasses ? (
             <ClassGrid

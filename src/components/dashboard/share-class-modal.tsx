@@ -79,7 +79,7 @@ export function ShareClassModal({
               <InputRounded
                 value={shareUrl}
                 readOnly
-                className={`flex-1 transition-all duration-200 ${
+                className={`flex-1 transition-[background-color,border-color,transform] duration-200 ${
                   copiedUrl
                     ? 'bg-green-50 border-green-300 scale-[1.02]'
                     : 'bg-gray-50 border-gray-200 scale-100'
@@ -98,7 +98,7 @@ export function ShareClassModal({
               >
                 <div className='relative w-4 h-4'>
                   <Copy
-                    className={`absolute inset-0 transition-all duration-200 ${
+                    className={`absolute inset-0 transition-[opacity,transform,filter] duration-200 ${
                       copiedUrl
                         ? 'scale-50 opacity-0 blur-sm'
                         : 'scale-100 opacity-100 blur-0'
@@ -109,7 +109,7 @@ export function ShareClassModal({
                     }}
                   />
                   <Check
-                    className={`absolute inset-0  transition-all duration-200 ${
+                    className={`absolute inset-0 transition-[opacity,transform,filter] duration-200 ${
                       copiedUrl
                         ? 'scale-100 opacity-100 blur-0'
                         : 'scale-50 opacity-0 blur-sm'
@@ -130,7 +130,7 @@ export function ShareClassModal({
               <InputRounded
                 value={shareToken || ''}
                 readOnly
-                className={`flex-1 transition-all duration-200 ${
+                className={`flex-1 transition-[background-color,border-color,transform] duration-200 ${
                   copiedToken
                     ? 'bg-green-50 border-green-300 scale-[1.02]'
                     : 'bg-gray-50 border-gray-200 scale-100'
@@ -149,7 +149,7 @@ export function ShareClassModal({
               >
                 <div className='relative w-4 h-4'>
                   <Copy
-                    className={`absolute inset-0 transition-all duration-200 ${
+                    className={`absolute inset-0 transition-[opacity,transform,filter] duration-200 ${
                       copiedToken
                         ? 'scale-50 opacity-0 blur-sm'
                         : 'scale-100 opacity-100 blur-0'
@@ -160,7 +160,7 @@ export function ShareClassModal({
                     }}
                   />
                   <Check
-                    className={`absolute inset-0 transition-all duration-200 ${
+                    className={`absolute inset-0 transition-[opacity,transform,filter] duration-200 ${
                       copiedToken
                         ? 'scale-100 opacity-100 blur-0'
                         : 'scale-50 opacity-0 blur-sm'

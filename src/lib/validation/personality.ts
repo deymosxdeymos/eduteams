@@ -41,7 +41,7 @@ export const PersonalityScoresSchema = z
   })
   .strict();
 
-const PartialPersonalityScoresSchema = z
+const _PartialPersonalityScoresSchema = z
   .object({
     ei: PersonalityScoreSchema.optional(),
     sn: PersonalityScoreSchema.optional(),
@@ -89,7 +89,7 @@ const PersonalityDataSchema = z
     return Object.keys(data).length > 0;
   }, 'PersonalityData must contain at least one field (answers, scores, or metadata)');
 
-const CompletePersonalityDataSchema = z
+const _CompletePersonalityDataSchema = z
   .object({
     answers: AnswerRecordSchema,
     scores: PersonalityScoresSchema,
@@ -200,7 +200,7 @@ const TeamSizeSchema = z
   .min(1, 'Team size must be at least 1')
   .max(100, 'Team size must not exceed 100');
 
-const PersonSkillCreateSchema = z
+const _PersonSkillCreateSchema = z
   .object({
     personId: z.string().uuid('Person ID must be a valid UUID'),
     skillId: z.string().uuid('Skill ID must be a valid UUID'),
@@ -208,7 +208,7 @@ const PersonSkillCreateSchema = z
   })
   .strict();
 
-const PersonPreferenceCreateSchema = z
+const _PersonPreferenceCreateSchema = z
   .object({
     personId: z.string().uuid('Person ID must be a valid UUID'),
     preferredPersonId: z
@@ -221,7 +221,7 @@ const PersonPreferenceCreateSchema = z
     return data.personId !== data.preferredPersonId;
   }, 'A person cannot have a preference for themselves');
 
-const TaskPreferenceCreateSchema = z
+const _TaskPreferenceCreateSchema = z
   .object({
     taskId: z.string().uuid('Task ID must be a valid UUID'),
     personId: z.string().uuid('Person ID must be a valid UUID'),
@@ -229,7 +229,7 @@ const TaskPreferenceCreateSchema = z
   })
   .strict();
 
-const SkillSimilarityCreateSchema = z
+const _SkillSimilarityCreateSchema = z
   .object({
     sourceId: z.string().uuid('Source skill ID must be a valid UUID'),
     targetId: z.string().uuid('Target skill ID must be a valid UUID'),
@@ -240,7 +240,7 @@ const SkillSimilarityCreateSchema = z
     return data.sourceId !== data.targetId;
   }, 'A skill cannot have similarity with itself');
 
-const TaskSkillCreateSchema = z
+const _TaskSkillCreateSchema = z
   .object({
     taskId: z.string().uuid('Task ID must be a valid UUID'),
     skillId: z.string().uuid('Skill ID must be a valid UUID'),
@@ -249,7 +249,7 @@ const TaskSkillCreateSchema = z
   })
   .strict();
 
-const TeamFormationRequestCreateSchema = z
+const _TeamFormationRequestCreateSchema = z
   .object({
     ownerId: z.string().uuid('Owner ID must be a valid UUID'),
     alpha: AlphaSchema.optional(),
@@ -262,7 +262,7 @@ const TeamFormationRequestCreateSchema = z
   })
   .strict();
 
-const TeamCreateSchema = z
+const _TeamCreateSchema = z
   .object({
     teamFormationRequestId: z
       .string()
@@ -273,7 +273,7 @@ const TeamCreateSchema = z
   })
   .strict();
 
-const TaskCreateSchema = z
+const _TaskCreateSchema = z
   .object({
     name: z.string().min(1, 'Task name must not be empty'),
     description: z.string().optional(),
@@ -282,20 +282,24 @@ const TaskCreateSchema = z
   .strict();
 
 type _PersonalityScores = z.infer<typeof PersonalityScoresSchema>;
-type _PartialPersonalityScores = z.infer<typeof PartialPersonalityScoresSchema>;
+type _PartialPersonalityScores = z.infer<
+  typeof _PartialPersonalityScoresSchema
+>;
 export type MBTIType = z.infer<typeof MBTITypeSchema>;
 type _AnswerRecord = z.infer<typeof AnswerRecordSchema>;
 type _PersonalityMetadata = z.infer<typeof PersonalityMetadataSchema>;
 type _PersonalityData = z.infer<typeof PersonalityDataSchema>;
-type _CompletePersonalityData = z.infer<typeof CompletePersonalityDataSchema>;
-type _UserPersonalityUpdate = z.infer<typeof UserPersonalityUpdateSchema>;
-type _PersonSkillCreate = z.infer<typeof PersonSkillCreateSchema>;
-type _PersonPreferenceCreate = z.infer<typeof PersonPreferenceCreateSchema>;
-type _TaskPreferenceCreate = z.infer<typeof TaskPreferenceCreateSchema>;
-type _SkillSimilarityCreate = z.infer<typeof SkillSimilarityCreateSchema>;
-type _TaskSkillCreate = z.infer<typeof TaskSkillCreateSchema>;
-type _TeamFormationRequestCreate = z.infer<
-  typeof TeamFormationRequestCreateSchema
+type _CompletePersonalityData = z.infer<
+  typeof _CompletePersonalityDataSchema
 >;
-type _TeamCreate = z.infer<typeof TeamCreateSchema>;
-type _TaskCreate = z.infer<typeof TaskCreateSchema>;
+type _UserPersonalityUpdate = z.infer<typeof UserPersonalityUpdateSchema>;
+type _PersonSkillCreate = z.infer<typeof _PersonSkillCreateSchema>;
+type _PersonPreferenceCreate = z.infer<typeof _PersonPreferenceCreateSchema>;
+type _TaskPreferenceCreate = z.infer<typeof _TaskPreferenceCreateSchema>;
+type _SkillSimilarityCreate = z.infer<typeof _SkillSimilarityCreateSchema>;
+type _TaskSkillCreate = z.infer<typeof _TaskSkillCreateSchema>;
+type _TeamFormationRequestCreate = z.infer<
+  typeof _TeamFormationRequestCreateSchema
+>;
+type _TeamCreate = z.infer<typeof _TeamCreateSchema>;
+type _TaskCreate = z.infer<typeof _TaskCreateSchema>;

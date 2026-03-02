@@ -3,7 +3,6 @@ const GREY_ENABLED = process.env.GREY === '1';
 
 declare global {
   // Exposed for test helpers when GREY is enabled
-  // eslint-disable-next-line no-var
   var __TEST_SCHEMA__: string;
 }
 
@@ -17,6 +16,7 @@ import '@testing-library/jest-dom';
 import { afterEach, mock } from 'bun:test';
 import React from 'react';
 import { cleanup } from '@testing-library/react';
+import messagesEn from '../messages/en.json';
 
 // Automatically cleanup React trees after each test
 afterEach(() => {
@@ -63,14 +63,7 @@ mock.module('@/app/actions/set-locale', () => ({
 // Mock next-intl
 mock.module('next-intl', () => {
   // Load actual translation messages for testing
-  let messages: Record<string, any> = {};
-  try {
-    // Import en.json directly for consistent test behavior
-    messages = require('../messages/en.json');
-  } catch {
-    // Fallback if messages can't be loaded
-    messages = {};
-  }
+  const messages: Record<string, any> = messagesEn;
 
   const getNestedValue = (obj: any, path: string): string => {
     const keys = path.split('.');
@@ -112,13 +105,16 @@ mock.module('framer-motion', () => {
     'layout',
     'layoutId',
   ]);
-  const createComponent = (tag: string) =>
-    ({ children, ...props }: any) => {
+  const createComponent = (tag: string) => {
+    const MotionComponent = ({ children, ...props }: any) => {
       const cleanProps = Object.fromEntries(
         Object.entries(props).filter(([key]) => !omitKeys.has(key))
       );
       return React.createElement(tag, cleanProps, children);
     };
+    MotionComponent.displayName = `MockMotion(${tag})`;
+    return MotionComponent;
+  };
 
   return {
     AnimatePresence: ({ children }: any) =>

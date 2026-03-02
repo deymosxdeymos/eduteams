@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 interface WelcomeSplashProps {
@@ -15,15 +15,11 @@ const BACKDROP_EASE: [number, number, number, number] = [
 const HEADING_EASE: [number, number, number, number] = [0.215, 0.61, 0.355, 1]; // ease-out-cubic
 
 export function WelcomeSplash({ onAnimationComplete }: WelcomeSplashProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
-
     if (prefersReducedMotion) {
-      setIsVisible(false);
       onAnimationComplete?.();
       return;
     }
@@ -40,7 +36,11 @@ export function WelcomeSplash({ onAnimationComplete }: WelcomeSplashProps) {
       window.clearTimeout(hideTimer);
       window.clearTimeout(completeTimer);
     };
-  }, [onAnimationComplete]);
+  }, [onAnimationComplete, prefersReducedMotion]);
+
+  if (prefersReducedMotion) {
+    return null;
+  }
 
   return (
     <motion.div

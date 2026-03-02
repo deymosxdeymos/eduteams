@@ -6,7 +6,6 @@ import type { StudentData } from '@/types/course';
 interface ClassAssignmentsAsyncProps {
   courseId: string;
   classId: string;
-  dosenId: string;
   user: ExtendedUser;
   course: Course;
   studentsData: StudentData[];
@@ -15,7 +14,6 @@ interface ClassAssignmentsAsyncProps {
 export async function ClassAssignmentsAsync({
   courseId,
   classId,
-  dosenId,
   user,
   course,
   studentsData,
@@ -28,7 +26,6 @@ export async function ClassAssignmentsAsync({
   return (
     <ClassPageLayout
       classId={classId}
-      dosenId={dosenId}
       user={user}
       course={course}
       initialAssignments={initialAssignments}

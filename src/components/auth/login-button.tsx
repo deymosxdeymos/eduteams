@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { TextMorph } from 'torph/react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
@@ -55,7 +56,14 @@ export function LoginButton({ className }: LoginButtonProps) {
           />
         )}
       </div>
-      {t('signInWithGoogle')}
+      <TextMorph
+        as='span'
+        duration={260}
+        ease='cubic-bezier(0.23, 1, 0.32, 1)'
+        className='inline-block'
+      >
+        {isLoading ? t('signingIn') : t('signInWithGoogle')}
+      </TextMorph>
     </Button>
   );
 }

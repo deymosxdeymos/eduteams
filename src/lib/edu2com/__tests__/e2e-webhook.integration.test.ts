@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { afterAll, beforeAll, describe, it } from 'bun:test';
 
 /**
@@ -137,9 +138,7 @@ function _computeWebhookUrl(requestId: string): string {
   const secret = process.env.EDU2COM_WEBHOOK_SECRET || '';
 
   // Compute HMAC token
-  const crypto = require('node:crypto');
-  const token = crypto
-    .createHmac('sha256', secret)
+  const token = createHmac('sha256', secret)
     .update(requestId)
     .digest('hex');
 

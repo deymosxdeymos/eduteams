@@ -9,7 +9,7 @@ export async function createTestUser(overrides: Partial<User> = {}): Promise<Use
   const timestamp = new Date();
   const uniqueSuffix = createId();
 
-  const { onboardingData, ...safeOverrides } = overrides;
+  const { onboardingData: _onboardingData, ...safeOverrides } = overrides;
 
   return await prisma.user.create({
     data: {

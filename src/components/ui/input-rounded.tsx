@@ -187,36 +187,46 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
 
         const animationTarget =
           animationTargetRef?.current ?? getAnimationTarget(element);
+        let scheduledUpdate: ReturnType<typeof setTimeout> | null = null;
 
         if (invalid && !prevInvalid) {
-          runErrorAnimation(animationTarget);
-          onValidationChange?.(false);
+          scheduledUpdate = setTimeout(() => {
+            runErrorAnimation(animationTarget);
+            onValidationChange?.(false);
+          }, 0);
         } else if (!invalid && prevInvalid) {
-          setValidationState('success');
-          setHintVisible(false);
+          scheduledUpdate = setTimeout(() => {
+            setValidationState('success');
+            setHintVisible(false);
 
-          const prefersReducedMotion =
-            typeof window !== 'undefined' &&
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const prefersReducedMotion =
+              typeof window !== 'undefined' &&
+              window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-          if (!prefersReducedMotion) {
-            animate(
-              animationTarget,
-              { transform: 'translateX(0px)' },
-              successTransition
-            );
-          }
-
-          onValidationChange?.(true);
-
-          timeoutRef.current = setTimeout(() => {
-            setValidationState('default');
-            if (clearOnSuccess && isUncontrolled && internalRef.current) {
-              internalRef.current.value = '';
+            if (!prefersReducedMotion) {
+              animate(
+                animationTarget,
+                { transform: 'translateX(0px)' },
+                successTransition
+              );
             }
-            timeoutRef.current = null;
-          }, resetDelay);
+
+            onValidationChange?.(true);
+
+            timeoutRef.current = setTimeout(() => {
+              setValidationState('default');
+              if (clearOnSuccess && isUncontrolled && internalRef.current) {
+                internalRef.current.value = '';
+              }
+              timeoutRef.current = null;
+            }, resetDelay);
+          }, 0);
         }
+
+        prevInvalidRef.current = invalid;
+        return () => {
+          if (scheduledUpdate) clearTimeout(scheduledUpdate);
+        };
       }
 
       prevInvalidRef.current = invalid;
@@ -237,15 +247,22 @@ const InputRounded = forwardRef<HTMLInputElement, InputRoundedProps>(
       const animationTarget =
         animationTargetRef?.current ?? getAnimationTarget(element);
 
+      let scheduledUpdate: ReturnType<typeof setTimeout> | null = null;
       if (
         validationTriggerKey !== lastTriggerRef.current &&
         normalizedAriaInvalid === true
       ) {
-        runErrorAnimation(animationTarget);
-        onValidationChange?.(false);
+        scheduledUpdate = setTimeout(() => {
+          runErrorAnimation(animationTarget);
+          onValidationChange?.(false);
+        }, 0);
       }
 
       lastTriggerRef.current = validationTriggerKey;
+
+      return () => {
+        if (scheduledUpdate) clearTimeout(scheduledUpdate);
+      };
     }, [
       normalizedAriaInvalid,
       onValidationChange,

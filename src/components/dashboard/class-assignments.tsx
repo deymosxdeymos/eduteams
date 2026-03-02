@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowLeft, Calendar, Plus, Share2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useQueryState } from 'nuqs';
 import { useEffect, useState } from 'react';
@@ -10,15 +11,27 @@ import { Button } from '@/components/ui/button';
 import { Link, useRouter } from '@/i18n/routing';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
-import { CreateAssignmentModal } from './create-assignment-modal';
 import { EmptyAssignmentState } from './empty-assignment-state';
 import { SearchInput } from './search-input';
-import { ShareClassModal } from './share-class-modal';
+
+const ShareClassModal = dynamic(
+  () =>
+    import('./share-class-modal').then(mod => ({
+      default: mod.ShareClassModal,
+    })),
+  { ssr: false }
+);
+const CreateAssignmentModal = dynamic(
+  () =>
+    import('./create-assignment-modal').then(mod => ({
+      default: mod.CreateAssignmentModal,
+    })),
+  { ssr: false }
+);
 
 interface ClassAssignmentsProps {
   classId: string;
-  dosenId?: string;
-  courseData?: {
+  courseData: {
     id: string;
     namaMataKuliah: string;
     kelas: string;
@@ -61,29 +74,16 @@ export function ClassAssignments({
     defaultValue: '',
     shallow: true,
   });
-
-  // Use courseData if provided, otherwise fetch via SWR
-  const { data: classData, error } = useSWR(
-    courseData ? null : `/api/courses/${classId}`,
-    fetcher
-  );
-
-  const course = courseData || classData?.data;
-
-  if (error) {
-    console.error('Failed to load class:', error);
-  }
-
-  // Avoid early return to keep hooks order stable
-
-  // Assignments fetching
+  const hasInitialAssignments = initialAssignments !== undefined;
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
-    course ? `/api/courses/${classId}/assignments` : null,
+    `/api/courses/${classId}/assignments`,
     fetcher,
     {
       fallbackData: initialAssignments
         ? { data: initialAssignments }
         : undefined,
+      revalidateOnMount: !hasInitialAssignments,
+      revalidateIfStale: !hasInitialAssignments,
     }
   );
 
@@ -277,17 +277,21 @@ export function ClassAssignments({
         </div>
       </div>
 
-      <ShareClassModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        courseData={course}
-      />
+      {isShareModalOpen ? (
+        <ShareClassModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          courseData={courseData}
+        />
+      ) : null}
 
-      <CreateAssignmentModal
-        open={isCreateAssignmentModalOpen}
-        onOpenChange={setIsCreateAssignmentModalOpen}
-        classId={classId}
-      />
+      {isCreateAssignmentModalOpen ? (
+        <CreateAssignmentModal
+          open={isCreateAssignmentModalOpen}
+          onOpenChange={setIsCreateAssignmentModalOpen}
+          classId={classId}
+        />
+      ) : null}
     </div>
   );
 }

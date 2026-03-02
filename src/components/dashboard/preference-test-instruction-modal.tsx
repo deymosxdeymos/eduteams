@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,34 @@ export default function PreferenceTestInstructionModal({
   onCloseAction,
 }: PreferenceTestInstructionModalProps) {
   const t = useTranslations('dashboard.assignments.quiz.instructions');
+  const shouldReduceMotion = useReducedMotion();
+
+  const backdropTransition = shouldReduceMotion
+    ? { duration: 0.01 }
+    : { duration: 0.2, ease: 'easeOut' as const };
+  const containerInitial = shouldReduceMotion
+    ? { opacity: 0 }
+    : { y: -32, opacity: 0 };
+  const containerAnimate = { y: 0, opacity: 1 };
+  const containerExit = shouldReduceMotion
+    ? { opacity: 0 }
+    : { y: -24, opacity: 0 };
+  const containerTransition = shouldReduceMotion
+    ? { duration: 0.01 }
+    : { duration: 0.24, ease: [0.215, 0.61, 0.355, 1] as const };
+  const contentInitial = shouldReduceMotion
+    ? { opacity: 0 }
+    : { scale: 0.98, opacity: 0 };
+  const contentExit = shouldReduceMotion
+    ? { opacity: 0 }
+    : { scale: 0.98, opacity: 0 };
+  const contentTransition = shouldReduceMotion
+    ? { duration: 0.01 }
+    : {
+        duration: 0.2,
+        delay: 0.04,
+        ease: [0.215, 0.61, 0.355, 1] as const,
+      };
 
   const likertScale = [
     { icon: 'Strongly-Disagree', label: t('topicLevels.stronglyDisagree') },
@@ -31,14 +59,14 @@ export default function PreferenceTestInstructionModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={backdropTransition}
           className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
         >
           <motion.div
-            initial={{ y: -200, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -200, opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            initial={containerInitial}
+            animate={containerAnimate}
+            exit={containerExit}
+            transition={containerTransition}
             className='relative'
           >
             <Image
@@ -50,14 +78,10 @@ export default function PreferenceTestInstructionModal({
               priority
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={contentInitial}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{
-                duration: 0.3,
-                delay: 0.1,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
+              exit={contentExit}
+              transition={contentTransition}
               className='bg-white rounded-4xl max-w-4xl w-full pt-12 px-12 pb-12 shadow-2xl'
             >
               <div className='text-center mb-8'>

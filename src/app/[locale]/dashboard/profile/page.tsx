@@ -16,7 +16,7 @@ export default async function ProfilePage() {
   const user = await protectDashboard();
 
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <ProfileLayout user={user} />
     </DashboardClient>
   );

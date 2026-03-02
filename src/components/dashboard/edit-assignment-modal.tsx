@@ -2,7 +2,7 @@
 
 import { Pencil } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,6 +42,13 @@ function parseDescriptionJSON(description: string | null) {
   }
 }
 
+function areStringArraysEqual(left: string[], right: string[]) {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
 export function EditAssignmentModal({
   open,
   onOpenChange,
@@ -55,34 +62,31 @@ export function EditAssignmentModal({
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [editImpact, setEditImpact] = useState<EditImpact | null>(null);
+  const parsedAssignmentDescription = useMemo(
+    () => parseDescriptionJSON(assignment.description),
+    [assignment.description]
+  );
   const isFormValid = Boolean(title.trim()) && skills.length > 0;
+  const hasUnsavedChanges =
+    open &&
+    (title !== assignment.title ||
+      description !== parsedAssignmentDescription.text ||
+      !areStringArraysEqual(skills, parsedAssignmentDescription.skills) ||
+      !areStringArraysEqual(topics, parsedAssignmentDescription.topics));
 
   useEffect(() => {
     if (open) {
-      const parsed = parseDescriptionJSON(assignment.description);
       setTitle(assignment.title);
-      setDescription(parsed.text);
-      setSkills(parsed.skills);
-      setTopics(parsed.topics);
-      setHasUnsavedChanges(false);
+      setDescription(parsedAssignmentDescription.text);
+      setSkills(parsedAssignmentDescription.skills);
+      setTopics(parsedAssignmentDescription.topics);
       setError(null);
+      setShowConfirmation(false);
+      setEditImpact(null);
     }
-  }, [open, assignment]);
-
-  useEffect(() => {
-    if (open) {
-      const parsed = parseDescriptionJSON(assignment.description);
-      const hasChanged =
-        title !== assignment.title ||
-        description !== parsed.text ||
-        JSON.stringify(skills) !== JSON.stringify(parsed.skills) ||
-        JSON.stringify(topics) !== JSON.stringify(parsed.topics);
-      setHasUnsavedChanges(hasChanged);
-    }
-  }, [title, description, skills, topics, open, assignment]);
+  }, [open, assignment.title, parsedAssignmentDescription]);
 
   const handleClose = (newOpen: boolean) => {
     if (newOpen) {
@@ -163,7 +167,6 @@ export function EditAssignmentModal({
       if (!res.ok || !data?.success) {
         throw new Error(data?.error || t('error'));
       }
-      setHasUnsavedChanges(false);
       onOpenChange(false);
       const ev = new CustomEvent('assignment:updated', {
         detail: { assignmentId: assignment.id, courseId },

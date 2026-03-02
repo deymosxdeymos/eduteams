@@ -21,5 +21,5 @@ jobs:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 
       - run: bun run lint
-      - run: bun run tsc
+      - run: bun run tsgo
       - run: bun test --coverage --bail

@@ -4,7 +4,8 @@
   "dosenSubtitle": "Track activities and manage your classes easily from this dashboard",
   "answersDefault": "Student Answers",
   "auth": {
-    "signInWithGoogle": "Sign in with Google"
+    "signInWithGoogle": "Sign in with Google",
+    "signingIn": "Signing in..."
   },
   "homepage": {
     "hero": {

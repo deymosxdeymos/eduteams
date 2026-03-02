@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link, useRouter } from '@/i18n/routing';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
-import type { Course } from '@/lib/types';
 import type { AssignmentClient } from '@/lib/validation/assignments';
 import { EmptyStudentAssignmentState } from './empty-student-assignment-state';
 import { SearchInput } from './search-input';
@@ -45,23 +44,16 @@ export function StudentClassAssignments({
   const t = useTranslations('dashboard.assignments.list');
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-
-  const { data: classData, error } = useSWR(`/api/courses/${classId}`, fetcher);
-
-  const course: Course = classData?.data;
-
-  if (error) {
-    console.error('Failed to load class:', error);
-  }
-
-  // Fetch assignments
+  const hasInitialAssignments = initialAssignments !== undefined;
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
-    course ? `/api/courses/${classId}/assignments` : null,
+    `/api/courses/${classId}/assignments`,
     fetcher,
     {
       fallbackData: initialAssignments
         ? { data: initialAssignments }
         : undefined,
+      revalidateOnMount: !hasInitialAssignments,
+      revalidateIfStale: !hasInitialAssignments,
     }
   );
 

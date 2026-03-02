@@ -25,7 +25,7 @@ export const AssignmentCreateSchema = z.object({
 
 type _AssignmentCreate = z.infer<typeof AssignmentCreateSchema>;
 
-const AssignmentResponseSchema = z.object({
+const _AssignmentResponseSchema = z.object({
   id: z.string().uuid(),
   courseId: z.string(),
   title: z.string(),
@@ -38,7 +38,7 @@ const AssignmentResponseSchema = z.object({
   submissionsCount: z.number().int().nonnegative(),
 });
 
-export type AssignmentResponse = z.infer<typeof AssignmentResponseSchema>;
+export type AssignmentResponse = z.infer<typeof _AssignmentResponseSchema>;
 
 export const AssignmentUpdateSchema = z.object({
   title: z.string().min(1).optional(),
@@ -52,12 +52,12 @@ export const AssignmentUpdateSchema = z.object({
 
 type _AssignmentUpdate = z.infer<typeof AssignmentUpdateSchema>;
 
-const AssignmentSubmissionCreateSchema = z.object({
+const _AssignmentSubmissionCreateSchema = z.object({
   // empty body for now; URL carries the assignmentId
 });
 
 type _AssignmentSubmissionCreate = z.infer<
-  typeof AssignmentSubmissionCreateSchema
+  typeof _AssignmentSubmissionCreateSchema
 >;
 
 export type AssignmentClient = AssignmentResponse & {

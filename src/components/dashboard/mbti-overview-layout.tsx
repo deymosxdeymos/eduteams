@@ -4,18 +4,20 @@ import { ArrowLeft, Sparkle, X } from 'lucide-react';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import type { SidebarData } from '@/lib/dashboard/sidebar-data';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIColorScheme } from '@/lib/utils/mbti-colors';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import type { MBTIType } from '@/lib/validation/personality';
 import Nav from './nav';
-import SidebarWrapper from './sidebar-wrapper';
+import Sidebar from './sidebar';
 
 interface MBTIOverviewLayoutProps {
   user: ExtendedUser;
   isModal?: boolean;
   isCompact?: boolean;
   onRequestClose?: () => void;
+  sidebarData?: SidebarData;
 }
 
 const PERSONALITY_DESCRIPTIONS = {
@@ -106,6 +108,7 @@ export function MBTIOverviewLayout({
   isModal = false,
   isCompact = false,
   onRequestClose,
+  sidebarData,
 }: MBTIOverviewLayoutProps) {
   const mbtiType = getMBTIType(user);
   const initialSelected = useMemo<MBTIType | null>(
@@ -139,7 +142,12 @@ export function MBTIOverviewLayout({
       <div
         className={`${isModal ? '' : 'grid grid-cols-[auto_1fr] flex-1 min-h-0'}`}
       >
-        {!isModal && <SidebarWrapper />}
+        {!isModal && sidebarData?.user && (
+          <Sidebar
+            user={sidebarData.user}
+            notStartedCount={sidebarData.notStartedCount}
+          />
+        )}
         <div className={`${isModal ? '' : 'px-8 pb-0 min-h-0'}`}>
           <div
             className={`bg-white rounded-3xl ${isModal ? 'h-full' : 'h-full'} flex flex-col overflow-hidden ${isCompact ? 'p-6 gap-1' : 'p-4 gap-2'}`}
@@ -182,7 +190,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INTJ'}
-                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-violet-600 ${
                       selectedMBTI === 'INTJ'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
@@ -207,7 +215,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INTP'}
-                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-violet-600 ${
                       selectedMBTI === 'INTP'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
@@ -232,7 +240,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENTJ'}
-                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-violet-600 ${
                       selectedMBTI === 'ENTJ'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
@@ -257,7 +265,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENTP'}
-                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-violet-600 ${
+                    className={`bg-violet-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-violet-600 ${
                       selectedMBTI === 'ENTP'
                         ? 'border-3 border-violet-600'
                         : 'border-3 border-transparent'
@@ -285,7 +293,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INFJ'}
-                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-green-600 ${
                       selectedMBTI === 'INFJ'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
@@ -310,7 +318,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'INFP'}
-                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-green-600 ${
                       selectedMBTI === 'INFP'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
@@ -335,7 +343,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENFJ'}
-                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-green-600 ${
                       selectedMBTI === 'ENFJ'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
@@ -360,7 +368,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ENFP'}
-                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-green-600 ${
+                    className={`bg-green-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-green-600 ${
                       selectedMBTI === 'ENFP'
                         ? 'border-3 border-emerald-600'
                         : 'border-3 border-transparent'
@@ -388,7 +396,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISTJ'}
-                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-blue-600 ${
                       selectedMBTI === 'ISTJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
@@ -413,7 +421,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISFJ'}
-                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-blue-600 ${
                       selectedMBTI === 'ISFJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
@@ -438,7 +446,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESTJ'}
-                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-blue-600 ${
                       selectedMBTI === 'ESTJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
@@ -463,7 +471,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESFJ'}
-                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-blue-600 ${
+                    className={`bg-blue-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-blue-600 ${
                       selectedMBTI === 'ESFJ'
                         ? 'border-3 border-sky-600'
                         : 'border-3 border-transparent'
@@ -491,7 +499,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISTP'}
-                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-orange-600 ${
                       selectedMBTI === 'ISTP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
@@ -516,7 +524,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ISFP'}
-                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-orange-600 ${
                       selectedMBTI === 'ISFP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
@@ -541,7 +549,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESTP'}
-                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-orange-600 ${
                       selectedMBTI === 'ESTP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'
@@ -566,7 +574,7 @@ export function MBTIOverviewLayout({
                     role='button'
                     tabIndex={0}
                     aria-pressed={selectedMBTI === 'ESFP'}
-                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer transition-all duration-200 hover:border-3 hover:border-orange-600 ${
+                    className={`bg-orange-100 ${isCompact ? 'pt-2 pl-2' : 'pt-3 pl-2'} rounded-xl text-start relative overflow-hidden ${isCompact ? 'w-28 h-28' : 'w-30 h-30'} cursor-pointer border-3 transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-orange-600 ${
                       selectedMBTI === 'ESFP'
                         ? 'border-3 border-amber-600'
                         : 'border-3 border-transparent'

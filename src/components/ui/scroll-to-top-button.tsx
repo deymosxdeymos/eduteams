@@ -7,19 +7,21 @@ export function ScrollToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const toggleVisibility = () => {
-      const footer = document.querySelector('footer');
-      if (footer) {
-        const footerRect = footer.getBoundingClientRect();
-        const isFooterVisible = footerRect.top < window.innerHeight;
-        setIsVisible(isFooterVisible);
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry?.isIntersecting ?? false);
+      },
+      {
+        root: null,
+        threshold: 0,
       }
-    };
+    );
 
-    window.addEventListener('scroll', toggleVisibility);
-    toggleVisibility();
-
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, []);
 
   const scrollToTop = () => {

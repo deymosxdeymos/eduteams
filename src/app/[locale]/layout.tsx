@@ -1,3 +1,4 @@
+import { Agentation } from 'agentation';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 import { Geist_Mono, Plus_Jakarta_Sans } from 'next/font/google';
@@ -49,6 +50,9 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
           <SpeedInsights />
+          {process.env.NODE_ENV === 'development' && (
+            <Agentation endpoint='http://localhost:4747' />
+          )}
         </NextIntlClientProvider>
       </body>
     </html>

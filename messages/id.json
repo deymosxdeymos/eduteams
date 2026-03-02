@@ -4,7 +4,8 @@
   "dosenSubtitle": "Pantau aktivitas dan kelola kelas Anda dengan mudah melalui dashboard ini",
   "answersDefault": "Jawaban Mahasiswa",
   "auth": {
-    "signInWithGoogle": "Masuk dengan Google"
+    "signInWithGoogle": "Masuk dengan Google",
+    "signingIn": "Masuk..."
   },
   "homepage": {
     "hero": {

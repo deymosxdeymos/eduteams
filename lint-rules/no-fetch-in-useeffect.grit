@@ -1,8 +1,0 @@
-`useEffect($callback, $deps)` where {
-    $callback <: contains `fetch($url)`,
-    register_diagnostic(
-        span = $callback,
-        message = "Don't fetch in useEffect. Use SWR (useSWR) or fetch data in Server Components instead.",
-        severity = "warn"
-    )
-}

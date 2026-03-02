@@ -1,10 +1,11 @@
 'use client';
 
 import { Plus, Trash2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MBTIOverviewLayout } from '@/components/dashboard/mbti-overview-layout';
 import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,6 +25,14 @@ import type { Gender } from '@/generated/prisma/client';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
+
+const MBTIOverviewLayout = dynamic(
+  () =>
+    import('@/components/dashboard/mbti-overview-layout').then(mod => ({
+      default: mod.MBTIOverviewLayout,
+    })),
+  { loading: () => <div className='min-h-[24rem]' /> }
+);
 
 interface TeamMemberUser {
   id: string;
@@ -122,6 +131,7 @@ export function TeamMemberListClient({
   onPendingAdditionsChange,
   onSavingChange,
 }: TeamMemberListClientProps) {
+  const router = useRouter();
   const t = useTranslations('dashboard.students');
   const tTeams = useTranslations('dashboard.teams');
   const [selectedMember, setSelectedMember] = useState<TeamMemberItem | null>(
@@ -230,8 +240,7 @@ export function TeamMemberListClient({
         setIsProfileOpen(false);
         setSelectedMember(null);
       }
-      // Refresh the page to update the teams
-      window.location.reload();
+      router.refresh();
     } catch (err) {
       setRemoveError(err instanceof Error ? err.message : t('errors.error'));
     } finally {
@@ -346,7 +355,8 @@ export function TeamMemberListClient({
       await Promise.all([...addPromises, ...deletePromises]);
       setPendingAdditions(new Set());
       setPendingDeletions(new Set());
-      window.location.reload();
+      setSelectedMembers(new Set());
+      router.refresh();
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : 'Failed to save changes'
@@ -354,7 +364,7 @@ export function TeamMemberListClient({
     } finally {
       setIsSaving(false);
     }
-  }, [teamId, assignmentId, tTeams]);
+  }, [teamId, assignmentId, router, tTeams]);
 
   useEffect(() => {
     if (

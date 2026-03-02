@@ -27,7 +27,7 @@ export default async function ManagePage() {
   }
 
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <Suspense fallback={<CourseListSkeleton />}>
         <ManageLayout user={user} />
       </Suspense>

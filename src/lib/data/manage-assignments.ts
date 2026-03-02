@@ -3,33 +3,31 @@ import type { ManageAssignmentRow } from '@/types/manage';
 
 export async function getManageAssignmentsForCourse(
   courseId: string,
-  dosenId: string
+  dosenId: string,
+  totalStudentsInput: number | Promise<number>
 ): Promise<ManageAssignmentRow[]> {
-  const course = await prisma.course.findFirst({
-    where: { id: courseId, dosenId },
-    select: { _count: { select: { enrollments: true } } },
-  });
-
-  if (!course) {
-    throw new Error('Course not found or unauthorized');
-  }
-
-  const totalStudents = course._count.enrollments;
-
-  const assignments = await prisma.assignment.findMany({
-    where: { courseId },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      status: true,
-      startAt: true,
-      createdAt: true,
-      archivedAt: true,
-      _count: { select: { submissions: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  const [assignments, totalStudents] = await Promise.all([
+    prisma.assignment.findMany({
+      where: {
+        courseId,
+        course: {
+          dosenId,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        startAt: true,
+        createdAt: true,
+        archivedAt: true,
+        _count: { select: { submissions: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    totalStudentsInput,
+  ]);
 
   return assignments.map((assignment: (typeof assignments)[number]) => ({
     id: assignment.id,

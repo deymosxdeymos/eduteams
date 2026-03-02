@@ -198,22 +198,58 @@ describe('Dashboard Content', () => {
     expect(refreshMock.mock.calls.length).toBe(1);
   });
 
-  it('updates existing courses when ids match', async () => {
-    const courses = [buildCourse({ id: 'course-1', namaMataKuliah: 'Algoritma' })];
-
-    render(<Content statistics={baseStatistics} courses={courses} />);
+  it('prefers refreshed server data once an optimistic course is loaded from props', async () => {
+    const courses = [buildCourse({ id: 'existing' })];
+    const { rerender } = render(
+      <Content statistics={baseStatistics} courses={courses} />
+    );
 
     await act(async () => {
       searchInputProps.onClassCreated?.({
-        id: 'course-1',
-        namaMataKuliah: 'Algoritma Lanjut',
-        studentCount: 50,
+        id: 'new-course',
+        namaMataKuliah: 'Pemrograman',
+        kelas: 'RC',
+        studentCount: 0,
+        createdAt: '2025-01-01T00:00:00Z',
+        updatedAt: '2025-01-02T00:00:00Z',
+        dosen: {
+          id: 'teacher-2',
+          name: 'Teacher Two',
+          email: 'teacher2@example.com',
+        },
       });
     });
 
-    expect(classGridProps.classes).toHaveLength(1);
-    expect(classGridProps.classes[0]?.title).toBe('Algoritma Lanjut');
-    expect(classGridProps.classes[0]?.studentCount).toBe(50);
+    expect(classGridProps.classes[0]?.id).toBe('new-course');
+    expect(classGridProps.classes[0]?.studentCount).toBe(0);
+
+    await act(async () => {
+      rerender(
+        <Content
+          statistics={baseStatistics}
+          courses={[
+            buildCourse({ id: 'existing' }),
+            buildCourse({
+              id: 'new-course',
+              namaMataKuliah: 'Pemrograman',
+              kelas: 'RC',
+              studentCount: 3,
+              dosenId: 'teacher-2',
+              dosen: {
+                id: 'teacher-2',
+                name: 'Teacher Two',
+                email: 'teacher2@example.com',
+              },
+            }),
+          ]}
+        />
+      );
+    });
+
+    expect(classGridProps.classes).toHaveLength(2);
+    expect(classGridProps.classes[0]?.id).toBe('existing');
+    expect(classGridProps.classes[1]?.id).toBe('new-course');
+    expect(classGridProps.classes[1]?.studentCount).toBe(3);
     expect(refreshMock.mock.calls.length).toBe(1);
   });
 

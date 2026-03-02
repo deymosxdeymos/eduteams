@@ -62,6 +62,28 @@ interface AssignmentActionsProps {
   isSaving?: boolean;
 }
 
+interface TeamWeights {
+  personality: number;
+  skills: number;
+  taskPreferences: number;
+}
+
+const DEFAULT_WEIGHTS: TeamWeights = {
+  personality: 0.3,
+  skills: 0.4,
+  taskPreferences: 0.1,
+};
+
+const mapApiWeights = (weights: {
+  alpha: number;
+  beta: number;
+  delta: number;
+}): TeamWeights => ({
+  skills: weights.alpha,
+  personality: weights.beta,
+  taskPreferences: weights.delta,
+});
+
 export function AssignmentActions({
   assignmentId,
   classId,
@@ -95,12 +117,7 @@ export function AssignmentActions({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [weights, setWeights] = useState({
-    personality: 0.3,
-    skills: 0.4,
-    taskPreferences: 0.1,
-  });
-  const [weightsModified, setWeightsModified] = useState(false);
+  const [customWeights, setCustomWeights] = useState<TeamWeights | null>(null);
   const lastRetrySignalRef = useRef(retryFormationModalSignal);
   const createButtonLabel = hasTeams
     ? t('recreateTeamsButton')
@@ -108,38 +125,21 @@ export function AssignmentActions({
   const isProcessing = Boolean(isTeamFormationProcessing);
   const shouldDisableForm = submitting || isProcessing;
 
-  // Fetch default weights from backend (skip if provided via props)
-  useSWR(
-    defaultWeights ? null : '/api/edu2com/weights',
-    (url: string) => fetch(url).then(res => res.json()),
-    {
-      onSuccess: data => {
-        if (!weightsModified) {
-          setWeights({
-            skills: data.alpha,
-            personality: data.beta,
-            taskPreferences: data.delta,
-          });
-        }
-      },
-    }
+  const { data: fetchedWeights } = useSWR<{
+    alpha: number;
+    beta: number;
+    delta: number;
+  }>(defaultWeights ? null : '/api/edu2com/weights', (url: string) =>
+    fetch(url).then(res => res.json())
   );
-
-  // Sync weights when defaultWeights prop changes
-  if (defaultWeights && !weightsModified) {
-    const propsWeights = {
-      skills: defaultWeights.alpha,
-      personality: defaultWeights.beta,
-      taskPreferences: defaultWeights.delta,
-    };
-    if (
-      weights.skills !== propsWeights.skills ||
-      weights.personality !== propsWeights.personality ||
-      weights.taskPreferences !== propsWeights.taskPreferences
-    ) {
-      setWeights(propsWeights);
-    }
-  }
+  const resolvedWeights = customWeights
+    ? customWeights
+    : defaultWeights
+      ? mapApiWeights(defaultWeights)
+      : fetchedWeights
+        ? mapApiWeights(fetchedWeights)
+        : DEFAULT_WEIGHTS;
+  const weightsModified = customWeights !== null;
 
   const canSubmit = Boolean(
     method && value && Number(value) > 0 && !shouldDisableForm
@@ -192,9 +192,9 @@ export function AssignmentActions({
           // Only send weight overrides if user explicitly modified them
           weights: weightsModified
             ? {
-                alpha: weights.skills,
-                beta: weights.personality,
-                delta: weights.taskPreferences,
+                alpha: resolvedWeights.skills,
+                beta: resolvedWeights.personality,
+                delta: resolvedWeights.taskPreferences,
               }
             : undefined,
         }),
@@ -435,22 +435,21 @@ export function AssignmentActions({
                               </div>
                               <div className='space-y-1'>
                                 <Slider
-                                  value={[weights.personality]}
+                                  value={[resolvedWeights.personality]}
                                   max={1}
                                   step={0.1}
                                   showSteps
                                   onValueChange={val => {
-                                    setWeights(prev => ({
-                                      ...prev,
+                                    setCustomWeights({
+                                      ...resolvedWeights,
                                       personality: val[0],
-                                    }));
-                                    setWeightsModified(true);
+                                    });
                                   }}
                                 />
                                 <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
                                   <span>0.0</span>
                                   <span className='font-bold text-emerald-700'>
-                                    {weights.personality.toFixed(1)}
+                                    {resolvedWeights.personality.toFixed(1)}
                                   </span>
                                   <span>1.0</span>
                                 </div>
@@ -469,22 +468,21 @@ export function AssignmentActions({
                               </div>
                               <div className='space-y-1'>
                                 <Slider
-                                  value={[weights.skills]}
+                                  value={[resolvedWeights.skills]}
                                   max={1}
                                   step={0.1}
                                   showSteps
                                   onValueChange={val => {
-                                    setWeights(prev => ({
-                                      ...prev,
+                                    setCustomWeights({
+                                      ...resolvedWeights,
                                       skills: val[0],
-                                    }));
-                                    setWeightsModified(true);
+                                    });
                                   }}
                                 />
                                 <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
                                   <span>0.0</span>
                                   <span className='font-bold text-amber-700'>
-                                    {weights.skills.toFixed(1)}
+                                    {resolvedWeights.skills.toFixed(1)}
                                   </span>
                                   <span>1.0</span>
                                 </div>
@@ -503,22 +501,21 @@ export function AssignmentActions({
                               </div>
                               <div className='space-y-1'>
                                 <Slider
-                                  value={[weights.taskPreferences]}
+                                  value={[resolvedWeights.taskPreferences]}
                                   max={1}
                                   step={0.1}
                                   showSteps
                                   onValueChange={val => {
-                                    setWeights(prev => ({
-                                      ...prev,
+                                    setCustomWeights({
+                                      ...resolvedWeights,
                                       taskPreferences: val[0],
-                                    }));
-                                    setWeightsModified(true);
+                                    });
                                   }}
                                 />
                                 <div className='flex justify-between text-xs text-gray-500 font-medium pt-1'>
                                   <span>0.0</span>
                                   <span className='font-bold text-violet-700'>
-                                    {weights.taskPreferences.toFixed(1)}
+                                    {resolvedWeights.taskPreferences.toFixed(1)}
                                   </span>
                                   <span>1.0</span>
                                 </div>

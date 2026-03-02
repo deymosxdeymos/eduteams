@@ -3,6 +3,23 @@ import { getCurrentUser } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 import { getStudentAssignmentStatus } from '@/lib/utils/student-status';
 
+interface SidebarUserInput {
+  id: string;
+  name: string;
+  email: string;
+  role: string | null | undefined;
+}
+
+export interface SidebarData {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+  notStartedCount: number;
+}
+
 interface TeamMember {
   userId: string;
 }
@@ -164,6 +181,12 @@ function getCachedNotStartedCount(userId: string) {
 export async function getSidebarData() {
   const user = await getCurrentUser();
 
+  return getSidebarDataForUser(user);
+}
+
+export async function getSidebarDataForUser(
+  user: SidebarUserInput | null
+): Promise<SidebarData> {
   if (!user) {
     return {
       user: null,

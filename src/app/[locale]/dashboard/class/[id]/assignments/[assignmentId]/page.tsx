@@ -155,8 +155,7 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
     })
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { enrollments: _ignored, ...course } = enrollment.course;
+  const { enrollments: _enrollments, ...course } = enrollment.course;
   return { course: course as unknown as Course, students };
 }
 
@@ -186,7 +185,7 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
   }
 
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <Suspense fallback={<AssignmentSkeleton />}>
         <AssignmentDetailAsync
           user={user}

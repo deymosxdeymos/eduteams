@@ -1,13 +1,19 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ChangeEvent, ComponentProps, ReactNode } from 'react';
 import { Input } from '@/components/ui/input';
 import type { Course } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import CreateClassModal from './create-class-modal';
-import JoinClassModal from './join-class-modal';
+
+const CreateClassModal = dynamic(() => import('./create-class-modal'), {
+  ssr: false,
+});
+const JoinClassModal = dynamic(() => import('./join-class-modal'), {
+  ssr: false,
+});
 
 type InputProps = ComponentProps<typeof Input>;
 

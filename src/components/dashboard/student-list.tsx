@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, MoreVertical, Search, Trash2, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -17,9 +18,16 @@ import {
 } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
-import { MBTIOverviewLayout } from './mbti-overview-layout';
 import { SearchInput } from './search-input';
 import { StudentProfileContent } from './student-profile-content';
+
+const MBTIOverviewLayout = dynamic(
+  () =>
+    import('./mbti-overview-layout').then(mod => ({
+      default: mod.MBTIOverviewLayout,
+    })),
+  { loading: () => <div className='min-h-[24rem]' /> }
+);
 
 interface Student {
   id: string;
@@ -114,17 +122,20 @@ export const StudentList = memo(function StudentList({
     new Set()
   );
 
-  // For dosen (canManage), fetch to keep up-to-date. For mahasiswa, use initialData if provided
-  const shouldFetch = canManage || !initialData || initialData.length === 0;
+  const hasInitialData = initialData !== undefined;
+  const shouldRevalidateOnMount = canManage || !hasInitialData;
+  const studentsKey = `/api/courses/${classId}/students`;
 
   const {
     data: studentsData,
     error,
     mutate,
-  } = useSWR(shouldFetch ? `/api/courses/${classId}/students` : null, fetcher, {
+  } = useSWR(studentsKey, fetcher, {
     fallbackData: initialData ? { data: initialData } : undefined,
     revalidateOnFocus: false, // Reduce unnecessary requests
     revalidateOnReconnect: false,
+    revalidateOnMount: shouldRevalidateOnMount,
+    revalidateIfStale: shouldRevalidateOnMount,
     dedupingInterval: 60000, // Cache for 1 minute
   });
 
@@ -177,24 +188,30 @@ export const StudentList = memo(function StudentList({
   // Close menus when clicking outside
   const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    if (!openMenuStudentId) return;
+
     function onDocClick(e: MouseEvent) {
       if (!containerRef.current) return;
       if (!containerRef.current.contains(e.target as Node)) {
         setOpenMenuStudentId(null);
       }
     }
+
     document.addEventListener('click', onDocClick);
     return () => document.removeEventListener('click', onDocClick);
-  }, []);
+  }, [openMenuStudentId]);
 
   // ESC key to exit select mode
   useEffect(() => {
+    if (!isSelectMode) return;
+
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && isSelectMode) {
+      if (e.key === 'Escape') {
         setIsSelectMode(false);
         setSelectedStudentIds(new Set());
       }
     }
+
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isSelectMode]);
@@ -214,10 +231,7 @@ export const StudentList = memo(function StudentList({
         if (!res.ok) {
           throw new Error(json?.error || t('errors.removeFailed'));
         }
-        // Refresh list if using SWR; otherwise optimistically filter from fallback
-        if (shouldFetch) {
-          await mutate();
-        }
+        await mutate();
         setConfirmStudentId(null);
         setOpenMenuStudentId(null);
         // If removing from modal, close it and clear selection
@@ -231,7 +245,7 @@ export const StudentList = memo(function StudentList({
         setIsRemoving(false);
       }
     },
-    [classId, t, shouldFetch, mutate, selectedStudent]
+    [classId, t, mutate, selectedStudent]
   );
 
   const onBulkRemoveStudents = useCallback(async () => {
@@ -260,6 +274,9 @@ export const StudentList = memo(function StudentList({
         )
       );
 
+      const successfulIds = results.flatMap((result, index) =>
+        result.status === 'fulfilled' ? [idsToRemove[index]!] : []
+      );
       const successCount = results.filter(r => r.status === 'fulfilled').length;
       const errorCount = results.filter(r => r.status === 'rejected').length;
 
@@ -272,7 +289,7 @@ export const StudentList = memo(function StudentList({
         );
       }
 
-      if (shouldFetch) {
+      if (successfulIds.length > 0) {
         await mutate();
       }
 
@@ -286,7 +303,7 @@ export const StudentList = memo(function StudentList({
     } finally {
       setIsRemoving(false);
     }
-  }, [selectedStudentIds, classId, t, shouldFetch, mutate]);
+  }, [selectedStudentIds, classId, t, mutate]);
 
   return (
     <div
@@ -312,14 +329,14 @@ export const StudentList = memo(function StudentList({
                 <AnimatePresence>
                   {isSelectMode && canManage && (
                     <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: 'auto' }}
-                      exit={{ opacity: 0, width: 0 }}
+                      initial={{ opacity: 0, scaleX: 0.92 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      exit={{ opacity: 0, scaleX: 0.92 }}
                       transition={{
-                        duration: 0.2,
+                        duration: 0.18,
                         ease: [0.215, 0.61, 0.355, 1],
                       }}
-                      className='text-sm font-medium text-sky-900 overflow-hidden whitespace-nowrap'
+                      className='inline-block origin-left text-sm font-medium text-sky-900 whitespace-nowrap'
                     >
                       {t('selected')}
                     </motion.span>
@@ -402,14 +419,14 @@ export const StudentList = memo(function StudentList({
         <AnimatePresence>
           {isSelectMode && canManage && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, y: -8, scaleY: 0.96 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -8, scaleY: 0.96 }}
               transition={{
                 duration: 0.2,
                 ease: [0.215, 0.61, 0.355, 1],
               }}
-              className='overflow-hidden'
+              className='origin-top'
               style={{ willChange: 'opacity, transform' }}
             >
               <div className='flex items-center justify-between mt-4'>
@@ -506,6 +523,10 @@ export const StudentList = memo(function StudentList({
               const hasSubmitted = submittedStudentIds
                 ? submittedStudentIds.includes(student.id)
                 : true; // default true when context not provided
+              const canOpenStudentDetails = canManage || isCurrentUser;
+              const canInteractWithRow = isSelectMode
+                ? canManage
+                : canOpenStudentDetails;
               return (
                 <motion.div
                   key={student.id}
@@ -570,7 +591,9 @@ export const StudentList = memo(function StudentList({
                     transition={{
                       layout: { type: 'spring', stiffness: 300, damping: 30 },
                     }}
-                    className={`flex items-center gap-3 p-3 border rounded-2xl cursor-pointer flex-1 transition-colors duration-200 ${
+                    className={`flex items-center gap-3 p-3 border rounded-2xl flex-1 transition-colors duration-200 ${
+                      canInteractWithRow ? 'cursor-pointer' : 'cursor-default'
+                    } ${
                       isSelectMode && selectedStudentIds.has(student.id)
                         ? 'bg-blue-50 border-blue-500 hover:bg-blue-100'
                         : isCurrentUser
@@ -579,9 +602,13 @@ export const StudentList = memo(function StudentList({
                             ? 'border-gray-200 hover:bg-gray-50'
                             : 'bg-red-50 border-red-400 hover:bg-red-100'
                     }`}
-                    role='button'
-                    tabIndex={0}
+                    role={canInteractWithRow ? 'button' : undefined}
+                    tabIndex={canInteractWithRow ? 0 : undefined}
                     onClick={() => {
+                      if (!canInteractWithRow) {
+                        return;
+                      }
+
                       if (isSelectMode && canManage) {
                         setSelectedStudentIds(prev => {
                           const newSet = new Set(prev);
@@ -599,6 +626,10 @@ export const StudentList = memo(function StudentList({
                       }
                     }}
                     onKeyDown={e => {
+                      if (!canInteractWithRow) {
+                        return;
+                      }
+
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         if (isSelectMode && canManage) {

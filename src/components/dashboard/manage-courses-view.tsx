@@ -249,7 +249,7 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
     classCatalogFetcher
   );
 
-  const classOptions = classCatalogData ?? [];
+  const classOptions = useMemo(() => classCatalogData ?? [], [classCatalogData]);
 
   const form = useForm<CourseCreateUserInput>({
     resolver: zodResolver(courseCreateInputSchema),
@@ -518,10 +518,10 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
                           <PopoverTrigger asChild>
                             <button
                               type='button'
-                              className='flex h-12 w-full min-w-0 items-center justify-between rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-left text-base shadow-sm transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-400/20 aria-invalid:border-red-500 aria-invalid:ring-red-500/20'
+                              className='flex h-12 w-full min-w-0 items-center justify-between rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-left text-base shadow-sm transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-neutral-400 focus-visible:ring-2 focus-visible:ring-neutral-400/20 data-[invalid=true]:border-red-500 data-[invalid=true]:ring-2 data-[invalid=true]:ring-red-500/20'
                               aria-haspopup='listbox'
                               aria-expanded={classPopoverOpen}
-                              aria-invalid={!!form.formState.errors.kelas}
+                              data-invalid={!!form.formState.errors.kelas}
                               disabled={isPending}
                             >
                               {selectedCatalogClass ? (

@@ -52,7 +52,6 @@ export default async function Dashboard({
 
   return (
     <DashboardClient
-      user={user}
       shouldShowSplash={shouldShowSplash}
       isFirstVisit={isFirstVisit}
     >

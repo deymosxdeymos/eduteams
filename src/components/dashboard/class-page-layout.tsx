@@ -1,8 +1,9 @@
+import { getSidebarDataForUser } from '@/lib/dashboard/sidebar-data';
 import type { Course, ExtendedUser } from '@/lib/types';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { ClassAssignments } from './class-assignments';
 import Nav from './nav';
-import SidebarWrapper from './sidebar-wrapper';
+import Sidebar from './sidebar';
 import { StudentList } from './student-list';
 
 type StudentData = {
@@ -20,32 +21,35 @@ type StudentData = {
 
 interface ClassPageLayoutProps {
   classId: string;
-  dosenId: string;
   user: ExtendedUser;
   course: Course;
   initialAssignments?: AssignmentResponse[];
   studentsData?: StudentData[];
 }
 
-export function ClassPageLayout({
+export async function ClassPageLayout({
   classId,
-  dosenId,
   user,
   course,
   initialAssignments,
   studentsData,
 }: ClassPageLayoutProps) {
+  const sidebarData = await getSidebarDataForUser(user);
+  const canManage = user.role === 'TEACHER' && user.id === course.dosenId;
+
   return (
     <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
       <div className='mb-8'>
         <Nav user={user} className={course} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <SidebarWrapper />
+        <Sidebar
+          user={sidebarData.user}
+          notStartedCount={sidebarData.notStartedCount}
+        />
         <div className='px-8 pb-0 min-h-0 grid grid-cols-[1fr_400px]'>
           <ClassAssignments
             classId={classId}
-            dosenId={dosenId}
             courseData={course}
             initialAssignments={initialAssignments}
             studentCount={studentsData?.length ?? 0}
@@ -54,7 +58,7 @@ export function ClassPageLayout({
             classId={classId}
             initialData={studentsData}
             currentUserId={user.id}
-            canManage={user.role === 'TEACHER' && user.id === dosenId}
+            canManage={canManage}
           />
         </div>
       </div>

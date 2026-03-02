@@ -1,13 +1,21 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { useState } from 'react';
-import { MBTIOverviewLayout } from '@/components/dashboard/mbti-overview-layout';
 import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
 import { TeamDetailModalContent } from '@/components/dashboard/team-detail-modal-content';
 
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import type { ExtendedUser } from '@/lib/types';
+
+const MBTIOverviewLayout = dynamic(
+  () =>
+    import('@/components/dashboard/mbti-overview-layout').then(mod => ({
+      default: mod.MBTIOverviewLayout,
+    })),
+  { loading: () => <div className='min-h-[24rem]' /> }
+);
 
 // Dummy student data
 // Note: ei, sn, tf, pj scores are normalized values between -1 and 1

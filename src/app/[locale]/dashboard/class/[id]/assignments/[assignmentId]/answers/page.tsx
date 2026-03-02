@@ -250,11 +250,7 @@ export default async function AssignmentAnswersPage({
   // If there are no submissions yet, show an empty state
   if (!selected) {
     return (
-      <DashboardClient
-        user={user}
-        shouldShowSplash={false}
-        isFirstVisit={false}
-      >
+      <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
         <AssignmentLayout
           user={user}
           course={course}
@@ -304,7 +300,7 @@ export default async function AssignmentAnswersPage({
   const textActiveClass = `data-[state=active]:${textColor600}`;
 
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <AssignmentLayout
         user={user}
         course={course}

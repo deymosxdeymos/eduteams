@@ -386,11 +386,7 @@ export default async function AssignmentQuizPage({
             : 'data-[state=active]:text-blue-600';
 
     return (
-      <DashboardClient
-        user={user}
-        shouldShowSplash={false}
-        isFirstVisit={false}
-      >
+      <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
         <AssignmentLayout
           user={user}
           course={course}
@@ -572,7 +568,7 @@ export default async function AssignmentQuizPage({
   }
 
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <AssignmentQuizClient
         classId={classId}
         assignmentId={assignmentId}

@@ -2,11 +2,12 @@ import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
+import { getSidebarDataForUser } from '@/lib/dashboard/sidebar-data';
 import { getManageCoursesForDosen } from '@/lib/data/manage-dashboard';
 import type { ExtendedUser } from '@/lib/types';
 import { DosenManageContent } from './dosen-manage-content';
 import Nav from './nav';
-import SidebarWrapper from './sidebar-wrapper';
+import Sidebar from './sidebar';
 import { StudentManageContent } from './student-manage-content';
 
 interface ManageLayoutProps {
@@ -16,7 +17,10 @@ interface ManageLayoutProps {
 export async function ManageLayout({ user }: ManageLayoutProps) {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
-  const courses = isDosen ? await getManageCoursesForDosen(user.id) : [];
+  const [sidebarData, courses] = await Promise.all([
+    getSidebarDataForUser(user),
+    isDosen ? getManageCoursesForDosen(user.id) : [],
+  ]);
 
   return (
     <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
@@ -24,7 +28,10 @@ export async function ManageLayout({ user }: ManageLayoutProps) {
         <Nav user={user} />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <SidebarWrapper />
+        <Sidebar
+          user={sidebarData.user}
+          notStartedCount={sidebarData.notStartedCount}
+        />
         <div className='px-8 pb-0 min-h-0'>
           {isDosen ? (
             <DosenManageContent courses={courses} />

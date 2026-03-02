@@ -1,6 +1,7 @@
+import { getSidebarDataForUser } from '@/lib/dashboard/sidebar-data';
 import type { Course, ExtendedUser } from '@/lib/types';
 import Nav from './nav';
-import SidebarWrapper from './sidebar-wrapper';
+import Sidebar from './sidebar';
 import { StudentList } from './student-list';
 
 interface AssignmentLayoutProps {
@@ -28,7 +29,7 @@ interface AssignmentLayoutProps {
   children?: React.ReactNode;
 }
 
-export function AssignmentLayout({
+export async function AssignmentLayout({
   user,
   course,
   classId,
@@ -41,6 +42,7 @@ export function AssignmentLayout({
   submittedStudentIds,
   children,
 }: AssignmentLayoutProps) {
+  const sidebarData = await getSidebarDataForUser(user);
   const submittedCount = submittedStudentIds ? submittedStudentIds.length : 0;
   const totalStudents = students.length;
 
@@ -55,7 +57,10 @@ export function AssignmentLayout({
         />
       </div>
       <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <SidebarWrapper />
+        <Sidebar
+          user={sidebarData.user}
+          notStartedCount={sidebarData.notStartedCount}
+        />
         <div
           className={
             hideStudentList

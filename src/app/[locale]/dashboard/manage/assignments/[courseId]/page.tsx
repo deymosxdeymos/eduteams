@@ -7,7 +7,7 @@ import { ManageAssignmentsLayout } from '@/components/dashboard/manage-assignmen
 import { StudentList } from '@/components/dashboard/student-list';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { canAccessDosenFeatures } from '@/lib/authorization';
-import { getStudentsData } from '@/lib/data/course-data';
+import { getAuthorizedStudentsData } from '@/lib/data/course-data';
 import { getManageAssignmentsForCourse } from '@/lib/data/manage-assignments';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
@@ -27,6 +27,11 @@ async function getCourseForManage(courseId: string, dosenId: string) {
       tahunAwalPeriode: true,
       tahunAkhirPeriode: true,
       periode: true,
+      _count: {
+        select: {
+          enrollments: true,
+        },
+      },
     },
   });
 }
@@ -68,17 +73,23 @@ export default async function ManageAssignmentsPage({
     redirect('/dashboard');
   }
 
-  const course = await getCourseForManage(courseId, user.id);
+  const coursePromise = getCourseForManage(courseId, user.id);
+  const [course, assignments, students] = await Promise.all([
+    coursePromise,
+    getManageAssignmentsForCourse(
+      courseId,
+      user.id,
+      coursePromise.then(course => course?._count.enrollments ?? 0)
+    ),
+    getAuthorizedStudentsData(courseId, user),
+  ]);
 
   if (!course) {
     notFound();
   }
 
-  const assignments = await getManageAssignmentsForCourse(courseId, user.id);
-  const students = await getStudentsData(courseId);
-
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <Suspense
         fallback={
           <div className='flex h-screen items-center justify-center'>
@@ -86,7 +97,17 @@ export default async function ManageAssignmentsPage({
           </div>
         }
       >
-        <ManageAssignmentsLayout user={user} course={course}>
+        <ManageAssignmentsLayout
+          user={user}
+          course={{
+            id: course.id,
+            namaMataKuliah: course.namaMataKuliah,
+            kelas: course.kelas,
+            tahunAwalPeriode: course.tahunAwalPeriode,
+            tahunAkhirPeriode: course.tahunAkhirPeriode,
+            periode: course.periode,
+          }}
+        >
           <div className='grid grid-cols-[1fr_400px] h-full min-h-0'>
             <DosenManageAssignmentsContent
               assignments={assignments}

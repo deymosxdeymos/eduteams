@@ -17,6 +17,7 @@ export const runtime = 'nodejs';
 export const POST = withAuth<{ id: string; assignmentId: string }>(
   async (request: NextRequest, { user, params }) => {
     try {
+      const bodyPromise = request.json().catch(() => ({}));
       const { id: courseId, assignmentId } = await params;
 
       const isMahasiswa = canAccessMahasiswaFeatures(user);
@@ -24,39 +25,36 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         return createErrorResponse('Access denied', 403);
       }
 
-      // Check if user is enrolled in the course
-      const enrollment = await prisma.courseEnrollment.findUnique({
-        where: {
-          courseId_studentId: { courseId, studentId: user.id },
-        },
-      });
+      const [body, enrollment, assignment, existingSubmission] =
+        await Promise.all([
+          bodyPromise,
+          prisma.courseEnrollment.findUnique({
+            where: {
+              courseId_studentId: { courseId, studentId: user.id },
+            },
+          }),
+          prisma.assignment.findUnique({
+            where: { id: assignmentId, courseId },
+            select: { id: true, description: true, structureVersion: true },
+          }),
+          prisma.assignmentSubmission.findUnique({
+            where: {
+              assignmentId_studentId: { assignmentId, studentId: user.id },
+            },
+          }),
+        ]);
 
       if (!enrollment) {
         return createErrorResponse('Not enrolled in this course', 403);
       }
 
-      // Check if assignment exists and fetch all needed fields at once
-      const assignment = await prisma.assignment.findUnique({
-        where: { id: assignmentId, courseId },
-        select: { id: true, description: true, structureVersion: true },
-      });
-
       if (!assignment) {
         return createErrorResponse('Assignment not found', 404);
       }
 
-      // Check if user has already submitted
-      const existingSubmission = await prisma.assignmentSubmission.findUnique({
-        where: {
-          assignmentId_studentId: { assignmentId, studentId: user.id },
-        },
-      });
-
       if (existingSubmission && !existingSubmission.needsUpdate) {
         return createErrorResponse('Already submitted', 400);
       }
-
-      const body = await request.json().catch(() => ({}));
 
       // New structured shape: arrays of { name, level/preference }
       const ArraysSchema = z.object({

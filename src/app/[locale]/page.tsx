@@ -3,6 +3,8 @@ import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { LoginButton } from '@/components/auth/login-button';
 import { LanguageSwitcherServer } from '@/components/dashboard/language-switcher-server';
+import { AnimatedEntj } from '@/components/landing/animated-entj';
+import { HeroMbtiCollage } from '@/components/landing/hero-mbti-collage';
 import Logo from '@/components/logo';
 import { HighlightText } from '@/components/ui/highlight-text';
 import { ScrollToTopClient } from '@/components/ui/scroll-to-top-client';
@@ -35,10 +37,10 @@ export default async function Home() {
         </div>
       </nav>
       <main id={mainContentId} className='overflow-x-hidden'>
-        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-32 overflow-x-hidden relative'>
-          <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-16 sm:pt-24 lg:pt-16 lg:pb-20'>
+        <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-20 sm:pt-24 overflow-x-hidden relative'>
+          <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-8 sm:pt-12 lg:pt-10 lg:pb-20'>
             <div className='text-center'>
-              <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight  animate-hero-delay-600'>
+              <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight animate-hero-delay-600'>
                 {t('homepage.hero.titlePrefix')}
                 <br className='sm:hidden' />
                 <span className='hidden sm:inline'> </span>
@@ -58,17 +60,8 @@ export default async function Home() {
             <div className='mt-4'>
               <LoginButton className='animate-hero-delay-800' />
             </div>
-            <div className='flex items-center justify-center z-20 relative mt-4 mb-6 lg:mb-0'>
-              <Image
-                src='/landing/Illustration.svg'
-                width={1000}
-                height={800}
-                sizes='(max-width: 640px) 450px, (max-width: 768px) 500px, (max-width: 1024px) 700px, 1000px'
-                alt='mascot'
-                className='w-auto h-auto max-w-[450px] sm:max-w-[700px] md:max-w-[500px] lg:max-w-[1000px] z-20 animate-mascot'
-                style={{ width: 'auto', height: 'auto' }}
-                priority
-              />
+            <div className='relative z-20 flex w-full items-center justify-center'>
+              <HeroMbtiCollage />
             </div>
           </div>
         </section>
@@ -101,14 +94,7 @@ export default async function Home() {
                 <p>{t('homepage.about.description')}</p>
               </div>
             </div>
-            <Image
-              src='/landing/ENTJ.svg'
-              width={200}
-              height={200}
-              sizes='(max-width: 640px) 120px, (max-width: 1024px) 150px, 200px'
-              alt='ENTJ'
-              className='absolute right-0 -bottom-16 w-auto h-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px] z-20'
-            />
+            <AnimatedEntj />
           </div>
         </section>
 

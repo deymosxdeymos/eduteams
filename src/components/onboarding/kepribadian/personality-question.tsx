@@ -113,7 +113,7 @@ export default function PersonalityQuestion({
           </div>
 
           <motion.div
-            key={hasError ? `error-${Date.now()}` : 'no-error'}
+            key={hasError ? 'error' : 'no-error'}
             initial={{ opacity: 0, y: -10 }}
             animate={{
               opacity: hasError ? 1 : 0,

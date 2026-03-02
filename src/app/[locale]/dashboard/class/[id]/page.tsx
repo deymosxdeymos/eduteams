@@ -10,69 +10,45 @@ import {
   canAccessDosenFeatures,
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
-import { getStudentsData } from '@/lib/data/course-data';
+import { getAuthorizedStudentsData } from '@/lib/data/course-data';
 import prisma from '@/lib/prisma';
 import { protectDashboard } from '@/lib/server-auth';
 import type { ExtendedUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-// Get full course data for rendering
-async function getCourseData(id: string, user: ExtendedUser) {
-  const isDosen = canAccessDosenFeatures(user);
-
-  if (isDosen) {
-    return await prisma.course.findFirst({
-      where: { id, dosenId: user.id },
-      include: {
-        dosen: {
-          select: { id: true, name: true, email: true },
-        },
-      },
-    });
-  }
-
-  const enrollment = await prisma.courseEnrollment.findUnique({
-    where: {
-      courseId_studentId: { courseId: id, studentId: user.id },
-    },
-    include: {
-      course: {
-        include: {
-          dosen: {
-            select: { id: true, name: true, email: true },
-          },
-        },
-      },
-    },
-  });
-
-  return enrollment?.course ?? null;
-}
-
-// Lightweight course check - only verifies access
-async function verifyCourseAccess(id: string, user: ExtendedUser) {
+function getCourseAccessWhere(id: string, user: ExtendedUser) {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
   if (isDosen) {
-    return await prisma.course.findFirst({
-      where: { id, dosenId: user.id },
-      select: { id: true },
-    });
+    return { id, dosenId: user.id };
   }
 
   if (isMahasiswa) {
-    const enrollment = await prisma.courseEnrollment.findUnique({
-      where: {
-        courseId_studentId: { courseId: id, studentId: user.id },
-      },
-      select: { courseId: true },
-    });
-    return enrollment ? { id: enrollment.courseId } : null;
+    return {
+      id,
+      enrollments: { some: { studentId: user.id } },
+    };
   }
 
   return null;
+}
+
+// Get full course data for rendering
+async function getCourseData(id: string, user: ExtendedUser) {
+  const where = getCourseAccessWhere(id, user);
+
+  if (!where) return null;
+
+  return prisma.course.findFirst({
+    where,
+    include: {
+      dosen: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  });
 }
 
 export async function generateMetadata({
@@ -114,30 +90,23 @@ export default async function ClassPage({ params }: ClassPageProps) {
     notFound();
   }
 
-  // Quick access verification
-  const hasAccess = await verifyCourseAccess(id, user);
-  if (!hasAccess) {
-    notFound();
-  }
+  const [course, studentsData] = await Promise.all([
+    getCourseData(id, user),
+    getAuthorizedStudentsData(id, user),
+  ]);
 
-  // Fetch minimal course data needed for initial render
-  const course = await getCourseData(id, user);
   if (!course) {
     notFound();
   }
 
-  // Fetch students list (quick query for initial data)
-  const studentsData = await getStudentsData(id);
-
   return (
-    <DashboardClient user={user} shouldShowSplash={false} isFirstVisit={false}>
+    <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <div className='space-y-6'>
         {isDosen && (
           <Suspense fallback={<StudentListSkeleton />}>
             <ClassAssignmentsAsync
               courseId={id}
               classId={id}
-              dosenId={user.id}
               user={user}
               course={course}
               studentsData={studentsData}
