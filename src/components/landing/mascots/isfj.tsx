@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { blinkAnimation, spinMedium } from './animation-config';
+import { blinkTransition, spinMedium } from './animation-config';
 
 export function IsfJMascot({ className }: { className?: string }) {
   return (
@@ -27,11 +27,8 @@ export function IsfJMascot({ className }: { className?: string }) {
         d="M208.741 244C204.745 234.006 204.924 222.237 205.341 216.685C205.341 214.503 206.839 210.022 212.835 209.546C220.328 208.951 220.953 214.305 220.953 216.685C220.953 219.064 222.826 243.456 227.822 245.835C231.819 247.739 232.402 252.577 232.194 254.164H200.345C200.345 246.549 205.827 243.603 208.741 244Z"
         fill="black"
       />
-      {/* Both eyes - single blink group so they sync */}
-      <motion.g
-        {...blinkAnimation}
-        style={{ transformOrigin: '167px 96px' }}
-      >
+      {/* Both eyes - clipped by animated eyelid rect */}
+      <g clipPath="url(#isfj_eyeClip)">
         {/* Left eye */}
         <path
           d="M112.061 96.5053C115.405 95.9339 118.494 97.9488 120.465 100.709C121.735 102.488 123.193 104.244 124.826 105.932C130.165 111.452 136.283 115.12 141.652 116.463C146.196 117.599 151.458 119.68 152.354 124.276C152.778 126.452 153 128.701 153 131V135C153 154.33 137.33 170 118 170C98.6702 170 82.9992 154.33 82.999 135V131C82.999 113.695 95.5596 99.3249 112.061 96.5053Z"
@@ -46,7 +43,7 @@ export function IsfJMascot({ className }: { className?: string }) {
         />
         <circle cx="215.819" cy="138.526" r="25.5263" fill="url(#isfj_paint2)" stroke="#0BA5EC" strokeWidth="2" />
         <circle cx="209.568" cy="132.115" r="13.5" fill="white" />
-      </motion.g>
+      </g>
       {/* Bicycle frame */}
       <rect x="58.4824" y="177.185" width="16.2507" height="41.7773" transform="rotate(-17.3692 58.4824 177.185)" fill="#293056" />
       <path d="M27.7383 51.6765L48.6561 69.875L75.7685 156.554L61.8999 160.892L27.7383 51.6765Z" fill="url(#isfj_paint3)" />
@@ -88,6 +85,17 @@ export function IsfJMascot({ className }: { className?: string }) {
         <path d="M280 169C288.21 172.158 285 169.158 288.079 166C286.5 172 287.5 171.5 291.5 174.842C286.358 172.185 283.8 176.221 283.116 178.134C283.079 178.254 283.04 178.376 283 178.5C283.03 178.39 283.068 178.267 283.116 178.134C284.581 173.383 283.337 172.08 280 169Z" fill="#FDFDFD" />
       </g>
       <defs>
+        <clipPath id="isfj_eyeClip">
+          <motion.rect
+            x={70}
+            width={195}
+            animate={{
+              y: [85, 85, 85, 85, 85, 175, 85, 85, 85, 175, 85],
+              height: [95, 95, 95, 95, 95, 5, 95, 95, 95, 5, 95],
+            }}
+            transition={blinkTransition}
+          />
+        </clipPath>
         <filter id="isfj_filter0" x="16" y="65.0005" width="17.5" height="18.5" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
           <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />

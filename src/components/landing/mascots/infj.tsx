@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { blinkAnimation, armSwayLeft, legSwayRight, spinSlow } from './animation-config';
+import { blinkTransition, armSwayLeft, legSwayRight, spinSlow } from './animation-config';
 
 export function InfJMascot({ className }: { className?: string }) {
   return (
@@ -34,12 +34,8 @@ export function InfJMascot({ className }: { className?: string }) {
         <path d="M111.829 72.1711L127.172 56.8284C128.734 55.2663 131.266 55.2663 132.828 56.8284L148.171 72.1711C149.733 73.7332 149.733 76.2659 148.171 77.828L132.828 93.1707C131.266 94.7328 128.734 94.7328 127.172 93.1707L111.829 77.828C110.267 76.2659 110.267 73.7332 111.829 72.1711Z" fill="#FEC84B" />
         <path d="M123.828 72.1715L127.172 68.8284C128.734 67.2663 131.266 67.2663 132.828 68.8284L136.172 72.1715C137.734 73.7336 137.734 76.2663 136.172 77.8284L132.828 81.1715C131.266 82.7336 128.734 82.7336 127.172 81.1715L123.828 77.8284C122.266 76.2663 122.266 73.7336 123.828 72.1715Z" fill="#FDB022" />
       </motion.g>
-      {/* Left eye socket */}
-      {/* Both eyes - single blink group so they sync */}
-      <motion.g
-        {...blinkAnimation}
-        style={{ transformOrigin: '129px 103px' }}
-      >
+      {/* Both eyes - clipped by animated eyelid rect */}
+      <g clipPath="url(#infj_eyeClip)">
         {/* Left eye */}
         <path d="M79.8535 103.5C99.1832 103.5 114.853 119.17 114.854 138.5V142.5C114.854 161.83 99.1833 177.499 79.8535 177.5C60.5236 177.5 44.8535 161.83 44.8535 142.5V138.5C44.8537 119.17 60.5236 103.5 79.8535 103.5Z" fill="white" />
         <circle cx="85.3798" cy="145.026" r="25.5263" fill="url(#infj_paint1)" stroke="#12B76A" strokeWidth="2" />
@@ -48,7 +44,7 @@ export function InfJMascot({ className }: { className?: string }) {
         <path d="M177.854 103.5C197.183 103.5 212.853 119.17 212.854 138.5V142.5C212.854 161.83 197.183 177.499 177.854 177.5C158.524 177.5 142.854 161.83 142.854 142.5V138.5C142.854 119.17 158.524 103.5 177.854 103.5Z" fill="white" />
         <circle cx="177.38" cy="145.026" r="25.5263" fill="url(#infj_paint2)" stroke="#12B76A" strokeWidth="2" />
         <circle cx="171.129" cy="138.614" r="13.5" fill="white" />
-      </motion.g>
+      </g>
       {/* Nose bridge */}
       <rect x="120" y="130" width="15" height="9" fill="#05603A" />
       {/* Eye frames */}
@@ -97,6 +93,17 @@ export function InfJMascot({ className }: { className?: string }) {
         <path d="M168.33 251.335C164.522 241.341 164.363 227.737 164.76 222.185C164.76 220.003 166.188 215.522 171.9 215.046C179.04 214.451 179.635 219.805 179.635 222.185C179.635 224.564 181.419 248.956 186.179 251.335C189.987 253.239 190.543 258.077 190.344 259.664H160C160 252.049 165.553 250.939 168.33 251.335Z" fill="black" />
       </motion.g>
       <defs>
+        <clipPath id="infj_eyeClip">
+          <motion.rect
+            x={35}
+            width={190}
+            animate={{
+              y: [95, 95, 95, 95, 95, 180, 95, 95, 95, 180, 95],
+              height: [90, 90, 90, 90, 90, 5, 90, 90, 90, 5, 90],
+            }}
+            transition={blinkTransition}
+          />
+        </clipPath>
         <linearGradient id="infj_paint0" x1="130" y1="5" x2="129.975" y2="237" gradientUnits="userSpaceOnUse">
           <stop stopColor="#E6F4A6" />
           <stop offset="0.548077" stopColor="#A6F4C5" />

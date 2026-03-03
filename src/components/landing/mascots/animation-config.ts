@@ -1,9 +1,11 @@
 /** Shared animation presets matching family.co's mascot animation system */
 
-/** Eye blink: mostly open, two quick blinks */
-export const blinkAnimation = {
-  animate: { scaleY: [1, 1, 1, 1, 1, 0.05, 1, 1, 1, 0.05, 1] },
-  transition: { duration: 1, repeatDelay: 3, repeat: Infinity, ease: 'easeInOut' as const },
+/** Eye blink transition timing - used with clipPath eyelid rects */
+export const blinkTransition = {
+  duration: 1,
+  repeatDelay: 3,
+  repeat: Infinity,
+  ease: 'easeInOut' as const,
 };
 
 /** Arm sway: gentle rotation back and forth */
