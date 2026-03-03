@@ -41,8 +41,8 @@ export function EntJMascot({ className }: { className?: string }) {
       </motion.g>
       {/* Left arm reach */}
       <motion.g
-        animate={{ rotate: [0, 8, 0] }}
-        transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ rotate: [0, 17, 0, -17, 0] }}
+        transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '90px 118px' }}
       >
         <path d="M69.9642 106.533L107.509 130.07C110.146 131.593 114.65 136.152 105.569 137.326C96.4885 138.5 72.9931 140.758 62.3805 141.741" stroke="#181D27" strokeWidth="7.54724" strokeLinecap="round" />
@@ -56,8 +56,8 @@ export function EntJMascot({ className }: { className?: string }) {
       </motion.g>
       {/* Right arm stroke */}
       <motion.g
-        animate={{ rotate: [0, -8, 0] }}
-        transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ rotate: [0, -17, 0, 17, 0] }}
+        transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '182px 194px' }}
       >
         <path d="M181.891 193.992C190.23 195.526 202.605 194.619 208.887 180.462" stroke="black" strokeWidth="12.5787" strokeLinecap="round" />

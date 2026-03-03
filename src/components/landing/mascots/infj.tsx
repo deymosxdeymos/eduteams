@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { blinkTransition, armSwayLeft, legSwayRight, spinSlow } from './animation-config';
+import { blinkTransition, armSwayLeft, legSwayLeft, legSwayRight, spinSlow } from './animation-config';
 
 export function InfJMascot({ className }: { className?: string }) {
   return (
@@ -13,12 +13,18 @@ export function InfJMascot({ className }: { className?: string }) {
       aria-hidden="true"
     >
       {/* Left leg */}
-      <path d="M99.4878 233.239L114.362 235.619C113.767 238.197 113.172 244.424 115.552 248.707C117.932 252.99 117.734 258.027 117.337 259.415H89.3732C84.6133 244.542 100.678 248.112 100.083 247.517C98.6549 243.71 99.0912 236.412 99.4878 233.239Z" fill="black" />
+      <motion.g
+        {...legSwayLeft}
+        style={{ transformOrigin: '100px 233px' }}
+      >
+        <path d="M99.4878 233.239L114.362 235.619C113.767 238.197 113.172 244.424 115.552 248.707C117.932 252.99 117.734 258.027 117.337 259.415H89.3732C84.6133 244.542 100.678 248.112 100.083 247.517C98.6549 243.71 99.0912 236.412 99.4878 233.239Z" fill="black" />
+      </motion.g>
       {/* Body */}
       <path d="M135.589 237C55.4964 237 22.8143 183.305 20.1833 150.618C17.7996 121.003 39.347 83.9236 45.044 83.9236C50.0505 83.9236 46.0453 89.6278 48.0479 90.5792C50.0505 91.5305 64.0686 51.1223 80.59 40.663C84.1492 38.4097 82.8074 49.7865 84.5952 47.3185C89.101 33.5319 126.65 5.50521 133.205 5.01186C139.76 4.51852 157.292 19.4427 173.21 43.9914C173.607 38.5619 172.876 36.3046 176.214 35.9097C180.385 35.4161 197.741 56.8273 210.258 75.3672C221.188 91.558 242.299 113.874 239.796 156.183C237.658 192.313 198.743 237 135.589 237Z" fill="url(#infj_paint0)" />
-      {/* Left arm - sway */}
+      {/* Left arm - sway (reduced range — long stroke arm detaches at full ±17) */}
       <motion.g
-        {...armSwayLeft}
+        animate={{ rotate: [0, 8, 0, -8, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '33px 175px' }}
       >
         <path d="M27.4237 175C23.237 184.204 18.5042 205.454 33.0664 216.814" stroke="black" strokeWidth="15" strokeLinecap="round" />
@@ -62,10 +68,10 @@ export function InfJMascot({ className }: { className?: string }) {
         <path d="M122.267 179.488C126.05 182.606 134.595 186.407 138.517 176.667L122.267 179.488Z" fill="#F4F3FF" />
         <ellipse cx="145.825" cy="212.758" rx="34.5" ry="18.5" transform="rotate(13.875 145.825 212.758)" fill="#FECDCA" />
       </g>
-      {/* Right arm - sway */}
+      {/* Right arm - sway (reduced range — long stroke arm) */}
       <motion.g
-        animate={{ rotate: [0, -10, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ rotate: [0, -8, 0, 8, 0] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '235px 190px' }}
       >
         <path d="M221.63 205.889C230.394 200.845 246.616 186.327 241.394 168.611" stroke="black" strokeWidth="15" strokeLinecap="round" />
