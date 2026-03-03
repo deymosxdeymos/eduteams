@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { TextMorph } from 'torph/react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { authClient } from '@/lib/auth-client';
@@ -37,13 +36,13 @@ export function LoginButton({ className }: LoginButtonProps) {
       type='button'
       variant='outline'
       className={cn(
-        'w-fit rounded-full text-sm sm:text-lg py-8 px-10 cursor-pointer transition-all duration-200 ease-out motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95',
+        'w-fit min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10 cursor-pointer transition-all duration-200 ease-out motion-reduce:transform-none [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:active:scale-95',
         className
       )}
       onClick={handleGoogleSignIn}
       disabled={isLoading}
     >
-      <div className='mr-2 flex h-6 w-6 items-center justify-center'>
+      <div className='mr-2 flex h-6 w-6 shrink-0 items-center justify-center'>
         {isLoading ? (
           <LoadingSpinner size='sm' />
         ) : (
@@ -56,14 +55,9 @@ export function LoginButton({ className }: LoginButtonProps) {
           />
         )}
       </div>
-      <TextMorph
-        as='span'
-        duration={260}
-        ease='cubic-bezier(0.23, 1, 0.32, 1)'
-        className='inline-block'
-      >
+      <span className='inline-block'>
         {isLoading ? t('signingIn') : t('signInWithGoogle')}
-      </TextMorph>
+      </span>
     </Button>
   );
 }

@@ -27,13 +27,12 @@ export function EstPMascot({ className }: { className?: string }) {
       >
         <path d="M147.488 227.323L162.362 229.702C161.767 232.28 161.172 238.507 163.552 242.79C165.932 247.074 165.734 252.111 165.337 253.499H137.373C132.613 238.626 148.678 242.195 148.083 241.601C146.655 237.793 147.091 230.496 147.488 227.323Z" fill="black" />
       </motion.g>
-      {/* Left arm - sway */}
+      {/* Left arm stroke */}
       <motion.g
         {...armSwayLeft}
         style={{ transformOrigin: '130px 128px' }}
       >
         <path d="M48.1334 139.35C48.3381 154.756 48.8442 174.027 84.5292 182.907" stroke="black" strokeWidth="15.0405" strokeLinecap="round" />
-        <path d="M105.663 117.72L154.323 138.323C157.716 139.617 163.882 144.132 153.413 147.233C142.944 150.334 115.709 157.442 103.4 160.608" stroke="#181D27" strokeWidth="9" strokeLinecap="round" />
         <path d="M41.0115 151.951L57.3432 146.825C56.9402 147.882 59.6543 155.652 61.2898 159.302L45.2874 166.646C44.2682 165.349 40.9401 155.824 41.0115 151.951Z" fill="#F79009" />
       </motion.g>
       {/* Body */}
@@ -57,12 +56,20 @@ export function EstPMascot({ className }: { className?: string }) {
         <path d="M166.926 167.927C171.123 172.16 180.999 177.799 186.93 166.493L166.926 167.927Z" fill="#F4F3FF" />
         <ellipse cx="204.319" cy="212.173" rx="41.9529" ry="22.4965" transform="rotate(10.2157 204.319 212.173)" fill="#FDA29B" />
       </g>
-      {/* Right arm - sway */}
+      {/* Face "><" eyes (subtle sway) */}
+      <motion.g
+        animate={{ rotate: [0, 4, 0, -4, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ transformOrigin: '175px 138px' }}
+      >
+        <path d="M105.663 117.72L154.323 138.323C157.716 139.617 163.882 144.132 153.413 147.233C142.944 150.334 115.709 157.442 103.4 160.608" stroke="#181D27" strokeWidth="9" strokeLinecap="round" />
+        <path d="M244.585 118L195.925 138.603C192.532 139.897 186.366 144.412 196.835 147.513C207.304 150.614 234.539 157.722 246.848 160.888" stroke="#181D27" strokeWidth="9" strokeLinecap="round" />
+      </motion.g>
+      {/* Right arm stroke */}
       <motion.g
         {...armSwayRight}
         style={{ transformOrigin: '220px 128px' }}
       >
-        <path d="M244.585 118L195.925 138.603C192.532 139.897 186.366 144.412 196.835 147.513C207.304 150.614 234.539 157.722 246.848 160.888" stroke="#181D27" strokeWidth="9" strokeLinecap="round" />
         <path d="M270.189 174.937C275.078 183.789 281.446 204.606 267.81 217.063" stroke="black" strokeWidth="15" strokeLinecap="round" />
         <path d="M279.554 215.631L263.455 209.813C264.416 209.216 266.965 201.391 267.876 197.496L285.056 201.35C285.081 202.999 281.957 212.592 279.554 215.631Z" fill="#F79009" />
       </motion.g>

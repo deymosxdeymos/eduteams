@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { armSwayLeft, armSwayRight, legSwayLeft, legSwayRight, spinSlow } from './animation-config';
+import { legSwayLeft, legSwayRight, spinSlow } from './animation-config';
 
 export function EntJMascot({ className }: { className?: string }) {
   return (
@@ -12,9 +12,10 @@ export function EntJMascot({ className }: { className?: string }) {
       className={className}
       aria-hidden="true"
     >
-      {/* Left arm stroke */}
+      {/* Left arm stroke (subtle sway) */}
       <motion.g
-        {...armSwayLeft}
+        animate={{ rotate: [0, 4, 0, -4, 0] }}
+        transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '58px 174px' }}
       >
         <path d="M58.0164 173.647C45.4544 170.777 26.6869 160.37 28.6058 129.422" stroke="black" strokeWidth="12.5787" strokeLinecap="round" />
@@ -39,24 +40,25 @@ export function EntJMascot({ className }: { className?: string }) {
       >
         <path d="M141.885 219.149C139.308 210.559 140.002 199.171 140.672 194.551C140.804 192.727 142.271 189.066 147.077 189.015C153.085 188.952 153.257 193.466 153.112 195.456C152.968 197.446 152.977 217.955 156.814 220.235C159.883 222.059 160.053 226.139 159.791 227.454L134.411 225.609C134.874 219.24 139.586 218.649 141.885 219.149Z" fill="black" />
       </motion.g>
-      {/* Left arm reach */}
+      {/* Left arm reach (subtle sway) */}
       <motion.g
-        animate={{ rotate: [0, 17, 0, -17, 0] }}
-        transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ rotate: [0, 4, 0, -4, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '90px 118px' }}
       >
         <path d="M69.9642 106.533L107.509 130.07C110.146 131.593 114.65 136.152 105.569 137.326C96.4885 138.5 72.9931 140.758 62.3805 141.741" stroke="#181D27" strokeWidth="7.54724" strokeLinecap="round" />
       </motion.g>
-      {/* Right arm reach */}
+      {/* Right arm reach (subtle sway) */}
       <motion.g
-        {...armSwayRight}
+        animate={{ rotate: [0, -4, 0, 4, 0] }}
+        transition={{ duration: 4.3, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '163px 130px' }}
       >
         <path d="M184.947 125.261L141.916 135.841C138.934 136.46 133.228 139.377 141.483 143.339C149.738 147.3 171.34 156.811 181.11 161.071" stroke="#181D27" strokeWidth="7.54724" strokeLinecap="round" />
       </motion.g>
-      {/* Right arm stroke */}
+      {/* Right arm stroke (subtle sway) */}
       <motion.g
-        animate={{ rotate: [0, -17, 0, 17, 0] }}
+        animate={{ rotate: [0, -4, 0, 4, 0] }}
         transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transformOrigin: '182px 194px' }}
       >

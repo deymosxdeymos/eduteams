@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { blinkTransition, armSwayLeft, legSwayLeft, legSwayRight, spinSlow } from './animation-config';
+import { blinkTransition, legSwayLeft, legSwayRight, spinSlow } from './animation-config';
 
 export function InfJMascot({ className }: { className?: string }) {
   return (

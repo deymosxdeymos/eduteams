@@ -27,7 +27,7 @@ export default async function Home() {
           className='justify-center animate-hero-delay-800'
         />
         <div className='flex items-center font-medium text-base gap-x-2 sm:gap-x-6'>
-          <div className='sm:flex text-background items-center gap-x-2 sm:gap-x-4 animate-hero-delay-700'>
+          <div className='hidden sm:flex text-background items-center gap-x-2 sm:gap-x-4 text-lg animate-hero-delay-700'>
             <a href='#tentang'>Tentang</a>
             <a href='#masalah'>Masalah</a>
             <a href='#solusi'>Solusi</a>
@@ -38,7 +38,7 @@ export default async function Home() {
       </nav>
       <main id={mainContentId} className='overflow-x-hidden'>
         <section className='bg-blue-background min-h-screen flex flex-col px-6 pt-20 sm:pt-24 overflow-x-hidden relative'>
-          <div className='flex flex-col items-center justify-center gap-6 sm:gap-8 lg:gap-10 px-4 pt-8 sm:pt-12 lg:pt-10 lg:pb-20'>
+          <div className='flex flex-col items-center justify-center gap-4 sm:gap-5 lg:gap-5 px-4 pt-8 sm:pt-12 lg:pt-10 lg:pb-8'>
             <div className='text-center'>
               <h1 className='text-white text-5xl lg:text-7xl font-bold tracking-tight animate-hero-delay-600'>
                 {t('homepage.hero.titlePrefix')}

@@ -69,7 +69,7 @@ const heroCharacters: HeroCharacter[] = [
     id: 'estp',
     Mascot: EstPMascot,
     className:
-      'left-[4%] bottom-[7%] z-10 w-[28%] max-w-[215px] sm:left-[7%] sm:bottom-[7%] sm:w-[24%] sm:max-w-[250px] lg:left-[8%] lg:bottom-[6%] lg:w-[24%] lg:max-w-[285px]',
+      'left-[4%] bottom-[7%] z-10 w-[28%] max-w-[245px] sm:left-[7%] sm:bottom-[7%] sm:w-[24%] sm:max-w-[285px] lg:left-[8%] lg:bottom-[6%] lg:w-[24%] lg:max-w-[325px]',
     float: {
       y: {
         animate: { y: [-6.5, 0, -8.1] },
@@ -97,7 +97,7 @@ const heroCharacters: HeroCharacter[] = [
     id: 'isfj',
     Mascot: IsfJMascot,
     className:
-      'left-[19%] bottom-[6%] z-20 w-[43%] max-w-[290px] sm:left-[21%] sm:bottom-[6%] sm:w-[37%] sm:max-w-[345px] lg:left-[22%] lg:bottom-[5%] lg:w-[37%] lg:max-w-[405px]',
+      'left-[19%] bottom-[6%] z-20 w-[43%] max-w-[330px] sm:left-[21%] sm:bottom-[6%] sm:w-[37%] sm:max-w-[395px] lg:left-[22%] lg:bottom-[5%] lg:w-[37%] lg:max-w-[465px]',
     float: {
       y: {
         animate: { y: [-5.9, 0, -7.4] },
@@ -125,7 +125,7 @@ const heroCharacters: HeroCharacter[] = [
     id: 'infj',
     Mascot: InfJMascot,
     className:
-      'right-[14%] bottom-[7%] z-30 w-[35%] max-w-[245px] sm:right-[15%] sm:bottom-[6%] sm:w-[31%] sm:max-w-[295px] lg:right-[15%] lg:bottom-[5%] lg:w-[31%] lg:max-w-[340px]',
+      'right-[14%] bottom-[7%] z-30 w-[35%] max-w-[280px] sm:right-[15%] sm:bottom-[6%] sm:w-[31%] sm:max-w-[340px] lg:right-[15%] lg:bottom-[5%] lg:w-[31%] lg:max-w-[390px]',
     float: {
       y: {
         animate: { y: [-7.2, 0, -6.1] },
@@ -153,7 +153,7 @@ const heroCharacters: HeroCharacter[] = [
     id: 'entp',
     Mascot: EntPMascot,
     className:
-      'right-[4%] bottom-[8%] z-0 w-[23%] max-w-[175px] sm:right-[6%] sm:bottom-[8%] sm:w-[20%] sm:max-w-[210px] lg:right-[6%] lg:bottom-[7%] lg:w-[20%] lg:max-w-[240px]',
+      'right-[4%] bottom-[8%] z-0 w-[23%] max-w-[200px] sm:right-[6%] sm:bottom-[8%] sm:w-[20%] sm:max-w-[240px] lg:right-[6%] lg:bottom-[7%] lg:w-[20%] lg:max-w-[275px]',
     float: {
       y: {
         animate: { y: [-4.8, 0, -6.6] },
@@ -226,7 +226,7 @@ function Character({ character }: { character: HeroCharacter }) {
 export function HeroMbtiCollage() {
   return (
     <motion.div
-      className="animate-mascot relative mt-4 mb-6 h-[255px] w-full max-w-[980px] sm:h-[320px] md:h-[305px] lg:mb-0 lg:h-[365px]"
+      className="animate-mascot relative mt-4 mb-6 h-[255px] w-full max-w-[980px] sm:h-[365px] md:h-[350px] lg:mb-0 lg:h-[420px]"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
