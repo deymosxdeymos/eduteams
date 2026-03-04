@@ -290,14 +290,13 @@ export function MbtiBarChart({
   );
 
   const sortedData = useMemo(() => {
-    const data = [...chartData];
     switch (sortOrder) {
       case 'highest':
-        return data.sort((a, b) => b.jumlah - a.jumlah);
+        return chartData.toSorted((a, b) => b.jumlah - a.jumlah);
       case 'lowest':
-        return data.sort((a, b) => a.jumlah - b.jumlah);
+        return chartData.toSorted((a, b) => a.jumlah - b.jumlah);
       default:
-        return data;
+        return chartData;
     }
   }, [chartData, sortOrder]);
 

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
@@ -144,11 +144,7 @@ export function AssignmentContent({
     },
   });
 
-  useEffect(() => {
-    if (status !== 'FAILED' && showError) {
-      setShowError(false);
-    }
-  }, [status, showError]);
+  const effectiveShowError = showError && status === 'FAILED';
 
   const handleRetry = () => {
     setShowError(false);
@@ -217,7 +213,7 @@ export function AssignmentContent({
         ) : isTeamFormationProcessing && status !== 'FAILED' ? (
           // Show loading animation for teachers when team formation is processing
           <TeamFormationLoading />
-        ) : showError || status === 'FAILED' ? (
+        ) : effectiveShowError || status === 'FAILED' ? (
           // Show error message with retry button
           <div className='flex-1 flex items-center justify-center'>
             <div className='flex flex-col items-center text-center max-w-xl gap-4'>

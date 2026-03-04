@@ -122,12 +122,11 @@ interface ManageCoursesViewProps {
 }
 
 function sortCourses(rows: ManageCourseRow[], key: SortKey) {
-  const list = [...rows];
   switch (key) {
     case 'name-asc':
-      return list.sort((a, b) => a.name.localeCompare(b.name, 'id'));
+      return rows.toSorted((a, b) => a.name.localeCompare(b.name, 'id'));
     case 'year-desc':
-      return list.sort((a, b) => {
+      return rows.toSorted((a, b) => {
         if (a.endYear !== b.endYear) {
           return b.endYear - a.endYear;
         }
@@ -137,7 +136,7 @@ function sortCourses(rows: ManageCourseRow[], key: SortKey) {
         return a.name.localeCompare(b.name, 'id');
       });
     default:
-      return list.sort(
+      return rows.toSorted(
         (a, b) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       );

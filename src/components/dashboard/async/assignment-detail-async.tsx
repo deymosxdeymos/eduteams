@@ -321,7 +321,7 @@ export async function AssignmentDetailAsync({
             name: skill.skill?.name ?? null,
           })) ?? [];
 
-        const sortedSkills = [...personSkills].sort(
+        const sortedSkills = personSkills.toSorted(
           (a, b) => (b.level ?? 0) - (a.level ?? 0)
         );
         const filteredSkills = sortedSkills.filter(skill =>
@@ -347,7 +347,7 @@ export async function AssignmentDetailAsync({
         type TopicPrefMapped = { name: string | null; preference: number };
         const preferredTopics = topicPreferences
           .filter((pref: TopicPrefMapped) => pref.name)
-          .sort(
+          .toSorted(
             (a: TopicPrefMapped, b: TopicPrefMapped) =>
               (b.preference ?? 0) - (a.preference ?? 0)
           )

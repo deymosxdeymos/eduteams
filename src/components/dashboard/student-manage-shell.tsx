@@ -65,7 +65,7 @@ function filterAndSort(
     );
   }
 
-  return filtered.sort((a, b) => {
+  return filtered.toSorted((a, b) => {
     if (sortKey === 'name') {
       return a.taskTitle.localeCompare(b.taskTitle);
     }

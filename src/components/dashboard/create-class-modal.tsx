@@ -364,7 +364,7 @@ export default function CreateClassModal({
         await mutateCatalog(current => {
           const next = current ? [...current] : [];
           next.push(createdCourse);
-          return next.sort((a, b) => a.code.localeCompare(b.code));
+          return next.toSorted((a, b) => a.code.localeCompare(b.code));
         }, false);
 
         setSelectedCatalogCourse(createdCourse);
