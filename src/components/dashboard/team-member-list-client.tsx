@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,6 +22,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import type { Gender } from '@/generated/prisma/client';
+import { removeCourseStudent } from '@/lib/client-api';
+import { EMPTY_SET } from '@/lib/constants';
 import type { ExtendedUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
@@ -80,6 +82,7 @@ interface TeamMemberListClientProps {
   onSavingChange?: (isSaving: boolean) => void;
 }
 
+
 const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
   const ei = member.user.ei ?? null;
   const sn = member.user.sn ?? null;
@@ -126,7 +129,7 @@ export function TeamMemberListClient({
   teamId,
   assignmentId,
   availableStudents = [],
-  missingStudentIds = new Set(),
+  missingStudentIds = EMPTY_SET,
   saveTrigger,
   onPendingAdditionsChange,
   onSavingChange,
@@ -158,7 +161,7 @@ export function TeamMemberListClient({
   const [pendingDeletions, setPendingDeletions] = useState<Set<string>>(
     new Set()
   );
-  const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = useRef(false);
   const [_saveError, setSaveError] = useState<string | null>(null);
   const lastSaveTriggerRef = useRef(0);
   const onPendingAdditionsChangeRef = useRef(onPendingAdditionsChange);
@@ -172,8 +175,34 @@ export function TeamMemberListClient({
     onSavingChangeRef.current = onSavingChange;
   }, [onSavingChange]);
 
-  const filteredAvailableStudents = availableStudents.filter(
-    s => !pendingAdditions.has(s.id)
+  const removeCourseStudentCb = useCallback(
+    (studentId: string) => removeCourseStudent(courseId, studentId, t('errors.removeFailed')),
+    [courseId, t]
+  );
+
+  const mutateTeamMember = useCallback(
+    async (method: 'POST' | 'DELETE', studentId: string) => {
+      const res = await fetch(
+        `/api/assignments/${assignmentId}/teams/${teamId}/members`,
+        {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId }),
+        }
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const fallbackMessage =
+          method === 'POST' ? tTeams('addMemberFailed') : tTeams('removeMemberFailed');
+        throw new Error(json?.error || fallbackMessage);
+      }
+    },
+    [assignmentId, teamId, tTeams]
+  );
+
+  const filteredAvailableStudents = useMemo(
+    () => availableStudents.filter(s => !pendingAdditions.has(s.id)),
+    [availableStudents, pendingAdditions]
   );
 
   const displayMembers = [
@@ -224,16 +253,7 @@ export function TeamMemberListClient({
     setIsRemoving(true);
     setRemoveError(null);
     try {
-      const res = await fetch(
-        `/api/courses/${courseId}/students/${studentId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(json?.error || t('errors.removeFailed'));
-      }
+      await removeCourseStudentCb(studentId);
       setConfirmStudentId(null);
       // Close profile modal if viewing the removed student
       if (selectedMember && selectedMember.user.id === studentId) {
@@ -280,6 +300,7 @@ export function TeamMemberListClient({
       for (const id of selectedMembers) {
         next.delete(id);
       }
+      onPendingAdditionsChangeRef.current?.(new Set(next));
       return next;
     });
     setSelectedMembers(new Set());
@@ -288,7 +309,11 @@ export function TeamMemberListClient({
 
   const handleAddStudent = (studentId: string) => {
     if (!teamId || !assignmentId) return;
-    setPendingAdditions(prev => new Set(prev).add(studentId));
+    setPendingAdditions(prev => {
+      const next = new Set(prev).add(studentId);
+      onPendingAdditionsChangeRef.current?.(new Set(next));
+      return next;
+    });
     setPendingDeletions(prev => {
       const next = new Set(prev);
       next.delete(studentId);
@@ -309,51 +334,39 @@ export function TeamMemberListClient({
     pendingDeletionsRef.current = pendingDeletions;
   }, [pendingDeletions]);
 
+  useEffect(() => {
+    // TODO: Lift pending-addition state into AssignmentTeamsContent so this
+    // component does not need mount/unmount synchronization with parent refs.
+    onPendingAdditionsChangeRef.current?.(pendingAdditionsRef.current);
+
+    return () => {
+      onPendingAdditionsChangeRef.current?.(new Set());
+    };
+  }, []);
+
   const savePendingChanges = useCallback(async () => {
     if (!teamId || !assignmentId) return;
+
     const additions = pendingAdditionsRef.current;
     const deletions = pendingDeletionsRef.current;
 
     if (additions.size === 0 && deletions.size === 0) return;
 
-    setIsSaving(true);
+    isSavingRef.current = true;
+    onSavingChangeRef.current?.(true);
     setSaveError(null);
 
     try {
-      const addPromises = Array.from(additions).map(async studentId => {
-        const res = await fetch(
-          `/api/assignments/${assignmentId}/teams/${teamId}/members`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ studentId }),
-          }
-        );
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(json?.error || tTeams('addMemberFailed'));
-        }
-        return res;
-      });
-
-      const deletePromises = Array.from(deletions).map(async studentId => {
-        const res = await fetch(
-          `/api/assignments/${assignmentId}/teams/${teamId}/members`,
-          {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ studentId }),
-          }
-        );
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(json?.error || 'Failed to delete member');
-        }
-        return res;
-      });
+      const addPromises = Array.from(additions).map(studentId =>
+        mutateTeamMember('POST', studentId)
+      );
+      const deletePromises = Array.from(deletions).map(studentId =>
+        mutateTeamMember('DELETE', studentId)
+      );
 
       await Promise.all([...addPromises, ...deletePromises]);
       setPendingAdditions(new Set());
+      onPendingAdditionsChangeRef.current?.(new Set());
       setPendingDeletions(new Set());
       setSelectedMembers(new Set());
       router.refresh();
@@ -362,9 +375,10 @@ export function TeamMemberListClient({
         err instanceof Error ? err.message : 'Failed to save changes'
       );
     } finally {
-      setIsSaving(false);
+      isSavingRef.current = false;
+      onSavingChangeRef.current?.(false);
     }
-  }, [teamId, assignmentId, router, tTeams]);
+  }, [teamId, assignmentId, mutateTeamMember, router]);
 
   useEffect(() => {
     if (
@@ -373,17 +387,12 @@ export function TeamMemberListClient({
       saveTrigger !== lastSaveTriggerRef.current
     ) {
       lastSaveTriggerRef.current = saveTrigger;
-      savePendingChanges();
+      void savePendingChanges();
     }
   }, [saveTrigger, savePendingChanges]);
 
-  useEffect(() => {
-    onPendingAdditionsChangeRef.current?.(new Set(pendingAdditions));
-  }, [pendingAdditions]);
-
-  useEffect(() => {
-    onSavingChangeRef.current?.(isSaving);
-  }, [isSaving]);
+  // Callbacks are called directly in handlers (handleAddStudent, handleDeleteSelected, savePendingChanges)
+  // instead of using effects to propagate derived state.
 
   return (
     <>

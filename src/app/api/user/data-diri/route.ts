@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
+import { genderToLabel, labelToGender } from '@/lib/utils/gender';
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
 
@@ -27,13 +28,7 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
     return createApiResponse(null, 'User not found', 404);
   }
 
-  // Convert enum to UI format
-  const jenisKelamin =
-    currentUser.gender === 'MALE'
-      ? 'laki-laki'
-      : currentUser.gender === 'FEMALE'
-        ? 'perempuan'
-        : '';
+  const jenisKelamin = genderToLabel(currentUser.gender);
 
   return createApiResponse({
     namaLengkap: currentUser.name || '',
@@ -54,8 +49,7 @@ export const POST = withAuth(
         return createApiResponse(null, 'NIM is required for mahasiswa', 400);
       }
 
-      // Convert UI gender to enum
-      const gender = jenisKelamin === 'laki-laki' ? 'MALE' : 'FEMALE';
+      const gender = labelToGender(jenisKelamin);
 
       // Update user with data-diri information
       await prisma.user.update({

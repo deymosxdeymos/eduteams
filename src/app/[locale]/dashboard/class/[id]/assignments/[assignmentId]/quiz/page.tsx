@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
 import { AssignmentQuizClient } from '@/components/dashboard/assignment-quiz-client';
@@ -330,13 +331,15 @@ export default async function AssignmentQuizPage({
     };
 
     // Personality QA: fetch questions + user answers
-    const mbtiQuestions = await getMBTIQuestions(locale);
-    const userRecord = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        personalityProfile: { select: { personalityData: true } },
-      },
-    });
+    const [mbtiQuestions, userRecord] = await Promise.all([
+      getMBTIQuestions(locale),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          personalityProfile: { select: { personalityData: true } },
+        },
+      }),
+    ]);
     const personalityJson = userRecord?.personalityProfile
       ?.personalityData as unknown as {
       answers?: Record<string, number>;
@@ -345,27 +348,6 @@ export default async function AssignmentQuizPage({
       string,
       number
     >;
-
-    // Debug logs to inspect answers mapping in dev server
-    try {
-      const keys = Object.keys(personalityAnswers);
-      console.log(
-        '[LihatJawaban][kepribadian] userId=%s keys=%d sample=%o',
-        user.id,
-        keys.length,
-        keys.slice(0, 5)
-      );
-      console.log(
-        '[LihatJawaban][kepribadian] q0=%o',
-        mbtiQuestions[0]
-          ? {
-              id: mbtiQuestions[0].id,
-              orderHint: mbtiQuestions[0].orderHint,
-              text: mbtiQuestions[0].text,
-            }
-          : null
-      );
-    } catch {}
 
     const category = getMBTICategory(user.mbtiType);
     const underlineClass =
@@ -400,13 +382,13 @@ export default async function AssignmentQuizPage({
         >
           <div className='flex flex-col p-6 gap-6'>
             <div className='flex items-center'>
-              <a
+              <Link
                 href={`/dashboard/class/${classId}/assignments/${assignmentId}`}
                 className='inline-flex items-center gap-2 text-sm text-neutral-700 hover:text-black'
               >
                 <ArrowLeft className='w-4 h-4' />
                 <span className='font-bold'>Kembali</span>
-              </a>
+              </Link>
             </div>
             <ProfileHeader user={user} hideEditButton />
             <div className='px-2'>
@@ -453,7 +435,7 @@ export default async function AssignmentQuizPage({
                           </tr>
                         </thead>
                         <tbody className='divide-y'>
-                          {mbtiQuestions.map((q, i) => (
+                          {mbtiQuestions.map((q: { id: string; text: string; orderHint?: number }, i: number) => (
                             <tr key={q.id} className='hover:bg-gray-50'>
                               <td className='px-4 py-3'>{i + 1}</td>
                               <td className='px-4 py-3'>{q.text}</td>

@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { removeCourseStudent } from '@/lib/client-api';
 import type { ExtendedUser } from '@/lib/types';
 import { getMBTIType } from '@/lib/utils/mbti-helpers';
 import { SearchInput } from './search-input';
@@ -128,7 +129,6 @@ export const StudentList = memo(function StudentList({
 
   const {
     data: studentsData,
-    error,
     mutate,
   } = useSWR(studentsKey, fetcher, {
     fallbackData: initialData ? { data: initialData } : undefined,
@@ -172,18 +172,12 @@ export const StudentList = memo(function StudentList({
     [students, searchValue]
   );
 
-  if (error) {
-    console.error('Failed to load students:', error);
-  }
 
-  useEffect(() => {
-    if (!isMbtiOpen) return;
-    setSelectedStudent(prev => {
-      if (!prev) return null;
-      const updated = students.find(s => s.id === prev.id);
-      return updated || prev;
-    });
-  }, [students, isMbtiOpen]);
+  // Derive the current modal student from students list to keep it fresh when SWR revalidates
+  const resolvedSelectedStudent = useMemo(() => {
+    if (!selectedStudent) return null;
+    return students.find(s => s.id === selectedStudent.id) || selectedStudent;
+  }, [students, selectedStudent]);
 
   // Close menus when clicking outside
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -216,21 +210,17 @@ export const StudentList = memo(function StudentList({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isSelectMode]);
 
+  const removeStudentFromCourse = useCallback(
+    (studentId: string) => removeCourseStudent(classId, studentId, t('errors.removeFailed')),
+    [classId, t]
+  );
+
   const onRemoveStudent = useCallback(
     async (studentId: string) => {
       setIsRemoving(true);
       setRemoveError(null);
       try {
-        const res = await fetch(
-          `/api/courses/${classId}/students/${studentId}`,
-          {
-            method: 'DELETE',
-          }
-        );
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(json?.error || t('errors.removeFailed'));
-        }
+        await removeStudentFromCourse(studentId);
         await mutate();
         setConfirmStudentId(null);
         setOpenMenuStudentId(null);
@@ -245,7 +235,7 @@ export const StudentList = memo(function StudentList({
         setIsRemoving(false);
       }
     },
-    [classId, t, mutate, selectedStudent]
+    [removeStudentFromCourse, mutate, selectedStudent, t]
   );
 
   const onBulkRemoveStudents = useCallback(async () => {
@@ -255,23 +245,7 @@ export const StudentList = memo(function StudentList({
 
     try {
       const results = await Promise.allSettled(
-        idsToRemove.map(studentId =>
-          fetch(`/api/courses/${classId}/students/${studentId}`, {
-            method: 'DELETE',
-          }).then(res => {
-            if (!res.ok) {
-              return res.json().then(
-                json => {
-                  throw new Error(json?.error || t('errors.removeFailed'));
-                },
-                () => {
-                  throw new Error('Gagal menghapus mahasiswa');
-                }
-              );
-            }
-            return res;
-          })
-        )
+        idsToRemove.map(studentId => removeStudentFromCourse(studentId))
       );
 
       const successfulIds = results.flatMap((result, index) =>
@@ -303,7 +277,19 @@ export const StudentList = memo(function StudentList({
     } finally {
       setIsRemoving(false);
     }
-  }, [selectedStudentIds, classId, t, mutate]);
+  }, [selectedStudentIds, removeStudentFromCourse, t, mutate]);
+
+  const handleMbtiDialogChange = useCallback((open: boolean) => {
+    setIsMbtiOpen(open);
+    if (!open) {
+      setSelectedStudent(null);
+      setModalContent('profile');
+    }
+  }, []);
+
+  const handleConfirmDialogChange = useCallback((open: boolean) => {
+    if (!open) setConfirmStudentId(null);
+  }, []);
 
   return (
     <div
@@ -740,13 +726,7 @@ export const StudentList = memo(function StudentList({
       {/* MBTI Overview Modal */}
       <Dialog
         open={isMbtiOpen}
-        onOpenChange={open => {
-          setIsMbtiOpen(open);
-          if (!open) {
-            setSelectedStudent(null);
-            setModalContent('profile');
-          }
-        }}
+        onOpenChange={handleMbtiDialogChange}
       >
         <DialogContent
           className='w-[85vw] max-w-[1200px] rounded-3xl p-0 border-0 gap-0 items-start'
@@ -757,9 +737,9 @@ export const StudentList = memo(function StudentList({
               ? t('studentProfile')
               : t('mbtiDistribution')}
           </DialogTitle>
-          {selectedStudent &&
+          {resolvedSelectedStudent &&
             (() => {
-              const studentUser = convertToExtendedUser(selectedStudent);
+              const studentUser = convertToExtendedUser(resolvedSelectedStudent);
 
               return modalContent === 'profile' ? (
                 <StudentProfileContent
@@ -789,7 +769,7 @@ export const StudentList = memo(function StudentList({
       {/* Confirm Remove Dialog */}
       <Dialog
         open={!!confirmStudentId}
-        onOpenChange={open => !open && setConfirmStudentId(null)}
+        onOpenChange={handleConfirmDialogChange}
       >
         <DialogContent className='sm:max-w-xs'>
           <DialogHeader>

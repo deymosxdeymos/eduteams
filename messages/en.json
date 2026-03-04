@@ -633,6 +633,7 @@
       "availableStudents": "Available Students",
       "noAvailableStudents": "No students available to add",
       "addMemberFailed": "Failed to add member",
+      "removeMemberFailed": "Failed to remove member",
       "cancelEdit": "Cancel Edit",
       "saveChanges": "Save Changes",
       "teamDetail": {

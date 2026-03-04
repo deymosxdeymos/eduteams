@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { TeamMemberListClient } from '@/components/dashboard/team-member-list-client';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import type { Gender } from '@/generated/prisma/client';
+import { EMPTY_SET } from '@/lib/constants';
 import type { ExtendedUser } from '@/lib/types';
 import { TeamDetailModalContent } from './team-detail-modal-content';
 
@@ -69,6 +70,7 @@ interface AssignmentTeamsContentProps {
   onSavingChange?: (isSaving: boolean) => void;
 }
 
+
 const mapMemberToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
   const ei = member.user.ei ?? null;
   const sn = member.user.sn ?? null;
@@ -113,7 +115,7 @@ export function AssignmentTeamsContent({
   currentUserId,
   isEditMode = false,
   enrolledStudents = [],
-  submittedStudentIds = new Set(),
+  submittedStudentIds = EMPTY_SET,
   saveTrigger,
   onPendingAdditionsChange,
   onSavingChange,
@@ -122,12 +124,8 @@ export function AssignmentTeamsContent({
   const pad = (n: number) => n.toString().padStart(2, '0');
   const [activeTeamIndex, setActiveTeamIndex] = useState<number | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [pendingAdditionsByTeam, setPendingAdditionsByTeam] = useState<
-    Map<string, Set<string>>
-  >(new Map());
-  const [savingByTeam, setSavingByTeam] = useState<Map<string, boolean>>(
-    new Map()
-  );
+  const pendingAdditionsByTeamRef = useRef<Map<string, Set<string>>>(new Map());
+  const savingByTeamRef = useRef<Map<string, boolean>>(new Map());
   const onPendingAdditionsChangeRef = useRef(onPendingAdditionsChange);
   const onSavingChangeRef = useRef(onSavingChange);
 
@@ -139,33 +137,17 @@ export function AssignmentTeamsContent({
     onSavingChangeRef.current = onSavingChange;
   }, [onSavingChange]);
 
-  useEffect(() => {
-    const combined = new Set<string>();
-    pendingAdditionsByTeam.forEach(ids => {
-      ids.forEach(id => {
-        combined.add(id);
-      });
-    });
-    onPendingAdditionsChangeRef.current?.(combined);
-  }, [pendingAdditionsByTeam]);
-
-  useEffect(() => {
-    const isAnySaving = Array.from(savingByTeam.values()).some(
-      saving => saving
-    );
-    onSavingChangeRef.current?.(isAnySaving);
-  }, [savingByTeam]);
-
-  const allAssignedStudentIds = new Set(
+  const allAssignedStudentIds = useMemo(() => new Set(
     teams.flatMap(team => team.members.map(m => m.user.id))
-  );
-  const availableStudents = enrolledStudents.filter(
-    s => !allAssignedStudentIds.has(s.id)
-  );
+  ), [teams]);
 
-  const missingStudentIds = new Set(
+  const availableStudents = useMemo(() => enrolledStudents.filter(
+    s => !allAssignedStudentIds.has(s.id)
+  ), [enrolledStudents, allAssignedStudentIds]);
+
+  const missingStudentIds = useMemo(() => new Set(
     availableStudents.filter(s => !submittedStudentIds.has(s.id)).map(s => s.id)
-  );
+  ), [availableStudents, submittedStudentIds]);
 
   const activeTeam = activeTeamIndex != null ? teams[activeTeamIndex] : null;
 
@@ -323,26 +305,26 @@ export function AssignmentTeamsContent({
                   missingStudentIds={missingStudentIds}
                   saveTrigger={saveTrigger}
                   onPendingAdditionsChange={pendingIds => {
-                    setPendingAdditionsByTeam(prev => {
-                      const next = new Map(prev);
-                      if (pendingIds.size > 0) {
-                        next.set(team.id, new Set(pendingIds));
-                      } else {
-                        next.delete(team.id);
-                      }
-                      return next;
-                    });
+                    const map = pendingAdditionsByTeamRef.current;
+                    if (pendingIds.size > 0) {
+                      map.set(team.id, new Set(pendingIds));
+                    } else {
+                      map.delete(team.id);
+                    }
+                    const combined = new Set<string>();
+                    map.forEach(ids => { ids.forEach(id => { combined.add(id); }); });
+                    onPendingAdditionsChangeRef.current?.(combined);
                   }}
                   onSavingChange={isSaving => {
-                    setSavingByTeam(prev => {
-                      const next = new Map(prev);
-                      if (isSaving) {
-                        next.set(team.id, true);
-                      } else {
-                        next.delete(team.id);
-                      }
-                      return next;
-                    });
+                    const map = savingByTeamRef.current;
+                    if (isSaving) {
+                      map.set(team.id, true);
+                    } else {
+                      map.delete(team.id);
+                    }
+                    let anySaving = false;
+                    for (const v of map.values()) { if (v) { anySaving = true; break; } }
+                    onSavingChangeRef.current?.(anySaving);
                   }}
                 />
               </div>

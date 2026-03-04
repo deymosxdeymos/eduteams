@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
@@ -10,6 +10,7 @@ import { ChartsToggle } from '@/components/dashboard/charts-toggle';
 import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
 import { Button } from '@/components/ui/button';
 import type { Gender } from '@/generated/prisma/client';
+import { EMPTY_SET } from '@/lib/constants';
 import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
 import { useRouter } from '@/i18n/routing';
 import type { AssignmentStats } from '@/lib/stats/assignment';
@@ -50,6 +51,7 @@ interface EnrolledStudent {
   mbtiType: string | null;
   gender: string | null;
 }
+
 
 interface AssignmentContentProps {
   assignmentId: string;
@@ -98,7 +100,7 @@ export function AssignmentContent({
   incompleteStudentCount = 0,
   currentUserId,
   enrolledStudents = [],
-  submittedStudentIds = new Set(),
+  submittedStudentIds = EMPTY_SET,
 }: AssignmentContentProps) {
   const t = useTranslations('dashboard.assignment');
   const tTeams = useTranslations('dashboard.teams');
@@ -113,16 +115,19 @@ export function AssignmentContent({
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  const allAssignedStudentIds = new Set(
+  const allAssignedStudentIds = useMemo(() => new Set(
     teams.flatMap(team => team.members.map(m => m.user.id))
-  );
-  // Calculate missing students (enrolled but not in teams)
-  const missingStudents = enrolledStudents.filter(
-    student => !allAssignedStudentIds.has(student.id)
-  );
-  const visibleMissingStudents = missingStudents.filter(
-    student => !pendingAdditionIds.has(student.id)
-  );
+  ), [teams]);
+
+  const visibleMissingStudents = useMemo(() => {
+    const missingStudents = enrolledStudents.filter(
+      student => !allAssignedStudentIds.has(student.id)
+    );
+    return missingStudents.filter(
+      student => !pendingAdditionIds.has(student.id)
+    );
+  }, [enrolledStudents, allAssignedStudentIds, pendingAdditionIds]);
+
   const adjustedIncompleteCount = visibleMissingStudents.length;
 
   const shouldFetchStatus = !isStudent;
@@ -137,10 +142,8 @@ export function AssignmentContent({
       // Auto-refresh when team formation completes
       router.refresh();
     },
-    onFailed: error => {
-      // Show error message inline
+    onFailed: () => {
       setShowError(true);
-      console.error('Team formation failed:', error);
     },
   });
 

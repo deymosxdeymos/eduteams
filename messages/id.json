@@ -632,6 +632,7 @@
       "availableStudents": "Daftar Mahasiswa",
       "noAvailableStudents": "Tidak ada mahasiswa yang tersedia",
       "addMemberFailed": "Gagal menambahkan anggota",
+      "removeMemberFailed": "Gagal menghapus anggota",
       "cancelEdit": "Batalkan Edit",
       "saveChanges": "Simpan Perubahan",
       "teamDetail": {

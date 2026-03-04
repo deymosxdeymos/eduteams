@@ -2,6 +2,7 @@
 // Import lazily inside functions or provide safe fallbacks.
 import { cookies, headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+import { cache } from 'react';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
@@ -184,7 +185,7 @@ export function withValidation<T>(
   };
 }
 
-export async function getCurrentUser(): Promise<ExtendedUser | null> {
+const getCurrentUserCached = cache(async (): Promise<ExtendedUser | null> => {
   try {
     let session: Awaited<ReturnType<typeof auth.api.getSession>>;
 
@@ -221,6 +222,10 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
     logger.error('Error getting current user:', error);
     return null;
   }
+});
+
+export async function getCurrentUser(): Promise<ExtendedUser | null> {
+  return getCurrentUserCached();
 }
 
 export function requireAuth(): ExtendedUser {

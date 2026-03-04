@@ -8,11 +8,10 @@ interface SkillsBarChartProps {
 export function SkillsBarChart({ skills, skillsReady }: SkillsBarChartProps) {
   return (
     <div className='flex flex-col gap-3 flex-1 justify-center'>
-      {(skills.length > 0 ? skills : []).map((s, i) => (
-        <div className='flex items-center gap-8 w-full' key={i}>
+      {(skills.length > 0 ? skills : []).map((s) => (
+        <div className='flex items-center gap-8 w-full' key={s.label}>
           <div
-            className='text-neutral-700 text-sm shrink-0'
-            style={{ width: '80px', whiteSpace: 'pre-wrap' }}
+            className='text-neutral-700 text-sm shrink-0 w-[80px] whitespace-pre-wrap'
           >
             {(s.label || '').replace(/\s+/g, '\n')}
           </div>
@@ -28,7 +27,7 @@ export function SkillsBarChart({ skills, skillsReady }: SkillsBarChartProps) {
         </div>
       ))}
       <div className='flex items-center gap-3 w-full text-neutral-400 text-xs mt-1'>
-        <div style={{ width: '80px' }}></div>
+        <div className='w-[80px]'></div>
         <div className='flex-1 flex justify-between'>
           <span>0%</span>
           <span>50%</span>

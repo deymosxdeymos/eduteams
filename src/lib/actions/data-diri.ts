@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { getCurrentUser } from '@/lib/api-utils';
 import prisma from '@/lib/prisma';
 import { AuthError, ValidationError } from '@/lib/types';
+import { genderToLabel, labelToGender } from '@/lib/utils/gender';
 
 const dataDiriSchema = z.object({
   namaLengkap: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
@@ -37,7 +38,7 @@ export async function submitDataDiri(
     throw new ValidationError('NIM is required for mahasiswa');
   }
 
-  const gender = jenisKelamin === 'laki-laki' ? 'MALE' : 'FEMALE';
+  const gender = labelToGender(jenisKelamin);
   const dbRole = role === 'dosen' ? 'TEACHER' : 'STUDENT';
 
   await prisma.user.update({
@@ -82,12 +83,7 @@ export async function getDataDiri(getCurrentUserImpl = getCurrentUser) {
     throw new Error('User not found');
   }
 
-  const jenisKelamin =
-    currentUser.gender === 'MALE'
-      ? 'laki-laki'
-      : currentUser.gender === 'FEMALE'
-        ? 'perempuan'
-        : '';
+  const jenisKelamin = genderToLabel(currentUser.gender);
 
   return {
     namaLengkap: currentUser.name || '',

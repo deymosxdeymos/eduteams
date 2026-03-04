@@ -28,9 +28,9 @@ export function AssignmentChangeDiff({ changes }: AssignmentChangeDiffProps) {
             {t('skillsChanges', { defaultValue: 'Skills Changes' })}:
           </h4>
           <ul className='space-y-1'>
-            {formatted.skills.map((change, index) => (
+            {formatted.skills.map((change) => (
               <li
-                key={index}
+                key={`${change.type}-${change.text}`}
                 className={`flex items-center gap-2 text-sm ${
                   change.type === 'removed'
                     ? 'text-red-600'
@@ -61,9 +61,9 @@ export function AssignmentChangeDiff({ changes }: AssignmentChangeDiffProps) {
             {t('topicsChanges', { defaultValue: 'Topics Changes' })}:
           </h4>
           <ul className='space-y-1'>
-            {formatted.topics.map((change, index) => (
+            {formatted.topics.map((change) => (
               <li
-                key={index}
+                key={`${change.type}-${change.text}`}
                 className={`flex items-center gap-2 text-sm ${
                   change.type === 'removed'
                     ? 'text-red-600'

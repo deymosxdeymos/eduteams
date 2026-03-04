@@ -81,7 +81,7 @@ export default function SkillsQuiz({
 
         return (
           <div
-            key={skillIndex}
+            key={skill}
             role='group'
             className='space-y-6'
             id={`skill-${skillIndex}`}

@@ -14,6 +14,7 @@ import type {
   Edu2comParameters,
 } from '@/lib/edu2com/contract';
 import { buildEdu2comReplyPostUrl } from '@/lib/edu2com/webhook';
+import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 import { HttpError, ValidationError } from '@/lib/utils/errors';
 
@@ -211,11 +212,11 @@ async function callEdu2comWithRetry(
         RETRY_MAX_DELAY_MS,
         RETRY_BASE_DELAY_MS * 2 ** (attempt - 1)
       );
-      console.warn(
+      logger.warn(
         `[Team Formation] Edu2com call failed (attempt ${attempt}/${MAX_EDU2COM_ATTEMPTS}):`,
         error
       );
-      console.log(
+      logger.info(
         `[Team Formation] Retrying Edu2com call in ${delayMs}ms (timeout ${opts.timeoutMs}ms)`
       );
       await sleep(delayMs);
@@ -246,7 +247,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
   const startTime = performance.now();
   try {
     const { id: assignmentId } = await ctx.params;
-    console.log(`[Team Formation] Starting for assignment: ${assignmentId}`);
+    logger.info(`[Team Formation] Starting for assignment: ${assignmentId}`);
 
     let body: unknown;
     try {
@@ -268,7 +269,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
     }
 
     const { method, value } = parsedBody;
-    console.log(`[Team Formation] Method: ${method}, Value: ${value}`);
+    logger.info(`[Team Formation] Method: ${method}, Value: ${value}`);
 
     // Verify assignment and ownership
     const assignmentQueryStart = performance.now();
@@ -282,7 +283,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       },
     });
     const assignmentQueryTime = performance.now() - assignmentQueryStart;
-    console.log(
+    logger.info(
       `[Team Formation] Assignment query took ${assignmentQueryTime.toFixed(2)}ms`
     );
 
@@ -318,7 +319,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       },
     });
     const cleanupTime = performance.now() - cleanupStart;
-    console.log(
+    logger.info(
       `[Team Formation] Cleanup stale requests took ${cleanupTime.toFixed(2)}ms`
     );
 
@@ -358,7 +359,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       },
     });
     const enrollmentQueryTime = performance.now() - enrollmentQueryStart;
-    console.log(
+    logger.info(
       `[Team Formation] Enrollment query took ${enrollmentQueryTime.toFixed(2)}ms, found ${enrollments.length} students`
     );
 
@@ -372,7 +373,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       submissions.map((s: { studentId: string }) => s.studentId)
     );
     const submissionQueryTime = performance.now() - submissionQueryStart;
-    console.log(
+    logger.info(
       `[Team Formation] Submission query took ${submissionQueryTime.toFixed(2)}ms, found ${submissions.length} submissions`
     );
 
@@ -455,7 +456,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
 
     // Check if any students haven't submitted the assignment quiz
     if (notSubmitted > 0) {
-      console.log(
+      logger.info(
         `[Team Formation] ${notSubmitted} of ${totalEnrolled} students excluded: haven't submitted assignment quiz`
       );
     }
@@ -531,7 +532,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       };
     });
     if (fallbackSkillAssigned > 0) {
-      console.log(
+      logger.info(
         `[Team Formation] Added fallback skill to ${fallbackSkillAssigned} students lacking skill data`
       );
     }
@@ -610,7 +611,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
         })
       : [];
     const topicQueryTime = performance.now() - topicQueryStart;
-    console.log(
+    logger.info(
       `[Team Formation] Topic queries took ${topicQueryTime.toFixed(2)}ms, found ${topics.length} topics, ${topicPrefs.length} preferences`
     );
 
@@ -674,7 +675,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
     const requestId = randomUUID();
     const replyPostUrl = buildEdu2comReplyPostUrl(requestId);
     const dataPreparationTime = performance.now() - startTime;
-    console.log(
+    logger.info(
       `[Team Formation] Data preparation completed in ${dataPreparationTime.toFixed(2)}ms`
     );
 
@@ -696,18 +697,18 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       select: { id: true },
     });
     const createRequestTime = performance.now() - createRequestStart;
-    console.log(
+    logger.info(
       `[Team Formation] Creating TeamFormationRequest took ${createRequestTime.toFixed(2)}ms`
     );
 
     // Call official Edu2com API endpoint (background mode)
     const edu2comCallStart = performance.now();
-    console.log('[Team Formation] Calling Edu2com API...');
+    logger.info('[Team Formation] Calling Edu2com API...');
     const backgroundTimeoutMs = getEdu2comBackgroundTimeoutMs({
       studentCount: students.length,
       taskCount: tasks.length,
     });
-    console.log(
+    logger.info(
       `[Team Formation] Using background timeout ${backgroundTimeoutMs}ms`
     );
     try {
@@ -722,10 +723,10 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       );
       const edu2comCallTime = performance.now() - edu2comCallStart;
       const totalTime = performance.now() - startTime;
-      console.log(
+      logger.info(
         `[Team Formation] Edu2com API call took ${edu2comCallTime.toFixed(2)}ms`
       );
-      console.log(
+      logger.info(
         `[Team Formation] Total request time: ${totalTime.toFixed(2)}ms`
       );
 
@@ -737,10 +738,10 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       });
     } catch (err) {
       const edu2comCallTime = performance.now() - edu2comCallStart;
-      console.log(
+      logger.info(
         `[Team Formation] Edu2com API call failed after ${edu2comCallTime.toFixed(2)}ms`
       );
-      console.error('[Team Formation] Edu2com API error:', err);
+      logger.error('[Team Formation] Edu2com API error:', err);
 
       const text = err instanceof Error ? err.message : String(err);
       const abort = isAbortError(err);

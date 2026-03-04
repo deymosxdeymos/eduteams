@@ -130,7 +130,6 @@ export default function PlaygroundPage() {
                 student={dummyStudent}
                 canManage={true}
                 onRemoveStudent={() => {
-                  console.log('Remove student clicked');
                   alert('Remove student action triggered!');
                 }}
                 onClose={() => setIsStudentModalOpen(false)}

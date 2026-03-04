@@ -6,9 +6,11 @@ import {
   ChevronRight,
   User as UserIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -45,14 +47,14 @@ export function AnswersControlsClient({
   const index = Math.max(0, Math.min(currentIndex, Math.max(0, total - 1)));
   const currentStudent = students[index];
 
-  const makeHref = useMemo(() => {
-    const base = baseHref || pathname || '';
-    return (studentId: string) => {
-      const sp = new URLSearchParams(searchParams?.toString() || '');
-      sp.set('studentId', studentId);
-      return `${base}?${sp.toString()}`;
-    };
-  }, [pathname, searchParams, baseHref]);
+  const hrefBase = baseHref || pathname || '';
+  const searchParamsString = searchParams?.toString() || '';
+
+  const makeHref = useCallback((studentId: string) => {
+    const sp = new URLSearchParams(searchParamsString);
+    sp.set('studentId', studentId);
+    return `${hrefBase}?${sp.toString()}`;
+  }, [hrefBase, searchParamsString]);
 
   const goPrev = () => {
     if (total === 0) return;
@@ -69,13 +71,13 @@ export function AnswersControlsClient({
 
   return (
     <div className='flex items-center justify-between w-full px-2'>
-      <a
+      <Link
         href={backHref}
         className='inline-flex items-center gap-2 text-sm text-neutral-700 hover:text-black'
       >
         <ArrowLeft className='w-4 h-4' />
         <span className='font-bold'>{t('back')}</span>
-      </a>
+      </Link>
 
       <div className='flex items-center gap-3'>
         <Button

@@ -3,6 +3,7 @@
 import { Search, SortDesc } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 import { GroupCard } from '@/components/dashboard/group-card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -107,12 +108,11 @@ export function StudentManageShell({
     updateUrl({ q: value });
   };
 
-  const filtered = filterAndSort(items, tab, sort, query);
+  const filtered = useMemo(() => filterAndSort(items, tab, sort, query), [items, tab, sort, query]);
 
-  // Calculate count of items with 'not-started' status for badge
-  const notStartedCount = items.filter(
+  const notStartedCount = useMemo(() => items.filter(
     item => item.status === 'not-started'
-  ).length;
+  ).length, [items]);
 
   return (
     <div className='flex flex-col h-full'>
@@ -132,14 +132,14 @@ export function StudentManageShell({
                 {key === 'my-group' && t('tabs.myGroup')}
                 {key === 'waiting' && t('tabs.waiting')}
                 {key === 'not-started' && t('tabs.notStarted')}
-                {key === 'not-started' && notStartedCount > 0 && (
+                {key === 'not-started' && notStartedCount > 0 ? (
                   <Badge
                     variant='destructive'
                     className='h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]'
                   >
                     {notStartedCount}
                   </Badge>
-                )}
+                ) : null}
               </span>
               <span className='hidden group-data-[state=active]:block bg-blue-500 h-3 w-full rounded-full' />
             </TabsTrigger>

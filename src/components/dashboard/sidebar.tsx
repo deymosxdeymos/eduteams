@@ -2,6 +2,7 @@
 
 import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
 import { useMemo } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
@@ -77,8 +78,7 @@ export default function Sidebar({ user, notStartedCount }: SidebarProps) {
 
   return (
     <div
-      className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border'
-      style={{ height: 'calc(100%)' }}
+      className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border h-full'
     >
       <div className='flex flex-col gap-y-6'>
         <Button

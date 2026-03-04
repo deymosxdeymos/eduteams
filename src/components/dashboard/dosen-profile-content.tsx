@@ -3,12 +3,13 @@
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useId, useMemo, useState, useTransition } from 'react';
+import { useId, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputRounded } from '@/components/ui/input-rounded';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useRouter } from '@/i18n/routing';
 import type { ExtendedUser } from '@/lib/types';
+import { genderToLabel } from '@/lib/utils/gender';
 
 interface DosenProfileContentProps {
   user: ExtendedUser;
@@ -18,11 +19,7 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
   const router = useRouter();
   const t = useTranslations('dashboard.profile');
   const [namaLengkap, setNamaLengkap] = useState<string>(user.name ?? '');
-  const initialJenisKelamin = useMemo(() => {
-    if (user.gender === 'MALE') return 'laki-laki';
-    if (user.gender === 'FEMALE') return 'perempuan';
-    return '';
-  }, [user.gender]);
+  const initialJenisKelamin = genderToLabel(user.gender);
   const [jenisKelamin, setJenisKelamin] = useState<string>(initialJenisKelamin);
   const [isPending, startTransition] = useTransition();
   const nameInputId = useId();

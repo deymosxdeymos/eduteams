@@ -222,10 +222,15 @@ export default async function AssignmentAnswersPage({
   const isDosen = canAccessDosenFeatures(user);
   if (!isDosen) notFound();
 
-  const course = await getCourseForDosen(classId, user.id);
+  const [course, students, assignment] = await Promise.all([
+    getCourseForDosen(classId, user.id),
+    getSubmittedStudents(assignmentId),
+    prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      select: { title: true },
+    }),
+  ]);
   if (!course) notFound();
-
-  const students = await getSubmittedStudents(assignmentId);
   const studentsLite = students.map((s: (typeof students)[number]) => ({
     id: s.id,
     name: s.name ?? 'Mahasiswa',
@@ -239,12 +244,6 @@ export default async function AssignmentAnswersPage({
     currentIndex = idx >= 0 ? idx : 0;
   }
   const selected = students[currentIndex];
-
-  // Fetch assignment title for crumbs
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: { title: true },
-  });
   const assignmentTitle = assignment?.title ?? 'Tugas';
 
   // If there are no submissions yet, show an empty state
@@ -283,8 +282,10 @@ export default async function AssignmentAnswersPage({
   // Build ExtendedUser-like object for ProfileHeader
   const selectedUser = selected as unknown as ExtendedUser;
 
-  const answersView = await getAssignmentAnswersView(assignmentId, selected.id);
-  const mbtiQuestions = await getMBTIQuestions(locale);
+  const [answersView, mbtiQuestions] = await Promise.all([
+    getAssignmentAnswersView(assignmentId, selected.id),
+    getMBTIQuestions(locale),
+  ]);
   const personalityJson = selected.personalityData as unknown as {
     answers?: Record<string, number>;
   } | null;
