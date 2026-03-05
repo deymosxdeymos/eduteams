@@ -5,7 +5,8 @@
   "answersDefault": "Jawaban Mahasiswa",
   "auth": {
     "signInWithGoogle": "Masuk dengan Google",
-    "signingIn": "Masuk..."
+    "signingIn": "Masuk...",
+    "tryDemo": "Coba Demo"
   },
   "homepage": {
     "hero": {
@@ -185,6 +186,9 @@
       },
       "errors": {
         "questionRequired": "Pertanyaan ini wajib diisi"
+      },
+      "demo": {
+        "description": "Pilih tipe kepribadian untuk melanjutkan alur demo."
       }
     }
   },
@@ -200,6 +204,13 @@
     },
     "search": {
       "placeholder": "Mencari sesuatu?"
+    },
+    "demo": {
+      "roleSwitcher": {
+        "switchToTeacher": "Pindah ke Dosen",
+        "switchToStudent": "Pindah ke Mahasiswa",
+        "switching": "Memindahkan..."
+      }
     },
     "emptyStates": {
       "dosen": {
@@ -242,6 +253,7 @@
           "noResults": "Tidak ada mata kuliah yang cocok dengan \"{query}\".",
           "createNewOption": "Buat baru: {value}",
           "startTyping": "Ketik untuk mencari mata kuliah",
+          "demoLocked": "Entri katalog tidak bisa dibuat dalam mode demo.",
           "dialog": {
             "title": "Tambahkan mata kuliah",
             "description": "Masukkan kode dan nama mata kuliah agar dapat digunakan kembali saat membuat kelas.",

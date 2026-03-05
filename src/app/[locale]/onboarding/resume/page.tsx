@@ -2,7 +2,11 @@ import { redirect } from '@/i18n/routing';
 import { autoAssignRole } from '@/lib/actions/role';
 import { getCurrentUser } from '@/lib/api-utils';
 import { needsDataDiri } from '@/lib/authorization';
-import { isInstitutionalEmail } from '@/lib/email';
+import {
+  isActiveDemoAccountEmail,
+  parseDemoRoleFromEmail,
+} from '@/lib/demo/auth';
+import { isDemoModeEnabled } from '@/lib/demo/config';
 import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
 import prisma from '@/lib/prisma';
 import SessionClearClient from './session-clear-client';
@@ -40,24 +44,43 @@ export default async function ResumePage({
     redirect({ href: '/dashboard?firstVisit=true', locale });
   }
 
-  const expectedRole = isInstitutionalEmail(user.email) ? 'TEACHER' : 'STUDENT';
-  const shouldAutoAssign = !user.role || user.role !== expectedRole;
+  const demoRole = isActiveDemoAccountEmail(user.email)
+    ? parseDemoRoleFromEmail(user.email)
+    : null;
 
-  if (shouldAutoAssign) {
+  if (demoRole && user.role !== demoRole) {
+    const roleSlug = demoRole === 'TEACHER' ? 'dosen' : 'mahasiswa';
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        role: demoRole,
+        onboardingStep: 'role',
+      },
+    });
+
+    redirect({ href: `/onboarding/data-diri/${roleSlug}`, locale });
+  }
+
+  if (!user.role) {
+    if (isDemoModeEnabled()) {
+      redirect({ href: '/onboarding/role', locale });
+    }
+
     await autoAssignRole();
   }
 
-  const targetRole = user.role ?? expectedRole;
+  const targetRole = user.role;
+  if (!targetRole) {
+    redirect({ href: '/onboarding/resume', locale });
+  }
+
   const targetRoleSlug = targetRole === 'TEACHER' ? 'dosen' : 'mahasiswa';
 
   const sessionStatus =
     targetRole === 'STUDENT'
       ? await getUserPersonalitySessionStatus(user.id, locale)
       : null;
-
-  if (!user.role) {
-    redirect({ href: '/onboarding/resume', locale });
-  }
 
   if (needsDataDiri(user)) {
     redirect({ href: `/onboarding/data-diri/${targetRoleSlug}`, locale });

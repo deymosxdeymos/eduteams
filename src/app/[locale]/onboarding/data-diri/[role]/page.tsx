@@ -7,6 +7,11 @@ import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form
 import { Button } from '@/components/ui/button';
 import { redirect } from '@/i18n/routing';
 import { getDataDiri } from '@/lib/actions/data-diri';
+import {
+  isActiveDemoAccountEmail,
+  parseDemoRoleFromEmail,
+} from '@/lib/demo/auth';
+import { getDemoDataDiriDefaults } from '@/lib/demo/config';
 import { isInstitutionalEmail } from '@/lib/email';
 import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
 import { protectOnboardingPage } from '@/lib/server-auth';
@@ -44,11 +49,19 @@ export default async function DataDiriPage({
     redirect({ href: `/onboarding/data-diri/${userRoleSlug}`, locale });
   }
 
-  // For dosen, ensure institutional email domain
-  if (role === 'dosen') {
-    if (!isInstitutionalEmail(user.email)) {
-      redirect({ href: '/onboarding/role?err=dosen_email', locale });
-    }
+  const demoRole = isActiveDemoAccountEmail(user.email)
+    ? parseDemoRoleFromEmail(user.email)
+    : null;
+  const isDemoUser = demoRole !== null;
+
+  if (demoRole && demoRole !== expectedDbRole) {
+    const demoRoleSlug = demoRole === 'TEACHER' ? 'dosen' : 'mahasiswa';
+    redirect({ href: `/onboarding/data-diri/${demoRoleSlug}`, locale });
+  }
+
+  // For dosen, ensure institutional email domain unless this is a teacher-scoped demo account.
+  if (role === 'dosen' && !isDemoUser && !isInstitutionalEmail(user.email)) {
+    redirect({ href: '/onboarding/role?err=dosen_email', locale });
   }
 
   if (role === 'mahasiswa' && user.nim && edit !== 'true') {
@@ -64,22 +77,35 @@ export default async function DataDiriPage({
     redirect({ href: '/onboarding/kepribadian', locale });
   }
 
+  const emptyInitialData = {
+    namaLengkap: '',
+    nim: '',
+    jenisKelamin: '',
+    role: '',
+  };
+  const demoInitialData = isDemoUser
+    ? getDemoDataDiriDefaults(role)
+    : emptyInitialData;
+
   let initialData: {
     namaLengkap: string;
     nim: string;
     jenisKelamin: string;
     role: string;
   };
+
   try {
-    initialData = await getDataDiri();
+    const savedData = await getDataDiri();
+    initialData = isDemoUser
+      ? {
+          namaLengkap: savedData.namaLengkap || demoInitialData.namaLengkap,
+          nim: savedData.nim || demoInitialData.nim,
+          jenisKelamin: savedData.jenisKelamin || demoInitialData.jenisKelamin,
+          role: savedData.role || demoInitialData.role,
+        }
+      : savedData;
   } catch {
-    // If we can't fetch data, start with empty form
-    initialData = {
-      namaLengkap: '',
-      nim: '',
-      jenisKelamin: '',
-      role: '',
-    };
+    initialData = demoInitialData;
   }
 
   return (

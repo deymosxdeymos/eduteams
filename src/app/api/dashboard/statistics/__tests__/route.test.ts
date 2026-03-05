@@ -1,5 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 
+const actualAuth = await import('@/lib/auth');
+
 // Mock auth session and prisma before importing route handler
 const prismaMock: any = {
   user: {
@@ -24,6 +26,7 @@ const prismaMock: any = {
 };
 
 mock.module('@/lib/auth', () => ({
+  ...actualAuth,
   auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
 }));
 

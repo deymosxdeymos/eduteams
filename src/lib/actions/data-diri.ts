@@ -4,8 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/api-utils';
+import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from '@/lib/demo/auth';
 import prisma from '@/lib/prisma';
-import { AuthError, ValidationError } from '@/lib/types';
+import { AuthError, AuthorizationError, ValidationError } from '@/lib/types';
 import { genderToLabel, labelToGender } from '@/lib/utils/gender';
 
 const dataDiriSchema = z.object({
@@ -40,6 +41,13 @@ export async function submitDataDiri(
 
   const gender = labelToGender(jenisKelamin);
   const dbRole = role === 'dosen' ? 'TEACHER' : 'STUDENT';
+  const demoRole = isActiveDemoAccountEmail(user.email)
+    ? parseDemoRoleFromEmail(user.email)
+    : null;
+
+  if (demoRole && demoRole !== dbRole) {
+    throw new AuthorizationError('Demo accounts cannot switch role scope');
+  }
 
   await prisma.user.update({
     where: { id: user.id },

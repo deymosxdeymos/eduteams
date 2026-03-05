@@ -1,6 +1,8 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { NextResponse } from 'next/server';
 
+const actualAuth = await import('@/lib/auth');
+
 // Mock session and prisma for getCurrentUser()
 const prismaMock: any = {
   user: {
@@ -56,6 +58,7 @@ describe('api-utils', () => {
   describe('withAuth', () => {
     it('provides user to handler when authenticated', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -88,6 +91,7 @@ describe('api-utils', () => {
 
     it('returns 401 when no session', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => null,
@@ -103,11 +107,57 @@ describe('api-utils', () => {
       );
       expect(res.status).toBe(401);
     });
+
+    it('does not require NODE_ENV=test to honor auth and prisma mocks', async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      delete process.env.NODE_ENV;
+
+      mock.module('@/lib/auth', () => ({
+        ...actualAuth,
+        auth: {
+          api: {
+            getSession: async () => ({
+              user: { id: 'u1' },
+              session: {
+                id: 's1',
+                expiresAt: new Date(),
+                token: 'token',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                userId: 'u1',
+              },
+            }),
+          },
+        },
+      }));
+
+      try {
+        const { withAuth } = await import('@/lib/api-utils');
+        const handler = withAuth(async (_req, ctx) => {
+          return NextResponse.json({ success: true, userId: ctx.user.id });
+        });
+        const res = await handler(
+          new Request('http://localhost/x') as any,
+          undefined as any
+        );
+
+        expect(res.status).toBe(200);
+        const json = (await res.json()) as any;
+        expect(json.userId).toBe('u1');
+      } finally {
+        if (originalNodeEnv === undefined) {
+          delete process.env.NODE_ENV;
+        } else {
+          process.env.NODE_ENV = originalNodeEnv;
+        }
+      }
+    });
   });
 
   describe('withRole', () => {
     it('allows access when user has required role', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -140,6 +190,7 @@ describe('api-utils', () => {
 
     it('denies access when user lacks required role', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -172,6 +223,7 @@ describe('api-utils', () => {
   describe('withOnboarded', () => {
     it('allows access when user is onboarded', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -207,6 +259,7 @@ describe('api-utils', () => {
 
     it('denies access when user is not onboarded', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -239,6 +292,7 @@ describe('api-utils', () => {
   describe('withValidation', () => {
     it('parses data and passes to handler', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -285,6 +339,7 @@ describe('api-utils', () => {
 
     it('returns 400 for invalid data', async () => {
       mock.module('@/lib/auth', () => ({
+        ...actualAuth,
         auth: {
           api: {
             getSession: async () => ({
@@ -320,6 +375,49 @@ describe('api-utils', () => {
         undefined as any
       );
       expect(res.status).toBe(400);
+    });
+
+    it('preserves handler failures as 500 errors', async () => {
+      mock.module('@/lib/auth', () => ({
+        ...actualAuth,
+        auth: {
+          api: {
+            getSession: async () => ({
+              user: { id: 'u1' },
+              session: {
+                id: 's1',
+                expiresAt: new Date(),
+                token: 'token',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                userId: 'u1',
+              },
+            }),
+          },
+        },
+      }));
+
+      const { withAuth, withValidation } = await import('@/lib/api-utils');
+      const route = withAuth(
+        withValidation(
+          (data: unknown) => data as { name: string },
+          async () => {
+            throw new Error('db offline');
+          }
+        )
+      );
+
+      const res = await route(
+        new Request('http://localhost/y', {
+          method: 'POST',
+          body: JSON.stringify({ name: 'A' }),
+        }) as any,
+        undefined as any
+      );
+
+      expect(res.status).toBe(500);
+      const json = (await res.json()) as any;
+      expect(json.error).toBe('Internal server error');
     });
   });
 

@@ -1,7 +1,6 @@
-// Note: Avoid calling next/headers in test context.
+// Note: Avoid calling next/headers outside request context.
 // Import lazily inside functions or provide safe fallbacks.
 import 'server-only';
-import { cookies, headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { cache } from 'react';
 import { auth } from '@/lib/auth';
@@ -20,8 +19,8 @@ import {
 } from '@/lib/types';
 
 interface AuthApiRequestContext {
-  headers: Awaited<ReturnType<typeof headers>>;
-  cookies: Awaited<ReturnType<typeof cookies>>;
+  headers: Headers;
+  cookies: unknown;
 }
 
 export function handleApiError(error: unknown): NextResponse {
@@ -172,48 +171,68 @@ export function withValidation<T>(
     request: NextRequest,
     context?: { user: ExtendedUser }
   ): Promise<NextResponse> => {
-    try {
-      const body = await request.json();
-      const validatedData = schema(body);
+    let body: unknown;
 
-      return await handler(request, { ...context, validatedData });
+    try {
+      body = await request.json();
+    } catch {
+      throw new ValidationError('Invalid request data');
+    }
+
+    let validatedData: T;
+
+    try {
+      validatedData = schema(body);
     } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         throw new ValidationError(error.message);
       }
+
       throw new ValidationError('Invalid request data');
     }
+
+    return handler(request, { ...context, validatedData });
   };
 }
 
-const getCurrentUserCached = cache(async (): Promise<ExtendedUser | null> => {
+async function getRequestContext(): Promise<AuthApiRequestContext | null> {
   try {
-    let session: Awaited<ReturnType<typeof auth.api.getSession>>;
+    const { cookies, headers } = await import('next/headers');
+    const [requestHeaders, cookieStore] = await Promise.all([
+      headers(),
+      cookies(),
+    ]);
 
-    // In test environments, headers() and cookies() throw "wrong context" errors
-    // So we need to handle this case gracefully
-    if (process.env.NODE_ENV === 'test') {
-      // In tests, auth.api.getSession should be mocked directly
-      session = await auth.api.getSession({} as AuthApiRequestContext);
-    } else {
-      // Prefer reading from cookies() in server actions to ensure session is detected
-      const cookieStore = await cookies();
+    return {
+      headers: requestHeaders,
+      cookies: cookieStore,
+    };
+  } catch {
+    return null;
+  }
+}
 
-      session = await auth.api.getSession({
-        headers: await headers(),
-        cookies: cookieStore,
-      } as AuthApiRequestContext);
-    }
+async function loadCurrentUser(
+  requestContext: AuthApiRequestContext | null
+): Promise<ExtendedUser | null> {
+  try {
+    const session = await auth.api.getSession(
+      (requestContext ?? {}) as AuthApiRequestContext
+    );
 
     if (!session?.user) {
       return null;
     }
 
-    // Fetch fresh user data from database to ensure we have latest onboardingStep
     const freshUser = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: extendedUserSelect,
     });
+
     if (!freshUser) {
       return null;
     }
@@ -223,9 +242,20 @@ const getCurrentUserCached = cache(async (): Promise<ExtendedUser | null> => {
     logger.error('Error getting current user:', error);
     return null;
   }
+}
+
+const getCurrentUserCached = cache(async () => {
+  const requestContext = await getRequestContext();
+  return loadCurrentUser(requestContext);
 });
 
 export async function getCurrentUser(): Promise<ExtendedUser | null> {
+  const requestContext = await getRequestContext();
+
+  if (!requestContext) {
+    return loadCurrentUser(null);
+  }
+
   return getCurrentUserCached();
 }
 

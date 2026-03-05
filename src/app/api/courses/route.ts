@@ -1,8 +1,6 @@
 import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
-import enMessages from '@/../messages/en.json';
-import idMessages from '@/../messages/id.json';
-import { routing } from '@/i18n/routing';
+import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
 import {
   createApiResponse,
   createErrorResponse,
@@ -11,34 +9,17 @@ import {
 } from '@/lib/api-utils';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { getCoursesForDosen } from '@/lib/dashboard/courses';
-import prisma from '@/lib/prisma';
+import { parseDemoVisitorIdFromEmail } from '@/lib/demo/auth';
+import { isDemoModeEnabled } from '@/lib/demo/config';
+import { seedDemoStudentsForCourse } from '@/lib/demo/seed-students';
+import { enrollPairedDemoStudentInCourse } from '@/lib/demo/sync-account';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 import { getCurrentAcademicYear } from '@/lib/utils/period';
 import {
   type CourseCreateInput,
   type CourseCreateUserInput,
   courseCreateInputSchema,
 } from '@/lib/validation/course';
-
-function getLocaleFromRequest(request: NextRequest): 'id' | 'en' {
-  const referer = request.headers.get('referer');
-  if (referer?.includes('/en/')) {
-    return 'en';
-  }
-
-  return (routing.defaultLocale ?? 'id') as 'id' | 'en';
-}
-
-function getLocalizedMessage(locale: 'id' | 'en', key: string): string {
-  const messages = locale === 'en' ? enMessages : idMessages;
-  const keys = key.split('.');
-  let value: Record<string, unknown> | string = messages;
-  for (const k of keys) {
-    value = (value as Record<string, unknown>)?.[k] as
-      | Record<string, unknown>
-      | string;
-  }
-  return typeof value === 'string' ? value : key;
-}
 
 // Prisma requires Node.js runtime
 export const runtime = 'nodejs';
@@ -78,32 +59,63 @@ export const POST = withAuth(
       });
 
       if (existingCourse) {
-        const locale = getLocaleFromRequest(_request);
-        const errorMessage = getLocalizedMessage(
+        const locale = getRequestLocale(_request);
+        const errorMessage = getLocalizedApiMessage(
           locale,
           'dashboard.modals.createClass.duplicateError'
         );
         return createErrorResponse(errorMessage, 409);
       }
 
-      // Create course in database
-      const course = await prisma.course.create({
-        data: {
-          ...courseData,
-          dosenId: user?.id,
-        },
-        include: {
-          dosen: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+      const demoVisitorId = isDemoModeEnabled()
+        ? parseDemoVisitorIdFromEmail(user.email)
+        : null;
+
+      const { course, pairedDemoStudentId, pairedDemoEnrollmentCount } =
+        await prisma.$transaction(async (tx: TransactionClient) => {
+        const createdCourse = await tx.course.create({
+          data: {
+            ...courseData,
+            dosenId: user?.id,
+          },
+          include: {
+            dosen: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
-        },
+        });
+
+        if (demoVisitorId) {
+          await seedDemoStudentsForCourse(createdCourse.id, demoVisitorId, tx);
+
+          const pairedDemoEnrollment = await enrollPairedDemoStudentInCourse(
+            createdCourse.id,
+            demoVisitorId,
+            { db: tx, revalidate: false }
+          );
+
+          return {
+            course: createdCourse,
+            pairedDemoStudentId: pairedDemoEnrollment.studentId,
+            pairedDemoEnrollmentCount: pairedDemoEnrollment.enrollmentCount,
+          };
+        }
+
+        return {
+          course: createdCourse,
+          pairedDemoStudentId: null,
+          pairedDemoEnrollmentCount: 0,
+        };
       });
 
       revalidateTag(CACHE_TAGS.coursesByDosen(user?.id || ''));
+      if (pairedDemoStudentId && pairedDemoEnrollmentCount > 0) {
+        revalidateTag(CACHE_TAGS.studentClasses(pairedDemoStudentId));
+      }
 
       return createApiResponse(course);
     }

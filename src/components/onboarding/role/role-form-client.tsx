@@ -12,11 +12,13 @@ import { submitRole } from '@/lib/actions/role';
 interface RoleFormClientProps {
   initialRole?: 'dosen' | 'mahasiswa';
   hasInstitutionalEmail?: boolean;
+  enableDemoLogin?: boolean;
 }
 
 export default function RoleFormClient({
   initialRole,
   hasInstitutionalEmail = false,
+  enableDemoLogin = false,
 }: RoleFormClientProps) {
   const t = useTranslations('onboarding.role');
   const [selectedRole, setSelectedRole] = useState<
@@ -38,7 +40,24 @@ export default function RoleFormClient({
       return;
     }
 
-    startTransition(() => submitRole(formData));
+    startTransition(async () => {
+      if (enableDemoLogin) {
+        const response = await fetch('/api/demo/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: selectedRole === 'dosen' ? 'TEACHER' : 'STUDENT',
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          return;
+        }
+      }
+
+      await submitRole(formData);
+    });
   };
 
   const handleBlockedClick = (e: React.MouseEvent) => {

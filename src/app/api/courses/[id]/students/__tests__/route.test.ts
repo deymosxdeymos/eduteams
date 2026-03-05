@@ -1,5 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 
+const actualAuth = await import('@/lib/auth');
+
 let sessionUserId = 'u1';
 
 const prismaMock: any = {
@@ -77,6 +79,7 @@ const prismaMock: any = {
 
 mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 mock.module('@/lib/auth', () => ({
+  ...actualAuth,
   auth: { api: { getSession: async () => ({ user: { id: sessionUserId } }) } },
 }));
 

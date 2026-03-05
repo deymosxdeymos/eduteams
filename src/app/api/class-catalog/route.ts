@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { Prisma } from '@/generated/prisma/client';
+import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
 import {
   createApiResponse,
   createErrorResponse,
@@ -11,6 +12,8 @@ import {
   createClassCatalogEntry,
   getClassCatalog,
 } from '@/lib/data/class-catalog';
+import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
+import { DEMO_CLASS_CATALOG } from '@/lib/demo/config';
 
 export const runtime = 'nodejs';
 
@@ -32,6 +35,7 @@ const classCatalogCreateSchema = z.object({
 
 type ClassCatalogCreateInput = z.infer<typeof classCatalogCreateSchema>;
 
+
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   if (user.role !== 'TEACHER') {
     return createErrorResponse('Only dosen can view class catalog', 403);
@@ -50,6 +54,10 @@ export const GET = withAuth(async (request: NextRequest, { user }) => {
     );
   }
 
+  if (isActiveDemoAccountEmail(user.email)) {
+    return createApiResponse([...DEMO_CLASS_CATALOG]);
+  }
+
   const { search } = parseResult.data;
   const entries = await getClassCatalog({ search: search || undefined });
 
@@ -62,6 +70,17 @@ export const POST = withAuth(
     async (_request: NextRequest, { user, validatedData }) => {
       if (user?.role !== 'TEACHER') {
         return createErrorResponse('Only dosen can create classes', 403);
+      }
+
+      if (isActiveDemoAccountEmail(user.email)) {
+        const locale = getRequestLocale(_request);
+        return createErrorResponse(
+          getLocalizedApiMessage(
+            locale,
+            'dashboard.modals.createClass.catalog.demoLocked'
+          ),
+          403
+        );
       }
 
       const payload = validatedData as ClassCatalogCreateInput;

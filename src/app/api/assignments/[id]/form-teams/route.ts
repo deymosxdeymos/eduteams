@@ -13,9 +13,12 @@ import type {
   Edu2comBackgroundParameters,
   Edu2comParameters,
 } from '@/lib/edu2com/contract';
+import { isSameOrigin } from '@/lib/csrf';
 import { buildEdu2comReplyPostUrl } from '@/lib/edu2com/webhook';
+import { isDemoModeEnabled } from '@/lib/demo/config';
 import { logger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
 import { HttpError, ValidationError } from '@/lib/utils/errors';
 
 function isAbortError(error: unknown): error is Error {
@@ -241,6 +244,9 @@ const BODY_SCHEMA = z
 
 export const runtime = 'nodejs';
 const STUCK_REQUEST_TIMEOUT_MS = 3 * 60 * 1000; // Auto-fail background requests after 3 minutes
+const TEAM_FORMATION_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const TEAM_FORMATION_RATE_LIMIT_PER_IP = 15;
+const TEAM_FORMATION_RATE_LIMIT_PER_USER = 8;
 
 // POST /api/assignments/[id]/form-teams
 export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
@@ -248,6 +254,41 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
   try {
     const { id: assignmentId } = await ctx.params;
     logger.info(`[Team Formation] Starting for assignment: ${assignmentId}`);
+
+    const enforceSameOrigin =
+      process.env.ENFORCE_SAME_ORIGIN_MUTATIONS === '1' || isDemoModeEnabled();
+
+    if (enforceSameOrigin && !isSameOrigin(req)) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden origin' },
+        { status: 403 }
+      );
+    }
+
+    const clientIdentifier = getClientIdentifier(req);
+    if (!clientIdentifier && process.env.NODE_ENV === 'production') {
+      logger.warn(
+        '[Team Formation] Missing trusted client identifier in production. Configure TRUSTED_CLIENT_IP_HEADERS to enable IP-based throttling and set TRUSTED_PROXY_HOPS when using multi-proxy x-forwarded-for chains; falling back to the per-user rate limit.'
+      );
+    }
+
+    if (clientIdentifier) {
+      const ipRateLimit = await checkRateLimit({
+        key: `form-teams:ip:${clientIdentifier}`,
+        limit: TEAM_FORMATION_RATE_LIMIT_PER_IP,
+        windowMs: TEAM_FORMATION_RATE_LIMIT_WINDOW_MS,
+      });
+
+      if (!ipRateLimit.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Terlalu banyak permintaan. Coba lagi dalam ${ipRateLimit.retryAfterSeconds} detik.`,
+          },
+          { status: 429 }
+        );
+      }
+    }
 
     let body: unknown;
     try {
@@ -270,6 +311,23 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
 
     const { method, value } = parsedBody;
     logger.info(`[Team Formation] Method: ${method}, Value: ${value}`);
+
+    const userRateLimit = await checkRateLimit({
+      key: `form-teams:user:${ctx.user.id}`,
+      limit: TEAM_FORMATION_RATE_LIMIT_PER_USER,
+      windowMs: TEAM_FORMATION_RATE_LIMIT_WINDOW_MS,
+    });
+
+    if (!userRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Batas permintaan pembentukan kelompok tercapai. Tunggu beberapa menit lalu coba lagi.',
+        },
+        { status: 429 }
+      );
+    }
 
     // Verify assignment and ownership
     const assignmentQueryStart = performance.now();

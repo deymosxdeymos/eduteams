@@ -2,6 +2,28 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
 import prisma from '@/lib/prisma';
+import { isDemoModeEnabled } from '@/lib/demo/config';
+
+const PUBLIC_DEMO_BLOCKED_AUTH_PATHS = new Set([
+  '/sign-in/email',
+  '/sign-up/email',
+]);
+
+export function shouldBlockPublicDemoCredentialAuth(
+  request: Pick<Request, 'url'>
+) {
+  if (!isDemoModeEnabled()) {
+    return false;
+  }
+
+  const pathname = new URL(request.url).pathname;
+  if (!pathname.startsWith('/api/auth/')) {
+    return false;
+  }
+
+  const authPath = pathname.slice('/api/auth'.length);
+  return PUBLIC_DEMO_BLOCKED_AUTH_PATHS.has(authPath);
+}
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -13,6 +35,9 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
+  },
+  emailAndPassword: {
+    enabled: isDemoModeEnabled(),
   },
   // Keep nextCookies as the last plugin per Better Auth docs
   plugins: [nextCookies()],

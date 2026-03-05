@@ -1,6 +1,6 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
-mock.module('@/lib/csrf', () => ({ isSameOrigin: () => true }));
+const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 const prismaMock: any = {
   user: {
@@ -28,7 +28,25 @@ const prismaMock: any = {
   },
 };
 
-mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+function applyModuleMocks() {
+  mock.module('@/lib/csrf', () => ({ isSameOrigin: () => true }));
+  mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+}
+
+beforeEach(() => {
+  applyModuleMocks();
+});
+
+afterEach(() => {
+  mock.restore();
+
+  if (originalAppUrl === undefined) {
+    delete process.env.NEXT_PUBLIC_APP_URL;
+    return;
+  }
+
+  process.env.NEXT_PUBLIC_APP_URL = originalAppUrl;
+});
 
 describe('courses/[id]/share-token API', () => {
   it('GET generates token if missing and returns shareUrl', async () => {
@@ -57,7 +75,10 @@ describe('courses/[id]/share-token API', () => {
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/courses/c1/share-token', {
       method: 'POST',
-      headers: { 'x-forwarded-host': 'localhost' },
+      headers: {
+        'x-forwarded-host': 'localhost',
+        origin: 'http://app.local',
+      },
     });
     const res = await POST(
       req as any,

@@ -1,19 +1,43 @@
 import { Mail, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
+import { DemoLoginButton } from '@/components/auth/demo-login-button';
 import { LoginButton } from '@/components/auth/login-button';
 import { LanguageSwitcherServer } from '@/components/dashboard/language-switcher-server';
 import { AnimatedEntj } from '@/components/landing/animated-entj';
 import { HeroMbtiCollage } from '@/components/landing/hero-mbti-collage';
 import Logo from '@/components/logo';
+import { isDemoLoginEnabled } from '@/lib/demo/config';
 import { HighlightText } from '@/components/ui/highlight-text';
 import { ScrollToTopClient } from '@/components/ui/scroll-to-top-client';
 import { SkipLink } from '@/components/ui/skip-link';
 import { SocialRow } from '@/components/ui/social-row';
 
+export const dynamic = 'force-dynamic';
+
+function AuthCallToActionGroup({
+  demoLoginEnabled,
+  className,
+}: {
+  demoLoginEnabled: boolean;
+  className: string;
+}) {
+  if (!demoLoginEnabled) {
+    return <LoginButton className={className} />;
+  }
+
+  return (
+    <div className='flex flex-col items-center gap-3 sm:flex-row'>
+      <DemoLoginButton className={className} />
+      <LoginButton className={className} />
+    </div>
+  );
+}
+
 export default async function Home() {
   const t = await getTranslations();
   const mainContentId = 'main-content';
+  const demoLoginEnabled = isDemoLoginEnabled();
 
   return (
     <>
@@ -58,7 +82,10 @@ export default async function Home() {
             </p>
 
             <div className='mt-4'>
-              <LoginButton className='animate-hero-delay-800' />
+              <AuthCallToActionGroup
+                demoLoginEnabled={demoLoginEnabled}
+                className='animate-hero-delay-800 min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10'
+              />
             </div>
             <div className='relative z-20 flex w-full items-center justify-center'>
               <HeroMbtiCollage />
@@ -439,7 +466,10 @@ export default async function Home() {
               size='text-xl sm:text-2xl md:text-5xl'
               className='justify-center'
             />
-            <LoginButton />
+            <AuthCallToActionGroup
+              demoLoginEnabled={demoLoginEnabled}
+              className='min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10'
+            />
           </div>
           <div className='flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-48 text-start whitespace-pre-line z-10 w-full'>
             <h2 className='text-white text-3xl font-semibold mt-2 max-w-lg'>

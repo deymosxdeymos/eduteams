@@ -3,6 +3,8 @@ import { createHmac } from 'node:crypto';
 
 process.env.EDU2COM_WEBHOOK_SECRET = 'test-webhook-secret';
 
+const actualAuth = await import('@/lib/auth');
+
 const revalidateTagMock = mock(() => {});
 mock.module('next/cache', () => ({
   revalidateTag: revalidateTagMock,
@@ -10,6 +12,7 @@ mock.module('next/cache', () => ({
 }));
 
 const authMock = {
+  ...actualAuth,
   auth: {
     api: {
       getSession: mock(async () => ({ user: { id: 'u1' } })),

@@ -4,6 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/api-utils';
+import {
+  isActiveDemoAccountEmail,
+  parseDemoRoleFromEmail,
+} from '@/lib/demo/auth';
+import { isDemoModeEnabled } from '@/lib/demo/config';
 import { isInstitutionalEmail } from '@/lib/email';
 import prisma from '@/lib/prisma';
 import { AuthError } from '@/lib/types';
@@ -30,6 +35,16 @@ export async function submitRole(
   const validatedData = roleSchema.parse(rawData);
   const { role } = validatedData;
 
+  const isTeacherDemoAccount =
+    isActiveDemoAccountEmail(user.email) &&
+    parseDemoRoleFromEmail(user.email) === 'TEACHER';
+  const isTeacherAllowed =
+    role !== 'TEACHER' || isInstitutionalEmail(user.email) || isTeacherDemoAccount;
+
+  if (!isTeacherAllowed) {
+    redirect('/onboarding/role?err=dosen_email');
+  }
+
   await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -43,15 +58,7 @@ export async function submitRole(
 
   const roleSlug = role === 'TEACHER' ? 'dosen' : 'mahasiswa';
 
-  if (role === 'TEACHER') {
-    if (isInstitutionalEmail(user.email)) {
-      redirect('/onboarding/data-diri/dosen');
-    } else {
-      redirect('/onboarding/role?err=dosen_email');
-    }
-  } else {
-    redirect(`/onboarding/data-diri/${roleSlug}`);
-  }
+  redirect(`/onboarding/data-diri/${roleSlug}`);
 }
 
 export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
@@ -64,7 +71,15 @@ export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
     redirect('/onboarding/role');
   }
 
-  const role = isInstitutionalEmail(user.email) ? 'TEACHER' : 'STUDENT';
+  const demoRole = isActiveDemoAccountEmail(user.email)
+    ? parseDemoRoleFromEmail(user.email)
+    : null;
+
+  if (!demoRole && isDemoModeEnabled() && !isInstitutionalEmail(user.email)) {
+    redirect('/onboarding/role');
+  }
+
+  const role = demoRole ?? (isInstitutionalEmail(user.email) ? 'TEACHER' : 'STUDENT');
   const roleSlug = role === 'TEACHER' ? 'dosen' : 'mahasiswa';
 
   await prisma.user.update({

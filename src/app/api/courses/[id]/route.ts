@@ -1,8 +1,6 @@
 import { revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
-import enMessages from '@/../messages/en.json';
-import idMessages from '@/../messages/id.json';
-import { routing } from '@/i18n/routing';
+import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
 import {
   createApiResponse,
   createErrorResponse,
@@ -13,29 +11,10 @@ import {
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
-import prisma from '@/lib/prisma';
+import { parseDemoVisitorIdFromEmail } from '@/lib/demo/auth';
+import { getDemoStudentCourseEmailPrefix } from '@/lib/demo/seed-students';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 import { courseUpdateSchema } from '@/lib/validation/course';
-
-function getLocaleFromRequest(request: NextRequest): 'id' | 'en' {
-  const referer = request.headers.get('referer');
-  if (referer?.includes('/en/')) {
-    return 'en';
-  }
-
-  return (routing.defaultLocale ?? 'id') as 'id' | 'en';
-}
-
-function getLocalizedMessage(locale: 'id' | 'en', key: string): string {
-  const messages = locale === 'en' ? enMessages : idMessages;
-  const keys = key.split('.');
-  let value: Record<string, unknown> | string = messages;
-  for (const k of keys) {
-    value = (value as Record<string, unknown>)?.[k] as
-      | Record<string, unknown>
-      | string;
-  }
-  return typeof value === 'string' ? value : key;
-}
 
 // Cache for 10 minutes since course data doesn't change frequently
 export const revalidate = 600;
@@ -218,8 +197,8 @@ export const PATCH = withAuth<{ id: string }>(
     });
 
     if (existingCourse) {
-      const locale = getLocaleFromRequest(request);
-      const errorMessage = getLocalizedMessage(
+      const locale = getRequestLocale(request);
+      const errorMessage = getLocalizedApiMessage(
         locale,
         'dashboard.modals.createClass.duplicateError'
       );
@@ -275,7 +254,21 @@ export const DELETE = withAuth<{ id: string }>(
       select: { studentId: true },
     });
 
-    await prisma.course.delete({ where: { id } });
+    const demoVisitorId = parseDemoVisitorIdFromEmail(user.email);
+
+    await prisma.$transaction(async (tx: TransactionClient) => {
+      if (demoVisitorId) {
+        await tx.user.deleteMany({
+          where: {
+            email: {
+              startsWith: getDemoStudentCourseEmailPrefix(demoVisitorId, id),
+            },
+          },
+        });
+      }
+
+      await tx.course.delete({ where: { id } });
+    });
 
     revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 

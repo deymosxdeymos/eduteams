@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { Prisma } from '@/generated/prisma/client';
+import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
 import {
   createApiResponse,
   createErrorResponse,
@@ -11,6 +12,8 @@ import {
   createCourseCatalogEntry,
   getCourseCatalog,
 } from '@/lib/data/course-catalog';
+import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
+import { DEMO_COURSE_CATALOG } from '@/lib/demo/config';
 
 export const runtime = 'nodejs';
 
@@ -37,6 +40,7 @@ const courseCatalogCreateSchema = z.object({
 
 type CourseCatalogCreateInput = z.infer<typeof courseCatalogCreateSchema>;
 
+
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   if (user.role !== 'TEACHER') {
     return createErrorResponse('Only dosen can view course catalog', 403);
@@ -55,6 +59,10 @@ export const GET = withAuth(async (request: NextRequest, { user }) => {
     );
   }
 
+  if (isActiveDemoAccountEmail(user.email)) {
+    return createApiResponse([...DEMO_COURSE_CATALOG]);
+  }
+
   const { search } = parseResult.data;
   const entries = await getCourseCatalog({ search: search || undefined });
 
@@ -67,6 +75,17 @@ export const POST = withAuth(
     async (_request: NextRequest, { user, validatedData }) => {
       if (user?.role !== 'TEACHER') {
         return createErrorResponse('Only dosen can create courses', 403);
+      }
+
+      if (isActiveDemoAccountEmail(user.email)) {
+        const locale = getRequestLocale(_request);
+        return createErrorResponse(
+          getLocalizedApiMessage(
+            locale,
+            'dashboard.modals.createClass.catalog.demoLocked'
+          ),
+          403
+        );
       }
 
       const payload = validatedData as CourseCatalogCreateInput;

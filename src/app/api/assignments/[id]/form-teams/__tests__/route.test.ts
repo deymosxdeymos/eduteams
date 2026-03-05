@@ -1,7 +1,21 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { createApiUtilsModule } from '@/test-utils/api-utils-module';
+
+const checkRateLimitMock = mock(async () => ({
+  allowed: true,
+  retryAfterSeconds: 60,
+}));
+const getClientIdentifierMock = mock(() => null);
+const currentUserMock = mock(async () => ({
+  id: 'u1',
+  role: 'TEACHER',
+  isOnboarded: true,
+}));
 
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
 process.env.BETTER_AUTH_SECRET = 'test-secret';
+
+const originalNodeEnv = process.env.NODE_ENV;
 
 const prismaMock: any = {
   user: {
@@ -77,6 +91,7 @@ const prismaMock: any = {
     create: mock(async () => ({ id: 'tfr1' })),
     update: mock(async () => ({ id: 'tfr1' })),
     findFirst: mock(async () => null),
+    count: mock(async () => 0),
     updateMany: mock(async () => ({ count: 0 })),
   },
   assignmentSubmission: {
@@ -95,12 +110,183 @@ const authMock = {
       getSession: mock(async () => ({ user: { id: 'u1' } })),
     },
   },
+  shouldBlockPublicDemoCredentialAuth: () => false,
 };
+const isSameOriginMock = mock(() => true);
 
-mock.module('@/lib/prisma', () => ({ default: prismaMock }));
-mock.module('@/lib/auth', () => authMock);
+function applyModuleMocks() {
+  mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+  mock.module('@/lib/auth', () => authMock);
+  mock.module('@/lib/api-utils', () =>
+    createApiUtilsModule({
+      withRole:
+        (_allowedRoles: unknown, handler: (req: any, ctx: any) => Promise<any>) =>
+        async (req: any, ctx: any) =>
+          handler(req, { ...ctx, user: await currentUserMock() }),
+    })
+  );
+  mock.module('@/lib/csrf', () => ({ isSameOrigin: isSameOriginMock }));
+  mock.module('@/lib/rate-limit', () => ({
+    checkRateLimit: checkRateLimitMock,
+    getClientIdentifier: getClientIdentifierMock,
+  }));
+}
 
 describe('POST /api/assignments/[id]/form-teams', () => {
+  beforeEach(() => {
+    process.env.NODE_ENV = 'test';
+    applyModuleMocks();
+    currentUserMock.mockReset();
+    currentUserMock.mockResolvedValue({
+      id: 'u1',
+      role: 'TEACHER',
+      isOnboarded: true,
+    });
+    isSameOriginMock.mockReset();
+    isSameOriginMock.mockReturnValue(true);
+    checkRateLimitMock.mockReset();
+    checkRateLimitMock.mockResolvedValue({
+      allowed: true,
+      retryAfterSeconds: 60,
+    });
+    getClientIdentifierMock.mockReset();
+    getClientIdentifierMock.mockReturnValue(null);
+
+    prismaMock.assignment.findUnique.mockReset();
+    prismaMock.assignment.findUnique.mockImplementation(async (args: any) =>
+      args?.where?.id === 'a1'
+        ? {
+            id: 'a1',
+            courseId: 'c1',
+            course: { dosenId: 'u1' },
+            description: null,
+          }
+        : null
+    );
+    prismaMock.courseEnrollment.findMany.mockReset();
+    prismaMock.courseEnrollment.findMany.mockImplementation(async (args: any) => {
+      if (args?.where?.courseId !== 'c1') return [];
+      return [
+        {
+          student: {
+            id: 's1',
+            gender: 'MALE',
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+            personSkills: [{ skillId: 'sk1', level: 0.8 }],
+          },
+        },
+        {
+          student: {
+            id: 's2',
+            gender: 'FEMALE',
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+            personSkills: [{ skillId: 'sk1', level: 0.6 }],
+          },
+        },
+        {
+          student: {
+            id: 's3',
+            gender: 'MALE',
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+            personSkills: [{ skillId: 'sk1', level: 0.7 }],
+          },
+        },
+        {
+          student: {
+            id: 's4',
+            gender: 'FEMALE',
+            personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+            personSkills: [{ skillId: 'sk1', level: 0.5 }],
+          },
+        },
+      ];
+    });
+    prismaMock.skill.findMany.mockReset();
+    prismaMock.skill.findMany.mockResolvedValue([{ id: 'sk1', name: 'Frontend' }]);
+    prismaMock.assignmentTopic.findMany.mockReset();
+    prismaMock.assignmentTopic.findMany.mockResolvedValue([]);
+    prismaMock.assignmentTopicPreference.findMany.mockReset();
+    prismaMock.assignmentTopicPreference.findMany.mockResolvedValue([]);
+    prismaMock.teamFormationRequest.create.mockReset();
+    prismaMock.teamFormationRequest.create.mockResolvedValue({ id: 'tfr1' });
+    prismaMock.teamFormationRequest.update.mockReset();
+    prismaMock.teamFormationRequest.update.mockResolvedValue({ id: 'tfr1' });
+    prismaMock.teamFormationRequest.findFirst.mockReset();
+    prismaMock.teamFormationRequest.findFirst.mockResolvedValue(null);
+    prismaMock.teamFormationRequest.count.mockReset();
+    prismaMock.teamFormationRequest.count.mockResolvedValue(0);
+    prismaMock.teamFormationRequest.updateMany.mockReset();
+    prismaMock.teamFormationRequest.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.assignmentSubmission.findMany.mockReset();
+    prismaMock.assignmentSubmission.findMany.mockResolvedValue([
+      { studentId: 's1' },
+      { studentId: 's2' },
+      { studentId: 's3' },
+      { studentId: 's4' },
+    ]);
+  });
+
+  afterEach(() => {
+    mock.restore();
+    mock.module('@/lib/api-utils', () => createApiUtilsModule());
+    process.env.NODE_ENV = originalNodeEnv;
+  });
+
+  it('rejects requests without origin metadata when same-origin enforcement is enabled', async () => {
+    isSameOriginMock.mockReturnValue(false);
+    process.env.ENFORCE_SAME_ORIGIN_MUTATIONS = '1';
+
+    try {
+      const { POST } = await import('../route');
+      const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+      });
+      const res = await POST(
+        req as any,
+        { params: Promise.resolve({ id: 'a1' }) } as any
+      );
+
+      expect(res.status).toBe(403);
+      const json = (await res.json()) as any;
+      expect(json.success).toBe(false);
+      expect(json.error).toBe('Forbidden origin');
+    } finally {
+      delete process.env.ENFORCE_SAME_ORIGIN_MUTATIONS;
+    }
+  });
+
+  it('falls back to the per-user rate limit in production when no trusted client identifier is available', async () => {
+    process.env.NODE_ENV = 'production';
+    getClientIdentifierMock.mockReturnValue(null);
+    mock.module('@/lib/edu2com/api', () => ({
+      callEdu2comBackgroundTeamFormation: async () => undefined,
+    }));
+
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+    });
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as any;
+    expect(json.success).toBe(true);
+    expect(checkRateLimitMock).toHaveBeenCalledTimes(1);
+    expect(checkRateLimitMock).toHaveBeenCalledWith({
+      key: 'form-teams:user:u1',
+      limit: 8,
+      windowMs: 600_000,
+    });
+    expect(prismaMock.teamFormationRequest.create).toHaveBeenCalled();
+  });
+
   it('forms teams for dosen with JUMLAH_KELOMPOK method and persists', async () => {
     mock.module('@/lib/edu2com/api', () => ({
       callEdu2comBackgroundTeamFormation: async () => undefined,
@@ -119,8 +305,91 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
+    expect(checkRateLimitMock).toHaveBeenCalledWith({
+      key: 'form-teams:user:u1',
+      limit: 8,
+      windowMs: 600_000,
+    });
     expect(prismaMock.teamFormationRequest.create).toHaveBeenCalled();
     expect(prismaMock.teamFormationRequest.update).not.toHaveBeenCalled();
+  });
+
+  it('forms teams when seeded demo classmates have assignment submissions', async () => {
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
+      {
+        student: {
+          id: 'demo-seed-1',
+          gender: 'MALE',
+          personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+          personSkills: [{ skillId: 'sk1', level: 0.8 }],
+        },
+      },
+      {
+        student: {
+          id: 'demo-seed-2',
+          gender: 'FEMALE',
+          personalityProfile: { ei: 0, sn: 0, tf: 0, pj: 0 },
+          personSkills: [{ skillId: 'sk1', level: 0.6 }],
+        },
+      },
+    ]);
+    prismaMock.assignmentSubmission.findMany.mockResolvedValueOnce([
+      { studentId: 'demo-seed-1' },
+      { studentId: 'demo-seed-2' },
+    ]);
+    mock.module('@/lib/edu2com/api', () => ({
+      callEdu2comBackgroundTeamFormation: async () => undefined,
+    }));
+
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_MHS_PER_KELOMPOK', value: 2 }),
+    });
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as any;
+    expect(json.success).toBe(true);
+    expect(prismaMock.teamFormationRequest.create).toHaveBeenCalled();
+  });
+
+  it('returns 429 when the atomic per-user rate limit is exhausted', async () => {
+    checkRateLimitMock.mockImplementation(async ({ key }: { key: string }) => {
+      if (key === 'form-teams:user:u1') {
+        return {
+          allowed: false,
+          retryAfterSeconds: 60,
+        };
+      }
+
+      return {
+        allowed: true,
+        retryAfterSeconds: 60,
+      };
+    });
+
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+    });
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+
+    expect(res.status).toBe(429);
+    expect(prismaMock.assignment.findUnique).not.toHaveBeenCalled();
+    expect(prismaMock.teamFormationRequest.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.courseEnrollment.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.assignmentSubmission.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.teamFormationRequest.create).not.toHaveBeenCalled();
   });
 
   it('prevents concurrent requests when one is already processing', async () => {

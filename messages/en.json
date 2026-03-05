@@ -5,7 +5,8 @@
   "answersDefault": "Student Answers",
   "auth": {
     "signInWithGoogle": "Sign in with Google",
-    "signingIn": "Signing in..."
+    "signingIn": "Signing in...",
+    "tryDemo": "Try Demo"
   },
   "homepage": {
     "hero": {
@@ -185,6 +186,9 @@
       },
       "errors": {
         "questionRequired": "This question is required"
+      },
+      "demo": {
+        "description": "Select a personality type to continue the demo flow."
       }
     }
   },
@@ -200,6 +204,13 @@
     },
     "search": {
       "placeholder": "Search for something?"
+    },
+    "demo": {
+      "roleSwitcher": {
+        "switchToTeacher": "Switch to Teacher",
+        "switchToStudent": "Switch to Student",
+        "switching": "Switching..."
+      }
     },
     "emptyStates": {
       "dosen": {
@@ -242,6 +253,7 @@
           "noResults": "No course matches \"{query}\".",
           "createNewOption": "Create new: {value}",
           "startTyping": "Type to search available courses",
+          "demoLocked": "Catalog entries can't be created in demo mode.",
           "dialog": {
             "title": "Add new course",
             "description": "Add a new course code and name so it can be reused when creating classes.",

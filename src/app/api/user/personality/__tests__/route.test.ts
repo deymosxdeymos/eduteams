@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
+const actualAuth = await import('@/lib/auth');
 const submitMock = mock();
 
 mock.module('@/lib/auth', () => ({
+  ...actualAuth,
   auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
 }));
 

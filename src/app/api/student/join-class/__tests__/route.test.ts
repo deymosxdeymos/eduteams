@@ -1,7 +1,6 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
-mock.module('next/cache', () => ({ revalidateTag: () => {} }));
-mock.module('@/lib/csrf', () => ({ isSameOrigin: () => true }));
+const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 const prismaMock: any = {
   user: {
@@ -33,7 +32,27 @@ const prismaMock: any = {
   },
 };
 
-mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+function applyModuleMocks() {
+  mock.module('next/cache', () => ({ revalidateTag: () => {} }));
+  mock.module('@/lib/csrf', () => ({ isSameOrigin: () => true }));
+  mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+}
+
+beforeEach(() => {
+  process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
+  applyModuleMocks();
+});
+
+afterEach(() => {
+  mock.restore();
+
+  if (originalAppUrl === undefined) {
+    delete process.env.NEXT_PUBLIC_APP_URL;
+    return;
+  }
+
+  process.env.NEXT_PUBLIC_APP_URL = originalAppUrl;
+});
 
 describe('POST /api/student/join-class', () => {
   it('joins class with valid token', async () => {
@@ -45,6 +64,7 @@ describe('POST /api/student/join-class', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        origin: 'http://localhost:3000',
         'x-forwarded-host': 'localhost',
       },
       body: JSON.stringify({ token: 'token123' }),
@@ -65,6 +85,7 @@ describe('POST /api/student/join-class', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
+        origin: 'http://localhost:3000',
         'x-forwarded-host': 'localhost',
       },
       body: JSON.stringify({ token: 'bad' }),

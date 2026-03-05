@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { PersonalityAxis, Prisma } from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
+import { createPrismaClient } from '@/lib/create-prisma-client';
+
+const prisma = createPrismaClient();
 
 type PersonalityQuestionSeed = {
   text: string;

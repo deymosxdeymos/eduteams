@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import Logo from '@/components/logo';
 import RoleFormClient from '@/components/onboarding/role/role-form-client';
 import { redirect } from '@/i18n/routing';
+import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
 import { isInstitutionalEmail } from '@/lib/email';
 import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
 import { protectOnboardingPage } from '@/lib/server-auth';
@@ -17,12 +18,14 @@ export default async function RolePage({
   const { locale } = await params;
   const t = await getTranslations('onboarding.role');
   const user = await protectOnboardingPage();
+  const isDemoAccount = isActiveDemoAccountEmail(user.email);
+  const hasTeacherAccess = isDemoAccount || isInstitutionalEmail(user.email);
 
   // Skip completion check in development if flag is set
   const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
 
   if (!devDisableAutoRole) {
-    if (user.role === 'TEACHER' && isInstitutionalEmail(user.email)) {
+    if (user.role === 'TEACHER' && hasTeacherAccess) {
       // Dosen only needs name and gender (no NPM requirement)
       if (!user.name || !user.gender) {
         redirect({ href: '/onboarding/data-diri/dosen', locale });
@@ -71,7 +74,8 @@ export default async function RolePage({
             ? undefined
             : (user.role as 'dosen' | 'mahasiswa' | undefined)
         }
-        hasInstitutionalEmail={isInstitutionalEmail(user.email)}
+        hasInstitutionalEmail={hasTeacherAccess}
+        enableDemoLogin={isDemoAccount}
       />
     </main>
   );

@@ -15,12 +15,17 @@ const baseCourse = {
 };
 
 const prismaMock: any = {
+  $transaction: mock(async (callback: (tx: any) => Promise<unknown>) =>
+    callback(prismaMock)
+  ),
   user: {
     findUnique: mock(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     })),
+    deleteMany: mock(async () => ({ count: 0 })),
   },
   course: {
     findFirst: mock(async (args: any) =>
@@ -100,6 +105,7 @@ describe('GET /api/courses/[id]', () => {
     // Auth session: mahasiswa s1
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 's1',
+      email: 'student@example.com',
       role: 'STUDENT',
       isOnboarded: true,
     }));
@@ -122,6 +128,7 @@ describe('GET /api/courses/[id]', () => {
     // Auth session: admin (not dosen/mahasiswa-onboarded path)
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'a1',
+      email: 'admin@example.com',
       role: 'ADMIN',
       isOnboarded: true,
     }));
@@ -141,13 +148,16 @@ describe('GET /api/courses/[id]', () => {
 describe('DELETE /api/courses/[id]', () => {
   beforeEach(() => {
     revalidateTagMock.mockClear();
+    prismaMock.$transaction.mockClear();
     prismaMock.course.delete.mockClear();
     prismaMock.courseEnrollment.findMany.mockClear();
+    prismaMock.user.deleteMany.mockClear();
   });
 
   it('dosen can delete their own course and revalidate caches', async () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     }));
@@ -171,6 +181,7 @@ describe('DELETE /api/courses/[id]', () => {
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
     expect(prismaMock.course.delete).toHaveBeenCalledWith({
       where: { id: 'c1' },
     });
@@ -182,9 +193,50 @@ describe('DELETE /api/courses/[id]', () => {
     ]);
   });
 
+  it('removes seeded demo students when a demo teacher deletes a course', async () => {
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: 'demo-teacher',
+      email: 'demo.teacher.visitor1234@eduteams.local',
+      role: 'TEACHER',
+      isOnboarded: true,
+    }));
+    prismaMock.course.findUnique.mockImplementationOnce(async () => ({
+      id: 'c1',
+      dosenId: 'demo-teacher',
+    }));
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 'demo-teacher' } }) } },
+    }));
+
+    const { getDemoStudentCourseEmailPrefix } = await import(
+      '@/lib/demo/seed-students'
+    );
+    const { DELETE } = await import('../route');
+    const res = await DELETE(
+      new Request('http://localhost/api/courses/c1', {
+        method: 'DELETE',
+      }) as any,
+      { params: Promise.resolve({ id: 'c1' }) } as any
+    );
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(prismaMock.user.deleteMany).toHaveBeenCalledWith({
+      where: {
+        email: {
+          startsWith: getDemoStudentCourseEmailPrefix('visitor1234', 'c1'),
+        },
+      },
+    });
+    expect(prismaMock.course.delete).toHaveBeenCalledWith({
+      where: { id: 'c1' },
+    });
+  });
+
   it('returns 403 when deleting course not owned by dosen', async () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     }));
@@ -212,6 +264,7 @@ describe('DELETE /api/courses/[id]', () => {
   it('returns 404 when course is not found', async () => {
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     }));
@@ -239,6 +292,7 @@ describe('PATCH /api/courses/[id]', () => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     }));
@@ -279,6 +333,7 @@ describe('PATCH /api/courses/[id]', () => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     }));
@@ -307,6 +362,7 @@ describe('PATCH /api/courses/[id]', () => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
       id: 'u1',
+      email: 'dosen@example.com',
       role: 'TEACHER',
       isOnboarded: true,
     }));

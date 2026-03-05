@@ -21,12 +21,35 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+## Demo Mode
+
+```bash
+# Enable demo-friendly mode
+DEMO_MODE=1
+NEXT_PUBLIC_DEMO_MODE=1
+NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL=1
+```
+
+In demo mode, teachers with an empty dashboard can click **Generate demo class**
+to create a ready-to-present dataset (students, assignments, and topic
+preferences) in one action.
+
+### Public demo safety defaults
+
+- `DEMO_MODE=1` gates demo bootstrap API.
+- Demo bootstrap endpoint has IP and per-user rate limits.
+- Team formation endpoint has IP and per-teacher rate limits.
+- Set `ENFORCE_SAME_ORIGIN_MUTATIONS=1` to reject cross-origin mutation calls.
+- For self-hosted deployments behind Nginx, Traefik, or Kubernetes ingress, set `TRUSTED_CLIENT_IP_HEADERS` (for example `x-forwarded-for`) so app-level IP rate limiting can identify clients safely. If a trusted `x-forwarded-for` chain already contains proxy hops on the right, set `TRUSTED_PROXY_HOPS` to the number of trusted hops to skip.
+- For production demos, also enable edge-level WAF/rate-limiting (Cloudflare or Vercel WAF).
+
 ## Commands
 
 ```bash
 # Development
 bun dev                              # Start dev server
-bun run build && bun start          # Build & run production
+bun run dev:demo                     # Start dev server in demo mode
+bun run build && bun start           # Build & run production
 
 # Testing
 bun test                            # Run all tests
@@ -79,6 +102,14 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 # OAuth (optional)
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Demo mode (optional)
+DEMO_MODE="0"
+NEXT_PUBLIC_DEMO_MODE="0"
+NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL="0"
+ENFORCE_SAME_ORIGIN_MUTATIONS="1"
+TRUSTED_CLIENT_IP_HEADERS=""
+TRUSTED_PROXY_HOPS="0"
 
 # Cron jobs (required for production)
 CRON_SECRET="your-cron-secret"

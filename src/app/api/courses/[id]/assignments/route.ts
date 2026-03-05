@@ -12,7 +12,10 @@ import {
   canAccessMahasiswaFeatures,
 } from '@/lib/authorization';
 import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
-import prisma from '@/lib/prisma';
+import { parseDemoVisitorIdFromEmail } from '@/lib/demo/auth';
+import { isDemoModeEnabled } from '@/lib/demo/config';
+import { seedDemoAssignmentSubmissions } from '@/lib/demo/seed-students';
+import prisma, { type TransactionClient } from '@/lib/prisma';
 import {
   ensureSkillsForCourse,
   ensureTopicsForAssignment,
@@ -113,6 +116,9 @@ export const POST = withAuth<{ id: string }>(
 
       const raw = await request.json();
       const data = AssignmentCreateSchema.parse(raw);
+      const demoVisitorId = isDemoModeEnabled()
+        ? parseDemoVisitorIdFromEmail(user.email)
+        : null;
 
       // Normalize skills/topics (handles both string and { name: string } inputs)
       const cleanedSkills = (data.skills || [])
@@ -134,42 +140,63 @@ export const POST = withAuth<{ id: string }>(
           ? JSON.stringify(descJson)
           : data.description;
 
-      const created = await prisma.assignment.create({
-        data: {
-          courseId,
-          createdById: user.id,
-          title: data.title,
-          description: descriptionToStore,
-          startAt: data.startAt ?? new Date(),
-          status: 'BELUM_ISI',
-        },
-        select: {
-          id: true,
-          courseId: true,
-          title: true,
-          description: true,
-          startAt: true,
-          createdAt: true,
-          status: true,
-        },
-      });
+      const { assignment: created, seededSubmissionCount } =
+        await prisma.$transaction(async (tx: TransactionClient) => {
+          const assignment = await tx.assignment.create({
+            data: {
+              courseId,
+              createdById: user.id,
+              title: data.title,
+              description: descriptionToStore,
+              startAt: data.startAt ?? new Date(),
+              status: 'BELUM_ISI',
+            },
+            select: {
+              id: true,
+              courseId: true,
+              title: true,
+              description: true,
+              startAt: true,
+              createdAt: true,
+              status: true,
+              structureVersion: true,
+            },
+          });
 
-      // Persist skills globally + link to course, and persist topics to assignment
-      await Promise.all([
-        ensureSkillsForCourse(courseId, cleanedSkills),
-        ensureTopicsForAssignment(created.id, cleanedTopics),
-      ]);
+          await Promise.all([
+            ensureSkillsForCourse(courseId, cleanedSkills, tx),
+            ensureTopicsForAssignment(assignment.id, cleanedTopics, tx),
+          ]);
+
+          const seededDemoSubmissions = demoVisitorId
+            ? await seedDemoAssignmentSubmissions(
+                assignment.id,
+                courseId,
+                demoVisitorId,
+                tx,
+                { structureVersion: assignment.structureVersion }
+              )
+            : 0;
+
+          return {
+            assignment,
+            seededSubmissionCount: seededDemoSubmissions,
+          };
+        });
+
+      const { structureVersion: _structureVersion, ...createdAssignment } =
+        created;
 
       revalidateTag(DASHBOARD_STATISTICS_TAG);
       return NextResponse.json(
         {
           success: true,
           data: {
-            ...created,
+            ...createdAssignment,
             description: created.description ?? undefined,
             skills: cleanedSkills,
             topics: cleanedTopics,
-            submissionsCount: 0,
+            submissionsCount: seededSubmissionCount,
           },
         },
         { status: 201 }
