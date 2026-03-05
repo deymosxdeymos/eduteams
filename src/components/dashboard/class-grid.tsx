@@ -43,14 +43,15 @@ export function ClassGrid({
         }}
       >
         {classes.map(classItem => (
-          <ClassCard
-            key={classItem.id}
-            id={classItem.id}
-            title={classItem.title}
-            academicYear={classItem.academicYear}
-            studentCount={classItem.studentCount}
-            classCode={classItem.classCode}
-          />
+          <div key={classItem.id} className='content-auto'>
+            <ClassCard
+              id={classItem.id}
+              title={classItem.title}
+              academicYear={classItem.academicYear}
+              studentCount={classItem.studentCount}
+              classCode={classItem.classCode}
+            />
+          </div>
         ))}
       </div>
     </div>

@@ -2,7 +2,8 @@
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { useReducer, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useMemo, useReducer, useRef, useState } from 'react';
 import Logo from '@/components/logo';
 import InstructionModal from '@/components/onboarding/kepribadian/instruction-modal';
 import PersonalityQuestion from '@/components/onboarding/kepribadian/personality-question';
@@ -23,46 +24,18 @@ import {
 interface PersonalityTestClientProps {
   session: CreatePersonalitySessionResult;
   userRole: 'dosen' | 'mahasiswa';
-  dict: {
-    onboarding: {
-      kepribadian: {
-        title: string;
-        description: string;
-        pageOf: string;
-        sending: string;
-        selesai: string;
-        lanjut: string;
-        instructions: {
-          title: string;
-          step1: string;
-          step2: string;
-          step3: string;
-          step4: string;
-          likertScale: {
-            stronglyDisagree: string;
-            disagree: string;
-            neutral: string;
-            agree: string;
-            stronglyAgree: string;
-          };
-          startNow: string;
-        };
-        alerts: {
-          submitFailed: string;
-        };
-        errors: {
-          questionRequired: string;
-        };
-      };
-    };
-  };
 }
 
 export default function PersonalityTestClient({
   session,
   userRole,
-  dict,
 }: PersonalityTestClientProps) {
+  const tKepribadian = useTranslations('onboarding.kepribadian');
+  const tLikert = useTranslations(
+    'onboarding.kepribadian.instructions.likertScale'
+  );
+  const tAlerts = useTranslations('onboarding.kepribadian.alerts');
+  const tErrors = useTranslations('onboarding.kepribadian.errors');
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [state, dispatch] = useReducer(
@@ -71,10 +44,15 @@ export default function PersonalityTestClient({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const questions = session.questions;
-  const likertLabels = dict.onboarding.kepribadian.instructions.likertScale;
-  const submitFailedMessage = dict.onboarding.kepribadian.alerts.submitFailed;
-  const questionRequiredMessage =
-    dict.onboarding.kepribadian.errors.questionRequired;
+  const likertLabels = useMemo(() => ({
+    stronglyDisagree: tLikert('stronglyDisagree'),
+    disagree: tLikert('disagree'),
+    neutral: tLikert('neutral'),
+    agree: tLikert('agree'),
+    stronglyAgree: tLikert('stronglyAgree'),
+  }), [tLikert]);
+  const submitFailedMessage = tAlerts('submitFailed');
+  const questionRequiredMessage = tErrors('questionRequired');
 
   const questionsPerPage = 6;
   const totalPages = Math.ceil(questions.length / questionsPerPage);
@@ -164,11 +142,7 @@ export default function PersonalityTestClient({
 
   return (
     <main className='bg-white min-h-screen px-12 py-14'>
-      <InstructionModal
-        isOpen={isModalOpen}
-        onCloseAction={handleCloseModal}
-        dict={dict}
-      />
+      <InstructionModal isOpen={isModalOpen} onCloseAction={handleCloseModal} />
 
       <Logo color='black' className='justify-center' />
 
@@ -181,13 +155,13 @@ export default function PersonalityTestClient({
           className='w-20 h-20'
         />
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          {dict.onboarding.kepribadian.title}
+          {tKepribadian('title')}
         </h1>
       </div>
 
       <div className='flex items-center justify-center p-6'>
         <p className='font-normal text-black text-xl text-center tracking-tight whitespace-pre-line'>
-          {dict.onboarding.kepribadian.description}
+          {tKepribadian('description')}
         </p>
       </div>
 
@@ -195,9 +169,10 @@ export default function PersonalityTestClient({
         <div className='mb-8'>
           <div className='flex items-center justify-between gap-4'>
             <span className='text-md font-medium text-black'>
-              {dict.onboarding.kepribadian.pageOf
-                .replace('{current}', state.currentPage.toString())
-                .replace('{total}', totalPages.toString())}
+              {tKepribadian('pageOf', {
+                current: state.currentPage,
+                total: totalPages,
+              })}
             </span>
             <Progress
               value={progress}
@@ -240,10 +215,10 @@ export default function PersonalityTestClient({
           disabled={state.isSubmitting}
         >
           {state.isSubmitting
-            ? dict.onboarding.kepribadian.sending
+            ? tKepribadian('sending')
             : state.currentPage === totalPages
-              ? dict.onboarding.kepribadian.selesai
-              : dict.onboarding.kepribadian.lanjut}
+              ? tKepribadian('selesai')
+              : tKepribadian('lanjut')}
           <ArrowRight
             strokeWidth={3}
             className='font-bold text-white text-lg'

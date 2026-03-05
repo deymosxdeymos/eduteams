@@ -43,7 +43,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { getAssignmentStatusBadge } from '@/lib/utils/assignment-status';
 import type { ManageAssignmentRow } from '@/types/manage';
@@ -168,7 +167,6 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   renderActions,
   onArchiveToggle,
 }: ManageAssignmentsViewProps) {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useQueryState('search', {
     defaultValue: '',
     shallow: true,
@@ -184,6 +182,12 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] =
     useState<ManageAssignmentRow | null>(null);
+  const [assignmentRows, setAssignmentRows] =
+    useState<ManageAssignmentRow[]>(assignments);
+
+  useEffect(() => {
+    setAssignmentRows(assignments);
+  }, [assignments]);
 
   const handleArchiveToggle = useCallback(
     (assignment: ManageAssignmentRow) => {
@@ -191,13 +195,25 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
         return;
       }
 
+      const nextIsArchived = !assignment.isArchived;
       setPendingAssignmentId(assignment.id);
       setArchiveError(null);
+      setAssignmentRows(current =>
+        current.map(row =>
+          row.id === assignment.id ? { ...row, isArchived: nextIsArchived } : row
+        )
+      );
       void (async () => {
         try {
           await onArchiveToggle(assignment);
-          router.refresh();
         } catch (error) {
+          setAssignmentRows(current =>
+            current.map(row =>
+              row.id === assignment.id
+                ? { ...row, isArchived: assignment.isArchived }
+                : row
+            )
+          );
           const errorMessage =
             error instanceof Error
               ? error.message
@@ -210,19 +226,8 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
         }
       })();
     },
-    [onArchiveToggle, router]
+    [onArchiveToggle]
   );
-
-  useEffect(() => {
-    const handleAssignmentUpdated = () => {
-      router.refresh();
-    };
-
-    window.addEventListener('assignment:updated', handleAssignmentUpdated);
-    return () => {
-      window.removeEventListener('assignment:updated', handleAssignmentUpdated);
-    };
-  }, [router]);
 
   const defaultActions = useCallback(
     (assignment: ManageAssignmentRow) => {
@@ -316,13 +321,13 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
 
   const filteredAssignments = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return assignments;
+    if (!term) return assignmentRows;
 
-    return assignments.filter(assignment => {
+    return assignmentRows.filter(assignment => {
       const tokens = assignment.title.toLowerCase();
       return tokens.includes(term);
     });
-  }, [assignments, searchTerm]);
+  }, [assignmentRows, searchTerm]);
 
   const activeAssignments = filteredAssignments.filter(a => !a.isArchived);
   const archivedAssignments = filteredAssignments.filter(a => a.isArchived);
@@ -402,6 +407,22 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           }}
           assignment={editingAssignment}
           courseId={courseId}
+          onUpdatedAction={updated => {
+            setAssignmentRows(current =>
+              current.map(row =>
+                row.id === updated.id
+                  ? {
+                      ...row,
+                      ...updated,
+                      description:
+                        updated.description === undefined
+                          ? row.description
+                          : updated.description,
+                    }
+                  : row
+              )
+            );
+          }}
         />
       )}
     </section>

@@ -7,21 +7,38 @@ export function ScrollToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const footer = document.querySelector('footer');
-    if (!footer) return;
+    let footerObserver: IntersectionObserver | null = null;
+    let domObserver: MutationObserver | null = null;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
+    const watchFooter = () => {
+      const footer = document.querySelector('footer');
+      if (!footer) return false;
+
+      footerObserver?.disconnect();
+      footerObserver = new IntersectionObserver(([entry]) => {
         setIsVisible(entry?.isIntersecting ?? false);
-      },
-      {
-        root: null,
-        threshold: 0,
-      }
-    );
+      });
+      footerObserver.observe(footer);
+      return true;
+    };
 
-    observer.observe(footer);
-    return () => observer.disconnect();
+    if (!watchFooter()) {
+      domObserver = new MutationObserver(() => {
+        if (watchFooter()) {
+          domObserver?.disconnect();
+          domObserver = null;
+        }
+      });
+      domObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    return () => {
+      footerObserver?.disconnect();
+      domObserver?.disconnect();
+    };
   }, []);
 
   const scrollToTop = () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import type { ColorScheme } from '@/lib/utils/mbti-colors';
 
@@ -25,17 +25,34 @@ export function ChartTypeTabs<T extends string>({
   const containerRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!activeTabRef.current || !containerRef.current) return;
 
-    const { offsetLeft, offsetWidth } = activeTabRef.current;
-    const containerWidth = containerRef.current.offsetWidth;
+    const updateClipPath = () => {
+      if (!activeTabRef.current || !containerRef.current) return;
 
-    const leftPercent = (offsetLeft / containerWidth) * 100;
-    const rightPercent =
-      100 - ((offsetLeft + offsetWidth) / containerWidth) * 100;
+      const { offsetLeft, offsetWidth } = activeTabRef.current;
+      const containerWidth = containerRef.current.offsetWidth;
+      if (containerWidth === 0) return;
 
-    containerRef.current.style.clipPath = `inset(0 ${rightPercent}% 0 ${leftPercent}% round 8px)`;
+      const leftPercent = (offsetLeft / containerWidth) * 100;
+      const rightPercent =
+        100 - ((offsetLeft + offsetWidth) / containerWidth) * 100;
+
+      containerRef.current.style.clipPath = `inset(0 ${rightPercent}% 0 ${leftPercent}% round 8px)`;
+    };
+
+    updateClipPath();
+
+    const resizeObserver = new ResizeObserver(updateClipPath);
+    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(activeTabRef.current);
+
+    window.addEventListener('resize', updateClipPath);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateClipPath);
+    };
   }, [value]);
 
   return (

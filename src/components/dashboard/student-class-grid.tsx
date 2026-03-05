@@ -165,8 +165,8 @@ export function StudentClassGrid({
             const badgeColors = getClassBadgeColor(classItem.kelas);
 
             return (
+              <div key={classItem.id} className='content-auto'>
               <div
-                key={classItem.id}
                 role='button'
                 tabIndex={0}
                 className='group flex h-full w-full cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70 active:opacity-95 md:px-5 md:py-4'
@@ -213,6 +213,7 @@ export function StudentClassGrid({
                     {classItem.tahunAwalPeriode}/{classItem.tahunAkhirPeriode}
                   </p>
                 </div>
+              </div>
               </div>
             );
           })}

@@ -45,6 +45,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { classCatalogFetcher } from '@/lib/client-api';
+import { EMPTY_ARRAY } from '@/lib/constants';
 import type {
   ApiResponse,
   ClassCatalog,
@@ -66,14 +68,6 @@ const courseCatalogFetcher = async (url: string): Promise<CourseCatalog[]> => {
   return payload.data ?? [];
 };
 
-const classCatalogFetcher = async (url: string): Promise<ClassCatalog[]> => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Failed to fetch class catalog');
-  }
-  const payload = (await response.json()) as ApiResponse<ClassCatalog[]>;
-  return payload.data ?? [];
-};
 
 interface CreateClassModalProps {
   onClassCreated?: (course: Course) => void;
@@ -137,11 +131,8 @@ export default function CreateClassModal({
     classCatalogFetcher
   );
 
-  const courseOptions = useMemo(() => catalogData ?? [], [catalogData]);
-  const classOptions = useMemo(
-    () => classCatalogData ?? [],
-    [classCatalogData]
-  );
+  const courseOptions = catalogData ?? (EMPTY_ARRAY as unknown as CourseCatalog[]);
+  const classOptions = classCatalogData ?? (EMPTY_ARRAY as unknown as ClassCatalog[]);
 
   const filteredCourses = useMemo(() => {
     const query = courseSearch.trim().toLowerCase();

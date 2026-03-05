@@ -7,6 +7,8 @@ import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link, useRouter } from '@/i18n/routing';
+import { fetcher } from '@/lib/client-api';
+import { dateFormatterUTC, timeFormatterUTC } from '@/lib/constants';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentClient } from '@/lib/validation/assignments';
 import { EmptyStudentAssignmentState } from './empty-student-assignment-state';
@@ -18,23 +20,6 @@ interface StudentClassAssignmentsProps {
   studentCount?: number;
 }
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
-};
-
-const timeFormatter = new Intl.DateTimeFormat('en-GB', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
 
 export function StudentClassAssignments({
   classId,
@@ -47,13 +32,15 @@ export function StudentClassAssignments({
   const hasInitialAssignments = initialAssignments !== undefined;
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
-    fetcher,
+    fetcher<{ data: AssignmentClient[] }>,
     {
       fallbackData: initialAssignments
         ? { data: initialAssignments }
         : undefined,
       revalidateOnMount: !hasInitialAssignments,
       revalidateIfStale: !hasInitialAssignments,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
   );
 
@@ -69,7 +56,7 @@ export function StudentClassAssignments({
 
   const formatIdTimeDate = (input: Date | string) => {
     const d = new Date(input);
-    return `${timeFormatter.format(d)}, ${dateFormatter.format(d)}`;
+    return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
   };
 
   const extractDescriptionText = (description: string | null | undefined) => {
@@ -123,8 +110,8 @@ export function StudentClassAssignments({
                 {filteredAssignments.map(a => {
                   const descriptionText = extractDescriptionText(a.description);
                   return (
+                    <div key={a.id} className='content-auto'>
                     <div
-                      key={a.id}
                       className='border rounded-2xl p-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow'
                       role='button'
                       tabIndex={0}
@@ -261,6 +248,7 @@ export function StudentClassAssignments({
                           {descriptionText}
                         </p>
                       ) : null}
+                    </div>
                     </div>
                   );
                 })}

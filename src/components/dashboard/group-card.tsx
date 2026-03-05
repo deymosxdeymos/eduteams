@@ -51,6 +51,7 @@ export function GroupCard({ item }: GroupCardProps) {
     item.teamMembers.length > 0
   ) {
     return (
+      <div className='content-auto'>
       <div
         className='border rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer bg-gray-50'
         onClick={handleClick}
@@ -88,7 +89,7 @@ export function GroupCard({ item }: GroupCardProps) {
               {item.teamMembers.map(member => (
                 <div
                   key={member.id}
-                  className='flex items-center gap-3 p-3 border rounded-2xl hover:bg-gray-50'
+                  className='content-auto flex items-center gap-3 p-3 border rounded-2xl hover:bg-gray-50'
                 >
                   {member.user.mbtiType ? (
                     <Image
@@ -115,6 +116,7 @@ export function GroupCard({ item }: GroupCardProps) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -165,7 +167,7 @@ export function GroupCard({ item }: GroupCardProps) {
 
   return (
     <div
-      className='border rounded-2xl p-4 bg-card cursor-pointer hover:shadow-sm active:opacity-95'
+      className='content-auto border rounded-2xl p-4 bg-card cursor-pointer hover:shadow-sm active:opacity-95'
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role='button'

@@ -41,13 +41,23 @@ export default async function RootLayout({
   }
 
   const messages = await getMessages();
+  const clientMessages = {
+    greeting: messages.greeting,
+    mahasiswaSubtitle: messages.mahasiswaSubtitle,
+    dosenSubtitle: messages.dosenSubtitle,
+    answersDefault: messages.answersDefault,
+    auth: messages.auth,
+    onboarding: messages.onboarding,
+    dashboard: messages.dashboard,
+    joinClass: messages.joinClass,
+  };
 
   return (
     <html lang={locale}>
       <body
         className={`${plusJakartaSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={clientMessages}>
           {children}
           <SpeedInsights />
           {process.env.NODE_ENV === 'development' && (

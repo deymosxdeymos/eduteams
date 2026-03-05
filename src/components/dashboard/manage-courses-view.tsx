@@ -15,11 +15,9 @@ import {
   SortDesc,
   Trash2,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import {
-  type MouseEvent,
   memo,
   type ReactNode,
   useCallback,
@@ -79,8 +77,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useRouter } from '@/i18n/routing';
-import type { ApiResponse, ClassCatalog } from '@/lib/types';
+import { Link, useRouter } from '@/i18n/routing';
+import { classCatalogFetcher } from '@/lib/client-api';
+import { EMPTY_ARRAY } from '@/lib/constants';
+import type { ClassCatalog } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   type CourseCreateUserInput,
@@ -90,14 +90,6 @@ import type { ManageCourseRow } from '@/types/manage';
 
 type SortKey = 'recent' | 'name-asc' | 'year-desc';
 
-const classCatalogFetcher = async (url: string): Promise<ClassCatalog[]> => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Failed to fetch class catalog');
-  }
-  const payload = (await response.json()) as ApiResponse<ClassCatalog[]>;
-  return payload.data ?? [];
-};
 
 const sortOptions: Array<{ value: SortKey; label: string }> = [
   { value: 'recent', label: 'Terbaru' },
@@ -152,22 +144,6 @@ function ManageTable({
   emptyMessage: string;
   renderActions: (course: ManageCourseRow) => ReactNode;
 }) {
-  const router = useRouter();
-
-  const handleRowClick =
-    (courseId: string) => (e: MouseEvent<HTMLTableRowElement>) => {
-      // Ignore clicks on buttons and interactive elements
-      const target = e.target as HTMLElement;
-      if (
-        target.closest('button') ||
-        target.closest('a') ||
-        target.closest('[role="button"]')
-      ) {
-        return;
-      }
-      router.push(`/dashboard/manage/assignments/${courseId}`);
-    };
-
   if (rows.length === 0) {
     return (
       <div className='flex h-40 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/40 bg-muted/30'>
@@ -193,10 +169,16 @@ function ManageTable({
         {rows.map(course => (
           <TableRow
             key={course.id}
-            className='bg-white cursor-pointer hover:bg-accent/50 transition-colors'
-            onClick={handleRowClick(course.id)}
+            className='bg-white hover:bg-accent/50 transition-colors'
           >
-            <TableCell className='font-medium'>{course.name}</TableCell>
+            <TableCell className='font-medium'>
+              <Link
+                href={`/dashboard/manage/assignments/${course.id}`}
+                className='inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2'
+              >
+                {course.name}
+              </Link>
+            </TableCell>
             <TableCell className='text-muted-foreground'>
               {course.periodLabel}
             </TableCell>
@@ -248,7 +230,7 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
     classCatalogFetcher
   );
 
-  const classOptions = useMemo(() => classCatalogData ?? [], [classCatalogData]);
+  const classOptions = classCatalogData ?? (EMPTY_ARRAY as unknown as ClassCatalog[]);
 
   const form = useForm<CourseCreateUserInput>({
     resolver: zodResolver(courseCreateInputSchema),
@@ -360,16 +342,21 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
   };
 
   useEffect(() => {
-    if (open && classOptions.length > 0) {
-      const currentClassCode = course.classCode;
-      const matchingClass = classOptions.find(c => c.code === currentClassCode);
-      if (matchingClass) {
-        setSelectedCatalogClass(matchingClass);
-        form.setValue('kelas', matchingClass.code, { shouldValidate: false });
-      } else if (currentClassCode) {
-        form.setValue('kelas', currentClassCode, { shouldValidate: false });
-      }
+    if (!open || classOptions.length === 0) {
+      return;
     }
+    if (form.getFieldState('kelas').isDirty) {
+      return;
+    }
+
+    const currentClassCode = form.getValues('kelas') || course.classCode;
+    if (!currentClassCode) {
+      setSelectedCatalogClass(null);
+      return;
+    }
+
+    const matchingClass = classOptions.find(c => c.code === currentClassCode);
+    setSelectedCatalogClass(matchingClass || null);
   }, [open, classOptions, course.classCode, form]);
 
   const handleOpenChange = (newOpen: boolean) => {

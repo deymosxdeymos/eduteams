@@ -25,10 +25,15 @@ export function DashboardClient({
     }
   }, [isFirstVisit]);
 
-  const handleSplashComplete = async () => {
+  const handleSplashComplete = () => {
     setShowSplash(false);
     // Mark splash as seen after animation completes
-    fetch('/api/user/welcome-splash', { method: 'POST' });
+    void fetch('/api/user/welcome-splash', {
+      method: 'POST',
+      keepalive: true,
+    }).catch(() => {
+      // non-critical telemetry-style call
+    });
   };
 
   if (showSplash) {

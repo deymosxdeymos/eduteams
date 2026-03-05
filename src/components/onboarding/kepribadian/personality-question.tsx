@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MessageSquareWarning } from 'lucide-react';
 import Image from 'next/image';
+import { useId } from 'react';
 
 interface PersonalityQuestionProps {
   question: string;
@@ -29,6 +30,7 @@ export default function PersonalityQuestion({
   likertScale,
   requiredMessage,
 }: PersonalityQuestionProps) {
+  const idPrefix = useId();
   const selectedValue = typeof initialValue === 'number' ? initialValue : null;
 
   const likertLabels = likertScale ?? {
@@ -56,14 +58,25 @@ export default function PersonalityQuestion({
       size: 64,
     },
   ];
+  const optionIdPrefix = questionId ? `question-${questionId}` : idPrefix;
+  const selectedIndex = Math.max(
+    0,
+    likertOptions.findIndex(option => option.value === selectedValue)
+  );
 
-  const handleSelection = (value: number) => {
-    onAnswerAction(value);
+  const handleSelection = (value: number) => onAnswerAction(value);
+  const handleArrowNavigation = (direction: -1 | 1) => {
+    const nextIndex =
+      (selectedIndex + direction + likertOptions.length) %
+      likertOptions.length;
+    onAnswerAction(likertOptions[nextIndex].value);
   };
 
   return (
     <div
-      role='group'
+      role='radiogroup'
+      aria-invalid={hasError}
+      aria-labelledby={`${optionIdPrefix}-label`}
       className='space-y-6'
       id={questionId ? `question-${questionId}` : undefined}
     >
@@ -72,15 +85,35 @@ export default function PersonalityQuestion({
           className={`rounded-lg px-6 py-4 ${hasError ? 'border border-red-700' : 'border border-transparent'}`}
         >
           <div className='text-center mb-6'>
-            <p className='text-md font-normal text-black'>{question}</p>
+            <p
+              id={`${optionIdPrefix}-label`}
+              className='text-md font-normal text-black'
+            >
+              {question}
+            </p>
           </div>
 
           <div className='flex items-center justify-center max-w-5xl mx-auto'>
             {likertOptions.map((item, index) => (
               <div key={item.value} className='flex items-center'>
-                <motion.div
-                  className='flex flex-col items-center space-y-3 cursor-pointer'
+                <motion.button
+                  type='button'
+                  role='radio'
+                  aria-checked={selectedValue === item.value}
+                  tabIndex={selectedValue === item.value || (!selectedValue && index === 0) ? 0 : -1}
+                  aria-labelledby={`${optionIdPrefix}-option-${item.value}`}
+                  className='flex flex-col items-center space-y-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 rounded-sm'
                   onClick={() => handleSelection(item.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                      event.preventDefault();
+                      handleArrowNavigation(1);
+                    }
+                    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      handleArrowNavigation(-1);
+                    }
+                  }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   animate={{
@@ -102,9 +135,11 @@ export default function PersonalityQuestion({
                     style={{ width: 'auto', height: 'auto' }}
                   />
                   <div className='text-xs font-medium text-gray-700 whitespace-pre-line text-center'>
-                    {item.label}
+                    <span id={`${optionIdPrefix}-option-${item.value}`}>
+                      {item.label}
+                    </span>
                   </div>
-                </motion.div>
+                </motion.button>
                 {index < likertOptions.length - 1 && (
                   <div className='h-1 w-16 bg-gray-300 mx-4' />
                 )}

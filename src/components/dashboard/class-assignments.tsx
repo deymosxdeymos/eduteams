@@ -4,11 +4,13 @@ import { ArrowLeft, Calendar, Plus, Share2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useQueryState } from 'nuqs';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link, useRouter } from '@/i18n/routing';
+import { fetcher } from '@/lib/client-api';
+import { dateFormatterUTC, timeFormatterUTC } from '@/lib/constants';
 import { useFuzzySearch } from '@/lib/hooks/use-fuzzy-search';
 import type { AssignmentResponse } from '@/lib/validation/assignments';
 import { EmptyAssignmentState } from './empty-assignment-state';
@@ -41,23 +43,6 @@ interface ClassAssignmentsProps {
   studentCount?: number;
 }
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
-  return res.json();
-};
-
-const timeFormatter = new Intl.DateTimeFormat('en-GB', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
 
 export function ClassAssignments({
   classId,
@@ -77,24 +62,17 @@ export function ClassAssignments({
   const hasInitialAssignments = initialAssignments !== undefined;
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
-    fetcher,
+    fetcher<{ data: AssignmentResponse[] }>,
     {
       fallbackData: initialAssignments
         ? { data: initialAssignments }
         : undefined,
       revalidateOnMount: !hasInitialAssignments,
       revalidateIfStale: !hasInitialAssignments,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
   );
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const ce = e as CustomEvent<{ classId: string }>;
-      if (ce.detail?.classId === classId) mutateAssignments();
-    };
-    window.addEventListener('assignment:created', handler);
-    return () => window.removeEventListener('assignment:created', handler);
-  }, [classId, mutateAssignments]);
 
   const assignments: AssignmentResponse[] = assignmentsData?.data ?? [];
   const hasAssignments = assignments.length > 0;
@@ -108,7 +86,7 @@ export function ClassAssignments({
 
   const formatIdTimeDate = (input: Date | string) => {
     const d = new Date(input);
-    return `${timeFormatter.format(d)}, ${dateFormatter.format(d)}`;
+    return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
   };
 
   const extractDescriptionText = (description: string | null | undefined) => {
@@ -182,8 +160,8 @@ export function ClassAssignments({
                 {filteredAssignments.map(a => {
                   const descriptionText = extractDescriptionText(a.description);
                   return (
+                    <div key={a.id} className='content-auto'>
                     <div
-                      key={a.id}
                       className='border rounded-2xl p-4 bg-card cursor-pointer hover:shadow-sm active:opacity-95'
                       role='button'
                       tabIndex={0}
@@ -265,6 +243,7 @@ export function ClassAssignments({
                         </p>
                       ) : null}
                     </div>
+                    </div>
                   );
                 })}
               </div>
@@ -290,6 +269,9 @@ export function ClassAssignments({
           open={isCreateAssignmentModalOpen}
           onOpenChange={setIsCreateAssignmentModalOpen}
           classId={classId}
+          onCreatedAction={() => {
+            void mutateAssignments();
+          }}
         />
       ) : null}
     </div>

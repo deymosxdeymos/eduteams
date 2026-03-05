@@ -172,6 +172,18 @@ export const StudentList = memo(function StudentList({
     [students, searchValue]
   );
 
+  const allFilteredSelected =
+    filteredStudents.length > 0 &&
+    selectedStudentIds.size === filteredStudents.length;
+
+  const toggleSelectAllFiltered = useCallback(() => {
+    if (allFilteredSelected) {
+      setSelectedStudentIds(new Set());
+      return;
+    }
+    setSelectedStudentIds(new Set(filteredStudents.map(s => s.id)));
+  }, [allFilteredSelected, filteredStudents]);
+
 
   // Derive the current modal student from students list to keep it fresh when SWR revalidates
   const resolvedSelectedStudent = useMemo(() => {
@@ -416,47 +428,27 @@ export const StudentList = memo(function StudentList({
               style={{ willChange: 'opacity, transform' }}
             >
               <div className='flex items-center justify-between mt-4'>
-                <label
-                  className='flex items-center gap-2 cursor-pointer select-none'
-                  onClick={() => {
-                    if (selectedStudentIds.size === filteredStudents.length) {
-                      setSelectedStudentIds(new Set());
-                    } else {
-                      setSelectedStudentIds(
-                        new Set(filteredStudents.map(s => s.id))
-                      );
-                    }
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      if (selectedStudentIds.size === filteredStudents.length) {
-                        setSelectedStudentIds(new Set());
-                      } else {
-                        setSelectedStudentIds(
-                          new Set(filteredStudents.map(s => s.id))
-                        );
-                      }
-                    }
-                  }}
+                <button
+                  type='button'
+                  className='flex items-center gap-2 cursor-pointer select-none rounded-md focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2'
+                  onClick={toggleSelectAllFiltered}
+                  aria-pressed={allFilteredSelected}
                 >
                   <div
                     className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors duration-200 ${
-                      filteredStudents.length > 0 &&
-                      selectedStudentIds.size === filteredStudents.length
+                      allFilteredSelected
                         ? 'bg-blue-500 border-blue-500'
                         : 'border-gray-300 bg-white'
                     }`}
                   >
-                    {filteredStudents.length > 0 &&
-                      selectedStudentIds.size === filteredStudents.length && (
-                        <Check className='w-3.5 h-3.5 text-white' />
-                      )}
+                    {allFilteredSelected && (
+                      <Check className='w-3.5 h-3.5 text-white' />
+                    )}
                   </div>
                   <span className='text-sm font-medium text-gray-700'>
                     {t('selectAll')}
                   </span>
-                </label>
+                </button>
                 <div className='flex items-center gap-2'>
                   <Button
                     variant='destructive'

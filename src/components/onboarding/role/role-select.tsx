@@ -55,7 +55,6 @@ export default function RoleSelect({
             bounce: 0,
           }}
           onClick={() => onRoleSelect('dosen')}
-          onKeyDown={e => e.key === 'Enter' && onRoleSelect('dosen')}
         >
           {' '}
           <Image
@@ -118,7 +117,6 @@ export default function RoleSelect({
           bounce: 0,
         }}
         onClick={() => onRoleSelect('mahasiswa')}
-        onKeyDown={e => e.key === 'Enter' && onRoleSelect('mahasiswa')}
       >
         {' '}
         <Image

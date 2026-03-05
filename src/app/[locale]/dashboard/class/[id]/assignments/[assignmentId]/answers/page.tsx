@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { AnswersControlsClient } from '@/components/dashboard/answers-controls-client';
 import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
@@ -15,16 +16,20 @@ import { getMBTIType } from '@/lib/utils/mbti-helpers';
 
 export const dynamic = 'force-dynamic';
 
+const getAssignmentTitle = cache(async (assignmentId: string) =>
+  prisma.assignment.findUnique({
+    where: { id: assignmentId },
+    select: { title: true },
+  })
+);
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; id: string; assignmentId: string }>;
 }): Promise<Metadata> {
   const { assignmentId } = await params;
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: { title: true },
-  });
+  const assignment = await getAssignmentTitle(assignmentId);
   const title = assignment
     ? `${assignment.title} - Jawaban | EduTeams`
     : 'Jawaban - EduTeams';
@@ -222,13 +227,9 @@ export default async function AssignmentAnswersPage({
   const isDosen = canAccessDosenFeatures(user);
   if (!isDosen) notFound();
 
-  const [course, students, assignment] = await Promise.all([
+  const [course, students] = await Promise.all([
     getCourseForDosen(classId, user.id),
     getSubmittedStudents(assignmentId),
-    prisma.assignment.findUnique({
-      where: { id: assignmentId },
-      select: { title: true },
-    }),
   ]);
   if (!course) notFound();
   const studentsLite = students.map((s: (typeof students)[number]) => ({
@@ -244,10 +245,12 @@ export default async function AssignmentAnswersPage({
     currentIndex = idx >= 0 ? idx : 0;
   }
   const selected = students[currentIndex];
-  const assignmentTitle = assignment?.title ?? 'Tugas';
 
   // If there are no submissions yet, show an empty state
   if (!selected) {
+    const assignmentTitle =
+      (await getAssignmentTitle(assignmentId))?.title ?? 'Tugas';
+
     return (
       <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
         <AssignmentLayout
@@ -286,6 +289,7 @@ export default async function AssignmentAnswersPage({
     getAssignmentAnswersView(assignmentId, selected.id),
     getMBTIQuestions(locale),
   ]);
+  const assignmentTitle = answersView?.title ?? 'Tugas';
   const personalityJson = selected.personalityData as unknown as {
     answers?: Record<string, number>;
   } | null;
@@ -367,7 +371,10 @@ export default async function AssignmentAnswersPage({
                       </thead>
                       <tbody className='divide-y'>
                         {mbtiQuestions.map((q, i) => (
-                          <tr key={q.id || i} className='hover:bg-gray-50'>
+                          <tr
+                            key={q.id || `${q.orderHint ?? i + 1}-${q.text}`}
+                            className='hover:bg-gray-50'
+                          >
                             <td className='px-4 py-3'>{i + 1}</td>
                             <td className='px-4 py-3'>{q.text}</td>
                             <td className='px-4 py-3'>

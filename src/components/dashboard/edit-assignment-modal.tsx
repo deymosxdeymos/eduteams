@@ -23,6 +23,9 @@ interface EditAssignmentModalProps {
   onOpenChange: (open: boolean) => void;
   assignment: ManageAssignmentRow;
   courseId: string;
+  onUpdatedAction?: (
+    assignment: Pick<ManageAssignmentRow, 'id'> & Partial<ManageAssignmentRow>
+  ) => void;
 }
 
 function parseDescriptionJSON(description: string | null) {
@@ -54,6 +57,7 @@ export function EditAssignmentModal({
   onOpenChange,
   assignment,
   courseId,
+  onUpdatedAction,
 }: EditAssignmentModalProps) {
   const t = useTranslations('dashboard.assignments.edit');
   const [skills, setSkills] = useState<string[]>([]);
@@ -167,11 +171,16 @@ export function EditAssignmentModal({
       if (!res.ok || !data?.success) {
         throw new Error(data?.error || t('error'));
       }
-      onOpenChange(false);
-      const ev = new CustomEvent('assignment:updated', {
-        detail: { assignmentId: assignment.id, courseId },
+      onUpdatedAction?.({
+        id: assignment.id,
+        title: data.data?.title ?? title.trim(),
+        description:
+          data.data?.description === undefined ? null : data.data.description,
+        status: data.data?.status,
+        startAt: data.data?.startAt ?? assignment.startAt,
+        submissionsCount: data.data?.submissionsCount,
       });
-      window.dispatchEvent(ev);
+      onOpenChange(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : t('error'));
     } finally {

@@ -1,5 +1,6 @@
 // Note: Avoid calling next/headers in test context.
 // Import lazily inside functions or provide safe fallbacks.
+import 'server-only';
 import { cookies, headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { cache } from 'react';

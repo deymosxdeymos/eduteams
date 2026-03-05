@@ -19,12 +19,14 @@ interface CreateAssignmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   classId: string;
+  onCreatedAction?: () => void;
 }
 
 export function CreateAssignmentModal({
   open,
   onOpenChange,
   classId,
+  onCreatedAction,
 }: CreateAssignmentModalProps) {
   const t = useTranslations('dashboard.assignments.create');
   const [skills, setSkills] = useState<string[]>([]);
@@ -138,11 +140,7 @@ export function CreateAssignmentModal({
               setSkills([]);
               setTopics([]);
               onOpenChange(false);
-              // Let caller refresh via SWR (handled in parent by mutate)
-              const ev = new CustomEvent('assignment:created', {
-                detail: { classId },
-              });
-              window.dispatchEvent(ev);
+              onCreatedAction?.();
             } catch (e) {
               setError(e instanceof Error ? e.message : t('error'));
             } finally {

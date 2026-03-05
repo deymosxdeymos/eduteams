@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Link, useRouter } from '@/i18n/routing';
+import { fetcher } from '@/lib/client-api';
 
 interface AssignmentActionsProps {
   classId: string;
@@ -68,17 +69,19 @@ interface TeamWeights {
   taskPreferences: number;
 }
 
+interface ApiWeights {
+  alpha: number;
+  beta: number;
+  delta: number;
+}
+
 const DEFAULT_WEIGHTS: TeamWeights = {
   personality: 0.3,
   skills: 0.4,
   taskPreferences: 0.1,
 };
 
-const mapApiWeights = (weights: {
-  alpha: number;
-  beta: number;
-  delta: number;
-}): TeamWeights => ({
+const mapApiWeights = (weights: ApiWeights): TeamWeights => ({
   skills: weights.alpha,
   personality: weights.beta,
   taskPreferences: weights.delta,
@@ -125,12 +128,9 @@ export function AssignmentActions({
   const isProcessing = Boolean(isTeamFormationProcessing);
   const shouldDisableForm = submitting || isProcessing;
 
-  const { data: fetchedWeights } = useSWR<{
-    alpha: number;
-    beta: number;
-    delta: number;
-  }>(defaultWeights ? null : '/api/edu2com/weights', (url: string) =>
-    fetch(url).then(res => res.json())
+  const { data: fetchedWeights } = useSWR<ApiWeights>(
+    defaultWeights ? null : '/api/edu2com/weights',
+    fetcher<ApiWeights>
   );
   const resolvedWeights = customWeights
     ? customWeights

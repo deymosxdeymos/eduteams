@@ -180,7 +180,7 @@ describe('useTeamFormationStatus', () => {
       {
         shouldPoll: true,
         onComplete,
-        pollInterval: 10,
+        pollInterval: 200,
       },
       cache
     );

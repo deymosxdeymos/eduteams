@@ -1,3 +1,5 @@
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import type { PersonalityAxis } from '@/generated/prisma/client';
 import prisma from '@/lib/prisma';
 
@@ -76,7 +78,7 @@ function resolvePrismaLocale(locale?: string): string[] {
   return priorities;
 }
 
-async function loadBankForLocale(
+async function loadBankForLocaleUncached(
   locale: string
 ): Promise<ActivePersonalityBank | null> {
   const latest = await prisma.personalityQuestion.findFirst({
@@ -138,24 +140,44 @@ async function loadBankForLocale(
   };
 }
 
+const loadBankForLocale = unstable_cache(
+  async (locale: string) => loadBankForLocaleUncached(locale),
+  ['mbti-active-personality-bank'],
+  {
+    revalidate: 60 * 60,
+  }
+);
+
+const getActivePersonalityBankCached = cache(
+  async (locale?: string): Promise<ActivePersonalityBank | null> => {
+    const priorities = resolvePrismaLocale(locale);
+
+    for (const candidate of priorities) {
+      const bank = await loadBankForLocale(candidate);
+      if (bank) {
+        return bank;
+      }
+    }
+
+    return null;
+  }
+);
+
 export async function getActivePersonalityBank(
   locale?: string
 ): Promise<ActivePersonalityBank | null> {
-  const priorities = resolvePrismaLocale(locale);
-
-  for (const candidate of priorities) {
-    const bank = await loadBankForLocale(candidate);
-    if (bank) {
-      return bank;
-    }
-  }
-
-  return null;
+  return getActivePersonalityBankCached(locale);
 }
+
+const getMBTIQuestionsCached = cache(
+  async (locale?: string): Promise<PersonalityQuestionRecord[]> => {
+    const bank = await getActivePersonalityBank(locale);
+    return bank?.questions.filter(q => !q.isAttentionCheck) ?? [];
+  }
+);
 
 export async function getMBTIQuestions(
   locale?: string
 ): Promise<PersonalityQuestionRecord[]> {
-  const bank = await getActivePersonalityBank(locale);
-  return bank?.questions.filter(q => !q.isAttentionCheck) ?? [];
+  return getMBTIQuestionsCached(locale);
 }

@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { ArrowRight, UserRound } from 'lucide-react';
 import Image from 'next/image';
-import { useId, useRef, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
+import { useId, useMemo, useRef, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -27,53 +28,34 @@ interface DataDiriFormClientProps {
     jenisKelamin: string;
     role: string;
   };
-  dict: {
-    onboarding: {
-      dataDiri: {
-        namaLengkap: string;
-        namaLengkapPlaceholder: string;
-        nim: string;
-        nimPlaceholder: string;
-        npm: string;
-        npmPlaceholder: string;
-        jenisKelamin: string;
-        lakiLaki: string;
-        perempuan: string;
-        continue: string;
-        saving: string;
-        validation: {
-          namaLengkapMin: string;
-          namaLengkapMax: string;
-          namaLengkapPattern: string;
-          nimMin: string;
-          nimMax: string;
-          nimPattern: string;
-          npmMin: string;
-          npmMax: string;
-          npmPattern: string;
-          jenisKelaminRequired: string;
-        };
-      };
-    };
-  };
+}
+
+interface DataDiriValidationMessages {
+  namaLengkapMin: string;
+  namaLengkapMax: string;
+  namaLengkapPattern: string;
+  nimMin: string;
+  nimMax: string;
+  nimPattern: string;
+  jenisKelaminRequired: string;
 }
 
 const createFormSchema = (
   role: 'dosen' | 'mahasiswa',
-  dict: DataDiriFormClientProps['dict']
+  messages: DataDiriValidationMessages
 ) => {
   const baseSchema = {
     namaLengkap: z
       .string()
-      .min(2, dict.onboarding.dataDiri.validation.namaLengkapMin)
-      .max(100, dict.onboarding.dataDiri.validation.namaLengkapMax)
+      .min(2, messages.namaLengkapMin)
+      .max(100, messages.namaLengkapMax)
       .regex(
         /^[\p{L}\p{M}\s\-.']+$/u,
-        dict.onboarding.dataDiri.validation.namaLengkapPattern
+        messages.namaLengkapPattern
       ),
     jenisKelamin: z
       .string()
-      .min(1, dict.onboarding.dataDiri.validation.jenisKelaminRequired),
+      .min(1, messages.jenisKelaminRequired),
   };
 
   if (role === 'mahasiswa') {
@@ -81,9 +63,9 @@ const createFormSchema = (
       ...baseSchema,
       nim: z
         .string()
-        .min(8, dict.onboarding.dataDiri.validation.nimMin)
-        .max(15, dict.onboarding.dataDiri.validation.nimMax)
-        .regex(/^\d+$/, dict.onboarding.dataDiri.validation.nimPattern),
+        .min(8, messages.nimMin)
+        .max(15, messages.nimMax)
+        .regex(/^\d+$/, messages.nimPattern),
     });
   } else {
     // Dosen only needs name and gender, no NPM
@@ -94,8 +76,9 @@ const createFormSchema = (
 export default function DataDiriFormClient({
   role,
   initialData,
-  dict,
 }: DataDiriFormClientProps) {
+  const tDataDiri = useTranslations('onboarding.dataDiri');
+  const tValidation = useTranslations('onboarding.dataDiri.validation');
   const formId = 'data-diri-form';
   const genderLabelId = useId();
   const namaLengkapId = useId();
@@ -103,7 +86,15 @@ export default function DataDiriFormClient({
   const namaWrapperRef = useRef<HTMLDivElement>(null);
   const nimWrapperRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
-  const formSchema = createFormSchema(role, dict);
+  const formSchema = useMemo(() => createFormSchema(role, {
+    namaLengkapMin: tValidation('namaLengkapMin'),
+    namaLengkapMax: tValidation('namaLengkapMax'),
+    namaLengkapPattern: tValidation('namaLengkapPattern'),
+    nimMin: tValidation('nimMin'),
+    nimMax: tValidation('nimMax'),
+    nimPattern: tValidation('nimPattern'),
+    jenisKelaminRequired: tValidation('jenisKelaminRequired'),
+  }), [role, tValidation]);
   type FormData = z.infer<typeof formSchema> & { nim?: string };
 
   const form = useForm<FormData>({
@@ -176,7 +167,7 @@ export default function DataDiriFormClient({
                 htmlFor={namaLengkapId}
                 className='text-black text-xl font-normal'
               >
-                {dict.onboarding.dataDiri.namaLengkap}
+                {tDataDiri('namaLengkap')}
               </FormLabel>
               <FormControl>
                 <motion.div
@@ -187,9 +178,7 @@ export default function DataDiriFormClient({
                   <UserRound className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black z-10' />
                   <InputRounded
                     id={namaLengkapId}
-                    placeholder={
-                      dict.onboarding.dataDiri.namaLengkapPlaceholder
-                    }
+                    placeholder={tDataDiri('namaLengkapPlaceholder')}
                     {...field}
                     aria-invalid={!!fieldState.error}
                     animationTargetRef={namaWrapperRef}
@@ -212,7 +201,7 @@ export default function DataDiriFormClient({
                   htmlFor={nimFieldId}
                   className='text-black text-xl font-normal'
                 >
-                  {dict.onboarding.dataDiri.nim}
+                  {tDataDiri('nim')}
                 </FormLabel>
                 <FormControl>
                   <motion.div
@@ -229,7 +218,7 @@ export default function DataDiriFormClient({
                     />
                     <InputRounded
                       id={nimFieldId}
-                      placeholder={dict.onboarding.dataDiri.nimPlaceholder}
+                      placeholder={tDataDiri('nimPlaceholder')}
                       {...field}
                       aria-invalid={!!fieldState.error}
                       animationTargetRef={nimWrapperRef}
@@ -252,7 +241,7 @@ export default function DataDiriFormClient({
                 id={genderLabelId}
                 className='text-black text-xl font-normal'
               >
-                {dict.onboarding.dataDiri.jenisKelamin}
+                {tDataDiri('jenisKelamin')}
               </FormLabel>
               <FormControl>
                 <div
@@ -265,9 +254,6 @@ export default function DataDiriFormClient({
                     role='radio'
                     aria-checked={field.value === 'laki-laki'}
                     onClick={() => field.onChange('laki-laki')}
-                    onKeyDown={e =>
-                      e.key === 'Enter' && field.onChange('laki-laki')
-                    }
                     className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer ${
                       field.value === 'laki-laki' ? 'ring-4 ring-blue-300' : ''
                     }`}
@@ -305,7 +291,7 @@ export default function DataDiriFormClient({
                       className='mb-[-10px] w-auto h-auto'
                     />
                     <p className='font-bold text-center text-blue-950 text-md tracking-tighter leading-none uppercase'>
-                      {dict.onboarding.dataDiri.lakiLaki}
+                      {tDataDiri('lakiLaki')}
                     </p>
                   </motion.button>
 
@@ -314,9 +300,6 @@ export default function DataDiriFormClient({
                     role='radio'
                     aria-checked={field.value === 'perempuan'}
                     onClick={() => field.onChange('perempuan')}
-                    onKeyDown={e =>
-                      e.key === 'Enter' && field.onChange('perempuan')
-                    }
                     className={`flex flex-col items-center justify-center rounded-xl w-[6rem] h-[6rem] p-1 cursor-pointer ${
                       field.value === 'perempuan' ? 'ring-4 ring-pink-300' : ''
                     }`}
@@ -354,7 +337,7 @@ export default function DataDiriFormClient({
                       className='mb-[-10px] w-auto h-auto'
                     />
                     <p className='font-bold text-center text-pink-950 text-md tracking-tighter leading-none uppercase'>
-                      {dict.onboarding.dataDiri.perempuan}
+                      {tDataDiri('perempuan')}
                     </p>
                   </motion.button>
                 </div>
@@ -374,9 +357,7 @@ export default function DataDiriFormClient({
           size='long'
           disabled={isPending}
         >
-          {isPending
-            ? dict.onboarding.dataDiri.saving
-            : dict.onboarding.dataDiri.continue}
+          {isPending ? tDataDiri('saving') : tDataDiri('continue')}
           {!isPending && (
             <ArrowRight
               strokeWidth={3}

@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getMessages } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 import Logo from '@/components/logo';
 import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
 import { Button } from '@/components/ui/button';
@@ -24,36 +24,7 @@ export default async function DataDiriPage({
 }: DataDiriPageProps & { searchParams: Promise<{ edit?: string }> }) {
   const { locale, role } = await params;
   const { edit } = await searchParams;
-  const messages = (await getMessages()) as {
-    onboarding: {
-      dataDiri: {
-        title: string;
-        namaLengkap: string;
-        namaLengkapPlaceholder: string;
-        nim: string;
-        nimPlaceholder: string;
-        npm: string;
-        npmPlaceholder: string;
-        jenisKelamin: string;
-        lakiLaki: string;
-        perempuan: string;
-        continue: string;
-        saving: string;
-        validation: {
-          namaLengkapMin: string;
-          namaLengkapMax: string;
-          namaLengkapPattern: string;
-          nimMin: string;
-          nimMax: string;
-          nimPattern: string;
-          npmMin: string;
-          npmMax: string;
-          npmPattern: string;
-          jenisKelaminRequired: string;
-        };
-      };
-    };
-  };
+  const tDataDiri = await getTranslations('onboarding.dataDiri');
 
   // Validate role parameter
   if (!['dosen', 'mahasiswa'].includes(role)) {
@@ -117,7 +88,7 @@ export default async function DataDiriPage({
 
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          {messages.onboarding.dataDiri.title}
+          {tDataDiri('title')}
         </h1>
         <Image
           src='/emoji/pencil.svg'
@@ -144,11 +115,7 @@ export default async function DataDiriPage({
             </Link>
           </div>
         )}
-        <DataDiriFormClient
-          role={role}
-          initialData={initialData}
-          dict={messages}
-        />
+        <DataDiriFormClient role={role} initialData={initialData} />
       </div>
     </main>
   );

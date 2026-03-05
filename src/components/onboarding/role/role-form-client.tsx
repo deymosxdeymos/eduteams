@@ -33,7 +33,10 @@ export default function RoleFormClient({
   };
 
   const handleSubmit = async (formData: FormData) => {
-    if (!selectedRole || isDosenInvalid) return;
+    if (!selectedRole || isDosenInvalid) {
+      setShakeKey(prev => prev + 1);
+      return;
+    }
 
     startTransition(() => submitRole(formData));
   };
@@ -73,7 +76,7 @@ export default function RoleFormClient({
             type='submit'
             variant='onboarding'
             size='long'
-            disabled={isBlocked}
+            disabled={isPending}
             aria-disabled={isBlocked}
             onClick={handleBlockedClick}
             className={`w-full ${

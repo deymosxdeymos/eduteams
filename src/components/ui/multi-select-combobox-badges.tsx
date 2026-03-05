@@ -67,50 +67,77 @@ export function MultiSelectComboboxBadges({
   const [fetchedSuggestions, setFetchedSuggestions] = useState<string[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const fetchRequestIdRef = useRef(0);
   const listboxId = useId();
 
   // Debounce the input value to reduce API calls (300ms delay)
   const debouncedInputValue = useDebounce(inputValue, 300);
 
-  // Fetch suggestions from API
   const fetchSuggestions = useCallback(
-    async (query: string) => {
+    async (query: string, requestId: number, signal: AbortSignal) => {
       if (!suggestionsEndpoint) {
-        setFetchedSuggestions([]);
         return;
       }
 
-      setIsFetching(true);
       try {
         const url = new URL(suggestionsEndpoint, window.location.origin);
-        // Allow empty query to fetch initial suggestions
-        if (query.trim()) {
-          url.searchParams.set('q', query.trim());
+        const trimmedQuery = query.trim();
+
+        // Allow empty query to fetch initial suggestions.
+        if (trimmedQuery) {
+          url.searchParams.set('q', trimmedQuery);
         }
-        const response = await fetch(url.toString());
-        if (response.ok) {
-          const data = await response.json();
-          // Expect { success: true, data: [{ name: string }, ...] } or { success: true, data: string[] }
-          const items = data?.data ?? [];
-          const names = items.map((item: string | { name: string }) =>
-            typeof item === 'string' ? item : item.name
-          );
+
+        const response = await fetch(url.toString(), { signal });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          data?: Array<string | { name?: string }>;
+        };
+        const names =
+          payload.data
+            ?.map(item => (typeof item === 'string' ? item : item.name))
+            .filter((item): item is string => Boolean(item)) ?? [];
+
+        if (fetchRequestIdRef.current === requestId) {
           setFetchedSuggestions(names);
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
         console.error('Failed to fetch suggestions:', error);
       } finally {
-        setIsFetching(false);
+        if (fetchRequestIdRef.current === requestId) {
+          setIsFetching(false);
+        }
       }
     },
     [suggestionsEndpoint]
   );
 
-  // Fetch suggestions when debounced input changes
+  // Fetch suggestions when debounced input changes.
+  // Guards ensure only the latest response updates state.
   useEffect(() => {
-    if (suggestionsEndpoint) {
-      fetchSuggestions(debouncedInputValue);
+    if (!suggestionsEndpoint) {
+      fetchRequestIdRef.current += 1;
+      setFetchedSuggestions([]);
+      setIsFetching(false);
+      return;
     }
+
+    const controller = new AbortController();
+    const requestId = fetchRequestIdRef.current + 1;
+    fetchRequestIdRef.current = requestId;
+    setIsFetching(true);
+
+    void fetchSuggestions(debouncedInputValue, requestId, controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, [debouncedInputValue, suggestionsEndpoint, fetchSuggestions]);
 
   // Combine static and fetched suggestions
@@ -220,19 +247,23 @@ export function MultiSelectComboboxBadges({
           </Button>
         </div>
         <div className='flex flex-wrap gap-2'>
-          {value.map((item, index) => (
+          {value.map(item => (
             <Badge
-              key={index}
+              key={item}
               className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
             >
               <div className='flex items-center gap-2'>
                 <span className='text-xs font-medium text-stone-900'>
                   {item}
                 </span>
-                <X
-                  className='w-3 h-3 cursor-pointer text-stone-900 hover:text-stone-700'
+                <button
+                  type='button'
                   onClick={() => removeItem(item)}
-                />
+                  aria-label={`Remove ${item}`}
+                  className='p-1 -m-1 cursor-pointer text-stone-900 hover:text-stone-700 touch-manipulation'
+                >
+                  <X className='w-3 h-3' aria-hidden='true' />
+                </button>
               </div>
             </Badge>
           ))}
@@ -443,9 +474,9 @@ export function MultiSelectComboboxBadges({
         </Button>
       </div>
       <div className='flex flex-wrap gap-2'>
-        {value.map((item, index) => (
+        {value.map(item => (
           <Badge
-            key={index}
+            key={item}
             className='bg-white text-neutral-800 border border-black rounded-full px-4 py-2 shrink-0'
           >
             <div className='flex items-center gap-2'>

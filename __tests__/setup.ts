@@ -38,6 +38,9 @@ mock.module('next/image', () => ({
   }: any) => React.createElement('img', props),
 }));
 
+// Allow server-only modules to load in Bun test runtime.
+mock.module('server-only', () => ({}));
+
 // Mock next/navigation hooks used in client components
 mock.module('next/navigation', () => ({
   useRouter: () => ({
