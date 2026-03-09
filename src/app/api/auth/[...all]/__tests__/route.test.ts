@@ -17,7 +17,7 @@ function applyModuleMocks() {
   }));
 
   mock.module('@/lib/auth', () => ({
-    auth: {},
+    getAuth: () => ({}),
     shouldBlockPublicDemoCredentialAuth: shouldBlockPublicDemoCredentialAuthMock,
   }));
 }

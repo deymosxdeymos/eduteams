@@ -74,10 +74,18 @@ function createAuth(): Auth {
   });
 }
 
+export function getAuth(): Auth {
+  if (!_auth) {
+    _auth = createAuth();
+  }
+
+  return _auth;
+}
+
 export const auth: Auth = new Proxy({} as Auth, {
   get(_target, prop, receiver) {
-    if (!_auth) _auth = createAuth();
-    const value = Reflect.get(_auth, prop, receiver);
-    return typeof value === 'function' ? value.bind(_auth) : value;
+    const instance = getAuth();
+    const value = Reflect.get(instance, prop, receiver);
+    return typeof value === 'function' ? value.bind(instance) : value;
   },
 });
