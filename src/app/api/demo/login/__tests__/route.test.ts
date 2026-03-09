@@ -154,7 +154,7 @@ const originalDemoMode = process.env.DEMO_MODE;
 const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 const originalDevAllowedOrigins = process.env.DEV_ALLOWED_ORIGINS;
 
-describe.serial('POST /api/demo/login', () => {
+describe('POST /api/demo/login', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'test';
     process.env.DEMO_MODE = '1';

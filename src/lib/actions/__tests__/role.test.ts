@@ -36,7 +36,7 @@ function restoreModuleMocks() {
   mock.module('@/lib/prisma', () => ({ default: actualPrisma.default }));
 }
 
-describe.serial('role actions', () => {
+describe('role actions', () => {
   const originalDemoMode = process.env.DEMO_MODE;
   const originalDisableInstitutionalEmail =
     process.env.NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL;

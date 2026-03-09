@@ -86,7 +86,7 @@ describe('Auth Configuration', () => {
   });
 });
 
-describe.serial('shouldBlockPublicDemoCredentialAuth', () => {
+describe('shouldBlockPublicDemoCredentialAuth', () => {
   beforeEach(() => {
     betterAuthMock.mockReset();
     prismaAdapterMock.mockReset();

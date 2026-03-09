@@ -163,7 +163,7 @@ function restoreModuleMocks() {
   mock.module('@/lib/dashboard/courses', () => actualDashboardCourses);
 }
 
-describe.serial('courses API', () => {
+describe('courses API', () => {
   beforeEach(() => {
     currentUserId = 'u1';
     delete process.env.DEMO_MODE;

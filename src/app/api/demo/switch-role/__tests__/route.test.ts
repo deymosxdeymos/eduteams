@@ -126,7 +126,7 @@ function createRequest(body: string, cookieValue?: string, includeOrigin = true)
   } as any;
 }
 
-describe.serial('POST /api/demo/switch-role', () => {
+describe('POST /api/demo/switch-role', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_DEMO_MODE = '1';
     process.env.DEMO_MODE = '1';

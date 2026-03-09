@@ -20,7 +20,7 @@ const invalidCredentialCodeError = {
   body: { code: 'INVALID_EMAIL_OR_PASSWORD' },
 };
 
-describe.serial('getDemoAuthRecoveryState', () => {
+describe('getDemoAuthRecoveryState', () => {
   beforeEach(() => {
     prismaMock.user.findUnique.mockReset();
     applyModuleMocks();

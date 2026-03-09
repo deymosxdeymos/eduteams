@@ -49,7 +49,7 @@ function restoreModuleMocks() {
   mock.module('@/lib/prisma', () => ({ default: actualPrisma.default }));
 }
 
-describe.serial('submitDemoPersonality', () => {
+describe('submitDemoPersonality', () => {
   beforeEach(() => {
     process.env.DEMO_MODE = '1';
 

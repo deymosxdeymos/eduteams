@@ -26,7 +26,7 @@ function createRequestCookie(value?: string | null) {
   } as any;
 }
 
-describe.serial('demo identity helpers', () => {
+describe('demo identity helpers', () => {
   const originalDemoMode = process.env.DEMO_MODE;
 
   beforeEach(() => {

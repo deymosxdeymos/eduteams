@@ -54,7 +54,7 @@ function createDosenFormData() {
   return formData;
 }
 
-describe.serial('data diri actions', () => {
+describe('data diri actions', () => {
   const originalDemoMode = process.env.DEMO_MODE;
 
   beforeEach(() => {

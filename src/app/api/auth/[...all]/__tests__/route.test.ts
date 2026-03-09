@@ -22,7 +22,7 @@ function applyModuleMocks() {
   }));
 }
 
-describe.serial('/api/auth/[...all]', () => {
+describe('/api/auth/[...all]', () => {
   beforeEach(() => {
     getHandlerMock.mockReset();
     postHandlerMock.mockReset();

@@ -135,7 +135,7 @@ function restoreModuleMocks() {
   mock.module('@/lib/auth', () => ({ ...actualAuth }));
 }
 
-describe.serial('class catalog API', () => {
+describe('class catalog API', () => {
   const originalDemoMode = process.env.DEMO_MODE;
 
   beforeEach(() => {
