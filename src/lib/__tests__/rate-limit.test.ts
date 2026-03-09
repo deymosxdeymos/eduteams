@@ -85,7 +85,7 @@ function resetTrustedProxyEnv() {
   process.env.TRUSTED_PROXY_HOPS = ORIGINAL_ENV.TRUSTED_PROXY_HOPS;
 }
 
-describe.serial('rate-limit', () => {
+describe('rate-limit', () => {
   let rateLimitModule: RateLimitModule;
 
   beforeEach(async () => {
@@ -111,7 +111,7 @@ describe.serial('rate-limit', () => {
     resetTrustedProxyEnv();
   });
 
-  describe.serial('getClientIdentifier', () => {
+  describe('getClientIdentifier', () => {
     it('uses trusted platform headers when running behind vercel', () => {
       process.env.VERCEL = '1';
 
@@ -193,7 +193,7 @@ describe.serial('rate-limit', () => {
     });
   });
 
-  describe.serial('checkRateLimit', () => {
+  describe('checkRateLimit', () => {
     it('tracks counts in the shared backing store and blocks once the limit is exceeded', async () => {
       Date.now = () => 1_700_000_000_000;
 
