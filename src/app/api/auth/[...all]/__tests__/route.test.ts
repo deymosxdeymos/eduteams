@@ -66,7 +66,7 @@ describe('/api/auth/[...all]', () => {
 
   it('passes GET requests through unchanged', async () => {
     const { GET } = await importRouteModule();
-    const request = new Request('http://localhost:3000/api/auth/session') as Parameters<
+    const request = new Request('http://localhost:3000/api/auth/get-session') as Parameters<
       typeof GET
     >[0];
     const response = await GET(request);

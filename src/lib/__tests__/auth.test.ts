@@ -147,7 +147,7 @@ describe('shouldBlockPublicDemoCredentialAuth', () => {
 
     expect(
       shouldBlockPublicDemoCredentialAuth({
-        url: 'http://localhost:3000/api/auth/session',
+        url: 'http://localhost:3000/api/auth/get-session',
       })
     ).toBe(false);
     expect(
