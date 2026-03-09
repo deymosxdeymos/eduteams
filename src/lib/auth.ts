@@ -1,10 +1,12 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
+import { assertDeploymentConfiguration } from '@/lib/deployment-config';
 import prisma from '@/lib/prisma';
 import { isDemoModeEnabled } from '@/lib/demo/config';
 
 const PUBLIC_DEMO_BLOCKED_AUTH_PATHS = new Set([
+  '/sign-in/social',
   '/sign-in/email',
   '/sign-up/email',
 ]);
@@ -30,19 +32,25 @@ type Auth = ReturnType<typeof betterAuth>;
 let _auth: Auth | undefined;
 
 function createAuth(): Auth {
+  assertDeploymentConfiguration();
+
+  const demoMode = isDemoModeEnabled();
+
   return betterAuth({
     database: prismaAdapter(prisma, {
       provider: 'postgresql',
     }),
     baseURL: process.env.BETTER_AUTH_URL,
-    socialProviders: {
-      google: {
-        clientId: process.env.GOOGLE_CLIENT_ID as string,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      },
-    },
+    socialProviders: demoMode
+      ? undefined
+      : {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+          },
+        },
     emailAndPassword: {
-      enabled: isDemoModeEnabled(),
+      enabled: demoMode,
     },
     // Keep nextCookies as the last plugin per Better Auth docs
     plugins: [nextCookies()],

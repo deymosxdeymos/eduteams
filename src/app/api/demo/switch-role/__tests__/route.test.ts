@@ -13,7 +13,6 @@ const actualRateLimit = await import('@/lib/rate-limit');
 const originalDevAllowedOrigins = process.env.DEV_ALLOWED_ORIGINS;
 
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
-process.env.NEXT_PUBLIC_DEMO_MODE = '1';
 process.env.DEMO_MODE = '1';
 
 const getCurrentUserMock = mock(async () => null);
@@ -128,7 +127,6 @@ function createRequest(body: string, cookieValue?: string, includeOrigin = true)
 
 describe('POST /api/demo/switch-role', () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
     process.env.DEMO_MODE = '1';
     delete process.env.DEV_ALLOWED_ORIGINS;
 

@@ -9,7 +9,6 @@ const getTranslationsMock = mock(async () => {
   return t;
 });
 const originalDemoMode = process.env.DEMO_MODE;
-const originalPublicDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE;
 
 mock.module('next-intl/server', () => ({
   getTranslations: getTranslationsMock,
@@ -77,12 +76,6 @@ describe('marketing Home page', () => {
       process.env.DEMO_MODE = originalDemoMode;
     }
 
-    if (originalPublicDemoMode === undefined) {
-      delete process.env.NEXT_PUBLIC_DEMO_MODE;
-    } else {
-      process.env.NEXT_PUBLIC_DEMO_MODE = originalPublicDemoMode;
-    }
-
     getTranslationsMock.mockReset();
 
     getTranslationsMock.mockImplementation(async () => {
@@ -94,8 +87,7 @@ describe('marketing Home page', () => {
     });
   });
 
-  it('renders the regular login CTA when only demo UI is enabled', async () => {
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
+  it('renders the regular login CTA when demo mode is disabled', async () => {
     delete process.env.DEMO_MODE;
 
     const { default: Home } = await import('../page');
@@ -108,7 +100,6 @@ describe('marketing Home page', () => {
 
   it('renders only demo login CTAs when demo login is enabled', async () => {
     process.env.DEMO_MODE = '1';
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
 
     const { default: Home, dynamic } = await import('../page');
 

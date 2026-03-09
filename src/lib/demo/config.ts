@@ -39,14 +39,6 @@ export function isDemoModeEnabled(): boolean {
   return process.env.DEMO_MODE === '1';
 }
 
-export function isDemoLoginEnabled(): boolean {
-  return isDemoModeEnabled();
-}
-
-export function isDemoUiEnabled(): boolean {
-  return isDemoLoginEnabled() || process.env.NEXT_PUBLIC_DEMO_MODE === '1';
-}
-
 export function getDemoDataDiriDefaults(role: 'dosen' | 'mahasiswa') {
   if (role === 'dosen') {
     return {

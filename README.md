@@ -24,9 +24,8 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Demo Mode
 
 ```bash
-# Enable demo-friendly mode
+# Enable demo-only mode
 DEMO_MODE=1
-NEXT_PUBLIC_DEMO_MODE=1
 NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL=1
 ```
 
@@ -37,6 +36,7 @@ preferences) in one action.
 ### Public demo safety defaults
 
 - `DEMO_MODE=1` gates demo bootstrap API.
+- Demo mode must not configure Google OAuth secrets.
 - Demo bootstrap endpoint has IP and per-user rate limits.
 - Team formation endpoint has IP and per-teacher rate limits.
 - Set `ENFORCE_SAME_ORIGIN_MUTATIONS=1` to reject cross-origin mutation calls.
@@ -105,7 +105,6 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 # Demo mode (optional)
 DEMO_MODE="0"
-NEXT_PUBLIC_DEMO_MODE="0"
 NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL="0"
 ENFORCE_SAME_ORIGIN_MUTATIONS="1"
 TRUSTED_CLIENT_IP_HEADERS=""
@@ -125,7 +124,9 @@ CRON_SECRET="your-cron-secret"
 
 ## Deployment
 
-**Vercel (Recommended):** Connect GitHub, configure env vars, auto-deploy on push
+**Vercel (Demo only):** Configure `DEMO_MODE=1`, use a demo-only database, and do not set Google OAuth secrets.
+
+**Self-hosted production:** Set `DEMO_MODE=0`, configure production auth secrets, and point at a separate production database.
 
 **Docker:**
 ```bash

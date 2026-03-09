@@ -1,6 +1,15 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
+import {
+  createApiResponse,
+  createErrorResponse,
+  withAuth,
+  withValidation,
+} from '@/lib/api-utils';
+import {
+  isActiveDemoAccountEmail,
+  parseDemoRoleFromEmail,
+} from '@/lib/demo/auth';
 import prisma from '@/lib/prisma';
 import { genderToLabel, labelToGender } from '@/lib/utils/gender';
 // Prisma requires Node.js runtime
@@ -10,7 +19,6 @@ const dataDiriSchema = z.object({
   namaLengkap: z.string().min(1, 'Nama lengkap is required'),
   nim: z.string().optional(),
   jenisKelamin: z.enum(['laki-laki', 'perempuan']),
-  role: z.enum(['TEACHER', 'STUDENT']),
 });
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
@@ -25,7 +33,7 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
   });
 
   if (!currentUser) {
-    return createApiResponse(null, 'User not found', 404);
+    return createErrorResponse('User not found', 404);
   }
 
   const jenisKelamin = genderToLabel(currentUser.gender);
@@ -42,24 +50,39 @@ export const POST = withAuth(
   withValidation(
     (data: unknown) => dataDiriSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
-      const { namaLengkap, nim, jenisKelamin, role } = validatedData;
+      if (!user) {
+        return createErrorResponse('Unauthorized', 401);
+      }
 
-      // Validate role-specific fields (only STUDENT needs NIM, TEACHER doesn't need NPM)
-      if (role === 'STUDENT' && !nim) {
-        return createApiResponse(null, 'NIM is required for mahasiswa', 400);
+      const { namaLengkap, nim, jenisKelamin } = validatedData;
+      const currentRole = user.role;
+      const demoRole = isActiveDemoAccountEmail(user.email)
+        ? parseDemoRoleFromEmail(user.email)
+        : null;
+
+      if (!currentRole) {
+        return createErrorResponse(
+          'Role must be selected before updating profile',
+          400
+        );
+      }
+
+      if (demoRole && demoRole !== currentRole) {
+        return createErrorResponse('Demo accounts cannot switch role scope', 403);
+      }
+
+      if (currentRole === 'STUDENT' && !nim) {
+        return createErrorResponse('NIM is required for mahasiswa', 400);
       }
 
       const gender = labelToGender(jenisKelamin);
 
-      // Update user with data-diri information
       await prisma.user.update({
-        where: { id: user?.id },
+        where: { id: user.id },
         data: {
           name: namaLengkap,
-          nim: role === 'STUDENT' ? nim : null, // Only STUDENT has NIM
-          role,
+          nim: currentRole === 'STUDENT' ? nim : null,
           gender,
-          isOnboarded: role === 'TEACHER', // TEACHER is fully onboarded after data-diri
         },
       });
 

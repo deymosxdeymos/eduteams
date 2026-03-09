@@ -8,6 +8,7 @@ import {
   withAuth,
 } from '@/lib/api-utils';
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
+import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
 import { normalizeTopicKey } from '@/lib/data/student-competency-profiles';
 import prisma, { type TransactionClient } from '@/lib/prisma';
 import { HttpError } from '@/lib/types';
@@ -24,6 +25,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       if (!isMahasiswa) {
         return createErrorResponse('Access denied', 403);
       }
+      const isDemoAccount = isActiveDemoAccountEmail(user.email);
 
       const [body, enrollment, assignment, existingSubmission] =
         await Promise.all([
@@ -191,7 +193,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
           ])
         );
         const missing = uniqueSkillNames.filter(n => !existingByName.has(n));
-        if (missing.length > 0) {
+        if (missing.length > 0 && !isDemoAccount) {
           await prisma.skill.createMany({
             data: missing.map(n => ({ name: n })),
             skipDuplicates: true,

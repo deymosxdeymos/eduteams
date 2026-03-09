@@ -40,8 +40,6 @@ export function DosenProfileContent({ user }: DosenProfileContentProps) {
           body: JSON.stringify({
             namaLengkap,
             jenisKelamin,
-            role: 'dosen',
-            // Dosen doesn't need NPM anymore, only name and gender
           }),
         });
 

@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { withAccelerate } from '@prisma/extension-accelerate';
 import type { Prisma } from '@/generated/prisma/client';
 import { PrismaClient } from '@/generated/prisma/client';
+import { assertDeploymentConfiguration } from '@/lib/deployment-config';
 
 type PrismaClientOptions = Omit<Prisma.PrismaClientOptions, 'adapter'>;
 
@@ -38,6 +39,8 @@ function resolveBaseOptions(
 }
 
 export function createPrismaClient(overrides: CreatePrismaClientOptions = {}) {
+  assertDeploymentConfiguration();
+
   const { url, ...rest } = overrides;
   const databaseUrl = resolveDatabaseUrl(url);
   if (!databaseUrl)

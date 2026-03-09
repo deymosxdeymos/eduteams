@@ -178,13 +178,10 @@ async function pruneExpiredRateLimitBuckets(nowDate: Date) {
   lastExpiredBucketPruneAt = now;
 
   try {
-    await prisma.rateLimitBucket.deleteMany({
-      where: {
-        expiresAt: {
-          lte: nowDate,
-        },
-      },
-    });
+    await prisma.$executeRaw`
+      DELETE FROM "rate_limit_buckets"
+      WHERE "expires_at" <= ${nowDate}
+    `;
   } catch (error) {
     lastExpiredBucketPruneAt = 0;
     throw error;

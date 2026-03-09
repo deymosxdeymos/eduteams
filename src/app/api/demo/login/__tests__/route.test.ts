@@ -257,20 +257,15 @@ describe('POST /api/demo/login', () => {
     process.env.DEV_ALLOWED_ORIGINS = originalDevAllowedOrigins;
   });
 
-  it('returns 404 when only the public demo flag is enabled', async () => {
+  it('returns 404 when demo mode is disabled', async () => {
     delete process.env.DEMO_MODE;
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
 
-    try {
-      const { POST } = await import('../route');
-      const res = await POST(createRequest('visitor1234'));
+    const { POST } = await import('../route');
+    const res = await POST(createRequest('visitor1234'));
 
-      expect(res.status).toBe(404);
-      expect(checkRateLimitMock).not.toHaveBeenCalled();
-      expect(signInEmailMock).not.toHaveBeenCalled();
-    } finally {
-      delete process.env.NEXT_PUBLIC_DEMO_MODE;
-    }
+    expect(res.status).toBe(404);
+    expect(checkRateLimitMock).not.toHaveBeenCalled();
+    expect(signInEmailMock).not.toHaveBeenCalled();
   });
 
   it('fails closed in production when no trusted client identifier is available', async () => {

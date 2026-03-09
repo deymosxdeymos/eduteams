@@ -7,7 +7,7 @@ import { LanguageSwitcherServer } from '@/components/dashboard/language-switcher
 import { AnimatedEntj } from '@/components/landing/animated-entj';
 import { HeroMbtiCollage } from '@/components/landing/hero-mbti-collage';
 import Logo from '@/components/logo';
-import { isDemoLoginEnabled } from '@/lib/demo/config';
+import { isDemoModeEnabled } from '@/lib/demo/config';
 import { HighlightText } from '@/components/ui/highlight-text';
 import { ScrollToTopClient } from '@/components/ui/scroll-to-top-client';
 import { SkipLink } from '@/components/ui/skip-link';
@@ -26,18 +26,13 @@ function AuthCallToActionGroup({
     return <LoginButton className={className} />;
   }
 
-  return (
-    <div className='flex flex-col sm:flex-row items-center justify-center gap-3'>
-      <DemoLoginButton className={className} />
-      <LoginButton className={className} />
-    </div>
-  );
+  return <DemoLoginButton className={className} />;
 }
 
 export default async function Home() {
   const t = await getTranslations();
   const mainContentId = 'main-content';
-  const demoLoginEnabled = isDemoLoginEnabled();
+  const demoLoginEnabled = isDemoModeEnabled();
 
   return (
     <>

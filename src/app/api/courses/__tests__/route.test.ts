@@ -167,7 +167,6 @@ describe('courses API', () => {
   beforeEach(() => {
     currentUserId = 'u1';
     delete process.env.DEMO_MODE;
-    delete process.env.NEXT_PUBLIC_DEMO_MODE;
 
     authGetSessionMock.mockReset();
     courseCreateMock.mockReset();
@@ -324,7 +323,6 @@ describe('courses API', () => {
 
   it('does not seed demo students for non-demo teachers when demo mode is enabled', async () => {
     process.env.DEMO_MODE = '1';
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
 
     const { POST } = await import('../route');
     const req = new Request('http://localhost/api/courses', {
@@ -346,7 +344,6 @@ describe('courses API', () => {
 
   it('seeds demo students for demo teachers when demo mode is enabled', async () => {
     process.env.DEMO_MODE = '1';
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
     currentUserId = 'demo-teacher';
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
 
@@ -370,7 +367,6 @@ describe('courses API', () => {
 
   it('enrolls an existing paired demo student into newly created demo courses', async () => {
     process.env.DEMO_MODE = '1';
-    process.env.NEXT_PUBLIC_DEMO_MODE = '1';
     currentUserId = 'demo-teacher';
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {

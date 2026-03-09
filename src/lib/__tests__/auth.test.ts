@@ -105,7 +105,7 @@ describe('shouldBlockPublicDemoCredentialAuth', () => {
     restoreModuleMocks();
   });
 
-  it('keeps social sign-in available when demo mode is enabled', async () => {
+  it('blocks social sign-in when demo mode is enabled', async () => {
     process.env.DEMO_MODE = '1';
 
     const { shouldBlockPublicDemoCredentialAuth } = await import('../auth');
@@ -114,7 +114,7 @@ describe('shouldBlockPublicDemoCredentialAuth', () => {
       shouldBlockPublicDemoCredentialAuth({
         url: 'http://localhost:3000/api/auth/sign-in/social',
       })
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('keeps blocking public email auth flows in demo mode', async () => {
@@ -155,5 +155,46 @@ describe('shouldBlockPublicDemoCredentialAuth', () => {
         url: 'http://localhost:3000/dashboard',
       })
     ).toBe(false);
+  });
+});
+
+describe('createAuth deployment behavior', () => {
+  beforeEach(() => {
+    betterAuthMock.mockReset();
+    prismaAdapterMock.mockReset();
+    nextCookiesMock.mockReset();
+
+    betterAuthMock.mockReturnValue({});
+    prismaAdapterMock.mockReturnValue({});
+    nextCookiesMock.mockReturnValue({});
+
+    process.env.BETTER_AUTH_URL = 'http://localhost:3000';
+    process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
+    process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret';
+    delete process.env.DEMO_MODE;
+    delete process.env.VERCEL;
+    delete process.env.VERCEL_ENV;
+
+    applyModuleMocks();
+  });
+
+  afterEach(() => {
+    mock.restore();
+    restoreModuleMocks();
+  });
+
+  it('omits Google social auth providers in demo mode', async () => {
+    process.env.DEMO_MODE = '1';
+    delete process.env.GOOGLE_CLIENT_ID;
+    delete process.env.GOOGLE_CLIENT_SECRET;
+
+    const { auth } = await import('../auth');
+    void auth.api;
+
+    expect(betterAuthMock).toHaveBeenCalled();
+    expect(betterAuthMock.mock.calls[0]?.[0]?.socialProviders).toBeUndefined();
+    expect(betterAuthMock.mock.calls[0]?.[0]?.emailAndPassword).toEqual({
+      enabled: true,
+    });
   });
 });

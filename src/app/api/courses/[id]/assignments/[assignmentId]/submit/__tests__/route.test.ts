@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
+const originalDemoMode = process.env.DEMO_MODE;
+
 // Prisma mock with minimal methods used in the route
 const prismaMock: any = {
   user: {
@@ -7,6 +9,18 @@ const prismaMock: any = {
       id: 's1',
       role: 'STUDENT',
       isOnboarded: true,
+      name: 'Student',
+      email: 'student@example.com',
+      emailVerified: true,
+      image: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nim: '20250001',
+      gender: 'MALE',
+      hasSeenWelcomeSplash: true,
+      onboardingStep: null,
+      onboardingData: null,
+      personalityProfile: null,
     })),
   },
   courseEnrollment: {
@@ -93,10 +107,30 @@ mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 
 describe('POST /api/courses/[id]/assignments/[assignmentId]/submit', () => {
   beforeEach(() => {
+    prismaMock.user.findUnique.mockReset();
     prismaMock.skill.__call = 0;
+    prismaMock.skill.createMany.mockReset();
     prismaMock.assignmentTopic.__call = 0;
+    prismaMock.assignmentTopic.createMany.mockReset();
     prismaMock.__profileUpdateCounts = [];
     prismaMock.__lastTx = null;
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 's1',
+      role: 'STUDENT',
+      isOnboarded: true,
+      name: 'Student',
+      email: 'student@example.com',
+      emailVerified: true,
+      image: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nim: '20250001',
+      gender: 'MALE',
+      hasSeenWelcomeSplash: true,
+      onboardingStep: null,
+      onboardingData: null,
+      personalityProfile: null,
+    });
   });
 
   it('accepts arrays payload for mahasiswa and creates submission', async () => {
@@ -217,5 +251,54 @@ describe('POST /api/courses/[id]/assignments/[assignmentId]/submit', () => {
       { params: Promise.resolve({ id: 'c1', assignmentId: 'ax' }) } as any
     );
     expect(res.status).toBe(404);
+  });
+
+  it('does not create shared skill rows for demo students', async () => {
+    process.env.DEMO_MODE = '1';
+    prismaMock.user.findUnique.mockResolvedValueOnce({
+      id: 's1',
+      role: 'STUDENT',
+      isOnboarded: true,
+      name: 'Demo Student',
+      email: 'demo.student.visitor1234@eduteams.local',
+      emailVerified: true,
+      image: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nim: '20260001',
+      gender: 'MALE',
+      hasSeenWelcomeSplash: true,
+      onboardingStep: null,
+      onboardingData: null,
+      personalityProfile: null,
+    });
+    mock.module('@/lib/auth', () => ({
+      auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
+    }));
+
+    const { POST } = await import('../route');
+    const req = new Request(
+      'http://localhost/api/courses/c1/assignments/a1/submit',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          skills: [{ name: 'Frontend', level: 0.9 }],
+          topics: [{ name: 'Topic1', preference: 0.8 }],
+        }),
+      }
+    );
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'c1', assignmentId: 'a1' }) } as any
+    );
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.skill.createMany).not.toHaveBeenCalled();
+    if (originalDemoMode === undefined) {
+      delete process.env.DEMO_MODE;
+    } else {
+      process.env.DEMO_MODE = originalDemoMode;
+    }
   });
 });

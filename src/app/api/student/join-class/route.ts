@@ -10,6 +10,10 @@ import {
 import { canAccessMahasiswaFeatures } from '@/lib/authorization';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { isSameOrigin } from '@/lib/csrf';
+import {
+  isActiveDemoAccountEmail,
+  isDemoAccountEmail,
+} from '@/lib/demo/auth';
 import prisma from '@/lib/prisma';
 import type { ExtendedUser } from '@/lib/types';
 
@@ -30,6 +34,10 @@ async function joinClass(
     return createErrorResponse('Access denied', 403);
   }
 
+  if (isActiveDemoAccountEmail(user.email)) {
+    return createErrorResponse('Demo accounts cannot join shared classes.', 403);
+  }
+
   if (!isSameOrigin(request)) {
     return createErrorResponse('Invalid origin', 403);
   }
@@ -43,6 +51,7 @@ async function joinClass(
     include: {
       dosen: {
         select: {
+          email: true,
           name: true,
         },
       },
@@ -51,6 +60,10 @@ async function joinClass(
 
   if (!course) {
     return createErrorResponse('Invalid token. Class not found.', 404);
+  }
+
+  if (isDemoAccountEmail(course.dosen.email)) {
+    return createErrorResponse('Demo classes cannot be joined from shared invites.', 403);
   }
 
   const existingEnrollment = await prisma.courseEnrollment.findUnique({

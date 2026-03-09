@@ -7,6 +7,7 @@ import {
   withAuth,
 } from '@/lib/api-utils';
 import { canAccessDosenFeatures } from '@/lib/authorization';
+import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
 import prisma from '@/lib/prisma';
 
 export const runtime = 'nodejs';
@@ -42,6 +43,9 @@ export const GET = withAuth(async (request: NextRequest) => {
 export const POST = withAuth(async (request: NextRequest, { user }) => {
   const isDosen = canAccessDosenFeatures(user);
   if (!isDosen) return createErrorResponse('Access denied', 403);
+  if (isActiveDemoAccountEmail(user.email)) {
+    return createErrorResponse('Demo accounts cannot modify shared skills', 403);
+  }
 
   const body = await request.json();
   const data = SkillCreateSchema.parse(body);
