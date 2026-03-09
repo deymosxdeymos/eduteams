@@ -188,7 +188,7 @@ describe('createAuth deployment behavior', () => {
     delete process.env.GOOGLE_CLIENT_ID;
     delete process.env.GOOGLE_CLIENT_SECRET;
 
-    const { auth } = await import('../auth');
+    const { auth } = await import(`../auth?demo-mode=${Date.now()}`);
     void auth.api;
 
     expect(betterAuthMock).toHaveBeenCalled();

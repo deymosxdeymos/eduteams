@@ -4,12 +4,6 @@ const actualPrisma = await import('@/lib/prisma');
 
 type RateLimitModule = typeof import('../rate-limit');
 
-type DeleteManyArgs = {
-  where: {
-    expiresAt: { lte: Date };
-  };
-};
-
 type RateLimitBucket = {
   count: number;
   expiresAt: Date;
@@ -19,17 +13,18 @@ const rateLimitBuckets = new Map<string, RateLimitBucket>();
 const getBucketKey = (key: string, windowStart: Date) =>
   JSON.stringify([key, windowStart.toISOString()]);
 
-const deleteManyMock = mock(async ({ where }: DeleteManyArgs) => {
+const executeRawMock = mock(async (...args: unknown[]) => {
+  const nowDate = args[1] as Date;
   let count = 0;
 
   for (const [bucketKey, bucket] of rateLimitBuckets.entries()) {
-    if (bucket.expiresAt <= where.expiresAt.lte) {
+    if (bucket.expiresAt <= nowDate) {
       rateLimitBuckets.delete(bucketKey);
       count += 1;
     }
   }
 
-  return { count };
+  return count;
 });
 const queryRawMock = mock(async (...args: unknown[]) => {
   const key = args[1] as string;
@@ -48,9 +43,7 @@ const queryRawMock = mock(async (...args: unknown[]) => {
 function applyModuleMocks() {
   mock.module('@/lib/prisma', () => ({
     default: {
-      rateLimitBucket: {
-        deleteMany: deleteManyMock,
-      },
+      $executeRaw: executeRawMock,
       $queryRaw: queryRawMock,
     },
   }));
@@ -92,7 +85,7 @@ describe('rate-limit', () => {
     applyModuleMocks();
     rateLimitModule = await import('../rate-limit');
     rateLimitBuckets.clear();
-    deleteManyMock.mockClear();
+    executeRawMock.mockClear();
     queryRawMock.mockClear();
 
     delete process.env.VERCEL;
@@ -227,7 +220,7 @@ describe('rate-limit', () => {
       expect(third.remaining).toBe(0);
       expect(third.retryAfterSeconds).toBeGreaterThan(0);
       expect(queryRawMock).toHaveBeenCalledTimes(3);
-      expect(deleteManyMock).toHaveBeenCalledTimes(1);
+      expect(executeRawMock).toHaveBeenCalledTimes(1);
     });
 
     it('starts a fresh bucket after the rate-limit window rolls over', async () => {
@@ -252,7 +245,7 @@ describe('rate-limit', () => {
         remaining: 0,
         retryAfterSeconds: 0,
       });
-      expect(deleteManyMock).toHaveBeenCalledTimes(2);
+      expect(executeRawMock).toHaveBeenCalledTimes(2);
     });
 
     it('globally prunes expired buckets even when the expired key does not recur', async () => {
@@ -281,13 +274,10 @@ describe('rate-limit', () => {
         windowMs: 60_000,
       });
 
-      expect(deleteManyMock).toHaveBeenCalledWith({
-        where: {
-          expiresAt: {
-            lte: new Date(1_700_000_400_000),
-          },
-        },
-      });
+      expect(executeRawMock).toHaveBeenCalledWith(
+        expect.any(Array),
+        new Date(1_700_000_400_000)
+      );
       expect(rateLimitBuckets.has(expiredSameKey)).toBe(false);
       expect(rateLimitBuckets.has(expiredDifferentKey)).toBe(false);
     });
