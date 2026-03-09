@@ -106,7 +106,7 @@ describe('marketing Home page', () => {
     expect(screen.queryByTestId('demo-login-button')).toBeNull();
   });
 
-  it('renders both demo and regular login CTAs when demo login is enabled', async () => {
+  it('renders only demo login CTAs when demo login is enabled', async () => {
     process.env.DEMO_MODE = '1';
     process.env.NEXT_PUBLIC_DEMO_MODE = '1';
 
@@ -116,6 +116,6 @@ describe('marketing Home page', () => {
 
     expect(dynamic).toBe('force-dynamic');
     expect(screen.getAllByTestId('demo-login-button')).toHaveLength(2);
-    expect(screen.getAllByTestId('login-button')).toHaveLength(2);
+    expect(screen.queryByTestId('login-button')).toBeNull();
   });
 });

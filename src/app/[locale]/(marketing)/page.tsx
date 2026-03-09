@@ -26,7 +26,12 @@ function AuthCallToActionGroup({
     return <LoginButton className={className} />;
   }
 
-  return <DemoLoginButton className={className} />;
+  return (
+    <div className='flex flex-col sm:flex-row items-center justify-center gap-3'>
+      <DemoLoginButton className={className} />
+      <LoginButton className={className} />
+    </div>
+  );
 }
 
 export default async function Home() {
