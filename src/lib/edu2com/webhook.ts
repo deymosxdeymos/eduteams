@@ -1,63 +1,31 @@
 import crypto from 'node:crypto';
 
-function getWebhookSecret(): string {
-  const secret =
-    process.env.EDU2COM_WEBHOOK_SECRET ?? process.env.BETTER_AUTH_SECRET;
-  if (!secret) {
-    throw new Error(
-      'Set EDU2COM_WEBHOOK_SECRET (or BETTER_AUTH_SECRET) to secure Edu2com callbacks.'
-    );
-  }
-  return secret;
+function computeSignature(requestId: string, secret: string): string {
+  return crypto.createHmac('sha256', secret).update(requestId).digest('hex');
 }
 
-function normalizeBaseUrl(value?: string | null): string | undefined {
-  if (!value) return undefined;
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  if (/^https?:\/\//i.test(trimmed)) return trimmed.replace(/\/+$/, '');
-  return `https://${trimmed.replace(/\/+$/, '')}`;
-}
-
-function getWebhookBaseUrl(): string {
-  const base =
-    normalizeBaseUrl(process.env.EDU2COM_WEBHOOK_BASE_URL) ??
-    normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL) ??
-    normalizeBaseUrl(process.env.VERCEL_URL) ??
-    'http://localhost:3000';
-  if (!/^https?:\/\//i.test(base)) {
-    throw new Error(
-      'Edu2com webhook base URL must be absolute (set EDU2COM_WEBHOOK_BASE_URL or NEXT_PUBLIC_APP_URL).'
-    );
-  }
-  return base;
-}
-
-function computeSignature(requestId: string): string {
-  return crypto
-    .createHmac('sha256', getWebhookSecret())
-    .update(requestId)
-    .digest('hex');
-}
-
-export function buildEdu2comReplyPostUrl(requestId: string): string {
-  const base = getWebhookBaseUrl();
-  const url = new URL('/api/edu2com/webhook', base);
-  url.searchParams.set('requestId', requestId);
-  url.searchParams.set('token', computeSignature(requestId));
+export function buildEdu2comReplyPostUrl(args: {
+  requestId: string;
+  baseUrl: string;
+  secret: string;
+}): string {
+  const url = new URL('/api/edu2com/webhook', args.baseUrl);
+  url.searchParams.set('requestId', args.requestId);
+  url.searchParams.set('token', computeSignature(args.requestId, args.secret));
   return url.toString();
 }
 
-export function verifyEdu2comWebhookToken(
-  requestId: string,
-  token: string | null
-): boolean {
-  if (!token) return false;
+export function verifyEdu2comWebhookToken(args: {
+  requestId: string;
+  token: string | null;
+  secret: string;
+}): boolean {
+  if (!args.token) return false;
   try {
-    const expected = computeSignature(requestId);
+    const expected = computeSignature(args.requestId, args.secret);
     return crypto.timingSafeEqual(
       Buffer.from(expected),
-      Buffer.from(token.trim())
+      Buffer.from(args.token.trim())
     );
   } catch {
     return false;

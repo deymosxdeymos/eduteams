@@ -213,6 +213,7 @@ model TeamFormationRequest {
   id           String              @id @default(uuid())
   ownerId      String
   assignmentId String?
+  provider     TeamFormationProvider @default(EDU2COM)
   status       TeamFormationStatus @default(PENDING)
   alpha        Float?
   beta         Float?
@@ -396,6 +397,11 @@ enum TeamFormationStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum TeamFormationProvider {
+  LOCAL
+  EDU2COM
 }
 
 enum RoleName {

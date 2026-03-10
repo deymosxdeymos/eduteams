@@ -81,7 +81,7 @@ const edu2comTeamMemberSchema = z.object({
 
 const edu2comTeamSchema = z.object({
   taskId: z.string().min(1),
-  quality: z.number().min(0).max(1),
+  quality: z.number().min(0).max(1).nullable(),
   people: z.array(edu2comTeamMemberSchema).min(1),
 });
 

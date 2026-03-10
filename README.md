@@ -43,6 +43,46 @@ preferences) in one action.
 - For self-hosted deployments behind Nginx, Traefik, or Kubernetes ingress, set `TRUSTED_CLIENT_IP_HEADERS` (for example `x-forwarded-for`) so app-level IP rate limiting can identify clients safely. If a trusted `x-forwarded-for` chain already contains proxy hops on the right, set `TRUSTED_PROXY_HOPS` to the number of trusted hops to skip.
 - For production demos, also enable edge-level WAF/rate-limiting (Cloudflare or Vercel WAF).
 
+### Team Formation Modes
+
+`TEAM_FORMATION_PROVIDER` selects how team formation runs:
+
+- `local`: complete inside the app request for local development, demos, and callback-free deployments
+- `edu2com`: send background work to Edu2com and finish through the signed webhook callback
+
+Default resolution:
+
+- `DEMO_MODE=1` -> `local`
+- `NODE_ENV=development` -> `local`
+- all other environments -> `edu2com`
+
+#### Local/dev default
+
+```env
+TEAM_FORMATION_PROVIDER="local"
+```
+
+#### Demo / Vercel default
+
+```env
+DEMO_MODE="1"
+TEAM_FORMATION_PROVIDER="local"
+```
+
+#### Real Edu2com mode
+
+```env
+TEAM_FORMATION_PROVIDER="edu2com"
+EDU2COM_WEBHOOK_SECRET="your-webhook-secret"
+EDU2COM_WEBHOOK_BASE_URL="https://your-public-domain"
+```
+
+Notes:
+
+- Raw `localhost` cannot receive real Edu2com callbacks.
+- Use a tunnel only if you intentionally want end-to-end local Edu2com testing.
+- `BETTER_AUTH_SECRET` is no longer used as an Edu2com webhook signing fallback.
+
 ## Commands
 
 ```bash
@@ -109,6 +149,11 @@ NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL="0"
 ENFORCE_SAME_ORIGIN_MUTATIONS="1"
 TRUSTED_CLIENT_IP_HEADERS=""
 TRUSTED_PROXY_HOPS="0"
+
+# Team formation provider
+TEAM_FORMATION_PROVIDER="local|edu2com"
+EDU2COM_WEBHOOK_SECRET=""
+EDU2COM_WEBHOOK_BASE_URL=""
 
 # Cron jobs (required for production)
 CRON_SECRET="your-cron-secret"
