@@ -121,7 +121,7 @@
         "phone": "(0721) 8030188",
         "email": "informatika@itera.ac.id"
       },
-      "copyright": "Copyright © 2025 EquiTeam\nSemua hak dilindungi."
+      "copyright": "Copyright © {year} EquiTeam\nSemua hak dilindungi."
     }
   },
   "onboarding": {
@@ -211,6 +211,12 @@
         "switchToStudent": "Pindah ke Mahasiswa",
         "switching": "Memindahkan..."
       }
+    },
+    "sidebar": {
+      "home": "Dashboard",
+      "manage": "Kelola",
+      "profile": "Profil",
+      "logout": "Keluar"
     },
     "errorBoundary": {
       "title": "Terjadi kesalahan!",

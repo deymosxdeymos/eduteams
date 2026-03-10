@@ -121,7 +121,7 @@
         "phone": "(0721) 8030188",
         "email": "informatika@itera.ac.id"
       },
-      "copyright": "Copyright © 2025 EquiTeam\nAll rights reserved."
+      "copyright": "Copyright © {year} EquiTeam\nAll rights reserved."
     }
   },
   "onboarding": {
@@ -211,6 +211,12 @@
         "switchToStudent": "Switch to Student",
         "switching": "Switching..."
       }
+    },
+    "sidebar": {
+      "home": "Dashboard",
+      "manage": "Manage",
+      "profile": "Profile",
+      "logout": "Log out"
     },
     "errorBoundary": {
       "title": "Something went wrong!",

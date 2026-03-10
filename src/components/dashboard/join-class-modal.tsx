@@ -119,6 +119,7 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
             >
               <InputRounded
                 id={inputId}
+                name="classToken"
                 value={classToken}
                 onChange={(e) => {
                   setClassToken(e.target.value);

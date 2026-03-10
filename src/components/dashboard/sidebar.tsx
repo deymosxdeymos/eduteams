@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { CircleUser, HomeIcon, LayoutGrid, LogOut } from 'lucide-react';
-import { useMemo } from 'react';
+import { CircleUser, HomeIcon, LayoutGrid, LogOut } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
-import { Button } from '@/components/ui/button';
-import { usePathname, useRouter } from '@/i18n/routing';
-import { authClient } from '@/lib/auth-client';
+import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "@/i18n/routing";
+import { authClient } from "@/lib/auth-client";
 
-const SUPPORTED_LOCALES = ['id', 'en'];
+const SUPPORTED_LOCALES = ["id", "en"];
 const ICON_BUTTON_CLASSES =
-  'rounded-full w-12 h-12 cursor-pointer transition-transform duration-150 active:scale-[0.96]';
+  "rounded-full w-12 h-12 cursor-pointer transition-transform duration-150 active:scale-[0.96]";
 
 interface SidebarProps {
   user: {
@@ -22,114 +23,113 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, notStartedCount }: SidebarProps) {
-  const shouldFetchCount = user?.role === 'STUDENT';
+  const t = useTranslations("dashboard.sidebar");
+  const shouldFetchCount = user?.role === "STUDENT";
   const showBadge = shouldFetchCount && notStartedCount > 0;
 
   const router = useRouter();
   const pathname = usePathname();
 
   const normalizedPathname = useMemo(() => {
-    if (!pathname) return '/';
+    if (!pathname) return "/";
 
-    const segments = pathname.split('/');
+    const segments = pathname.split("/");
     const potentialLocale = segments[1];
 
-    if (SUPPORTED_LOCALES.includes(potentialLocale ?? '')) {
-      const rest = segments.slice(2).filter(Boolean).join('/');
-      return rest ? `/${rest}` : '/';
+    if (SUPPORTED_LOCALES.includes(potentialLocale ?? "")) {
+      const rest = segments.slice(2).filter(Boolean).join("/");
+      return rest ? `/${rest}` : "/";
     }
 
     return pathname;
   }, [pathname]);
 
   const handleProfileClick = () => {
-    router.push('/dashboard/profile');
+    router.push("/dashboard/profile");
   };
 
   const handleDashboardClick = () => {
-    router.push('/dashboard');
+    router.push("/dashboard");
   };
 
   const handleManageClick = () => {
-    router.push('/dashboard/manage');
+    router.push("/dashboard/manage");
   };
 
   const handleLogout = async () => {
     await authClient.signOut();
-    router.push('/');
+    router.push("/");
   };
 
   // Helper function to determine if a route is active
   const isActive = (path: string) => {
     // Home (dashboard) should be active for all dashboard routes except profile and manage
-    if (path === '/dashboard') {
+    if (path === "/dashboard") {
       return (
-        normalizedPathname.startsWith('/dashboard') &&
-        !normalizedPathname.startsWith('/dashboard/profile') &&
-        !normalizedPathname.startsWith('/dashboard/manage')
+        normalizedPathname.startsWith("/dashboard") &&
+        !normalizedPathname.startsWith("/dashboard/profile") &&
+        !normalizedPathname.startsWith("/dashboard/manage")
       );
     }
     // Manage should be active for all manage routes including tugas
-    if (path === '/dashboard/manage') {
-      return normalizedPathname.startsWith('/dashboard/manage');
+    if (path === "/dashboard/manage") {
+      return normalizedPathname.startsWith("/dashboard/manage");
     }
     return normalizedPathname.startsWith(path);
   };
 
   return (
-    <div
-      className='bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border h-full'
-    >
-      <div className='flex flex-col gap-y-6'>
+    <div className="bg-white py-4 px-3 rounded-full flex flex-col justify-between items-center w-20 border h-full">
+      <div className="flex flex-col gap-y-6">
         <Button
-          variant={isActive('/dashboard') ? 'onboarding' : 'ghost'}
-          size='icon'
+          variant={isActive("/dashboard") ? "onboarding" : "ghost"}
+          size="icon"
           className={ICON_BUTTON_CLASSES}
           onClick={handleDashboardClick}
-          aria-current={isActive('/dashboard') ? 'page' : undefined}
+          aria-label={t("home")}
+          aria-current={isActive("/dashboard") ? "page" : undefined}
         >
-          <HomeIcon
-            className={`size-5 ${isActive('/dashboard') ? 'text-white' : 'text-black'}`}
-          />
+          <HomeIcon className={`size-5 ${isActive("/dashboard") ? "text-white" : "text-black"}`} />
         </Button>
 
-        <div className='relative'>
+        <div className="relative">
           <Button
-            variant={isActive('/dashboard/manage') ? 'onboarding' : 'ghost'}
-            size='icon'
+            variant={isActive("/dashboard/manage") ? "onboarding" : "ghost"}
+            size="icon"
             className={ICON_BUTTON_CLASSES}
             onClick={handleManageClick}
-            aria-current={isActive('/dashboard/manage') ? 'page' : undefined}
+            aria-label={t("manage")}
+            aria-current={isActive("/dashboard/manage") ? "page" : undefined}
           >
             <LayoutGrid
-              className={`size-5 ${isActive('/dashboard/manage') ? 'text-white' : 'text-black'}`}
+              className={`size-5 ${isActive("/dashboard/manage") ? "text-white" : "text-black"}`}
             />
           </Button>
-          {showBadge && (
-            <div className='absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full' />
-          )}
+          {showBadge && <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full" />}
         </div>
       </div>
-      <div className='flex flex-col gap-y-6'>
+      <div className="flex flex-col gap-y-6">
         <Button
-          variant={isActive('/dashboard/profile') ? 'onboarding' : 'ghost'}
-          size='icon'
+          variant={isActive("/dashboard/profile") ? "onboarding" : "ghost"}
+          size="icon"
           className={ICON_BUTTON_CLASSES}
           onClick={handleProfileClick}
-          aria-current={isActive('/dashboard/profile') ? 'page' : undefined}
+          aria-label={t("profile")}
+          aria-current={isActive("/dashboard/profile") ? "page" : undefined}
         >
           <CircleUser
-            className={`size-5 ${isActive('/dashboard/profile') ? 'text-white' : 'text-black'}`}
+            className={`size-5 ${isActive("/dashboard/profile") ? "text-white" : "text-black"}`}
           />
         </Button>
 
         <Button
-          variant='ghost'
-          size='icon'
+          variant="ghost"
+          size="icon"
           className={ICON_BUTTON_CLASSES}
           onClick={handleLogout}
+          aria-label={t("logout")}
         >
-          <LogOut className='text-red-400 size-5' />
+          <LogOut className="text-red-400 size-5" />
         </Button>
       </div>
     </div>
