@@ -2,16 +2,14 @@
   "name": "eduteams",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "22.x"
-  },
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:demo": "DEMO_MODE=1 NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL=1 bun dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint .",
-    "format": "eslint . --fix",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt --write .",
     "tsgo": "tsgo --project tsconfig.json --noEmit",
     "pretest": "prisma generate",
     "test": "bun test",
@@ -75,10 +73,10 @@
     "@typescript/native-preview": "^7.0.0-dev.20260302.1",
     "bun-types": "^1.3.3",
     "dotenv": "^16.5.0",
-    "eslint": "^9.39.0",
-    "eslint-config-next": "^16.1.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "oxfmt": "^0.37.0",
+    "oxlint": "^1.52.0",
     "postcss": "^8.5.6",
     "prisma": "^7.0.1",
     "tailwindcss": "^4.1.17",
@@ -90,8 +88,12 @@
     "@types/react-dom": "19.1.6"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix"
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxlint --fix",
+      "oxfmt --write"
     ]
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

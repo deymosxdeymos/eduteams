@@ -16,7 +16,7 @@
 - Prefer clear function/variable names over inline comments
 - Avoid helper functions when a simple inline expression would suffice
 - `tsgo` is the default type checker; keep [types/css.d.ts](/home/deymos/Documents/eduteams/types/css.d.ts) unless Next CSS import support becomes native in `tsgo`
-- ESLint with `eslint-config-next` is the single lint tool for this repo
+- Oxlint is the lint tool and Oxfmt is the formatter for this repo
 - Use `knip` to remove unused code if making large changes
 - The `gh` CLI is installed, use it
 - Don’t use emojis

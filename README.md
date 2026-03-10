@@ -98,8 +98,9 @@ bun test --coverage                 # With coverage report
 bun test --test-name-pattern "xyz"  # Run specific tests
 
 # Code Quality
-bun run lint                        # Lint with ESLint
-bun run format                      # Apply ESLint autofixes
+bun run lint                        # Lint with Oxlint
+bun run lint:fix                    # Apply Oxlint safe fixes
+bun run format                      # Format with Oxfmt
 bun run tsgo                        # Type checking
 
 # Database
@@ -115,7 +116,7 @@ bun run i18n:validate               # Validate translations
 
 `tsgo` is the default type checker for this repo. The CSS module declaration in [types/css.d.ts](/home/deymos/Documents/eduteams/types/css.d.ts) is intentional and currently needed for Next global CSS imports.
 
-ESLint with `eslint-config-next` is the single lint tool for this repo.
+Oxlint is the lint tool for this repo, and Oxfmt handles formatting.
 The old Playwright/e2e stack has been removed.
 
 ## Stack & Features
@@ -123,6 +124,7 @@ The old Playwright/e2e stack has been removed.
 **Tech:** Next.js 15 • TypeScript • Bun • PostgreSQL • Prisma • Tailwind CSS • Shadcn/ui • better-auth • Zod
 
 **Features:**
+
 - MBTI personality assessment (16 types) with skills evaluation
 - Advanced team formation algorithms (skill-based, personality-compatible, preference-optimized)
 - Course management with role-based access (Student, Teacher, Admin)
@@ -174,6 +176,7 @@ CRON_SECRET="your-cron-secret"
 **Self-hosted production:** Set `DEMO_MODE=0`, configure production auth secrets, and point at a separate production database.
 
 **Docker:**
+
 ```bash
 docker build -t eduteams . && docker run -p 3000:3000 eduteams
 ```
