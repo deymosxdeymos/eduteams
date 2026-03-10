@@ -1,12 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { clearAuthSessionCookies } from '@/lib/demo/auth';
 
-export async function POST(request: NextRequest) {
-  await clearAuthSessionCookies();
-  const redirectTo = request.nextUrl.searchParams.get('redirect') || '/';
-  return NextResponse.redirect(new URL(redirectTo, request.url));
+function getRedirectTarget(request: NextRequest) {
+  const redirectTo = request.nextUrl.searchParams.get('redirect');
+
+  if (!redirectTo || !redirectTo.startsWith('/')) {
+    return '/';
+  }
+
+  return redirectTo;
 }
 
-export async function GET() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+async function clearSessionAndRedirect(request: NextRequest) {
+  await clearAuthSessionCookies();
+  return NextResponse.redirect(new URL(getRedirectTarget(request), request.url));
+}
+
+export async function GET(request: NextRequest) {
+  return clearSessionAndRedirect(request);
+}
+
+export async function POST(request: NextRequest) {
+  return clearSessionAndRedirect(request);
 }
