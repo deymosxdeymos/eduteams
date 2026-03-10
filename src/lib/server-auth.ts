@@ -2,13 +2,15 @@ import 'server-only';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/api-utils';
 import { getRedirectPath, permissions } from '@/lib/authorization';
+import { clearAuthSessionCookies } from '@/lib/demo/auth';
 import type { ExtendedUser } from '@/lib/types';
 
 async function requireAuth(): Promise<ExtendedUser> {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/api/auth/clear-session?redirect=/');
+    await clearAuthSessionCookies();
+    redirect('/');
   }
 
   return user;

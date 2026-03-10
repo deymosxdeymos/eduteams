@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { cache, Suspense } from 'react';
 import { ClassAssignmentsAsync } from '@/components/dashboard/async/class-assignments-async';
 import { StudentClassDataAsync } from '@/components/dashboard/async/student-class-data-async';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
@@ -17,38 +17,39 @@ import type { ExtendedUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-function getCourseAccessWhere(id: string, user: ExtendedUser) {
-  const isDosen = canAccessDosenFeatures(user);
-  const isMahasiswa = canAccessMahasiswaFeatures(user);
-
-  if (isDosen) {
-    return { id, dosenId: user.id };
-  }
-
-  if (isMahasiswa) {
-    return {
-      id,
-      enrollments: { some: { studentId: user.id } },
-    };
-  }
-
-  return null;
-}
-
-// Get full course data for rendering
-async function getCourseData(id: string, user: ExtendedUser) {
-  const where = getCourseAccessWhere(id, user);
-
-  if (!where) return null;
-
-  return prisma.course.findFirst({
-    where,
+const getDosenCourseData = cache(async (id: string, userId: string) =>
+  prisma.course.findFirst({
+    where: { id, dosenId: userId },
     include: {
       dosen: {
         select: { id: true, name: true, email: true },
       },
     },
-  });
+  })
+);
+
+const getMahasiswaCourseData = cache(async (id: string, userId: string) =>
+  prisma.course.findFirst({
+    where: {
+      id,
+      enrollments: { some: { studentId: userId } },
+    },
+    include: {
+      dosen: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  })
+);
+
+async function getCourseData(id: string, user: ExtendedUser) {
+  if (canAccessDosenFeatures(user)) {
+    return getDosenCourseData(id, user.id);
+  }
+  if (canAccessMahasiswaFeatures(user)) {
+    return getMahasiswaCourseData(id, user.id);
+  }
+  return null;
 }
 
 export async function generateMetadata({
@@ -56,13 +57,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
+  const user = await protectDashboard();
   const { id } = await params;
-
-  // Lightweight query for metadata only
-  const course = await prisma.course.findFirst({
-    where: { id },
-    select: { namaMataKuliah: true, kelas: true },
-  });
+  const course = await getCourseData(id, user);
 
   const title = course
     ? `${course.namaMataKuliah} - ${course.kelas} | EduTeams`

@@ -77,10 +77,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Link, useRouter } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
 import { classCatalogFetcher } from '@/lib/client-api';
 import { EMPTY_ARRAY } from '@/lib/constants';
 import type { ClassCatalog } from '@/lib/types';
+import { formatAcademicPeriodLabel, getCurrentAcademicPeriod } from '@/lib/utils/period';
 import { cn } from '@/lib/utils';
 import {
   type CourseCreateUserInput,
@@ -202,8 +203,45 @@ function mapCourseToFormValues(course: ManageCourseRow): CourseCreateUserInput {
   };
 }
 
-function EditCourseDialog({ course }: { course: ManageCourseRow }) {
-  const router = useRouter();
+function formatPeriodLabel(
+  startYear: number,
+  endYear: number,
+  semester: ManageCourseRow['semester']
+) {
+  return formatAcademicPeriodLabel(startYear, endYear, semester).replace(' ', '/');
+}
+
+function resolveArchivedState(
+  course: ManageCourseRow,
+  isManuallyArchived: boolean
+) {
+  if (isManuallyArchived) {
+    return true;
+  }
+
+  const currentPeriod = getCurrentAcademicPeriod();
+  if (course.endYear < currentPeriod.tahunAkhirPeriode) {
+    return true;
+  }
+  if (course.endYear > currentPeriod.tahunAkhirPeriode) {
+    return false;
+  }
+  if (course.semester === currentPeriod.periode) {
+    return false;
+  }
+  return currentPeriod.periode === 'genap' && course.semester === 'ganjil';
+}
+
+function EditCourseDialog({
+  course,
+  onCourseUpdated,
+}: {
+  course: ManageCourseRow;
+  onCourseUpdated?: (
+    courseId: string,
+    values: Pick<ManageCourseRow, 'name' | 'classCode' | 'semester'>
+  ) => void;
+}) {
   const tEdit = useTranslations('dashboard.modals.editClass');
   const tFields = useTranslations('dashboard.modals.createClass.fields');
   const tOptions = useTranslations('dashboard.modals.createClass.options');
@@ -413,17 +451,31 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
         }>;
 
         if (updated) {
-          form.reset({
+          const nextValues = {
             namaMataKuliah: updated.namaMataKuliah ?? values.namaMataKuliah,
             kelas: updated.kelas ?? values.kelas,
             periode: updated.periode ?? values.periode,
+          };
+          form.reset({
+            namaMataKuliah: nextValues.namaMataKuliah,
+            kelas: nextValues.kelas,
+            periode: nextValues.periode,
+          });
+          onCourseUpdated?.(course.id, {
+            name: nextValues.namaMataKuliah,
+            classCode: nextValues.kelas,
+            semester: nextValues.periode,
           });
         } else {
           form.reset(values);
+          onCourseUpdated?.(course.id, {
+            name: values.namaMataKuliah,
+            classCode: values.kelas,
+            semester: values.periode,
+          });
         }
 
         setSuccess(true);
-        router.refresh();
 
         setTimeout(() => {
           setSuccess(false);
@@ -695,8 +747,13 @@ function EditCourseDialog({ course }: { course: ManageCourseRow }) {
   );
 }
 
-function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
-  const router = useRouter();
+function DeleteCourseDialog({
+  course,
+  onCourseDeleted,
+}: {
+  course: ManageCourseRow;
+  onCourseDeleted?: (courseId: string) => void;
+}) {
   const tDelete = useTranslations('dashboard.modals.deleteClass');
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -742,7 +799,7 @@ function DeleteCourseDialog({ course }: { course: ManageCourseRow }) {
         }
 
         setSuccess(true);
-        router.refresh();
+        onCourseDeleted?.(course.id);
 
         setTimeout(() => {
           setSuccess(false);
@@ -821,7 +878,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
   renderActions,
   onArchiveToggle,
 }: ManageCoursesViewProps) {
-  const router = useRouter();
+  const [courseRows, setCourseRows] = useState(courses);
   const [searchTerm, setSearchTerm] = useQueryState('search', {
     defaultValue: '',
     shallow: true,
@@ -837,19 +894,90 @@ export const ManageCoursesView = memo(function ManageCoursesView({
     shallow: true,
   });
   const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCourseRows(courses);
+  }, [courses]);
+
+  const handleCourseUpdated = useCallback(
+    (
+      courseId: string,
+      values: Pick<ManageCourseRow, 'name' | 'classCode' | 'semester'>
+    ) => {
+      setCourseRows(current =>
+        current.map(course => {
+          if (course.id !== courseId) {
+            return course;
+          }
+
+          const nextCourse = {
+            ...course,
+            name: values.name,
+            classCode: values.classCode,
+            semester: values.semester,
+            periodLabel: formatPeriodLabel(
+              course.startYear,
+              course.endYear,
+              values.semester
+            ),
+            updatedAt: new Date().toISOString(),
+          };
+
+          return {
+            ...nextCourse,
+            isArchived: resolveArchivedState(
+              nextCourse,
+              nextCourse.isManuallyArchived
+            ),
+          };
+        })
+      );
+    },
+    []
+  );
+
+  const handleCourseDeleted = useCallback((courseId: string) => {
+    setCourseRows(current => current.filter(course => course.id !== courseId));
+  }, []);
+
   const handleArchiveToggle = useCallback(
     (course: ManageCourseRow) => {
       if (!onArchiveToggle) {
         return;
       }
 
+      const previousCourse = course;
+      const nextIsManuallyArchived = !course.isManuallyArchived;
       setPendingCourseId(course.id);
+      setCourseRows(current =>
+        current.map(row => {
+          if (row.id !== course.id) {
+            return row;
+          }
+
+          const nextCourse = {
+            ...row,
+            isManuallyArchived: nextIsManuallyArchived,
+            updatedAt: new Date().toISOString(),
+          };
+
+          return {
+            ...nextCourse,
+            isArchived: resolveArchivedState(
+              nextCourse,
+              nextIsManuallyArchived
+            ),
+          };
+        })
+      );
       void (async () => {
         try {
           await onArchiveToggle(course);
-          router.refresh();
         } catch (error) {
           console.error('Failed to toggle archive status', error);
+          setCourseRows(current =>
+            current.map(row => (row.id === previousCourse.id ? previousCourse : row))
+          );
         } finally {
           setPendingCourseId(current =>
             current === course.id ? null : current
@@ -857,7 +985,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         }
       })();
     },
-    [onArchiveToggle, router]
+    [onArchiveToggle]
   );
 
   const defaultActions = useCallback(
@@ -920,12 +1048,18 @@ export const ManageCoursesView = memo(function ManageCoursesView({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <EditCourseDialog course={course} />
-          <DeleteCourseDialog course={course} />
+          <EditCourseDialog
+            course={course}
+            onCourseUpdated={handleCourseUpdated}
+          />
+          <DeleteCourseDialog
+            course={course}
+            onCourseDeleted={handleCourseDeleted}
+          />
         </div>
       );
     },
-    [handleArchiveToggle, pendingCourseId]
+    [handleArchiveToggle, handleCourseDeleted, handleCourseUpdated, pendingCourseId]
   );
 
   const renderRowActions = renderActions ?? defaultActions;
@@ -933,13 +1067,13 @@ export const ManageCoursesView = memo(function ManageCoursesView({
   const filteredCourses = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const matching = term
-      ? courses.filter(course => {
+      ? courseRows.filter(course => {
           const tokens = `${course.name} ${course.classCode}`.toLowerCase();
           return tokens.includes(term);
         })
-      : courses;
+      : courseRows;
     return sortCourses(matching, sortKey);
-  }, [courses, searchTerm, sortKey]);
+  }, [courseRows, searchTerm, sortKey]);
 
   const activeCourses = filteredCourses.filter(course => !course.isArchived);
   const archivedCourses = filteredCourses.filter(course => course.isArchived);

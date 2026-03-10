@@ -122,6 +122,8 @@ export function AssignmentTeamsContent({
 }: AssignmentTeamsContentProps) {
   const t = useTranslations('dashboard.teams');
   const pad = (n: number) => n.toString().padStart(2, '0');
+  const [teamItems, setTeamItems] = useState(teams);
+  const [enrolledStudentItems, setEnrolledStudentItems] = useState(enrolledStudents);
   const [activeTeamIndex, setActiveTeamIndex] = useState<number | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const pendingAdditionsByTeamRef = useRef<Map<string, Set<string>>>(new Map());
@@ -137,19 +139,27 @@ export function AssignmentTeamsContent({
     onSavingChangeRef.current = onSavingChange;
   }, [onSavingChange]);
 
-  const allAssignedStudentIds = useMemo(() => new Set(
-    teams.flatMap(team => team.members.map(m => m.user.id))
-  ), [teams]);
+  useEffect(() => {
+    setTeamItems(teams);
+  }, [teams]);
 
-  const availableStudents = useMemo(() => enrolledStudents.filter(
+  useEffect(() => {
+    setEnrolledStudentItems(enrolledStudents);
+  }, [enrolledStudents]);
+
+  const allAssignedStudentIds = useMemo(() => new Set(
+    teamItems.flatMap(team => team.members.map(m => m.user.id))
+  ), [teamItems]);
+
+  const availableStudents = useMemo(() => enrolledStudentItems.filter(
     s => !allAssignedStudentIds.has(s.id)
-  ), [enrolledStudents, allAssignedStudentIds]);
+  ), [enrolledStudentItems, allAssignedStudentIds]);
 
   const missingStudentIds = useMemo(() => new Set(
     availableStudents.filter(s => !submittedStudentIds.has(s.id)).map(s => s.id)
   ), [availableStudents, submittedStudentIds]);
 
-  const activeTeam = activeTeamIndex != null ? teams[activeTeamIndex] : null;
+  const activeTeam = activeTeamIndex != null ? teamItems[activeTeamIndex] : null;
 
   const detailMembers = useMemo(() => {
     if (!activeTeam) {
@@ -191,7 +201,7 @@ export function AssignmentTeamsContent({
 
   const goToNextTeam = () => {
     setActiveTeamIndex(prev => {
-      if (prev === null || prev >= teams.length - 1) {
+      if (prev === null || prev >= teamItems.length - 1) {
         return prev;
       }
       return prev + 1;
@@ -200,7 +210,7 @@ export function AssignmentTeamsContent({
 
   const hasPrevious = activeTeamIndex !== null && activeTeamIndex > 0;
   const hasNext =
-    activeTeamIndex !== null && activeTeamIndex < teams.length - 1;
+    activeTeamIndex !== null && activeTeamIndex < teamItems.length - 1;
   const activeGroupNumber =
     activeTeam?.groupNumber ??
     (activeTeamIndex !== null ? activeTeamIndex + 1 : 1);
@@ -230,7 +240,7 @@ export function AssignmentTeamsContent({
         </div>
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
-          {teams.map((team, idx) => {
+          {teamItems.map((team, idx) => {
             const topicName = team.topicName || '-';
             const qualityPct =
               team.quality != null ? Math.round(team.quality * 100) : null;
@@ -304,6 +314,28 @@ export function AssignmentTeamsContent({
                   availableStudents={availableStudents}
                   missingStudentIds={missingStudentIds}
                   saveTrigger={saveTrigger}
+                  onMembersCommitted={members => {
+                    setTeamItems(current =>
+                      current.map(currentTeam =>
+                        currentTeam.id === team.id
+                          ? { ...currentTeam, members }
+                          : currentTeam
+                      )
+                    );
+                  }}
+                  onCourseStudentRemoved={studentId => {
+                    setEnrolledStudentItems(current =>
+                      current.filter(student => student.id !== studentId)
+                    );
+                    setTeamItems(current =>
+                      current.map(currentTeam => ({
+                        ...currentTeam,
+                        members: currentTeam.members.filter(
+                          member => member.user.id !== studentId
+                        ),
+                      }))
+                    );
+                  }}
                   onPendingAdditionsChange={pendingIds => {
                     const map = pendingAdditionsByTeamRef.current;
                     if (pendingIds.size > 0) {

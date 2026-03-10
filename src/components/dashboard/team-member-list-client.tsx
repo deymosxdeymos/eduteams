@@ -3,7 +3,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
@@ -78,6 +77,8 @@ interface TeamMemberListClientProps {
   availableStudents?: EnrolledStudent[];
   missingStudentIds?: Set<string>;
   saveTrigger?: number;
+  onMembersCommitted?: (members: TeamMemberItem[]) => void;
+  onCourseStudentRemoved?: (studentId: string) => void;
   onPendingAdditionsChange?: (pendingStudentIds: Set<string>) => void;
   onSavingChange?: (isSaving: boolean) => void;
 }
@@ -131,10 +132,11 @@ export function TeamMemberListClient({
   availableStudents = [],
   missingStudentIds = EMPTY_SET,
   saveTrigger,
+  onMembersCommitted,
+  onCourseStudentRemoved,
   onPendingAdditionsChange,
   onSavingChange,
 }: TeamMemberListClientProps) {
-  const router = useRouter();
   const t = useTranslations('dashboard.students');
   const tTeams = useTranslations('dashboard.teams');
   const [selectedMember, setSelectedMember] = useState<TeamMemberItem | null>(
@@ -260,7 +262,23 @@ export function TeamMemberListClient({
         setIsProfileOpen(false);
         setSelectedMember(null);
       }
-      router.refresh();
+      setSelectedMembers(prev => {
+        const next = new Set(prev);
+        next.delete(studentId);
+        return next;
+      });
+      setPendingAdditions(prev => {
+        const next = new Set(prev);
+        next.delete(studentId);
+        onPendingAdditionsChangeRef.current?.(new Set(next));
+        return next;
+      });
+      setPendingDeletions(prev => {
+        const next = new Set(prev);
+        next.delete(studentId);
+        return next;
+      });
+      onCourseStudentRemoved?.(studentId);
     } catch (err) {
       setRemoveError(err instanceof Error ? err.message : t('errors.error'));
     } finally {
@@ -335,8 +353,6 @@ export function TeamMemberListClient({
   }, [pendingDeletions]);
 
   useEffect(() => {
-    // TODO: Lift pending-addition state into AssignmentTeamsContent so this
-    // component does not need mount/unmount synchronization with parent refs.
     onPendingAdditionsChangeRef.current?.(pendingAdditionsRef.current);
 
     return () => {
@@ -365,11 +381,40 @@ export function TeamMemberListClient({
       );
 
       await Promise.all([...addPromises, ...deletePromises]);
+      const nextMembers = [
+        ...members.filter(member => !deletions.has(member.user.id)),
+        ...Array.from(additions)
+          .map(studentId => {
+            const student = availableStudents.find(item => item.id === studentId);
+            if (!student) {
+              return null;
+            }
+            return {
+              id: studentId,
+              assignedSkillIds: null,
+              topSkills: [],
+              preferredTopics: [],
+              user: {
+                id: student.id,
+                name: student.name,
+                email: student.email,
+                mbtiType: student.mbtiType,
+                nim: student.nim,
+                ei: null,
+                sn: null,
+                tf: null,
+                pj: null,
+                gender: student.gender,
+              },
+            } as TeamMemberItem;
+          })
+          .filter((member): member is TeamMemberItem => member !== null),
+      ];
       setPendingAdditions(new Set());
       onPendingAdditionsChangeRef.current?.(new Set());
       setPendingDeletions(new Set());
       setSelectedMembers(new Set());
-      router.refresh();
+      onMembersCommitted?.(nextMembers);
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : 'Failed to save changes'
@@ -378,7 +423,7 @@ export function TeamMemberListClient({
       isSavingRef.current = false;
       onSavingChangeRef.current?.(false);
     }
-  }, [teamId, assignmentId, mutateTeamMember, router]);
+  }, [assignmentId, availableStudents, members, mutateTeamMember, onMembersCommitted, teamId]);
 
   useEffect(() => {
     if (
