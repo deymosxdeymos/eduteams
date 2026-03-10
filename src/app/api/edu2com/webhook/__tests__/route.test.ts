@@ -23,6 +23,11 @@ function validToken(requestId: string, secret: string) {
 
 describe('POST /api/edu2com/webhook', () => {
   beforeEach(() => {
+    mock.module('next/cache', () => ({
+      unstable_cache: (fn: unknown) => fn,
+      revalidateTag: () => {},
+      revalidatePath: () => {},
+    }));
     process.env.EDU2COM_WEBHOOK_SECRET = 'test-webhook-secret';
 
     prismaMock.teamFormationRequest.findUnique.mockReset();
@@ -139,4 +144,3 @@ describe('POST /api/edu2com/webhook', () => {
     expect(completeTeamFormationRequestMock).not.toHaveBeenCalled();
   });
 });
-

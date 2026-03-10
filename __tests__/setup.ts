@@ -13,7 +13,7 @@ if (GREY_ENABLED) {
 }
 
 import '@testing-library/jest-dom';
-import { afterEach, mock } from 'bun:test';
+import { afterEach, beforeEach, mock } from 'bun:test';
 import React from 'react';
 import { cleanup } from '@testing-library/react';
 import messagesEn from '../messages/en.json';
@@ -26,144 +26,144 @@ afterEach(() => {
 // Ensure a consistent timezone across environments
 process.env.TZ = 'Etc/UTC';
 
-// Mock next/image to strip Next-specific props while rendering a basic img
-mock.module('next/image', () => ({
-  default: ({
-    priority: _priority,
-    fill: _fill,
-    loader: _loader,
-    blurDataURL: _blurDataURL,
-    placeholder: _placeholder,
-    ...props
-  }: any) => React.createElement('img', props),
-}));
+function installBaseModuleMocks() {
+  mock.module('next/image', () => ({
+    default: ({
+      priority: _priority,
+      fill: _fill,
+      loader: _loader,
+      blurDataURL: _blurDataURL,
+      placeholder: _placeholder,
+      ...props
+    }: any) => React.createElement('img', props),
+  }));
 
-// Allow server-only modules to load in Bun test runtime.
-mock.module('server-only', () => ({}));
+  mock.module('server-only', () => ({}));
 
-// Mock next/navigation hooks used in client components
-mock.module('next/navigation', () => ({
-  useRouter: () => ({
-    push: () => {},
-    refresh: () => {},
-    back: () => {},
-  }),
-  usePathname: () => '/',
-  useSearchParams: () => new URLSearchParams(),
-  redirect: (url: string) => {
-    throw new Error(`Redirecting to ${url}`);
-  },
-  permanentRedirect: (url: string) => {
-    throw new Error(`Permanent redirect to ${url}`);
-  },
-}));
-
-// Mock server action used by LanguageSwitcher
-mock.module('@/app/actions/set-locale', () => ({
-  setLocale: async () => {},
-}));
-
-// Mock next-intl
-mock.module('next-intl', () => {
-  // Load actual translation messages for testing
-  const messages: Record<string, any> = messagesEn;
-
-  const getNestedValue = (obj: any, path: string): string => {
-    const keys = path.split('.');
-    let value = obj;
-    for (const key of keys) {
-      if (value && typeof value === 'object' && key in value) {
-        value = value[key];
-      } else {
-        // Return the full key path if not found
-        return path;
-      }
-    }
-    return typeof value === 'string' ? value : path;
-  };
-
-  return {
-    useTranslations: (namespace?: string) => {
-      return (key: string) => {
-        const fullKey = namespace ? `${namespace}.${key}` : key;
-        return getNestedValue(messages, fullKey);
-      };
-    },
-    useLocale: () => 'en',
-    useFormatter: () => ({
-      number: (value: number) => value.toString(),
-      dateTime: (value: Date) => value.toISOString(),
+  mock.module('next/navigation', () => ({
+    useRouter: () => ({
+      push: () => {},
+      refresh: () => {},
+      back: () => {},
     }),
-  };
-});
+    usePathname: () => '/',
+    useSearchParams: () => new URLSearchParams(),
+    redirect: (url: string) => {
+      throw new Error(`Redirecting to ${url}`);
+    },
+    permanentRedirect: (url: string) => {
+      throw new Error(`Permanent redirect to ${url}`);
+    },
+  }));
 
-mock.module('framer-motion', () => {
-  const omitKeys = new Set([
-    'initial',
-    'animate',
-    'exit',
-    'transition',
-    'whileHover',
-    'whileTap',
-    'layout',
-    'layoutId',
-  ]);
-  const createComponent = (tag: string) => {
-    const MotionComponent = ({ children, ...props }: any) => {
-      const cleanProps = Object.fromEntries(
-        Object.entries(props).filter(([key]) => !omitKeys.has(key))
-      );
-      return React.createElement(tag, cleanProps, children);
-    };
-    MotionComponent.displayName = `MockMotion(${tag})`;
-    return MotionComponent;
-  };
+  mock.module('@/app/actions/set-locale', () => ({
+    setLocale: async () => {},
+  }));
 
-  return {
-    AnimatePresence: ({ children }: any) =>
-      React.createElement(React.Fragment, null, children),
-    MotionConfig: ({ children }: any) =>
-      React.createElement(React.Fragment, null, children),
-    motion: new Proxy(
-      {},
-      {
-        get: (_target, key: string | symbol) =>
-          createComponent(typeof key === 'string' ? key : 'div'),
+  mock.module('next-intl', () => {
+    const messages: Record<string, any> = messagesEn;
+
+    const getNestedValue = (obj: any, path: string): string => {
+      const keys = path.split('.');
+      let value = obj;
+      for (const key of keys) {
+        if (value && typeof value === 'object' && key in value) {
+          value = value[key];
+        } else {
+          return path;
+        }
       }
-    ),
-    animate: () => ({ stop: () => {} }),
-    useReducedMotion: () => false,
-  };
+      return typeof value === 'string' ? value : path;
+    };
+
+    return {
+      useTranslations: (namespace?: string) => {
+        return (key: string) => {
+          const fullKey = namespace ? `${namespace}.${key}` : key;
+          return getNestedValue(messages, fullKey);
+        };
+      },
+      useLocale: () => 'en',
+      useFormatter: () => ({
+        number: (value: number) => value.toString(),
+        dateTime: (value: Date) => value.toISOString(),
+      }),
+    };
+  });
+
+  mock.module('framer-motion', () => {
+    const omitKeys = new Set([
+      'initial',
+      'animate',
+      'exit',
+      'transition',
+      'whileHover',
+      'whileTap',
+      'layout',
+      'layoutId',
+    ]);
+    const createComponent = (tag: string) => {
+      const MotionComponent = ({ children, ...props }: any) => {
+        const cleanProps = Object.fromEntries(
+          Object.entries(props).filter(([key]) => !omitKeys.has(key))
+        );
+        return React.createElement(tag, cleanProps, children);
+      };
+      MotionComponent.displayName = `MockMotion(${tag})`;
+      return MotionComponent;
+    };
+
+    return {
+      AnimatePresence: ({ children }: any) =>
+        React.createElement(React.Fragment, null, children),
+      MotionConfig: ({ children }: any) =>
+        React.createElement(React.Fragment, null, children),
+      motion: new Proxy(
+        {},
+        {
+          get: (_target, key: string | symbol) =>
+            createComponent(typeof key === 'string' ? key : 'div'),
+        }
+      ),
+      animate: () => ({ stop: () => {} }),
+      useReducedMotion: () => false,
+    };
+  });
+
+  mock.module('next/cache', () => ({
+    unstable_cache: (fn: any) => fn,
+    revalidateTag: () => {},
+    revalidatePath: () => {},
+  }));
+
+  mock.module('@/i18n/routing', () => ({
+    routing: {
+      locales: ['id', 'en'],
+      defaultLocale: 'id',
+      localePrefix: 'as-needed',
+    },
+    Link: (props: any) => React.createElement('a', props),
+    redirect: (pathname: string) => {
+      throw new Error(`Redirecting to ${pathname}`);
+    },
+    usePathname: () => '/',
+    useRouter: () => ({
+      push: () => {},
+      replace: () => {},
+      back: () => {},
+      forward: () => {},
+      refresh: () => {},
+      prefetch: () => {},
+    }),
+    getPathname: (pathname: string) => pathname,
+  }));
+}
+
+installBaseModuleMocks();
+
+beforeEach(() => {
+  installBaseModuleMocks();
 });
-
-mock.module('next/cache', () => ({
-  unstable_cache: (fn: any) => fn,
-  revalidateTag: () => {},
-  revalidatePath: () => {},
-}));
-
-// Mock next-intl routing
-mock.module('@/i18n/routing', () => ({
-  routing: {
-    locales: ['id', 'en'],
-    defaultLocale: 'id',
-    localePrefix: 'as-needed',
-  },
-  Link: (props: any) => React.createElement('a', props),
-  redirect: (pathname: string) => {
-    throw new Error(`Redirecting to ${pathname}`);
-  },
-  usePathname: () => '/',
-  useRouter: () => ({
-    push: () => {},
-    replace: () => {},
-    back: () => {},
-    forward: () => {},
-    refresh: () => {},
-    prefetch: () => {},
-  }),
-  getPathname: (pathname: string) => pathname,
-}));
 
 // Filter noisy test-only warnings
 const originalWarn = console.warn;

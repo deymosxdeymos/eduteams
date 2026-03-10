@@ -1,5 +1,4 @@
-import { describe, expect, it } from 'bun:test';
-import { buildLocalTeamsResponse } from '../providers/local';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const builtPayload = {
   assignment: {
@@ -76,7 +75,16 @@ const builtPayload = {
 };
 
 describe('local team formation provider', () => {
-  it('produces deterministic groupings with exact task sizes', () => {
+  beforeEach(() => {
+    mock.module('next/cache', () => ({
+      unstable_cache: (fn: unknown) => fn,
+      revalidateTag: () => {},
+      revalidatePath: () => {},
+    }));
+  });
+
+  it('produces deterministic groupings with exact task sizes', async () => {
+    const { buildLocalTeamsResponse } = await import('../providers/local');
     const first = buildLocalTeamsResponse(builtPayload as any);
     const second = buildLocalTeamsResponse(builtPayload as any);
 
@@ -85,7 +93,8 @@ describe('local team formation provider', () => {
     expect(first.teams.every(team => team.quality === null)).toBe(true);
   });
 
-  it('does not duplicate or omit students', () => {
+  it('does not duplicate or omit students', async () => {
+    const { buildLocalTeamsResponse } = await import('../providers/local');
     const result = buildLocalTeamsResponse(builtPayload as any);
     const assignedIds = result.teams.flatMap(team =>
       team.people.map(person => person.id)

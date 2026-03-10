@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const revalidateTagMock = mock(() => {});
-mock.module('next/cache', () => ({
-  revalidateTag: revalidateTagMock,
-}));
 
 const prismaMock = {
   teamFormationRequest: {
@@ -32,6 +29,11 @@ mock.module('@/lib/prisma', () => ({ default: prismaMock }));
 
 describe('completeTeamFormationRequest', () => {
   beforeEach(() => {
+    mock.module('next/cache', () => ({
+      unstable_cache: (fn: unknown) => fn,
+      revalidateTag: revalidateTagMock,
+      revalidatePath: () => {},
+    }));
     revalidateTagMock.mockClear();
     prismaMock.teamFormationRequest.findUnique.mockReset();
     prismaMock.teamFormationRequest.findUnique.mockResolvedValue({

@@ -71,6 +71,11 @@ const originalNodeEnv = process.env.NODE_ENV;
 const originalDemoMode = process.env.DEMO_MODE;
 
 function applyModuleMocks() {
+  mock.module('next/cache', () => ({
+    unstable_cache: (fn: unknown) => fn,
+    revalidateTag: () => {},
+    revalidatePath: () => {},
+  }));
   mock.module('@/lib/api-utils', () =>
     createApiUtilsModule({
       withRole:
@@ -363,4 +368,3 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     expect(buildPayloadMock).not.toHaveBeenCalled();
   });
 });
-

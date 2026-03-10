@@ -20,6 +20,11 @@ const originalSecret = process.env.EDU2COM_WEBHOOK_SECRET;
 
 describe('edu2com team formation provider', () => {
   beforeEach(() => {
+    mock.module('next/cache', () => ({
+      unstable_cache: (fn: unknown) => fn,
+      revalidateTag: () => {},
+      revalidatePath: () => {},
+    }));
     process.env.NODE_ENV = 'production';
     process.env.EDU2COM_WEBHOOK_BASE_URL = 'https://example.com';
     process.env.EDU2COM_WEBHOOK_SECRET = 'provider-secret';
