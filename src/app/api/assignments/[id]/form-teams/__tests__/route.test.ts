@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { createApiUtilsModule } from '@/test-utils/api-utils-module';
 
+const prismaMock = {
+  assignment: {
+    findUnique: mock(async () => ({
+      course: { dosenId: 'teacher-1' },
+    })),
+  },
+};
 const currentUserMock = mock(async () => ({
   id: 'teacher-1',
   role: 'TEACHER',
@@ -85,6 +92,7 @@ function applyModuleMocks() {
     })
   );
   mock.module('@/lib/csrf', () => ({ isSameOrigin: isSameOriginMock }));
+  mock.module('@/lib/prisma', () => ({ default: prismaMock }));
   mock.module('@/lib/rate-limit', () => ({
     checkRateLimit: checkRateLimitMock,
     getClientIdentifier: getClientIdentifierMock,
@@ -121,6 +129,10 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     });
     isSameOriginMock.mockReset();
     isSameOriginMock.mockReturnValue(true);
+    prismaMock.assignment.findUnique.mockReset();
+    prismaMock.assignment.findUnique.mockResolvedValue({
+      course: { dosenId: 'teacher-1' },
+    });
     checkRateLimitMock.mockReset();
     checkRateLimitMock.mockResolvedValue({
       allowed: true,
@@ -228,6 +240,7 @@ describe('POST /api/assignments/[id]/form-teams', () => {
         assignmentId: 'a1',
       })
     );
+    expect(cleanupStaleRequestsMock).toHaveBeenCalledWith('a1');
   });
 
   it('returns 202 and PROCESSING for the edu2com provider', async () => {
@@ -270,6 +283,28 @@ describe('POST /api/assignments/[id]/form-teams', () => {
     });
     expect(assertEdu2comProviderConfigurationMock).toHaveBeenCalledTimes(1);
     expect(getTeamFormationProviderMock).toHaveBeenCalledWith('edu2com');
+  });
+
+  it('rejects unauthorized assignment access before cleanup or in-flight checks', async () => {
+    prismaMock.assignment.findUnique.mockResolvedValue({
+      course: { dosenId: 'teacher-2' },
+    });
+
+    const { POST } = await import('../route');
+    const req = new Request('http://localhost/api/assignments/a1/form-teams', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ method: 'JUMLAH_KELOMPOK', value: 2 }),
+    });
+
+    const res = await POST(
+      req as any,
+      { params: Promise.resolve({ id: 'a1' }) } as any
+    );
+
+    expect(res.status).toBe(403);
+    expect(cleanupStaleRequestsMock).not.toHaveBeenCalled();
+    expect(getInFlightRequestMock).not.toHaveBeenCalled();
   });
 
   it('returns a clear server error for misconfigured edu2com mode', async () => {

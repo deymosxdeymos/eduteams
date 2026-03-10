@@ -82,8 +82,8 @@ export async function markTeamFormationRequestProcessing(
   options: { replyPostUrl?: string | null } = {}
 ): Promise<PersistedTeamFormationRequest> {
   const record = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    const updatedRequest = await tx.teamFormationRequest.update({
-      where: { id: requestId },
+    const transition = await tx.teamFormationRequest.updateMany({
+      where: { id: requestId, status: 'PENDING' },
       data: {
         status: 'PROCESSING',
         errorMessage: null,
@@ -91,6 +91,10 @@ export async function markTeamFormationRequestProcessing(
         replyPostUrl:
           options.replyPostUrl === undefined ? undefined : options.replyPostUrl,
       },
+    });
+
+    const updatedRequest = await tx.teamFormationRequest.findUnique({
+      where: { id: requestId },
       select: {
         id: true,
         ownerId: true,
@@ -101,7 +105,11 @@ export async function markTeamFormationRequestProcessing(
       },
     });
 
-    if (updatedRequest.assignmentId) {
+    if (!updatedRequest) {
+      throw new Error('Team formation request not found');
+    }
+
+    if (transition.count > 0 && updatedRequest.assignmentId) {
       await tx.assignment.update({
         where: { id: updatedRequest.assignmentId },
         data: { status: 'MENUNGGU' },

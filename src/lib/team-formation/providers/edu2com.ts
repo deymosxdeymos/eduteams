@@ -103,6 +103,10 @@ export const edu2comTeamFormationProvider: TeamFormationProvider = {
     });
 
     try {
+      const requestRecord = await markTeamFormationRequestProcessing(request.id, {
+        replyPostUrl,
+      });
+
       await callEdu2comWithRetry(
         {
           ...builtPayload.requestData,
@@ -112,13 +116,12 @@ export const edu2comTeamFormationProvider: TeamFormationProvider = {
         { timeoutMs: backgroundTimeoutMs }
       );
 
-      await markTeamFormationRequestProcessing(request.id, { replyPostUrl });
-
       return {
         requestId: request.id,
         provider: 'edu2com',
         mode: 'async',
-        status: 'PROCESSING',
+        status:
+          requestRecord.status === 'COMPLETED' ? 'COMPLETED' : 'PROCESSING',
       };
     } catch (error) {
       await failTeamFormationRequest(request.id, toFailedRequestMessage(error));

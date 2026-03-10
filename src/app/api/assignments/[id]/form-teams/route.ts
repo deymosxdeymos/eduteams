@@ -4,8 +4,9 @@ import { z } from 'zod';
 import { createApiResponse, handleApiError, withRole } from '@/lib/api-utils';
 import { isSameOrigin } from '@/lib/csrf';
 import { logger } from '@/lib/logger';
+import prisma from '@/lib/prisma';
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
-import { ValidationError } from '@/lib/utils/errors';
+import { AuthorizationError, ValidationError } from '@/lib/utils/errors';
 import { buildTeamFormationPayload } from '@/lib/team-formation/build-payload';
 import {
   assertEdu2comProviderConfiguration,
@@ -37,6 +38,26 @@ export const runtime = 'nodejs';
 const TEAM_FORMATION_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const TEAM_FORMATION_RATE_LIMIT_PER_IP = 15;
 const TEAM_FORMATION_RATE_LIMIT_PER_USER = 8;
+
+async function assertAssignmentOwnership(
+  assignmentId: string,
+  ownerId: string
+): Promise<void> {
+  const assignment = await prisma.assignment.findUnique({
+    where: { id: assignmentId },
+    select: {
+      course: { select: { dosenId: true } },
+    },
+  });
+
+  if (!assignment) {
+    throw new ValidationError('Assignment not found');
+  }
+
+  if (assignment.course.dosenId !== ownerId) {
+    throw new AuthorizationError('Unauthorized');
+  }
+}
 
 export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
   try {
@@ -113,6 +134,8 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
       );
     }
 
+    await assertAssignmentOwnership(assignmentId, ctx.user.id);
+
     await cleanupStaleTeamFormationRequests(assignmentId);
 
     const inFlight = await getInFlightTeamFormationRequestForAssignment(
@@ -153,7 +176,7 @@ export const POST = withRole<{ id: string }>('TEACHER', async (req, ctx) => {
     const provider = getTeamFormationProvider(providerName);
     const launchResult = await provider.launch(requestRecord, builtPayload);
 
-    if (launchResult.mode === 'async') {
+    if (launchResult.mode === 'async' && launchResult.status !== 'COMPLETED') {
       return createApiResponse(
         {
           requestId: launchResult.requestId,
