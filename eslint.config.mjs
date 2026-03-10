@@ -46,6 +46,5 @@ export default defineConfig([
     'next-env.d.ts',
     'src/generated/**',
     'prisma/migrations/**',
-    'types/stubs/**',
   ]),
 ]);
