@@ -1,33 +1,34 @@
-'use client';
+"use client";
 
-import { AnimatePresence, motion } from 'framer-motion';
-import { Check, MoreVertical, Search, Trash2, X } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { useTranslations } from 'next-intl';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import useSWR from 'swr';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, MoreVertical, Search, Trash2, X } from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { removeCourseStudent } from '@/lib/client-api';
-import type { ExtendedUser } from '@/lib/types';
-import { getMBTIType } from '@/lib/utils/mbti-helpers';
-import { SearchInput } from './search-input';
-import { StudentProfileContent } from './student-profile-content';
+} from "@/components/ui/dialog";
+import { removeCourseStudent } from "@/lib/client-api";
+import type { ExtendedUser } from "@/lib/types";
+import { getMBTIType } from "@/lib/utils/mbti-helpers";
+import { SearchInput } from "./search-input";
+import { StudentProfileContent } from "./student-profile-content";
 
 const MBTIOverviewLayout = dynamic(
   () =>
-    import('./mbti-overview-layout').then(mod => ({
+    import("./mbti-overview-layout").then((mod) => ({
       default: mod.MBTIOverviewLayout,
     })),
-  { loading: () => <div className='min-h-[24rem]' /> }
+  { loading: () => <div className="min-h-[24rem]" /> },
 );
 
 interface Student {
@@ -55,7 +56,7 @@ interface StudentListProps {
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch');
+  if (!res.ok) throw new Error("Failed to fetch");
   return res.json();
 };
 
@@ -78,8 +79,8 @@ const convertToExtendedUser = (student: Student): ExtendedUser => {
       sn,
       tf,
       pj,
-      mbtiType: (student.mbtiType || null) as ExtendedUser['mbtiType'],
-    }) as ExtendedUser['mbtiType'],
+      mbtiType: (student.mbtiType || null) as ExtendedUser["mbtiType"],
+    }) as ExtendedUser["mbtiType"],
     ei,
     sn,
     tf,
@@ -105,32 +106,23 @@ export const StudentList = memo(function StudentList({
   totalStudents,
   isAssignmentPage = false,
 }: StudentListProps) {
-  const t = useTranslations('dashboard.students');
-  const [searchValue, setSearchValue] = useState('');
-  const [openMenuStudentId, setOpenMenuStudentId] = useState<string | null>(
-    null
-  );
+  const t = useTranslations("dashboard.students");
+  const [searchValue, setSearchValue] = useState("");
+  const [openMenuStudentId, setOpenMenuStudentId] = useState<string | null>(null);
   const [confirmStudentId, setConfirmStudentId] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isMbtiOpen, setIsMbtiOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<'profile' | 'mbti'>(
-    'profile'
-  );
+  const [modalContent, setModalContent] = useState<"profile" | "mbti">("profile");
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
 
   const hasInitialData = initialData !== undefined;
   const shouldRevalidateOnMount = !hasInitialData;
   const studentsKey = `/api/courses/${classId}/students`;
 
-  const {
-    data: studentsData,
-    mutate,
-  } = useSWR(studentsKey, fetcher, {
+  const { data: studentsData, mutate } = useSWR(studentsKey, fetcher, {
     fallbackData: initialData ? { data: initialData } : undefined,
     revalidateOnFocus: false, // Reduce unnecessary requests
     revalidateOnReconnect: false,
@@ -141,54 +133,50 @@ export const StudentList = memo(function StudentList({
 
   const students: Student[] = useMemo(
     () => studentsData?.data || initialData || [],
-    [studentsData, initialData]
+    [studentsData, initialData],
   );
 
   const submittedProgressAvailable =
-    isAssignmentPage &&
-    typeof submittedCount === 'number' &&
-    typeof totalStudents === 'number';
+    isAssignmentPage && typeof submittedCount === "number" && typeof totalStudents === "number";
 
   const { badgeLabel, badgeClassName, badgeTextClassName } = (() => {
     const baseLabel =
       isSelectMode && canManage
-        ? t('countSelected', { count: selectedStudentIds.size })
-        : t('count', { count: students.length });
+        ? t("countSelected", { count: selectedStudentIds.size })
+        : t("count", { count: students.length });
 
     return {
       badgeLabel: baseLabel,
-      badgeClassName: 'px-3 rounded-full flex items-center gap-1 bg-sky-50',
-      badgeTextClassName: 'text-sm font-medium text-sky-900',
+      badgeClassName: "px-3 rounded-full flex items-center gap-1 bg-sky-50",
+      badgeTextClassName: "text-sm font-medium text-sky-900",
     } as const;
   })();
 
   const filteredStudents = useMemo(
     () =>
       students.filter(
-        student =>
+        (student) =>
           student.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-          student.nim.toLowerCase().includes(searchValue.toLowerCase())
+          student.nim.toLowerCase().includes(searchValue.toLowerCase()),
       ),
-    [students, searchValue]
+    [students, searchValue],
   );
 
   const allFilteredSelected =
-    filteredStudents.length > 0 &&
-    selectedStudentIds.size === filteredStudents.length;
+    filteredStudents.length > 0 && selectedStudentIds.size === filteredStudents.length;
 
   const toggleSelectAllFiltered = useCallback(() => {
     if (allFilteredSelected) {
       setSelectedStudentIds(new Set());
       return;
     }
-    setSelectedStudentIds(new Set(filteredStudents.map(s => s.id)));
+    setSelectedStudentIds(new Set(filteredStudents.map((s) => s.id)));
   }, [allFilteredSelected, filteredStudents]);
-
 
   // Derive the current modal student from students list to keep it fresh when SWR revalidates
   const resolvedSelectedStudent = useMemo(() => {
     if (!selectedStudent) return null;
-    return students.find(s => s.id === selectedStudent.id) || selectedStudent;
+    return students.find((s) => s.id === selectedStudent.id) || selectedStudent;
   }, [students, selectedStudent]);
 
   // Close menus when clicking outside
@@ -203,8 +191,8 @@ export const StudentList = memo(function StudentList({
       }
     }
 
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
   }, [openMenuStudentId]);
 
   // ESC key to exit select mode
@@ -212,19 +200,19 @@ export const StudentList = memo(function StudentList({
     if (!isSelectMode) return;
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setIsSelectMode(false);
         setSelectedStudentIds(new Set());
       }
     }
 
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [isSelectMode]);
 
   const removeStudentFromCourse = useCallback(
-    (studentId: string) => removeCourseStudent(classId, studentId, t('errors.removeFailed')),
-    [classId, t]
+    (studentId: string) => removeCourseStudent(classId, studentId, t("errors.removeFailed")),
+    [classId, t],
   );
 
   const onRemoveStudent = useCallback(
@@ -242,12 +230,12 @@ export const StudentList = memo(function StudentList({
           setSelectedStudent(null);
         }
       } catch (err) {
-        setRemoveError(err instanceof Error ? err.message : t('errors.error'));
+        setRemoveError(err instanceof Error ? err.message : t("errors.error"));
       } finally {
         setIsRemoving(false);
       }
     },
-    [removeStudentFromCourse, mutate, selectedStudent, t]
+    [removeStudentFromCourse, mutate, selectedStudent, t],
   );
 
   const onBulkRemoveStudents = useCallback(async () => {
@@ -257,21 +245,21 @@ export const StudentList = memo(function StudentList({
 
     try {
       const results = await Promise.allSettled(
-        idsToRemove.map(studentId => removeStudentFromCourse(studentId))
+        idsToRemove.map((studentId) => removeStudentFromCourse(studentId)),
       );
 
       const successfulIds = results.flatMap((result, index) =>
-        result.status === 'fulfilled' ? [idsToRemove[index]!] : []
+        result.status === "fulfilled" ? [idsToRemove[index]!] : [],
       );
-      const successCount = results.filter(r => r.status === 'fulfilled').length;
-      const errorCount = results.filter(r => r.status === 'rejected').length;
+      const successCount = results.filter((r) => r.status === "fulfilled").length;
+      const errorCount = results.filter((r) => r.status === "rejected").length;
 
       if (errorCount > 0) {
         setRemoveError(
-          t('errors.removePartialSuccess', {
+          t("errors.removePartialSuccess", {
             success: successCount,
             failed: errorCount,
-          })
+          }),
         );
       }
 
@@ -285,7 +273,7 @@ export const StudentList = memo(function StudentList({
         setSelectedStudentIds(new Set());
       }
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : t('errors.error'));
+      setRemoveError(err instanceof Error ? err.message : t("errors.error"));
     } finally {
       setIsRemoving(false);
     }
@@ -295,7 +283,7 @@ export const StudentList = memo(function StudentList({
     setIsMbtiOpen(open);
     if (!open) {
       setSelectedStudent(null);
-      setModalContent('profile');
+      setModalContent("profile");
     }
   }, []);
 
@@ -306,22 +294,17 @@ export const StudentList = memo(function StudentList({
   return (
     <div
       ref={containerRef}
-      className='bg-white rounded-3xl rounded-l-none h-full flex flex-col overflow-hidden'
+      className="bg-white rounded-3xl rounded-l-none h-full flex flex-col overflow-hidden"
     >
-      <div className='p-6 pb-4'>
+      <div className="p-6 pb-4">
         <div
           className={
-            isAssignmentPage
-              ? 'flex flex-col gap-2 mb-4'
-              : 'flex gap-x-2 items-center mb-4'
+            isAssignmentPage ? "flex flex-col gap-2 mb-4" : "flex gap-x-2 items-center mb-4"
           }
         >
-          <h3 className='text-lg font-semibold text-gray-800'>{t('title')}</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{t("title")}</h3>
           {!(canManage && submittedProgressAvailable && !isSelectMode) && (
-            <motion.div
-              layout
-              transition={{ duration: 0.2, ease: [0.215, 0.61, 0.355, 1] }}
-            >
+            <motion.div layout transition={{ duration: 0.2, ease: [0.215, 0.61, 0.355, 1] }}>
               <Badge className={badgeClassName}>
                 <span className={badgeTextClassName}>{badgeLabel}</span>
                 <AnimatePresence>
@@ -334,24 +317,24 @@ export const StudentList = memo(function StudentList({
                         duration: 0.18,
                         ease: [0.215, 0.61, 0.355, 1],
                       }}
-                      className='inline-block origin-left text-sm font-medium text-sky-900 whitespace-nowrap'
+                      className="inline-block origin-left text-sm font-medium text-sky-900 whitespace-nowrap"
                     >
-                      {t('selected')}
+                      {t("selected")}
                     </motion.span>
                   )}
                 </AnimatePresence>
               </Badge>
             </motion.div>
           )}
-          <AnimatePresence mode='popLayout'>
+          <AnimatePresence mode="popLayout">
             {!isSelectMode &&
               canManage &&
               submittedProgressAvailable &&
-              typeof submittedCount === 'number' &&
-              typeof totalStudents === 'number' &&
+              typeof submittedCount === "number" &&
+              typeof totalStudents === "number" &&
               (submittedCount === 0 ? (
                 <motion.div
-                  key='no-submission-badge'
+                  key="no-submission-badge"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -360,15 +343,15 @@ export const StudentList = memo(function StudentList({
                     ease: [0.215, 0.61, 0.355, 1],
                   }}
                 >
-                  <Badge className='bg-red-50 px-3 rounded-full'>
-                    <span className='text-sm text-red-900 font-medium'>
-                      {t('status.noSubmissions')}
+                  <Badge className="bg-red-50 px-3 rounded-full">
+                    <span className="text-sm text-red-900 font-medium">
+                      {t("status.noSubmissions")}
                     </span>
                   </Badge>
                 </motion.div>
               ) : submittedCount < totalStudents ? (
                 <motion.div
-                  key='submitted-badge'
+                  key="submitted-badge"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -377,15 +360,15 @@ export const StudentList = memo(function StudentList({
                     ease: [0.215, 0.61, 0.355, 1],
                   }}
                 >
-                  <Badge className='bg-amber-50 px-3 rounded-full'>
-                    <span className='text-sm text-orange-900 font-medium'>
+                  <Badge className="bg-amber-50 px-3 rounded-full">
+                    <span className="text-sm text-orange-900 font-medium">
                       {`${Math.min(submittedCount, totalStudents)} dari ${totalStudents} mahasiswa telah mengisi kuesioner`}
                     </span>
                   </Badge>
                 </motion.div>
               ) : (
                 <motion.div
-                  key='ready-badge'
+                  key="ready-badge"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -394,10 +377,8 @@ export const StudentList = memo(function StudentList({
                     ease: [0.215, 0.61, 0.355, 1],
                   }}
                 >
-                  <Badge className='bg-sky-50 px-3 rounded-full'>
-                    <span className='text-sm text-sky-900 font-medium'>
-                      Grup siap untuk dibagi
-                    </span>
+                  <Badge className="bg-sky-50 px-3 rounded-full">
+                    <span className="text-sm text-sky-900 font-medium">Grup siap untuk dibagi</span>
                   </Badge>
                 </motion.div>
               ))}
@@ -407,11 +388,11 @@ export const StudentList = memo(function StudentList({
         <SearchInput
           searchValue={searchValue}
           onSearchChange={setSearchValue}
-          placeholder={t('search')}
+          placeholder={t("search")}
           showClassActions={false}
-          containerClassName='relative'
-          className='pr-10 text-gray-700 placeholder:text-gray-400'
-          iconClassName='right-5 w-6 h-6'
+          containerClassName="relative"
+          className="pr-10 text-gray-700 placeholder:text-gray-400"
+          iconClassName="right-5 w-6 h-6"
         />
 
         <AnimatePresence>
@@ -424,55 +405,51 @@ export const StudentList = memo(function StudentList({
                 duration: 0.2,
                 ease: [0.215, 0.61, 0.355, 1],
               }}
-              className='origin-top'
-              style={{ willChange: 'opacity, transform' }}
+              className="origin-top"
+              style={{ willChange: "opacity, transform" }}
             >
-              <div className='flex items-center justify-between mt-4'>
+              <div className="flex items-center justify-between mt-4">
                 <button
-                  type='button'
-                  className='flex items-center gap-2 cursor-pointer select-none rounded-md focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2'
+                  type="button"
+                  className="flex items-center gap-2 cursor-pointer select-none rounded-md focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
                   onClick={toggleSelectAllFiltered}
                   aria-pressed={allFilteredSelected}
                 >
                   <div
                     className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors duration-200 ${
                       allFilteredSelected
-                        ? 'bg-blue-500 border-blue-500'
-                        : 'border-gray-300 bg-white'
+                        ? "bg-blue-500 border-blue-500"
+                        : "border-gray-300 bg-white"
                     }`}
                   >
-                    {allFilteredSelected && (
-                      <Check className='w-3.5 h-3.5 text-white' />
-                    )}
+                    {allFilteredSelected && <Check className="w-3.5 h-3.5 text-white" />}
                   </div>
-                  <span className='text-sm font-medium text-gray-700'>
-                    {t('selectAll')}
-                  </span>
+                  <span className="text-sm font-medium text-gray-700">{t("selectAll")}</span>
                 </button>
-                <div className='flex items-center gap-2'>
+                <div className="flex items-center gap-2">
                   <Button
-                    variant='destructive'
-                    size='sm'
+                    variant="destructive"
+                    size="sm"
                     disabled={selectedStudentIds.size === 0}
                     onClick={() => {
-                      setConfirmStudentId('bulk');
+                      setConfirmStudentId("bulk");
                     }}
-                    className='text-sm rounded-full flex items-center gap-2 cursor-pointer hover:bg-red-700 transition-colors duration-200'
+                    className="text-sm rounded-full flex items-center gap-2 cursor-pointer hover:bg-red-700 transition-colors duration-200"
                   >
-                    <Trash2 className='w-4 h-4' />
-                    {t('removeMultiple')}
+                    <Trash2 className="w-4 h-4" />
+                    {t("removeMultiple")}
                   </Button>
                   <Button
-                    variant='outline'
-                    size='icon'
+                    variant="outline"
+                    size="icon"
                     onClick={() => {
                       setIsSelectMode(false);
                       setSelectedStudentIds(new Set());
                     }}
-                    className='rounded-full'
-                    aria-label={t('exitSelectMode')}
+                    className="rounded-full"
+                    aria-label={t("exitSelectMode")}
                   >
-                    <X className='w-4 h-4' />
+                    <X className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -481,40 +458,38 @@ export const StudentList = memo(function StudentList({
         </AnimatePresence>
       </div>
 
-      <div className='flex-1 px-6 pb-6 overflow-y-auto'>
+      <div className="flex-1 px-6 pb-6 overflow-y-auto">
         {students.length === 0 ? (
-          <div className='flex flex-col h-full text-center'>
-            <p className='text-gray-500 font-medium'>{t('noStudents')}</p>
+          <div className="flex flex-col h-full text-center">
+            <p className="text-gray-500 font-medium">{t("noStudents")}</p>
           </div>
         ) : filteredStudents.length === 0 ? (
-          <div className='flex flex-col items-center justify-center h-full text-center'>
-            <div className='text-gray-400 mb-2'>
-              <Search className='w-8 h-8 mx-auto mb-3' />
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="text-gray-400 mb-2">
+              <Search className="w-8 h-8 mx-auto mb-3" />
             </div>
-            <p className='text-gray-500 font-medium'>{t('notFound')}</p>
-            <p className='text-gray-400 text-sm'>{t('tryOtherKeyword')}</p>
+            <p className="text-gray-500 font-medium">{t("notFound")}</p>
+            <p className="text-gray-400 text-sm">{t("tryOtherKeyword")}</p>
           </div>
         ) : (
-          <div className='space-y-3'>
-            {filteredStudents.map(student => {
+          <div className="space-y-3">
+            {filteredStudents.map((student) => {
               const isCurrentUser = currentUserId === student.id;
               const hasSubmitted = submittedStudentIds
                 ? submittedStudentIds.includes(student.id)
                 : true; // default true when context not provided
               const canOpenStudentDetails = canManage || isCurrentUser;
-              const canInteractWithRow = isSelectMode
-                ? canManage
-                : canOpenStudentDetails;
+              const canInteractWithRow = isSelectMode ? canManage : canOpenStudentDetails;
               return (
                 <motion.div
                   key={student.id}
                   layout
-                  className='flex items-center gap-3'
+                  className="flex items-center gap-3"
                   transition={{
-                    layout: { type: 'spring', stiffness: 300, damping: 30 },
+                    layout: { type: "spring", stiffness: 300, damping: 30 },
                   }}
                 >
-                  <AnimatePresence mode='popLayout'>
+                  <AnimatePresence mode="popLayout">
                     {isSelectMode && canManage && (
                       <motion.div
                         initial={{
@@ -533,19 +508,19 @@ export const StudentList = memo(function StudentList({
                           duration: 0.2,
                           ease: [0.215, 0.61, 0.355, 1],
                         }}
-                        className='shrink-0'
-                        style={{ willChange: 'opacity, transform' }}
+                        className="shrink-0"
+                        style={{ willChange: "opacity, transform" }}
                       >
                         <button
-                          type='button'
+                          type="button"
                           className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors duration-200 cursor-pointer ${
                             selectedStudentIds.has(student.id)
-                              ? 'bg-blue-500 border-blue-500'
-                              : 'border-gray-300 bg-white'
+                              ? "bg-blue-500 border-blue-500"
+                              : "border-gray-300 bg-white"
                           }`}
-                          onClick={e => {
+                          onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedStudentIds(prev => {
+                            setSelectedStudentIds((prev) => {
                               const newSet = new Set(prev);
                               if (newSet.has(student.id)) {
                                 newSet.delete(student.id);
@@ -555,10 +530,10 @@ export const StudentList = memo(function StudentList({
                               return newSet;
                             });
                           }}
-                          aria-label={`${selectedStudentIds.has(student.id) ? t('cancelSelection') : t('select')} ${student.name}`}
+                          aria-label={`${selectedStudentIds.has(student.id) ? t("cancelSelection") : t("select")} ${student.name}`}
                         >
                           {selectedStudentIds.has(student.id) && (
-                            <Check className='w-3.5 h-3.5 text-white' />
+                            <Check className="w-3.5 h-3.5 text-white" />
                           )}
                         </button>
                       </motion.div>
@@ -567,20 +542,20 @@ export const StudentList = memo(function StudentList({
                   <motion.div
                     layout
                     transition={{
-                      layout: { type: 'spring', stiffness: 300, damping: 30 },
+                      layout: { type: "spring", stiffness: 300, damping: 30 },
                     }}
                     className={`flex items-center gap-3 p-3 border rounded-2xl flex-1 transition-colors duration-200 ${
-                      canInteractWithRow ? 'cursor-pointer' : 'cursor-default'
+                      canInteractWithRow ? "cursor-pointer" : "cursor-default"
                     } ${
                       isSelectMode && selectedStudentIds.has(student.id)
-                        ? 'bg-blue-50 border-blue-500 hover:bg-blue-100'
+                        ? "bg-blue-50 border-blue-500 hover:bg-blue-100"
                         : isCurrentUser
-                          ? 'bg-emerald-50 border-emerald-500 hover:bg-emerald-100'
+                          ? "bg-emerald-50 border-emerald-500 hover:bg-emerald-100"
                           : hasSubmitted
-                            ? 'border-gray-200 hover:bg-gray-50'
-                            : 'bg-red-50 border-red-400 hover:bg-red-100'
+                            ? "border-gray-200 hover:bg-gray-50"
+                            : "bg-red-50 border-red-400 hover:bg-red-100"
                     }`}
-                    role={canInteractWithRow ? 'button' : undefined}
+                    role={canInteractWithRow ? "button" : undefined}
                     tabIndex={canInteractWithRow ? 0 : undefined}
                     onClick={() => {
                       if (!canInteractWithRow) {
@@ -588,7 +563,7 @@ export const StudentList = memo(function StudentList({
                       }
 
                       if (isSelectMode && canManage) {
-                        setSelectedStudentIds(prev => {
+                        setSelectedStudentIds((prev) => {
                           const newSet = new Set(prev);
                           if (newSet.has(student.id)) {
                             newSet.delete(student.id);
@@ -599,19 +574,19 @@ export const StudentList = memo(function StudentList({
                         });
                       } else {
                         setSelectedStudent(student);
-                        setModalContent('profile');
+                        setModalContent("profile");
                         setIsMbtiOpen(true);
                       }
                     }}
-                    onKeyDown={e => {
+                    onKeyDown={(e) => {
                       if (!canInteractWithRow) {
                         return;
                       }
 
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         if (isSelectMode && canManage) {
-                          setSelectedStudentIds(prev => {
+                          setSelectedStudentIds((prev) => {
                             const newSet = new Set(prev);
                             if (newSet.has(student.id)) {
                               newSet.delete(student.id);
@@ -622,7 +597,7 @@ export const StudentList = memo(function StudentList({
                           });
                         } else {
                           setSelectedStudent(student);
-                          setModalContent('profile');
+                          setModalContent("profile");
                           setIsMbtiOpen(true);
                         }
                       }
@@ -634,38 +609,34 @@ export const StudentList = memo(function StudentList({
                         alt={student.mbtiType}
                         width={40}
                         height={40}
-                        className='w-10 h-10'
+                        className="w-10 h-10"
                       />
                     ) : (
-                      <div className='w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center'>
-                        <span className='text-blue-600 font-semibold text-sm'>
-                          {(student.name || t('noName'))
-                            .charAt(0)
-                            .toUpperCase()}
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold text-sm">
+                          {(student.name || t("noName")).charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
-                    <div className='flex-1 min-w-0 flex flex-col'>
-                      <p className='font-medium text-gray-900 truncate'>
-                        {student.name}
-                      </p>
-                      <p className='text-[0.625rem] font-normal text-gray-500 truncate'>
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <p className="font-medium text-gray-900 truncate">{student.name}</p>
+                      <p className="text-[0.625rem] font-normal text-gray-500 truncate">
                         {student.nim}
                       </p>
                     </div>
                     {canManage && !isSelectMode && (
-                      <div className='ml-auto relative'>
+                      <div className="ml-auto relative">
                         <button
-                          aria-label='Opsi'
-                          className='p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300'
-                          onClick={e => {
+                          aria-label="Opsi"
+                          className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                          onClick={(e) => {
                             e.stopPropagation();
-                            setOpenMenuStudentId(prev =>
-                              prev === student.id ? null : student.id
+                            setOpenMenuStudentId((prev) =>
+                              prev === student.id ? null : student.id,
                             );
                           }}
                         >
-                          <MoreVertical className='w-5 h-5 text-gray-500' />
+                          <MoreVertical className="w-5 h-5 text-gray-500" />
                         </button>
                         <AnimatePresence>
                           {openMenuStudentId === student.id && (
@@ -677,30 +648,30 @@ export const StudentList = memo(function StudentList({
                                 duration: 0.2,
                                 ease: [0.215, 0.61, 0.355, 1],
                               }}
-                              className='absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden'
-                              style={{ transformOrigin: 'top right' }}
+                              className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden"
+                              style={{ transformOrigin: "top right" }}
                             >
                               <button
-                                className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50'
-                                onClick={e => {
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   setIsSelectMode(true);
                                   setSelectedStudentIds(new Set([student.id]));
                                   setOpenMenuStudentId(null);
                                 }}
                               >
-                                {t('select')}
+                                {t("select")}
                               </button>
                               <button
-                                className='w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600'
-                                onClick={e => {
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600"
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   setConfirmStudentId(student.id);
                                   setOpenMenuStudentId(null);
                                   setRemoveError(null);
                                 }}
                               >
-                                {t('remove')}
+                                {t("remove")}
                               </button>
                             </motion.div>
                           )}
@@ -716,41 +687,35 @@ export const StudentList = memo(function StudentList({
       </div>
 
       {/* MBTI Overview Modal */}
-      <Dialog
-        open={isMbtiOpen}
-        onOpenChange={handleMbtiDialogChange}
-      >
+      <Dialog open={isMbtiOpen} onOpenChange={handleMbtiDialogChange}>
         <DialogContent
-          className='w-[85vw] max-w-[1200px] rounded-3xl p-0 border-0 gap-0 items-start'
+          aria-describedby={undefined}
+          className="w-[85vw] max-w-[1200px] rounded-3xl p-0 border-0 gap-0 items-start"
           showCloseButton={false}
         >
-          <DialogTitle className='sr-only'>
-            {modalContent === 'profile'
-              ? t('studentProfile')
-              : t('mbtiDistribution')}
+          <DialogTitle className="sr-only">
+            {modalContent === "profile" ? t("studentProfile") : t("mbtiDistribution")}
           </DialogTitle>
           {resolvedSelectedStudent &&
             (() => {
               const studentUser = convertToExtendedUser(resolvedSelectedStudent);
 
-              return modalContent === 'profile' ? (
+              return modalContent === "profile" ? (
                 <StudentProfileContent
                   student={studentUser}
                   canManage={canManage}
-                  onRemoveStudent={() =>
-                    selectedStudent && setConfirmStudentId(selectedStudent.id)
-                  }
+                  onRemoveStudent={() => selectedStudent && setConfirmStudentId(selectedStudent.id)}
                   onClose={() => setIsMbtiOpen(false)}
-                  onShowMBTI={() => setModalContent('mbti')}
+                  onShowMBTI={() => setModalContent("mbti")}
                   isModal
                 />
               ) : (
-                <div className='overflow-hidden'>
+                <div className="overflow-hidden">
                   <MBTIOverviewLayout
                     user={studentUser}
                     isModal
                     isCompact
-                    onRequestClose={() => setModalContent('profile')}
+                    onRequestClose={() => setModalContent("profile")}
                   />
                 </div>
               );
@@ -759,46 +724,43 @@ export const StudentList = memo(function StudentList({
       </Dialog>
 
       {/* Confirm Remove Dialog */}
-      <Dialog
-        open={!!confirmStudentId}
-        onOpenChange={handleConfirmDialogChange}
-      >
-        <DialogContent className='sm:max-w-xs'>
+      <Dialog open={!!confirmStudentId} onOpenChange={handleConfirmDialogChange}>
+        <DialogContent className="sm:max-w-xs">
           <DialogHeader>
-            <DialogTitle className='text-left'>{t('remove')}</DialogTitle>
+            <DialogTitle className="text-left">{t("remove")}</DialogTitle>
             {removeError && (
-              <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md text-left'>
+              <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md text-left">
                 {removeError}
               </p>
             )}
           </DialogHeader>
-          <p className='text-sm text-muted-foreground text-left'>
-            {confirmStudentId === 'bulk'
-              ? t('confirmRemoveMultiple', { count: selectedStudentIds.size })
-              : t('confirmRemove')}
-          </p>
-          <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
+          <DialogDescription className="text-sm text-muted-foreground text-left">
+            {confirmStudentId === "bulk"
+              ? t("confirmRemoveMultiple", { count: selectedStudentIds.size })
+              : t("confirmRemove")}
+          </DialogDescription>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
             <Button
-              variant='destructive'
+              variant="destructive"
               onClick={() => {
-                if (confirmStudentId === 'bulk') {
+                if (confirmStudentId === "bulk") {
                   onBulkRemoveStudents();
                 } else if (confirmStudentId) {
                   onRemoveStudent(confirmStudentId);
                 }
               }}
               disabled={isRemoving}
-              className='w-full rounded-full'
+              className="w-full rounded-full"
             >
-              {isRemoving ? t('removing') : t('delete')}
+              {isRemoving ? t("removing") : t("delete")}
             </Button>
             <Button
-              variant='outline'
+              variant="outline"
               onClick={() => setConfirmStudentId(null)}
               disabled={isRemoving}
-              className='w-full rounded-full'
+              className="w-full rounded-full"
             >
-              {t('cancel')}
+              {t("cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

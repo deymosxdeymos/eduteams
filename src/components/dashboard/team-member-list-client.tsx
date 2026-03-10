@@ -1,38 +1,35 @@
-'use client';
+"use client";
 
-import { Plus, Trash2 } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
-import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StudentProfileContent } from '@/components/dashboard/student-profile-content';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { StudentProfileContent } from "@/components/dashboard/student-profile-content";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import type { Gender } from '@/generated/prisma/client';
-import { removeCourseStudent } from '@/lib/client-api';
-import { EMPTY_SET } from '@/lib/constants';
-import type { ExtendedUser } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { getMBTIType } from '@/lib/utils/mbti-helpers';
+} from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { Gender } from "@/generated/prisma/client";
+import { removeCourseStudent } from "@/lib/client-api";
+import { EMPTY_SET } from "@/lib/constants";
+import type { ExtendedUser } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { getMBTIType } from "@/lib/utils/mbti-helpers";
 
 const MBTIOverviewLayout = dynamic(
   () =>
-    import('@/components/dashboard/mbti-overview-layout').then(mod => ({
+    import("@/components/dashboard/mbti-overview-layout").then((mod) => ({
       default: mod.MBTIOverviewLayout,
     })),
-  { loading: () => <div className='min-h-[24rem]' /> }
+  { loading: () => <div className="min-h-[24rem]" /> },
 );
 
 interface TeamMemberUser {
@@ -83,7 +80,6 @@ interface TeamMemberListClientProps {
   onSavingChange?: (isSaving: boolean) => void;
 }
 
-
 const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
   const ei = member.user.ei ?? null;
   const sn = member.user.sn ?? null;
@@ -103,8 +99,8 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
       sn,
       tf,
       pj,
-      mbtiType: (member.user.mbtiType || null) as ExtendedUser['mbtiType'],
-    }) as ExtendedUser['mbtiType'],
+      mbtiType: (member.user.mbtiType || null) as ExtendedUser["mbtiType"],
+    }) as ExtendedUser["mbtiType"],
     ei,
     sn,
     tf,
@@ -123,7 +119,7 @@ const convertToExtendedUser = (member: TeamMemberItem): ExtendedUser => {
 export function TeamMemberListClient({
   members,
   courseId,
-  searchValue = '',
+  searchValue = "",
   canManage = false,
   currentUserId,
   isEditMode = false,
@@ -137,32 +133,22 @@ export function TeamMemberListClient({
   onPendingAdditionsChange,
   onSavingChange,
 }: TeamMemberListClientProps) {
-  const t = useTranslations('dashboard.students');
-  const tTeams = useTranslations('dashboard.teams');
-  const [selectedMember, setSelectedMember] = useState<TeamMemberItem | null>(
-    null
-  );
+  const t = useTranslations("dashboard.students");
+  const tTeams = useTranslations("dashboard.teams");
+  const [selectedMember, setSelectedMember] = useState<TeamMemberItem | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<'profile' | 'mbti'>(
-    'profile'
-  );
+  const [modalContent, setModalContent] = useState<"profile" | "mbti">("profile");
   const [confirmStudentId, setConfirmStudentId] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
-  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [isDeleting, _setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
   const [isAdding, _setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
-  const [pendingAdditions, setPendingAdditions] = useState<Set<string>>(
-    new Set()
-  );
-  const [pendingDeletions, setPendingDeletions] = useState<Set<string>>(
-    new Set()
-  );
+  const [pendingAdditions, setPendingAdditions] = useState<Set<string>>(new Set());
+  const [pendingDeletions, setPendingDeletions] = useState<Set<string>>(new Set());
   const isSavingRef = useRef(false);
   const [_saveError, setSaveError] = useState<string | null>(null);
   const lastSaveTriggerRef = useRef(0);
@@ -178,40 +164,37 @@ export function TeamMemberListClient({
   }, [onSavingChange]);
 
   const removeCourseStudentCb = useCallback(
-    (studentId: string) => removeCourseStudent(courseId, studentId, t('errors.removeFailed')),
-    [courseId, t]
+    (studentId: string) => removeCourseStudent(courseId, studentId, t("errors.removeFailed")),
+    [courseId, t],
   );
 
   const mutateTeamMember = useCallback(
-    async (method: 'POST' | 'DELETE', studentId: string) => {
-      const res = await fetch(
-        `/api/assignments/${assignmentId}/teams/${teamId}/members`,
-        {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentId }),
-        }
-      );
+    async (method: "POST" | "DELETE", studentId: string) => {
+      const res = await fetch(`/api/assignments/${assignmentId}/teams/${teamId}/members`, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId }),
+      });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         const fallbackMessage =
-          method === 'POST' ? tTeams('addMemberFailed') : tTeams('removeMemberFailed');
+          method === "POST" ? tTeams("addMemberFailed") : tTeams("removeMemberFailed");
         throw new Error(json?.error || fallbackMessage);
       }
     },
-    [assignmentId, teamId, tTeams]
+    [assignmentId, teamId, tTeams],
   );
 
   const filteredAvailableStudents = useMemo(
-    () => availableStudents.filter(s => !pendingAdditions.has(s.id)),
-    [availableStudents, pendingAdditions]
+    () => availableStudents.filter((s) => !pendingAdditions.has(s.id)),
+    [availableStudents, pendingAdditions],
   );
 
   const displayMembers = [
-    ...members.filter(m => !pendingDeletions.has(m.user.id)),
+    ...members.filter((m) => !pendingDeletions.has(m.user.id)),
     ...Array.from(pendingAdditions)
-      .map(studentId => {
-        const student = availableStudents.find(s => s.id === studentId);
+      .map((studentId) => {
+        const student = availableStudents.find((s) => s.id === studentId);
         if (!student) return null;
         return {
           id: `pending-${studentId}`,
@@ -236,14 +219,13 @@ export function TeamMemberListClient({
   ];
 
   const count = displayMembers.length;
-  const gridColsClass =
-    count <= 2 ? 'grid-cols-1' : count <= 6 ? 'grid-cols-2' : 'grid-cols-3';
+  const gridColsClass = count <= 2 ? "grid-cols-1" : count <= 6 ? "grid-cols-2" : "grid-cols-3";
 
   const isHighlighted = (member: TeamMemberItem) => {
     if (!searchValue.trim()) return false;
     const searchTerm = searchValue.toLowerCase();
-    const name = member.user.name?.toLowerCase() ?? '';
-    const nim = member.user.nim?.toLowerCase() ?? '';
+    const name = member.user.name?.toLowerCase() ?? "";
+    const nim = member.user.nim?.toLowerCase() ?? "";
     return name.includes(searchTerm) || nim.includes(searchTerm);
   };
 
@@ -262,25 +244,25 @@ export function TeamMemberListClient({
         setIsProfileOpen(false);
         setSelectedMember(null);
       }
-      setSelectedMembers(prev => {
+      setSelectedMembers((prev) => {
         const next = new Set(prev);
         next.delete(studentId);
         return next;
       });
-      setPendingAdditions(prev => {
+      setPendingAdditions((prev) => {
         const next = new Set(prev);
         next.delete(studentId);
         onPendingAdditionsChangeRef.current?.(new Set(next));
         return next;
       });
-      setPendingDeletions(prev => {
+      setPendingDeletions((prev) => {
         const next = new Set(prev);
         next.delete(studentId);
         return next;
       });
       onCourseStudentRemoved?.(studentId);
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : t('errors.error'));
+      setRemoveError(err instanceof Error ? err.message : t("errors.error"));
     } finally {
       setIsRemoving(false);
     }
@@ -290,7 +272,7 @@ export function TeamMemberListClient({
     if (selectedMembers.size === members.length) {
       setSelectedMembers(new Set());
     } else {
-      setSelectedMembers(new Set(members.map(m => m.user.id)));
+      setSelectedMembers(new Set(members.map((m) => m.user.id)));
     }
   };
 
@@ -306,14 +288,14 @@ export function TeamMemberListClient({
 
   const handleDeleteSelected = () => {
     if (selectedMembers.size === 0) return;
-    setPendingDeletions(prev => {
+    setPendingDeletions((prev) => {
       const next = new Set(prev);
       for (const id of selectedMembers) {
         next.add(id);
       }
       return next;
     });
-    setPendingAdditions(prev => {
+    setPendingAdditions((prev) => {
       const next = new Set(prev);
       for (const id of selectedMembers) {
         next.delete(id);
@@ -327,12 +309,12 @@ export function TeamMemberListClient({
 
   const handleAddStudent = (studentId: string) => {
     if (!teamId || !assignmentId) return;
-    setPendingAdditions(prev => {
+    setPendingAdditions((prev) => {
       const next = new Set(prev).add(studentId);
       onPendingAdditionsChangeRef.current?.(new Set(next));
       return next;
     });
-    setPendingDeletions(prev => {
+    setPendingDeletions((prev) => {
       const next = new Set(prev);
       next.delete(studentId);
       return next;
@@ -373,19 +355,19 @@ export function TeamMemberListClient({
     setSaveError(null);
 
     try {
-      const addPromises = Array.from(additions).map(studentId =>
-        mutateTeamMember('POST', studentId)
+      const addPromises = Array.from(additions).map((studentId) =>
+        mutateTeamMember("POST", studentId),
       );
-      const deletePromises = Array.from(deletions).map(studentId =>
-        mutateTeamMember('DELETE', studentId)
+      const deletePromises = Array.from(deletions).map((studentId) =>
+        mutateTeamMember("DELETE", studentId),
       );
 
       await Promise.all([...addPromises, ...deletePromises]);
       const nextMembers = [
-        ...members.filter(member => !deletions.has(member.user.id)),
+        ...members.filter((member) => !deletions.has(member.user.id)),
         ...Array.from(additions)
-          .map(studentId => {
-            const student = availableStudents.find(item => item.id === studentId);
+          .map((studentId) => {
+            const student = availableStudents.find((item) => item.id === studentId);
             if (!student) {
               return null;
             }
@@ -416,9 +398,7 @@ export function TeamMemberListClient({
       setSelectedMembers(new Set());
       onMembersCommitted?.(nextMembers);
     } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : 'Failed to save changes'
-      );
+      setSaveError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       isSavingRef.current = false;
       onSavingChangeRef.current?.(false);
@@ -426,11 +406,7 @@ export function TeamMemberListClient({
   }, [assignmentId, availableStudents, members, mutateTeamMember, onMembersCommitted, teamId]);
 
   useEffect(() => {
-    if (
-      saveTrigger != null &&
-      saveTrigger > 0 &&
-      saveTrigger !== lastSaveTriggerRef.current
-    ) {
+    if (saveTrigger != null && saveTrigger > 0 && saveTrigger !== lastSaveTriggerRef.current) {
       lastSaveTriggerRef.current = saveTrigger;
       void savePendingChanges();
     }
@@ -442,32 +418,25 @@ export function TeamMemberListClient({
   return (
     <>
       {isEditMode && canManage && (
-        <div className='flex items-center justify-between mb-3'>
-          <div className='flex items-center gap-2'>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
             <Checkbox
-              id='select-all'
-              checked={
-                members.length > 0 && selectedMembers.size === members.length
-              }
+              id="select-all"
+              checked={members.length > 0 && selectedMembers.size === members.length}
               onCheckedChange={handleSelectAll}
             />
-            <label
-              htmlFor='select-all'
-              className='text-sm font-medium cursor-pointer'
-            >
-              {tTeams('selectAll')}
+            <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+              {tTeams("selectAll")}
             </label>
           </div>
-          <div className='flex flex-col gap-2'>
+          <div className="flex flex-col gap-2">
             {deleteError && (
-              <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md'>
-                {deleteError}
-              </p>
+              <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md">{deleteError}</p>
             )}
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               <Popover
                 open={isAddPopoverOpen}
-                onOpenChange={open => {
+                onOpenChange={(open) => {
                   setIsAddPopoverOpen(open);
                   if (!open) {
                     setAddError(null);
@@ -475,43 +444,36 @@ export function TeamMemberListClient({
                 }}
               >
                 <PopoverTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='rounded-full'
-                    disabled={isAdding}
-                  >
-                    <Plus className='w-4 h-4 mr-1' />
-                    {tTeams('addMember')}
+                  <Button variant="outline" size="sm" className="rounded-full" disabled={isAdding}>
+                    <Plus className="w-4 h-4 mr-1" />
+                    {tTeams("addMember")}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-80 p-2' align='end'>
-                  <div className='space-y-1'>
-                    <p className='text-sm font-medium px-2 py-1'>
-                      {tTeams('availableStudents')}
-                    </p>
+                <PopoverContent className="w-80 p-2" align="end">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium px-2 py-1">{tTeams("availableStudents")}</p>
                     {addError && (
-                      <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md mx-2'>
+                      <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md mx-2">
                         {addError}
                       </p>
                     )}
                     {filteredAvailableStudents.length === 0 ? (
-                      <p className='text-sm text-gray-500 px-2 py-2'>
-                        {tTeams('noAvailableStudents')}
+                      <p className="text-sm text-gray-500 px-2 py-2">
+                        {tTeams("noAvailableStudents")}
                       </p>
                     ) : (
-                      <div className='max-h-64 overflow-y-auto'>
-                        {filteredAvailableStudents.map(student => {
+                      <div className="max-h-64 overflow-y-auto">
+                        {filteredAvailableStudents.map((student) => {
                           const isMissing = missingStudentIds.has(student.id);
                           return (
                             <button
                               key={student.id}
-                              type='button'
+                              type="button"
                               className={cn(
-                                'w-full flex items-center gap-3 p-2 rounded-lg transition-colors text-left',
+                                "w-full flex items-center gap-3 p-2 rounded-lg transition-colors text-left",
                                 isMissing
-                                  ? 'bg-red-50 hover:bg-red-100 border border-red-200'
-                                  : 'hover:bg-gray-100'
+                                  ? "bg-red-50 hover:bg-red-100 border border-red-200"
+                                  : "hover:bg-gray-100",
                               )}
                               onClick={() => handleAddStudent(student.id)}
                               disabled={isAdding}
@@ -522,33 +484,31 @@ export function TeamMemberListClient({
                                   alt={student.mbtiType}
                                   width={32}
                                   height={32}
-                                  className='w-8 h-8'
+                                  className="w-8 h-8"
                                 />
                               ) : (
-                                <div className='w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center'>
-                                  <span className='text-blue-600 font-semibold text-xs'>
-                                    {(student.name || '?')
-                                      .charAt(0)
-                                      .toUpperCase()}
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <span className="text-blue-600 font-semibold text-xs">
+                                    {(student.name || "?").charAt(0).toUpperCase()}
                                   </span>
                                 </div>
                               )}
-                              <div className='flex-1 min-w-0'>
+                              <div className="flex-1 min-w-0">
                                 <p
                                   className={cn(
-                                    'font-medium text-sm truncate',
-                                    isMissing ? 'text-red-900' : 'text-gray-900'
+                                    "font-medium text-sm truncate",
+                                    isMissing ? "text-red-900" : "text-gray-900",
                                   )}
                                 >
-                                  {student.name || t('noName')}
+                                  {student.name || t("noName")}
                                 </p>
                                 <p
                                   className={cn(
-                                    'text-xs truncate',
-                                    isMissing ? 'text-red-700' : 'text-gray-500'
+                                    "text-xs truncate",
+                                    isMissing ? "text-red-700" : "text-gray-500",
                                   )}
                                 >
-                                  {student.nim || ''}
+                                  {student.nim || ""}
                                 </p>
                               </div>
                             </button>
@@ -561,52 +521,52 @@ export function TeamMemberListClient({
               </Popover>
               {selectedMembers.size > 0 && (
                 <Button
-                  variant='destructive'
-                  size='sm'
-                  className='rounded-full'
+                  variant="destructive"
+                  size="sm"
+                  className="rounded-full"
                   onClick={handleDeleteSelected}
                   disabled={isDeleting}
                 >
-                  <Trash2 className='w-4 h-4 mr-1' />
-                  {tTeams('deleteMember')} ({selectedMembers.size})
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  {tTeams("deleteMember")} ({selectedMembers.size})
                 </Button>
               )}
             </div>
           </div>
         </div>
       )}
-      <div className={cn('grid gap-2', gridColsClass)}>
-        {displayMembers.map(member => {
-          const isPendingAddition = member.id.startsWith('pending-');
+      <div className={cn("grid gap-2", gridColsClass)}>
+        {displayMembers.map((member) => {
+          const isPendingAddition = member.id.startsWith("pending-");
           return (
             <div
               key={member.id}
               className={cn(
-                'flex items-center gap-3 p-3 border rounded-2xl transition-all duration-200',
-                isEditMode && canManage ? '' : 'cursor-pointer',
+                "flex items-center gap-3 p-3 border rounded-2xl transition-all duration-200",
+                isEditMode && canManage ? "" : "cursor-pointer",
                 isPendingAddition
-                  ? 'bg-blue-50 border-blue-300 border-dashed opacity-75'
+                  ? "bg-blue-50 border-blue-300 border-dashed opacity-75"
                   : isHighlighted(member)
-                    ? 'bg-yellow-50 border-yellow-300 shadow-sm hover:bg-yellow-100'
+                    ? "bg-yellow-50 border-yellow-300 shadow-sm hover:bg-yellow-100"
                     : isCurrentUser(member)
-                      ? 'bg-emerald-50 border-emerald-500 hover:bg-emerald-100'
+                      ? "bg-emerald-50 border-emerald-500 hover:bg-emerald-100"
                       : isEditMode && canManage
-                        ? ''
-                        : 'hover:bg-gray-50'
+                        ? ""
+                        : "hover:bg-gray-50",
               )}
               {...(!(isEditMode && canManage) && {
-                role: 'button',
+                role: "button",
                 tabIndex: 0,
                 onClick: () => {
                   setSelectedMember(member);
-                  setModalContent('profile');
+                  setModalContent("profile");
                   setIsProfileOpen(true);
                 },
                 onKeyDown: (e: React.KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     setSelectedMember(member);
-                    setModalContent('profile');
+                    setModalContent("profile");
                     setIsProfileOpen(true);
                   }
                 },
@@ -624,21 +584,21 @@ export function TeamMemberListClient({
                   alt={member.user.mbtiType}
                   width={40}
                   height={40}
-                  className='w-10 h-10'
+                  className="w-10 h-10"
                 />
               ) : (
-                <div className='w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center'>
-                  <span className='text-blue-600 font-semibold text-sm'>
-                    {(member.user.name || '?').charAt(0).toUpperCase()}
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-semibold text-sm">
+                    {(member.user.name || "?").charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
-              <div className='flex-1 min-w-0 flex flex-col'>
-                <p className='font-medium text-gray-900 truncate'>
-                  {member.user.name || t('noName')}
+              <div className="flex-1 min-w-0 flex flex-col">
+                <p className="font-medium text-gray-900 truncate">
+                  {member.user.name || t("noName")}
                 </p>
-                <p className='text-[0.625rem] font-normal text-gray-500 truncate'>
-                  {member.user.nim || ''}
+                <p className="text-[0.625rem] font-normal text-gray-500 truncate">
+                  {member.user.nim || ""}
                 </p>
               </div>
             </div>
@@ -649,46 +609,44 @@ export function TeamMemberListClient({
       {/* Profile Modal */}
       <Dialog
         open={isProfileOpen}
-        onOpenChange={open => {
+        onOpenChange={(open) => {
           setIsProfileOpen(open);
           if (!open) {
             setSelectedMember(null);
-            setModalContent('profile');
+            setModalContent("profile");
           }
         }}
       >
         <DialogContent
-          className='w-[85vw] max-w-[1200px] rounded-3xl p-0 border-0 gap-0 items-start'
+          aria-describedby={undefined}
+          className="w-[85vw] max-w-[1200px] rounded-3xl p-0 border-0 gap-0 items-start"
           showCloseButton={false}
         >
-          <DialogTitle className='sr-only'>
-            {modalContent === 'profile'
-              ? t('studentProfile')
-              : t('mbtiDistribution')}
+          <DialogTitle className="sr-only">
+            {modalContent === "profile" ? t("studentProfile") : t("mbtiDistribution")}
           </DialogTitle>
           {selectedMember &&
             (() => {
               const memberUser = convertToExtendedUser(selectedMember);
 
-              return modalContent === 'profile' ? (
+              return modalContent === "profile" ? (
                 <StudentProfileContent
                   student={memberUser}
                   canManage={canManage}
                   onRemoveStudent={() =>
-                    selectedMember &&
-                    setConfirmStudentId(selectedMember.user.id)
+                    selectedMember && setConfirmStudentId(selectedMember.user.id)
                   }
                   onClose={() => setIsProfileOpen(false)}
-                  onShowMBTI={() => setModalContent('mbti')}
+                  onShowMBTI={() => setModalContent("mbti")}
                   isModal
                 />
               ) : (
-                <div className='overflow-hidden'>
+                <div className="overflow-hidden">
                   <MBTIOverviewLayout
                     user={memberUser}
                     isModal
                     isCompact
-                    onRequestClose={() => setModalContent('profile')}
+                    onRequestClose={() => setModalContent("profile")}
                   />
                 </div>
               );
@@ -697,42 +655,39 @@ export function TeamMemberListClient({
       </Dialog>
 
       {/* Confirm Remove Dialog */}
-      <Dialog
-        open={!!confirmStudentId}
-        onOpenChange={open => !open && setConfirmStudentId(null)}
-      >
-        <DialogContent className='sm:max-w-xs'>
+      <Dialog open={!!confirmStudentId} onOpenChange={(open) => !open && setConfirmStudentId(null)}>
+        <DialogContent className="sm:max-w-xs">
           <DialogHeader>
-            <DialogTitle className='text-left'>{t('remove')}</DialogTitle>
+            <DialogTitle className="text-left">{t("remove")}</DialogTitle>
             {removeError && (
-              <p className='text-sm text-red-600 bg-red-50 p-2 rounded-md text-left'>
+              <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md text-left">
                 {removeError}
               </p>
             )}
           </DialogHeader>
-          <p className='text-sm text-muted-foreground text-left'>
-            {t('confirmRemove')}
-          </p>
-          <DialogFooter className='flex flex-col gap-2 sm:flex-col'>
+          <DialogDescription className="text-sm text-muted-foreground text-left">
+            {t("confirmRemove")}
+          </DialogDescription>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
             <Button
-              variant='destructive'
+              variant="destructive"
               onClick={() => {
                 if (confirmStudentId) {
                   onRemoveStudent(confirmStudentId);
                 }
               }}
               disabled={isRemoving}
-              className='w-full rounded-full'
+              className="w-full rounded-full"
             >
-              {isRemoving ? t('removing') : t('delete')}
+              {isRemoving ? t("removing") : t("delete")}
             </Button>
             <Button
-              variant='outline'
+              variant="outline"
               onClick={() => setConfirmStudentId(null)}
               disabled={isRemoving}
-              className='w-full rounded-full'
+              className="w-full rounded-full"
             >
-              {t('cancel')}
+              {t("cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

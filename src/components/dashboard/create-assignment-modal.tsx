@@ -4,7 +4,13 @@ import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { InputRounded } from "@/components/ui/input-rounded";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { MultiSelectComboboxBadges } from "@/components/ui/multi-select-combobox-badges";
@@ -38,7 +44,9 @@ export function CreateAssignmentModal({
       <DialogContent className="max-w-4xl rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-medium">{t("title")}</DialogTitle>
-          <p className="text-base font-normal">{t("description")}</p>
+          <DialogDescription className="text-base font-normal">
+            {t("description")}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-8 mb-8">

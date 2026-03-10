@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -92,7 +93,9 @@ export default function JoinClassModal({ onClassJoined }: JoinClassModalProps) {
       <DialogContent className="border max-w-md md:max-w-xl rounded-3xl p-0 gap-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="text-xl font-semibold text-left">{t("title")}</DialogTitle>
-          <p className="text-gray-600 text-sm font-normal text-left mt-2">{t("description")}</p>
+          <DialogDescription className="text-gray-600 text-sm font-normal text-left mt-2">
+            {t("description")}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-6">

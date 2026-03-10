@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import { AlertTriangle, Info, XCircle } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { AlertTriangle, Info, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import type { EditImpact } from '@/lib/utils/assignment-change-detection';
-import { AssignmentChangeDiff } from './assignment-change-diff';
+} from "@/components/ui/dialog";
+import type { EditImpact } from "@/lib/utils/assignment-change-detection";
+import { AssignmentChangeDiff } from "./assignment-change-diff";
 
 interface AssignmentEditConfirmationDialogProps {
   open: boolean;
@@ -29,7 +30,7 @@ export function AssignmentEditConfirmationDialog({
   onConfirm,
   onCancel,
 }: AssignmentEditConfirmationDialogProps) {
-  const t = useTranslations('dashboard.assignments.edit.confirmation');
+  const t = useTranslations("dashboard.assignments.edit.confirmation");
   const [confirmed, setConfirmed] = useState(false);
 
   if (!impact) return null;
@@ -50,36 +51,34 @@ export function AssignmentEditConfirmationDialog({
   if (impact.tier === 4) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className='max-w-xl'>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className='flex items-center gap-2 text-red-600'>
-              <XCircle className='w-5 h-5' />
-              {t('tier4.title', { defaultValue: 'Cannot Edit Assignment' })}
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="w-5 h-5" />
+              {t("tier4.title", { defaultValue: "Cannot Edit Assignment" })}
             </DialogTitle>
+            <DialogDescription className="text-sm text-gray-700">
+              {impact.reason ||
+                t("tier4.message", {
+                  defaultValue: "Cannot edit assignment structure after teams have been formed.",
+                })}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className='space-y-4'>
-            <p className='text-sm text-gray-700'>
-              {impact.reason ||
-                t('tier4.message', {
+          <div className="space-y-4">
+            <div className="rounded-md bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-800">
+                {t("tier4.help", {
                   defaultValue:
-                    'Cannot edit assignment structure after teams have been formed.',
-                })}
-            </p>
-
-            <div className='rounded-md bg-red-50 border border-red-200 p-4'>
-              <p className='text-sm text-red-800'>
-                {t('tier4.help', {
-                  defaultValue:
-                    'Structural changes are not allowed after teams have been formed to preserve team formations and student submissions.',
+                    "Structural changes are not allowed after teams have been formed to preserve team formations and student submissions.",
                 })}
               </p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button onClick={handleCancel} variant='outline'>
-              {t('close', { defaultValue: 'Close' })}
+            <Button onClick={handleCancel} variant="outline">
+              {t("close", { defaultValue: "Close" })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -91,40 +90,39 @@ export function AssignmentEditConfirmationDialog({
   if (impact.tier === 3) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className='max-w-xl'>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className='flex items-center gap-2 text-amber-600'>
-              <AlertTriangle className='w-5 h-5' />
-              {t('tier3.title', {
-                defaultValue: 'Destructive Changes Detected',
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="w-5 h-5" />
+              {t("tier3.title", {
+                defaultValue: "Destructive Changes Detected",
               })}
             </DialogTitle>
-          </DialogHeader>
-
-          <div className='space-y-4'>
-            <p className='text-sm text-gray-700'>
+            <DialogDescription className="text-sm text-gray-700">
               {impact.reason ||
-                t('tier3.message', {
+                t("tier3.message", {
                   count: impact.affectedSubmissions,
                   defaultValue:
-                    'This will invalidate {{count}} existing submission(s). Students will need to retake the entire assessment.',
+                    "This will invalidate {{count}} existing submission(s). Students will need to retake the entire assessment.",
                 })}
-            </p>
+            </DialogDescription>
+          </DialogHeader>
 
+          <div className="space-y-4">
             <AssignmentChangeDiff changes={impact.changes} />
 
-            <div className='rounded-md bg-amber-50 border border-amber-200 p-4'>
-              <label className='flex items-start gap-3 cursor-pointer'>
+            <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
-                  type='checkbox'
+                  type="checkbox"
                   checked={confirmed}
-                  onChange={e => setConfirmed(e.target.checked)}
-                  className='mt-0.5 w-4 h-4 rounded border-gray-300'
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300"
                 />
-                <span className='text-sm text-amber-900'>
-                  {t('tier3.confirm', {
+                <span className="text-sm text-amber-900">
+                  {t("tier3.confirm", {
                     defaultValue:
-                      'I understand this will invalidate existing work and students will need to retake the assessment.',
+                      "I understand this will invalidate existing work and students will need to retake the assessment.",
                   })}
                 </span>
               </label>
@@ -132,15 +130,15 @@ export function AssignmentEditConfirmationDialog({
           </div>
 
           <DialogFooter>
-            <Button onClick={handleCancel} variant='outline'>
-              {t('cancel', { defaultValue: 'Cancel' })}
+            <Button onClick={handleCancel} variant="outline">
+              {t("cancel", { defaultValue: "Cancel" })}
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={!confirmed}
-              className='bg-amber-600 hover:bg-amber-700'
+              className="bg-amber-600 hover:bg-amber-700"
             >
-              {t('tier3.continue', { defaultValue: 'Continue and Invalidate' })}
+              {t("tier3.continue", { defaultValue: "Continue and Invalidate" })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -152,29 +150,28 @@ export function AssignmentEditConfirmationDialog({
   if (impact.tier === 2) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className='max-w-xl'>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className='flex items-center gap-2 text-blue-600'>
-              <Info className='w-5 h-5' />
-              {t('tier2.title', { defaultValue: 'New Items Added' })}
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <Info className="w-5 h-5" />
+              {t("tier2.title", { defaultValue: "New Items Added" })}
             </DialogTitle>
-          </DialogHeader>
-
-          <div className='space-y-4'>
-            <p className='text-sm text-gray-700'>
+            <DialogDescription className="text-sm text-gray-700">
               {impact.reason ||
-                t('tier2.message', {
+                t("tier2.message", {
                   count: impact.affectedSubmissions,
                   defaultValue:
-                    'New items have been added. {{count}} student(s) who already submitted will need to complete the new sections.',
+                    "New items have been added. {{count}} student(s) who already submitted will need to complete the new sections.",
                 })}
-            </p>
+            </DialogDescription>
+          </DialogHeader>
 
+          <div className="space-y-4">
             <AssignmentChangeDiff changes={impact.changes} />
 
-            <div className='rounded-md bg-blue-50 border border-blue-200 p-4'>
-              <p className='text-sm text-blue-900'>
-                {t('tier2.info', {
+            <div className="rounded-md bg-blue-50 border border-blue-200 p-4">
+              <p className="text-sm text-blue-900">
+                {t("tier2.info", {
                   defaultValue:
                     "Students' existing responses will be kept, but submissions will be marked as incomplete until they assess the new items.",
                 })}
@@ -183,14 +180,11 @@ export function AssignmentEditConfirmationDialog({
           </div>
 
           <DialogFooter>
-            <Button onClick={handleCancel} variant='outline'>
-              {t('cancel', { defaultValue: 'Cancel' })}
+            <Button onClick={handleCancel} variant="outline">
+              {t("cancel", { defaultValue: "Cancel" })}
             </Button>
-            <Button
-              onClick={handleConfirm}
-              className='bg-blue-600 hover:bg-blue-700'
-            >
-              {t('tier2.continue', { defaultValue: 'Continue' })}
+            <Button onClick={handleConfirm} className="bg-blue-600 hover:bg-blue-700">
+              {t("tier2.continue", { defaultValue: "Continue" })}
             </Button>
           </DialogFooter>
         </DialogContent>

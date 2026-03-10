@@ -9,6 +9,7 @@ import {
   DeferredHeroMbtiCollage,
 } from "@/components/landing/deferred-decorations";
 import Logo from "@/components/logo";
+import { CopyrightYear } from "./copyright-year";
 import { isDemoModeEnabled } from "@/lib/demo/config";
 import { HighlightText } from "@/components/ui/highlight-text";
 import { ScrollToTopClient } from "@/components/ui/scroll-to-top-client";
@@ -33,6 +34,11 @@ export default async function Home() {
   const t = await getTranslations();
   const mainContentId = "main-content";
   const demoLoginEnabled = isDemoModeEnabled();
+  const initialCopyrightYear = new Date().getFullYear();
+  const copyrightYearToken = "__COPYRIGHT_YEAR__";
+  const [copyrightBeforeYear, copyrightAfterYear = ""] = t("homepage.footer.copyright", {
+    year: copyrightYearToken,
+  }).split(copyrightYearToken);
 
   return (
     <>
@@ -494,7 +500,9 @@ export default async function Home() {
             <div className="max-w-4xl" />
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-4xl">
               <p className="text-white text-sm sm:text-lg font-normal whitespace-pre-line mt-2">
-                {t("homepage.footer.copyright", { year: new Date().getFullYear() })}
+                {copyrightBeforeYear}
+                <CopyrightYear initialYear={initialCopyrightYear} />
+                {copyrightAfterYear}
               </p>
               <SocialRow />
             </div>
