@@ -66,6 +66,50 @@ function formatDate(isoString: string): string {
   return dateFormatter.format(new Date(isoString));
 }
 
+interface AssignmentOverlayState {
+  serverSnapshotKey: string;
+  optimisticAssignmentUpdates: Record<string, Partial<ManageAssignmentRow>>;
+}
+
+function getAssignmentOverlaySnapshotKey(assignments: ManageAssignmentRow[]) {
+  return assignments
+    .map(
+      assignment =>
+        [
+          assignment.id,
+          assignment.title,
+          assignment.description ?? '',
+          assignment.status,
+          assignment.startAt,
+          assignment.createdAt,
+          assignment.isArchived ? '1' : '0',
+          assignment.submissionsCount,
+          assignment.totalStudents,
+        ].join(':')
+    )
+    .join('|');
+}
+
+function createAssignmentOverlayState(
+  serverSnapshotKey: string
+): AssignmentOverlayState {
+  return {
+    serverSnapshotKey,
+    optimisticAssignmentUpdates: {},
+  };
+}
+
+function getCurrentAssignmentOverlayState(
+  state: AssignmentOverlayState,
+  serverSnapshotKey: string
+) {
+  if (state.serverSnapshotKey === serverSnapshotKey) {
+    return state;
+  }
+
+  return createAssignmentOverlayState(serverSnapshotKey);
+}
+
 function ManageTable({
   rows,
   emptyMessage,
@@ -181,11 +225,20 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] =
     useState<ManageAssignmentRow | null>(null);
-  const [optimisticAssignmentUpdates, setOptimisticAssignmentUpdates] =
-    useState<Record<string, Partial<ManageAssignmentRow>>>({});
+  const assignmentSnapshotKey = getAssignmentOverlaySnapshotKey(assignments);
+  const [assignmentOverlayState, setAssignmentOverlayState] =
+    useState<AssignmentOverlayState>(() =>
+      createAssignmentOverlayState(assignmentSnapshotKey)
+    );
   const [optimisticDeletedAssignmentIds] = useState<Set<string>>(
     () => new Set()
   );
+  const activeAssignmentOverlayState = getCurrentAssignmentOverlayState(
+    assignmentOverlayState,
+    assignmentSnapshotKey
+  );
+  const optimisticAssignmentUpdates =
+    activeAssignmentOverlayState.optimisticAssignmentUpdates;
 
   const assignmentRows = useMemo(
     () =>
@@ -217,27 +270,46 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
       const previousOverlay = optimisticAssignmentUpdates[assignment.id];
       setPendingAssignmentId(assignment.id);
       setArchiveError(null);
-      setOptimisticAssignmentUpdates(current => ({
-        ...current,
-        [assignment.id]: {
-          ...(current[assignment.id] ?? {}),
-          isArchived: nextIsArchived,
-        },
-      }));
+      setAssignmentOverlayState(current => {
+        const next = getCurrentAssignmentOverlayState(
+          current,
+          assignmentSnapshotKey
+        );
+
+        return {
+          ...next,
+          optimisticAssignmentUpdates: {
+            ...next.optimisticAssignmentUpdates,
+            [assignment.id]: {
+              ...(next.optimisticAssignmentUpdates[assignment.id] ?? {}),
+              isArchived: nextIsArchived,
+            },
+          },
+        };
+      });
       void (async () => {
         try {
           await onArchiveToggle(assignment);
         } catch (error) {
-          setOptimisticAssignmentUpdates(current => {
-            const next = { ...current };
+          setAssignmentOverlayState(current => {
+            const next = getCurrentAssignmentOverlayState(
+              current,
+              assignmentSnapshotKey
+            );
+            const nextOptimisticAssignmentUpdates = {
+              ...next.optimisticAssignmentUpdates,
+            };
 
             if (previousOverlay) {
-              next[assignment.id] = previousOverlay;
+              nextOptimisticAssignmentUpdates[assignment.id] = previousOverlay;
             } else {
-              delete next[assignment.id];
+              delete nextOptimisticAssignmentUpdates[assignment.id];
             }
 
-            return next;
+            return {
+              ...next,
+              optimisticAssignmentUpdates: nextOptimisticAssignmentUpdates,
+            };
           });
           const errorMessage =
             error instanceof Error
@@ -251,7 +323,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
         }
       })();
     },
-    [onArchiveToggle, optimisticAssignmentUpdates]
+    [assignmentSnapshotKey, onArchiveToggle, optimisticAssignmentUpdates]
   );
 
   const defaultActions = useCallback(
@@ -440,17 +512,27 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
               return;
             }
 
-            setOptimisticAssignmentUpdates(current => ({
-              ...current,
-              [updated.id]: {
-                ...(current[updated.id] ?? {}),
-                ...updated,
-                description:
-                  updated.description === undefined
-                    ? currentAssignment.description
-                    : updated.description,
-              },
-            }));
+            setAssignmentOverlayState(current => {
+              const next = getCurrentAssignmentOverlayState(
+                current,
+                assignmentSnapshotKey
+              );
+
+              return {
+                ...next,
+                optimisticAssignmentUpdates: {
+                  ...next.optimisticAssignmentUpdates,
+                  [updated.id]: {
+                    ...(next.optimisticAssignmentUpdates[updated.id] ?? {}),
+                    ...updated,
+                    description:
+                      updated.description === undefined
+                        ? currentAssignment.description
+                        : updated.description,
+                  },
+                },
+              };
+            });
           }}
         />
       )}

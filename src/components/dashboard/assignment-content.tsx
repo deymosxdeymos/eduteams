@@ -78,6 +78,48 @@ interface AssignmentContentProps {
   retryFormationModalSignal?: number;
 }
 
+interface TeamOverlayState {
+  serverSnapshotKey: string;
+  committedTeamMembersByTeamId: Record<string, TeamMemberItem[]>;
+  removedStudentIds: Set<string>;
+  pendingAdditionIds: Set<string>;
+}
+
+function getTeamOverlaySnapshotKey(
+  teams: Team[],
+  enrolledStudents: EnrolledStudent[]
+) {
+  const teamMembershipKey = teams
+    .map(
+      team =>
+        `${team.id}:${team.members.map(member => member.user.id).join(',')}`
+    )
+    .join('|');
+  const enrolledStudentKey = enrolledStudents.map(student => student.id).join(',');
+
+  return `${teamMembershipKey}::${enrolledStudentKey}`;
+}
+
+function createTeamOverlayState(serverSnapshotKey: string): TeamOverlayState {
+  return {
+    serverSnapshotKey,
+    committedTeamMembersByTeamId: {},
+    removedStudentIds: new Set(),
+    pendingAdditionIds: new Set(),
+  };
+}
+
+function getCurrentTeamOverlayState(
+  state: TeamOverlayState,
+  serverSnapshotKey: string
+) {
+  if (state.serverSnapshotKey === serverSnapshotKey) {
+    return state;
+  }
+
+  return createTeamOverlayState(serverSnapshotKey);
+}
+
 export function AssignmentContent({
   assignmentId,
   classId,
@@ -108,15 +150,20 @@ export function AssignmentContent({
   const [retryModalSignal, setRetryModalSignal] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(0);
-  const [committedTeamMembersByTeamId, setCommittedTeamMembersByTeamId] =
-    useState<Record<string, TeamMemberItem[]>>({});
-  const [removedStudentIds, setRemovedStudentIds] = useState<Set<string>>(
-    () => new Set()
-  );
-  const [pendingAdditionIds, setPendingAdditionIds] = useState<Set<string>>(
-    new Set()
+  const serverSnapshotKey = getTeamOverlaySnapshotKey(teams, enrolledStudents);
+  const [teamOverlayState, setTeamOverlayState] = useState<TeamOverlayState>(
+    () => createTeamOverlayState(serverSnapshotKey)
   );
   const [isSaving, setIsSaving] = useState(false);
+  const activeTeamOverlayState = getCurrentTeamOverlayState(
+    teamOverlayState,
+    serverSnapshotKey
+  );
+  const {
+    committedTeamMembersByTeamId,
+    removedStudentIds,
+    pendingAdditionIds,
+  } = activeTeamOverlayState;
 
   const visibleTeamItems = useMemo(
     () =>
@@ -293,29 +340,51 @@ export function AssignmentContent({
               submittedStudentIds={submittedStudentIds}
               saveTrigger={saveTrigger}
               onMembersCommitted={(teamId, members) => {
-                setCommittedTeamMembersByTeamId(current => ({
-                  ...current,
-                  [teamId]: members,
-                }));
+                setTeamOverlayState(current => {
+                  const next = getCurrentTeamOverlayState(
+                    current,
+                    serverSnapshotKey
+                  );
+
+                  return {
+                    ...next,
+                    committedTeamMembersByTeamId: {
+                      ...next.committedTeamMembersByTeamId,
+                      [teamId]: members,
+                    },
+                  };
+                });
               }}
               onCourseStudentRemoved={studentId => {
-                setRemovedStudentIds(current => {
-                  const next = new Set(current);
-                  next.add(studentId);
-                  return next;
-                });
-                setPendingAdditionIds(current => {
-                  if (!current.has(studentId)) {
-                    return current;
-                  }
+                setTeamOverlayState(current => {
+                  const next = getCurrentTeamOverlayState(
+                    current,
+                    serverSnapshotKey
+                  );
+                  const nextRemovedStudentIds = new Set(next.removedStudentIds);
+                  nextRemovedStudentIds.add(studentId);
+                  const nextPendingAdditionIds = new Set(next.pendingAdditionIds);
+                  nextPendingAdditionIds.delete(studentId);
 
-                  const next = new Set(current);
-                  next.delete(studentId);
-                  return next;
+                  return {
+                    ...next,
+                    removedStudentIds: nextRemovedStudentIds,
+                    pendingAdditionIds: nextPendingAdditionIds,
+                  };
                 });
               }}
               onPendingAdditionsChange={ids =>
-                setPendingAdditionIds(new Set(ids))
+                setTeamOverlayState(current => {
+                  const next = getCurrentTeamOverlayState(
+                    current,
+                    serverSnapshotKey
+                  );
+
+                  return {
+                    ...next,
+                    pendingAdditionIds: new Set(ids),
+                  };
+                })
               }
               onSavingChange={setIsSaving}
             />
