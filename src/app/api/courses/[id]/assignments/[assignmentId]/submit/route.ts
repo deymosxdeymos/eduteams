@@ -176,70 +176,100 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         return createErrorResponse('Missing or invalid answers', 400);
       }
 
-      // Persist efficiently
-      // 1) Skills: upsert Skill by name (createMany for missing), then upsert PersonSkill
+      skillsToPersist = Array.from(
+        new Map(skillsToPersist.map(skill => [skill.name, skill])).values()
+      );
+      topicsToPersist = Array.from(
+        new Map(topicsToPersist.map(topic => [topic.name, topic])).values()
+      );
+
       const uniqueSkillNames = Array.from(
         new Set(skillsToPersist.map(s => s.name))
       );
-      if (uniqueSkillNames.length > 0) {
-        const existingSkills = await prisma.skill.findMany({
-          where: { name: { in: uniqueSkillNames } },
-          select: { id: true, name: true },
-        });
-        const existingByName = new Map(
-          existingSkills.map((s: { id: string; name: string }) => [
-            s.name,
-            s.id,
-          ])
-        );
-        const missing = uniqueSkillNames.filter(n => !existingByName.has(n));
-        if (missing.length > 0 && !isDemoAccount) {
-          await prisma.skill.createMany({
-            data: missing.map(n => ({ name: n })),
-            skipDuplicates: true,
-          });
-        }
-      }
-      const allSkills = await prisma.skill.findMany({
-        where: { name: { in: uniqueSkillNames } },
-        select: { id: true, name: true },
-      });
-      const nameToSkillId = new Map<string, string>(
-        allSkills.map((s: { id: string; name: string }) => [s.name, s.id])
-      );
-
-      // 2) Topics: create/find AssignmentTopic per name
       const uniqueTopicNames = Array.from(
         new Set(topicsToPersist.map(t => t.name))
       );
-      let topicNameToId = new Map<string, string>();
-      if (uniqueTopicNames.length > 0) {
-        let existingTopics: Array<{ id: string; name: string }> = [];
-        existingTopics = await prisma.assignmentTopic.findMany({
-          where: { assignmentId, name: { in: uniqueTopicNames } },
-          select: { id: true, name: true },
-        });
-        const existingTopicByName = new Map(
-          existingTopics.map(t => [t.name, t.id])
-        );
-        const missingTopics = uniqueTopicNames.filter(
-          n => !existingTopicByName.has(n)
-        );
-        if (missingTopics.length > 0) {
-          await prisma.assignmentTopic.createMany({
-            data: missingTopics.map(n => ({ assignmentId, name: n })),
-            skipDuplicates: true,
-          });
-        }
-        let allTopics: Array<{ id: string; name: string }> = [];
-        allTopics = await prisma.assignmentTopic.findMany({
-          where: { assignmentId, name: { in: uniqueTopicNames } },
-          select: { id: true, name: true },
-        });
-        topicNameToId = new Map(allTopics.map(t => [t.name, t.id]));
-      }
 
-      // 3) Transaction: upsert PersonSkill and AssignmentTopicPreference; upsert submission idempotently
+      const [nameToSkillId, topicNameToId] = await Promise.all([
+        (async () => {
+          if (uniqueSkillNames.length === 0) {
+            return new Map<string, string>();
+          }
+
+          const existingSkills = await prisma.skill.findMany({
+            where: { name: { in: uniqueSkillNames } },
+            select: { id: true, name: true },
+          });
+          const existingByName = new Map(
+            existingSkills.map((s: { id: string; name: string }) => [
+              s.name,
+              s.id,
+            ])
+          );
+          const missing = uniqueSkillNames.filter(n => !existingByName.has(n));
+
+          if (missing.length > 0 && !isDemoAccount) {
+            await prisma.skill.createMany({
+              data: missing.map(n => ({ name: n })),
+              skipDuplicates: true,
+            });
+          }
+
+          const allSkills =
+            missing.length > 0
+              ? await prisma.skill.findMany({
+                  where: { name: { in: uniqueSkillNames } },
+                  select: { id: true, name: true },
+                })
+              : existingSkills;
+
+          return new Map<string, string>(
+            allSkills.map((s: { id: string; name: string }) => [s.name, s.id])
+          );
+        })(),
+        (async () => {
+          if (uniqueTopicNames.length === 0) {
+            return new Map<string, string>();
+          }
+
+          const existingTopics = await prisma.assignmentTopic.findMany({
+            where: { assignmentId, name: { in: uniqueTopicNames } },
+            select: { id: true, name: true },
+          });
+          const existingTopicByName = new Map(
+            existingTopics.map((topic: { id: string; name: string }) => [
+              topic.name,
+              topic.id,
+            ])
+          );
+          const missingTopics = uniqueTopicNames.filter(
+            name => !existingTopicByName.has(name)
+          );
+
+          if (missingTopics.length > 0) {
+            await prisma.assignmentTopic.createMany({
+              data: missingTopics.map(name => ({ assignmentId, name })),
+              skipDuplicates: true,
+            });
+          }
+
+          const allTopics =
+            missingTopics.length > 0
+              ? await prisma.assignmentTopic.findMany({
+                  where: { assignmentId, name: { in: uniqueTopicNames } },
+                  select: { id: true, name: true },
+                })
+              : existingTopics;
+
+          return new Map<string, string>(
+            allTopics.map((topic: { id: string; name: string }) => [
+              topic.name,
+              topic.id,
+            ])
+          );
+        })(),
+      ]);
+
       const topicKeyByName = new Map<string, string>();
       for (const topic of topicsToPersist) {
         if (!topicKeyByName.has(topic.name)) {
@@ -248,58 +278,62 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       }
 
       await prisma.$transaction(async (tx: TransactionClient) => {
-        // Upsert skills
-        for (const s of skillsToPersist) {
-          const skillId = nameToSkillId.get(s.name);
-          if (!skillId) continue;
+        await Promise.all(
+          skillsToPersist.map(async s => {
+            const skillId = nameToSkillId.get(s.name);
+            if (!skillId) {
+              return;
+            }
 
-          await tx.personSkill.upsert({
-            where: { personId_skillId: { personId: user.id, skillId } },
-            update: { level: s.level },
-            create: { personId: user.id, skillId, level: s.level },
-          });
+            await tx.personSkill.upsert({
+              where: { personId_skillId: { personId: user.id, skillId } },
+              update: { level: s.level },
+              create: { personId: user.id, skillId, level: s.level },
+            });
 
-          const profileData = {
-            value: s.level,
-            sourceAssignmentId: assignmentId,
-          };
-          const profileUnique = {
-            studentId_competencyKind_skillId: {
-              studentId: user.id,
-              competencyKind: CompetencyKind.SKILL,
-              skillId,
-            },
-          } as const;
-
-          if (s.profileId) {
-            const baseWhere = {
-              id: s.profileId,
-              studentId: user.id,
-              competencyKind: CompetencyKind.SKILL,
-              skillId,
+            const profileData = {
+              value: s.level,
+              sourceAssignmentId: assignmentId,
+            };
+            const profileUnique = {
+              studentId_competencyKind_skillId: {
+                studentId: user.id,
+                competencyKind: CompetencyKind.SKILL,
+                skillId,
+              },
             } as const;
 
-            if (s.profileUpdatedAt) {
-              const expected = new Date(s.profileUpdatedAt);
-              if (Number.isNaN(expected.getTime())) {
-                throw new HttpError(
-                  400,
-                  'Profil kompetensi tidak valid.',
-                  'INVALID_PROFILE_VERSION'
-                );
+            if (s.profileId) {
+              const baseWhere = {
+                id: s.profileId,
+                studentId: user.id,
+                competencyKind: CompetencyKind.SKILL,
+                skillId,
+              } as const;
+
+              if (s.profileUpdatedAt) {
+                const expected = new Date(s.profileUpdatedAt);
+                if (Number.isNaN(expected.getTime())) {
+                  throw new HttpError(
+                    400,
+                    'Profil kompetensi tidak valid.',
+                    'INVALID_PROFILE_VERSION'
+                  );
+                }
+                const updated = await tx.studentCompetencyProfile.updateMany({
+                  where: { ...baseWhere, updatedAt: expected },
+                  data: profileData,
+                });
+                if (updated.count === 0) {
+                  throw new HttpError(
+                    409,
+                    'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
+                    'COMPETENCY_CONFLICT'
+                  );
+                }
+                return;
               }
-              const updated = await tx.studentCompetencyProfile.updateMany({
-                where: { ...baseWhere, updatedAt: expected },
-                data: profileData,
-              });
-              if (updated.count === 0) {
-                throw new HttpError(
-                  409,
-                  'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
-                  'COMPETENCY_CONFLICT'
-                );
-              }
-            } else {
+
               const updated = await tx.studentCompetencyProfile.updateMany({
                 where: baseWhere,
                 data: profileData,
@@ -317,8 +351,9 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                   },
                 });
               }
+              return;
             }
-          } else {
+
             await tx.studentCompetencyProfile.upsert({
               where: profileUnique,
               update: profileData,
@@ -330,71 +365,80 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 sourceAssignmentId: assignmentId,
               },
             });
-          }
-        }
+          })
+        );
 
-        // Upsert topic preferences
-        for (const t of topicsToPersist) {
-          const assignmentTopicId = topicNameToId.get(t.name);
-          if (!assignmentTopicId) continue;
-          await tx.assignmentTopicPreference.upsert({
-            where: {
-              assignmentTopicId_personId: {
+        await Promise.all(
+          topicsToPersist.map(async t => {
+            const assignmentTopicId = topicNameToId.get(t.name);
+            if (!assignmentTopicId) {
+              return;
+            }
+
+            await tx.assignmentTopicPreference.upsert({
+              where: {
+                assignmentTopicId_personId: {
+                  assignmentTopicId,
+                  personId: user.id,
+                },
+              },
+              update: { preference: t.preference },
+              create: {
                 assignmentTopicId,
                 personId: user.id,
+                preference: t.preference,
               },
-            },
-            update: { preference: t.preference },
-            create: {
-              assignmentTopicId,
-              personId: user.id,
-              preference: t.preference,
-            },
-          });
+            });
 
-          const topicKey = topicKeyByName.get(t.name);
-          if (!topicKey) continue;
-          const topicProfileData = {
-            value: t.preference,
-            topicKey,
-            sourceAssignmentId: assignmentId,
-          };
-          const topicProfileUnique = {
-            studentId_competencyKind_topicKey: {
-              studentId: user.id,
-              competencyKind: CompetencyKind.TOPIC,
-              topicKey,
-            },
-          } as const;
+            const topicKey = topicKeyByName.get(t.name);
+            if (!topicKey) {
+              return;
+            }
 
-          if (t.profileId) {
-            const baseWhere = {
-              id: t.profileId,
-              studentId: user.id,
-              competencyKind: CompetencyKind.TOPIC,
+            const topicProfileData = {
+              value: t.preference,
               topicKey,
+              sourceAssignmentId: assignmentId,
+            };
+            const topicProfileUnique = {
+              studentId_competencyKind_topicKey: {
+                studentId: user.id,
+                competencyKind: CompetencyKind.TOPIC,
+                topicKey,
+              },
             } as const;
-            if (t.profileUpdatedAt) {
-              const expected = new Date(t.profileUpdatedAt);
-              if (Number.isNaN(expected.getTime())) {
-                throw new HttpError(
-                  400,
-                  'Profil kompetensi tidak valid.',
-                  'INVALID_PROFILE_VERSION'
-                );
+
+            if (t.profileId) {
+              const baseWhere = {
+                id: t.profileId,
+                studentId: user.id,
+                competencyKind: CompetencyKind.TOPIC,
+                topicKey,
+              } as const;
+
+              if (t.profileUpdatedAt) {
+                const expected = new Date(t.profileUpdatedAt);
+                if (Number.isNaN(expected.getTime())) {
+                  throw new HttpError(
+                    400,
+                    'Profil kompetensi tidak valid.',
+                    'INVALID_PROFILE_VERSION'
+                  );
+                }
+                const updated = await tx.studentCompetencyProfile.updateMany({
+                  where: { ...baseWhere, updatedAt: expected },
+                  data: topicProfileData,
+                });
+                if (updated.count === 0) {
+                  throw new HttpError(
+                    409,
+                    'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
+                    'COMPETENCY_CONFLICT'
+                  );
+                }
+                return;
               }
-              const updated = await tx.studentCompetencyProfile.updateMany({
-                where: { ...baseWhere, updatedAt: expected },
-                data: topicProfileData,
-              });
-              if (updated.count === 0) {
-                throw new HttpError(
-                  409,
-                  'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
-                  'COMPETENCY_CONFLICT'
-                );
-              }
-            } else {
+
               const updated = await tx.studentCompetencyProfile.updateMany({
                 where: baseWhere,
                 data: topicProfileData,
@@ -412,8 +456,9 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                   },
                 });
               }
+              return;
             }
-          } else {
+
             await tx.studentCompetencyProfile.upsert({
               where: topicProfileUnique,
               update: topicProfileData,
@@ -425,10 +470,9 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 sourceAssignmentId: assignmentId,
               },
             });
-          }
-        }
+          })
+        );
 
-        // Idempotent submission record with current structure version
         await tx.assignmentSubmission.upsert({
           where: {
             assignmentId_studentId: { assignmentId, studentId: user.id },

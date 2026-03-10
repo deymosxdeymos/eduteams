@@ -66,6 +66,8 @@ interface AssignmentTeamsContentProps {
   enrolledStudents?: EnrolledStudent[];
   submittedStudentIds?: Set<string>;
   saveTrigger?: number;
+  onMembersCommitted?: (teamId: string, members: TeamMemberItem[]) => void;
+  onCourseStudentRemoved?: (studentId: string) => void;
   onPendingAdditionsChange?: (pendingStudentIds: Set<string>) => void;
   onSavingChange?: (isSaving: boolean) => void;
 }
@@ -117,6 +119,8 @@ export function AssignmentTeamsContent({
   enrolledStudents = [],
   submittedStudentIds = EMPTY_SET,
   saveTrigger,
+  onMembersCommitted,
+  onCourseStudentRemoved,
   onPendingAdditionsChange,
   onSavingChange,
 }: AssignmentTeamsContentProps) {
@@ -304,6 +308,10 @@ export function AssignmentTeamsContent({
                   availableStudents={availableStudents}
                   missingStudentIds={missingStudentIds}
                   saveTrigger={saveTrigger}
+                  onMembersCommitted={members => {
+                    onMembersCommitted?.(team.id, members);
+                  }}
+                  onCourseStudentRemoved={onCourseStudentRemoved}
                   onPendingAdditionsChange={pendingIds => {
                     const map = pendingAdditionsByTeamRef.current;
                     if (pendingIds.size > 0) {

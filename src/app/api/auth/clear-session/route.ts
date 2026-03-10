@@ -1,20 +1,25 @@
-import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+import { clearAuthSessionCookies } from '@/lib/demo/auth';
 
-/**
- * Route handler to clear invalid session cookies.
- * This is called when a user has an expired/invalid session cookie
- * to prevent infinite redirect loops.
- */
+function getRedirectTarget(request: NextRequest) {
+  const redirectTo = request.nextUrl.searchParams.get('redirect');
+
+  if (!redirectTo || !redirectTo.startsWith('/')) {
+    return '/';
+  }
+
+  return redirectTo;
+}
+
+async function clearSessionAndRedirect(request: NextRequest) {
+  await clearAuthSessionCookies();
+  return NextResponse.redirect(new URL(getRedirectTarget(request), request.url));
+}
+
 export async function GET(request: NextRequest) {
-  // Clear the invalid session cookies
-  const cookieStore = await cookies();
-  cookieStore.delete('better-auth.session_token');
-  cookieStore.delete('session_token');
+  return clearSessionAndRedirect(request);
+}
 
-  // Get the redirect URL from query params or default to home
-  const redirectTo = request.nextUrl.searchParams.get('redirect') || '/';
-
-  // Redirect to the specified location
-  return NextResponse.redirect(new URL(redirectTo, request.url));
+export async function POST(request: NextRequest) {
+  return clearSessionAndRedirect(request);
 }

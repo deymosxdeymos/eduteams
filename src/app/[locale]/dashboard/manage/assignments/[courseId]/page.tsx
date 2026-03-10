@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { Suspense } from 'react';
+import { cache, Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { DosenManageAssignmentsContent } from '@/components/dashboard/dosen-manage-assignments-content';
 import { ManageAssignmentsLayout } from '@/components/dashboard/manage-assignments-layout';
@@ -14,7 +14,7 @@ import { protectDashboard } from '@/lib/server-auth';
 
 export const dynamic = 'force-dynamic';
 
-async function getCourseForManage(courseId: string, dosenId: string) {
+const getCourseForManage = cache(async (courseId: string, dosenId: string) => {
   return await prisma.course.findFirst({
     where: {
       id: courseId,
@@ -34,19 +34,21 @@ async function getCourseForManage(courseId: string, dosenId: string) {
       },
     },
   });
-}
+});
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ courseId: string }>;
 }): Promise<Metadata> {
+  const user = await protectDashboard();
   const { courseId } = await params;
 
-  const course = await prisma.course.findFirst({
-    where: { id: courseId },
-    select: { namaMataKuliah: true, kelas: true },
-  });
+  if (!canAccessDosenFeatures(user)) {
+    redirect('/dashboard');
+  }
+
+  const course = await getCourseForManage(courseId, user.id);
 
   const title = course
     ? `Manage Assignments - ${course.namaMataKuliah} ${course.kelas} | EduTeams`

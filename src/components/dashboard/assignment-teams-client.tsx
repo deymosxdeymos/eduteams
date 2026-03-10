@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Gender } from '@/generated/prisma/client';
 import { AssignmentTeamsContent } from './assignment-teams-content';
 
@@ -61,6 +61,8 @@ interface AssignmentTeamsClientProps {
   enrolledStudents?: EnrolledStudent[];
   submittedStudentIds?: Set<string>;
   saveTrigger?: number;
+  onMembersCommitted?: (teamId: string, members: TeamMemberItem[]) => void;
+  onCourseStudentRemoved?: (studentId: string) => void;
   onPendingAdditionsChange?: (pendingStudentIds: Set<string>) => void;
   onSavingChange?: (isSaving: boolean) => void;
 }
@@ -82,14 +84,12 @@ export function AssignmentTeamsClient({
   enrolledStudents = [],
   submittedStudentIds = new Set(),
   saveTrigger,
+  onMembersCommitted,
+  onCourseStudentRemoved,
   onPendingAdditionsChange,
   onSavingChange,
 }: AssignmentTeamsClientProps) {
-  const [internalSearchValue, setInternalSearchValue] = useState('');
-  const searchValue = externalSearchValue || internalSearchValue;
-  const _setSearchValue = externalSearchValue
-    ? () => {}
-    : setInternalSearchValue;
+  const searchValue = externalSearchValue;
 
   // Attach topic metadata to each team before filtering
   const teamsWithTopics = useMemo(() => {
@@ -137,6 +137,8 @@ export function AssignmentTeamsClient({
       enrolledStudents={enrolledStudents}
       submittedStudentIds={submittedStudentIds}
       saveTrigger={saveTrigger}
+      onMembersCommitted={onMembersCommitted}
+      onCourseStudentRemoved={onCourseStudentRemoved}
       onPendingAdditionsChange={onPendingAdditionsChange}
       onSavingChange={onSavingChange}
     />

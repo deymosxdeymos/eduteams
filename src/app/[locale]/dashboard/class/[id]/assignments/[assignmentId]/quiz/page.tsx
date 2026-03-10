@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
 import { AssignmentQuizClient } from '@/components/dashboard/assignment-quiz-client';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
@@ -52,6 +53,24 @@ type AssignmentData = SubmittedData | UnsubmittedData;
 
 export const dynamic = 'force-dynamic';
 
+const getAssignmentRecord = cache(async (assignmentId: string) =>
+  prisma.assignment.findUnique({
+    where: { id: assignmentId },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      AssignmentTopic: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      structureVersion: true,
+    },
+  })
+);
+
 async function getAssignmentData(
   assignmentId: string,
   user: ExtendedUser
@@ -68,25 +87,7 @@ async function getAssignmentData(
   });
 
   if (existingSubmission) {
-    // For submitted users, fetch assignment topics + their preferences, and skill levels
-    const assignment = await prisma.assignment.findUnique({
-      where: { id: assignmentId },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        AssignmentTopic: {
-          select: {
-            id: true,
-            name: true,
-            preferences: {
-              where: { personId: user.id },
-              select: { preference: true },
-            },
-          },
-        },
-      },
-    });
+    const assignment = await getAssignmentRecord(assignmentId);
 
     if (!assignment) return null;
 
@@ -129,7 +130,18 @@ async function getAssignmentData(
       }));
     }
 
-    const topicAnswers = assignment.AssignmentTopic.map(
+    const topicRows = await prisma.assignmentTopic.findMany({
+      where: { assignmentId },
+      select: {
+        name: true,
+        preferences: {
+          where: { personId: user.id },
+          select: { preference: true },
+        },
+      },
+    });
+
+    const topicAnswers = topicRows.map(
       (t: { name: string; preferences: Array<{ preference: number }> }) => ({
         name: t.name,
         preference: t.preferences[0]?.preference ?? null,
@@ -147,14 +159,7 @@ async function getAssignmentData(
   }
 
   // Get assignment with skills and topics
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-    },
-  });
+  const assignment = await getAssignmentRecord(assignmentId);
 
   if (!assignment) return null;
 
@@ -236,12 +241,14 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; id: string; assignmentId: string }>;
 }): Promise<Metadata> {
+  const user = await protectDashboard();
   const { assignmentId } = await params;
 
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: { title: true },
-  });
+  if (!canAccessMahasiswaFeatures(user)) {
+    notFound();
+  }
+
+  const assignment = await getAssignmentRecord(assignmentId);
 
   const title = assignment
     ? `${assignment.title} - Quiz | EduTeams`
