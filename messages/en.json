@@ -212,6 +212,19 @@
         "switching": "Switching..."
       }
     },
+    "errorBoundary": {
+      "title": "Something went wrong!",
+      "dashboard": "We encountered an error loading your dashboard. Please try again.",
+      "onboarding": "We encountered an error during the onboarding process. Please try again.",
+      "generic": "An error occurred while processing your request. Please try again.",
+      "joinClass": "We encountered an error while processing your class invitation.",
+      "retry": "Try again",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "classCard": {
+      "studentCount": "{count} students",
+      "academicYear": "A.Y {start}/{end}"
+    },
     "emptyStates": {
       "dosen": {
         "title": "You haven't created any classes yet",
@@ -231,6 +244,11 @@
         "creating": "Creating...",
         "create": "Create Class",
         "duplicateError": "A course with the same name, class, and academic period already exists",
+        "validation": {
+          "courseNameRequired": "Course name is required",
+          "classRequired": "Class is required",
+          "periodInvalid": "Period must be either odd, even, or short"
+        },
         "fields": {
           "courseName": "Course Name",
           "courseNamePlaceholder": "Enter course name",
@@ -319,6 +337,7 @@
         "classCode": "Class Code",
         "classCodePlaceholder": "687ad8sa",
         "invalidCode": "The code you entered is incorrect. Please try again",
+        "demoLocked": "Demo accounts cannot join shared classes. Try creating your own class as a lecturer instead.",
         "joining": "Joining...",
         "join": "Join"
       }

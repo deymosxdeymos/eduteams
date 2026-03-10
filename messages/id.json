@@ -212,6 +212,19 @@
         "switching": "Memindahkan..."
       }
     },
+    "errorBoundary": {
+      "title": "Terjadi kesalahan!",
+      "dashboard": "Kami mengalami kesalahan saat memuat dashboard Anda. Silakan coba lagi.",
+      "onboarding": "Kami mengalami kesalahan saat proses onboarding. Silakan coba lagi.",
+      "generic": "Terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.",
+      "joinClass": "Kami mengalami kesalahan saat memproses undangan kelas Anda.",
+      "retry": "Coba lagi",
+      "goToDashboard": "Ke Dashboard"
+    },
+    "classCard": {
+      "studentCount": "{count} mahasiswa",
+      "academicYear": "T.A {start}/{end}"
+    },
     "emptyStates": {
       "dosen": {
         "title": "Anda belum membuat kelas",
@@ -231,6 +244,11 @@
         "creating": "Membuat...",
         "create": "Buat Kelas",
         "duplicateError": "Mata kuliah dengan nama, kelas, dan periode akademik yang sama sudah ada",
+        "validation": {
+          "courseNameRequired": "Nama mata kuliah wajib diisi",
+          "classRequired": "Kelas wajib diisi",
+          "periodInvalid": "Periode harus ganjil, genap, atau pendek"
+        },
         "fields": {
           "courseName": "Nama Mata Kuliah",
           "courseNamePlaceholder": "Masukkan nama mata kuliah",
@@ -319,6 +337,7 @@
         "classCode": "Kode Kelas",
         "classCodePlaceholder": "687ad8sa",
         "invalidCode": "Kode yang Anda masukkan salah. Silahkan coba lagi",
+        "demoLocked": "Akun demo tidak dapat bergabung ke kelas bersama. Coba buat kelas sendiri sebagai dosen.",
         "joining": "Masuk...",
         "join": "Masuk"
       }

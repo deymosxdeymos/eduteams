@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
-import type { DosenCourseSummary } from '@/lib/dashboard/courses';
-import type { DashboardStatistics } from '@/lib/dashboard/statistics-types';
-import { ClassGrid, type ClassSummary } from './class-grid';
-import { EmptyClassState } from './empty-class-state';
-import { SearchInput } from './search-input';
-import { StatisticsCards } from './statistics-cards';
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
+import type { DosenCourseSummary } from "@/lib/dashboard/courses";
+import type { DashboardStatistics } from "@/lib/dashboard/statistics-types";
+import { ClassGrid, type ClassSummary } from "./class-grid";
+import { EmptyClassState } from "./empty-class-state";
+import { SearchInput } from "./search-input";
+import { StatisticsCards } from "./statistics-cards";
 
 interface ContentProps {
   statistics: DashboardStatistics;
@@ -22,47 +23,43 @@ type RawCourse = Partial<DosenCourseSummary> & {
 };
 
 function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
-  if (!course || typeof course !== 'object') {
+  if (!course || typeof course !== "object") {
     return null;
   }
 
   const data = course as RawCourse;
-  if (typeof data.id !== 'string') {
+  if (typeof data.id !== "string") {
     return null;
   }
 
   const studentCount =
-    typeof data.studentCount === 'number'
+    typeof data.studentCount === "number"
       ? data.studentCount
       : Array.isArray(data.enrollments)
         ? data.enrollments.length
-        : typeof data._count?.enrollments === 'number'
+        : typeof data._count?.enrollments === "number"
           ? data._count.enrollments
           : 0;
 
   const createdAt =
-    data.createdAt instanceof Date
-      ? data.createdAt
-      : new Date(data.createdAt ?? Date.now());
+    data.createdAt instanceof Date ? data.createdAt : new Date(data.createdAt ?? Date.now());
   const updatedAt =
-    data.updatedAt instanceof Date
-      ? data.updatedAt
-      : new Date(data.updatedAt ?? Date.now());
+    data.updatedAt instanceof Date ? data.updatedAt : new Date(data.updatedAt ?? Date.now());
 
   return {
     id: data.id,
-    namaMataKuliah: data.namaMataKuliah ?? '',
-    kelas: data.kelas ?? 'tanpa-kelas',
+    namaMataKuliah: data.namaMataKuliah ?? "",
+    kelas: data.kelas ?? "tanpa-kelas",
     tahunAwalPeriode: data.tahunAwalPeriode ?? 0,
     tahunAkhirPeriode: data.tahunAkhirPeriode ?? 0,
     periode: data.periode ?? null,
-    dosenId: data.dosenId ?? data.dosen?.id ?? '',
+    dosenId: data.dosenId ?? data.dosen?.id ?? "",
     shareToken: data.shareToken ?? null,
     createdAt,
     updatedAt,
     studentCount,
     dosen: {
-      id: data.dosen?.id ?? data.dosenId ?? '',
+      id: data.dosen?.id ?? data.dosenId ?? "",
       name: data.dosen?.name ?? null,
       email: data.dosen?.email ?? null,
     },
@@ -71,19 +68,18 @@ function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
 
 export default function Content({ statistics, courses }: ContentProps) {
   const router = useRouter();
-  const [optimisticCourses, setOptimisticCourses] = useState<
-    DosenCourseSummary[]
-  >([]);
-  const [searchValue, setSearchValue] = useState('');
+  const t = useTranslations("dashboard.classCard");
+  const [optimisticCourses, setOptimisticCourses] = useState<DosenCourseSummary[]>([]);
+  const [searchValue, setSearchValue] = useState("");
 
   const courseList = useMemo(() => {
     if (optimisticCourses.length === 0) {
       return courses;
     }
 
-    const serverCourseIds = new Set(courses.map(course => course.id));
+    const serverCourseIds = new Set(courses.map((course) => course.id));
     const pendingOptimisticCourses = optimisticCourses.filter(
-      course => !serverCourseIds.has(course.id)
+      (course) => !serverCourseIds.has(course.id),
     );
 
     return [...pendingOptimisticCourses, ...courses];
@@ -91,14 +87,17 @@ export default function Content({ statistics, courses }: ContentProps) {
 
   const classes: ClassSummary[] = useMemo(
     () =>
-      courseList.map(course => ({
+      courseList.map((course) => ({
         id: course.id,
         title: course.namaMataKuliah,
-        academicYear: `T.A ${course.tahunAwalPeriode}/${course.tahunAkhirPeriode}`,
+        academicYear: t("academicYear", {
+          start: course.tahunAwalPeriode,
+          end: course.tahunAkhirPeriode,
+        }),
         studentCount: course.studentCount,
         classCode: course.kelas,
       })),
-    [courseList]
+    [courseList, t],
   );
 
   const filteredClasses = useMemo(() => {
@@ -108,9 +107,9 @@ export default function Content({ statistics, courses }: ContentProps) {
 
     const query = searchValue.toLowerCase();
     return classes.filter(
-      classItem =>
+      (classItem) =>
         classItem.title.toLowerCase().includes(query) ||
-        classItem.classCode.toLowerCase().includes(query)
+        classItem.classCode.toLowerCase().includes(query),
     );
   }, [classes, searchValue]);
 
@@ -119,26 +118,26 @@ export default function Content({ statistics, courses }: ContentProps) {
       if (course) {
         const normalized = normalizeCourseSummary(course);
         if (normalized) {
-          setOptimisticCourses(prev => {
-            const next = prev.filter(item => item.id !== normalized.id);
+          setOptimisticCourses((prev) => {
+            const next = prev.filter((item) => item.id !== normalized.id);
             return [normalized, ...next];
           });
         }
       }
       router.refresh();
     },
-    [router]
+    [router],
   );
 
   const hasClasses = courseList.length > 0;
   const showNoResults = searchValue.length > 0 && filteredClasses.length === 0;
 
   return (
-    <div className='h-full flex flex-col gap-4'>
+    <div className="h-full flex flex-col gap-4">
       <StatisticsCards statistics={statistics} />
-      <div className='bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden'>
+      <div className="bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden">
         {hasClasses ? (
-          <div className='p-6 pb-0'>
+          <div className="p-6 pb-0">
             <SearchInput
               onClassCreated={handleClassCreated}
               searchValue={searchValue}
@@ -146,12 +145,9 @@ export default function Content({ statistics, courses }: ContentProps) {
             />
           </div>
         ) : null}
-        <div className='flex-1 px-6 min-h-0 overflow-hidden'>
+        <div className="flex-1 px-6 min-h-0 overflow-hidden">
           {hasClasses ? (
-            <ClassGrid
-              classes={filteredClasses}
-              showNoResults={showNoResults}
-            />
+            <ClassGrid classes={filteredClasses} showNoResults={showNoResults} />
           ) : (
             <EmptyClassState onClassCreated={handleClassCreated} />
           )}
