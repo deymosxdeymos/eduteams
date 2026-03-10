@@ -42,6 +42,11 @@ mock.module('@/components/landing/hero-mbti-collage', () => ({
   HeroMbtiCollage: () => <div data-testid='hero-mbti-collage' />,
 }));
 
+mock.module('@/components/landing/deferred-decorations', () => ({
+  DeferredAnimatedEntj: () => <div data-testid='animated-entj' />,
+  DeferredHeroMbtiCollage: () => <div data-testid='hero-mbti-collage' />,
+}));
+
 mock.module('@/components/logo', () => ({
   default: () => <div data-testid='logo' />,
 }));
@@ -101,11 +106,10 @@ describe('marketing Home page', () => {
   it('renders only demo login CTAs when demo login is enabled', async () => {
     process.env.DEMO_MODE = '1';
 
-    const { default: Home, dynamic } = await import('../page');
+    const { default: Home } = await import('../page');
 
     render(await Home());
 
-    expect(dynamic).toBe('force-dynamic');
     expect(screen.getAllByTestId('demo-login-button')).toHaveLength(2);
     expect(screen.queryByTestId('login-button')).toBeNull();
   });

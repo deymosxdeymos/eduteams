@@ -49,6 +49,7 @@ interface AssignmentDetailAsyncProps {
     name: string;
     nim: string;
     email: string;
+    gender: string | null;
     mbtiType?: string | null;
     ei?: number | null;
     sn?: number | null;
@@ -76,7 +77,6 @@ export async function AssignmentDetailAsync({
     stats,
     submittedForAssignment,
     topicRecords,
-    enrollments,
     pendingFormation,
     latestFormation,
   ] = await Promise.all([
@@ -110,32 +110,6 @@ export async function AssignmentDetailAsync({
     prisma.assignmentTopic.findMany({
       where: { assignmentId },
       select: { id: true, name: true },
-    }),
-    // Enrollments - single query for both personality data and student list
-    prisma.courseEnrollment.findMany({
-      where: { courseId: classId },
-      select: {
-        studentId: true,
-        student: {
-          select: {
-            id: true,
-            name: true,
-            nim: true,
-            email: true,
-            gender: true,
-            personalityProfile: {
-              select: {
-                mbtiType: true,
-                ei: true,
-                sn: true,
-                tf: true,
-                pj: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { student: { name: 'asc' } },
     }),
     // Pending formation check
     prisma.teamFormationRequest.findFirst({
@@ -241,7 +215,7 @@ export async function AssignmentDetailAsync({
     topicCount = topicRecords.length;
   }
 
-  const totalEnrollments = enrollments.length;
+  const totalEnrollments = students.length;
   const quizCompletionPercent = totalEnrollments
     ? Math.round(
         (Math.min(stats.quizSubmissions, totalEnrollments) / totalEnrollments) *
@@ -252,16 +226,14 @@ export async function AssignmentDetailAsync({
   // Calculate how many students haven't submitted the assignment quiz
   const incompleteCount = totalEnrollments - submittedStudentIds.size;
 
-  const enrolledStudentsList = enrollments.map(
-    (e: (typeof enrollments)[number]) => ({
-      id: e.student.id,
-      name: e.student.name,
-      nim: e.student.nim,
-      email: e.student.email,
-      mbtiType: e.student.personalityProfile?.mbtiType ?? null,
-      gender: e.student.gender,
-    })
-  );
+  const enrolledStudentsList = students.map(student => ({
+    id: student.id,
+    name: student.name,
+    nim: student.nim,
+    email: student.email,
+    mbtiType: student.mbtiType ?? null,
+    gender: student.gender,
+  }));
 
   // Teams data derived from latestFormation query in Promise.all
   let teamsData: Array<{
@@ -422,7 +394,7 @@ export async function AssignmentDetailAsync({
         stats={stats}
         hasTeams={percentAssigned > 0}
         topicCount={topicCount}
-        enrollmentCount={enrollments.length}
+        enrollmentCount={totalEnrollments}
         quizCompletionPercent={quizCompletionPercent}
         teams={teamsData}
         topicNames={topicNames}

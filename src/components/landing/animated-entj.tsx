@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { EntJMascot } from './mascots';
+import { EntJMascot } from './mascots/entj';
 
 const springEntry = {
   type: 'spring' as const,
@@ -39,7 +39,7 @@ export function AnimatedEntj() {
 
   return (
     <motion.div
-      className="absolute right-0 -bottom-16 z-20 h-auto w-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]"
+      className="h-auto w-full"
       initial={{ opacity: 0, y: 40, scale: 0 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ ...springEntry, delay: 0.3 }}

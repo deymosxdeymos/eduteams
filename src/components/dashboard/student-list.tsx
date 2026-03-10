@@ -124,7 +124,7 @@ export const StudentList = memo(function StudentList({
   );
 
   const hasInitialData = initialData !== undefined;
-  const shouldRevalidateOnMount = canManage || !hasInitialData;
+  const shouldRevalidateOnMount = !hasInitialData;
   const studentsKey = `/api/courses/${classId}/students`;
 
   const {

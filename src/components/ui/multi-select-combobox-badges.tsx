@@ -68,6 +68,7 @@ export function MultiSelectComboboxBadges({
   const [isFetching, setIsFetching] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const fetchRequestIdRef = useRef(0);
+  const lastFetchedKeyRef = useRef<string | null>(null);
   const listboxId = useId();
 
   // Debounce the input value to reduce API calls (300ms delay)
@@ -103,6 +104,7 @@ export function MultiSelectComboboxBadges({
 
         if (fetchRequestIdRef.current === requestId) {
           setFetchedSuggestions(names);
+          lastFetchedKeyRef.current = `${suggestionsEndpoint}::${query.trim()}`;
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
@@ -118,12 +120,24 @@ export function MultiSelectComboboxBadges({
     [suggestionsEndpoint]
   );
 
-  // Fetch suggestions when debounced input changes.
-  // Guards ensure only the latest response updates state.
   useEffect(() => {
     if (!suggestionsEndpoint) {
       fetchRequestIdRef.current += 1;
       setFetchedSuggestions([]);
+      setIsFetching(false);
+      lastFetchedKeyRef.current = null;
+      return;
+    }
+
+    if (!showCombobox || !popoverOpen) {
+      fetchRequestIdRef.current += 1;
+      setIsFetching(false);
+      return;
+    }
+
+    const query = debouncedInputValue.trim();
+    const fetchKey = `${suggestionsEndpoint}::${query}`;
+    if (lastFetchedKeyRef.current === fetchKey) {
       setIsFetching(false);
       return;
     }
@@ -133,12 +147,19 @@ export function MultiSelectComboboxBadges({
     fetchRequestIdRef.current = requestId;
     setIsFetching(true);
 
-    void fetchSuggestions(debouncedInputValue, requestId, controller.signal);
+    void fetchSuggestions(query, requestId, controller.signal);
 
     return () => {
       controller.abort();
+      setIsFetching(false);
     };
-  }, [debouncedInputValue, suggestionsEndpoint, fetchSuggestions]);
+  }, [
+    debouncedInputValue,
+    suggestionsEndpoint,
+    fetchSuggestions,
+    popoverOpen,
+    showCombobox,
+  ]);
 
   // Combine static and fetched suggestions
   const allSuggestions = useMemo(() => {

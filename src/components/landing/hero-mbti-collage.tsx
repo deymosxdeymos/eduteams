@@ -1,7 +1,10 @@
 'use client';
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { EstPMascot, IsfJMascot, InfJMascot, EntPMascot } from './mascots';
+import { EntPMascot } from './mascots/entp';
+import { EstPMascot } from './mascots/estp';
+import { InfJMascot } from './mascots/infj';
+import { IsfJMascot } from './mascots/isfj';
 
 // --- Animation spring (family.co: mass 4, stiffness 800, damping 80) ---
 
@@ -226,7 +229,7 @@ function Character({ character }: { character: HeroCharacter }) {
 export function HeroMbtiCollage() {
   return (
     <motion.div
-      className="animate-mascot relative mt-4 mb-6 h-[255px] w-full max-w-[980px] sm:h-[365px] md:h-[350px] lg:mb-0 lg:h-[420px]"
+      className="h-full w-full"
       variants={containerVariants}
       initial="hidden"
       animate="visible"

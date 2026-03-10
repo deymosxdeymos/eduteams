@@ -8,7 +8,7 @@
 - **Test all:** `bun run test` | **Single test:** `bun test path/to/test.ts` |
   **Watch:** `bun test --watch`
 - **Coverage:** `bun test --coverage` | **Bail on fail:** `bun test --bail`
-- **Version Control:** use `jj` instead of git
+- **Version Control:** use `git`
 
 ## TypeScript
 

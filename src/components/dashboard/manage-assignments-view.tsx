@@ -15,7 +15,6 @@ import {
   memo,
   type ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -65,6 +64,50 @@ const dateFormatter = new Intl.DateTimeFormat('id-ID', {
 
 function formatDate(isoString: string): string {
   return dateFormatter.format(new Date(isoString));
+}
+
+interface AssignmentOverlayState {
+  serverSnapshotKey: string;
+  optimisticAssignmentUpdates: Record<string, Partial<ManageAssignmentRow>>;
+}
+
+function getAssignmentOverlaySnapshotKey(assignments: ManageAssignmentRow[]) {
+  return assignments
+    .map(
+      assignment =>
+        [
+          assignment.id,
+          assignment.title,
+          assignment.description ?? '',
+          assignment.status,
+          assignment.startAt,
+          assignment.createdAt,
+          assignment.isArchived ? '1' : '0',
+          assignment.submissionsCount,
+          assignment.totalStudents,
+        ].join(':')
+    )
+    .join('|');
+}
+
+function createAssignmentOverlayState(
+  serverSnapshotKey: string
+): AssignmentOverlayState {
+  return {
+    serverSnapshotKey,
+    optimisticAssignmentUpdates: {},
+  };
+}
+
+function getCurrentAssignmentOverlayState(
+  state: AssignmentOverlayState,
+  serverSnapshotKey: string
+) {
+  if (state.serverSnapshotKey === serverSnapshotKey) {
+    return state;
+  }
+
+  return createAssignmentOverlayState(serverSnapshotKey);
 }
 
 function ManageTable({
@@ -182,12 +225,40 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] =
     useState<ManageAssignmentRow | null>(null);
-  const [assignmentRows, setAssignmentRows] =
-    useState<ManageAssignmentRow[]>(assignments);
+  const assignmentSnapshotKey = getAssignmentOverlaySnapshotKey(assignments);
+  const [assignmentOverlayState, setAssignmentOverlayState] =
+    useState<AssignmentOverlayState>(() =>
+      createAssignmentOverlayState(assignmentSnapshotKey)
+    );
+  const [optimisticDeletedAssignmentIds] = useState<Set<string>>(
+    () => new Set()
+  );
+  const activeAssignmentOverlayState = getCurrentAssignmentOverlayState(
+    assignmentOverlayState,
+    assignmentSnapshotKey
+  );
+  const optimisticAssignmentUpdates =
+    activeAssignmentOverlayState.optimisticAssignmentUpdates;
 
-  useEffect(() => {
-    setAssignmentRows(assignments);
-  }, [assignments]);
+  const assignmentRows = useMemo(
+    () =>
+      assignments
+        .filter(
+          assignment => !optimisticDeletedAssignmentIds.has(assignment.id)
+        )
+        .map(assignment => {
+          const optimisticUpdate = optimisticAssignmentUpdates[assignment.id];
+          if (!optimisticUpdate) {
+            return assignment;
+          }
+
+          return {
+            ...assignment,
+            ...optimisticUpdate,
+          };
+        }),
+    [assignments, optimisticAssignmentUpdates, optimisticDeletedAssignmentIds]
+  );
 
   const handleArchiveToggle = useCallback(
     (assignment: ManageAssignmentRow) => {
@@ -196,24 +267,50 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
       }
 
       const nextIsArchived = !assignment.isArchived;
+      const previousOverlay = optimisticAssignmentUpdates[assignment.id];
       setPendingAssignmentId(assignment.id);
       setArchiveError(null);
-      setAssignmentRows(current =>
-        current.map(row =>
-          row.id === assignment.id ? { ...row, isArchived: nextIsArchived } : row
-        )
-      );
+      setAssignmentOverlayState(current => {
+        const next = getCurrentAssignmentOverlayState(
+          current,
+          assignmentSnapshotKey
+        );
+
+        return {
+          ...next,
+          optimisticAssignmentUpdates: {
+            ...next.optimisticAssignmentUpdates,
+            [assignment.id]: {
+              ...(next.optimisticAssignmentUpdates[assignment.id] ?? {}),
+              isArchived: nextIsArchived,
+            },
+          },
+        };
+      });
       void (async () => {
         try {
           await onArchiveToggle(assignment);
         } catch (error) {
-          setAssignmentRows(current =>
-            current.map(row =>
-              row.id === assignment.id
-                ? { ...row, isArchived: assignment.isArchived }
-                : row
-            )
-          );
+          setAssignmentOverlayState(current => {
+            const next = getCurrentAssignmentOverlayState(
+              current,
+              assignmentSnapshotKey
+            );
+            const nextOptimisticAssignmentUpdates = {
+              ...next.optimisticAssignmentUpdates,
+            };
+
+            if (previousOverlay) {
+              nextOptimisticAssignmentUpdates[assignment.id] = previousOverlay;
+            } else {
+              delete nextOptimisticAssignmentUpdates[assignment.id];
+            }
+
+            return {
+              ...next,
+              optimisticAssignmentUpdates: nextOptimisticAssignmentUpdates,
+            };
+          });
           const errorMessage =
             error instanceof Error
               ? error.message
@@ -226,7 +323,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
         }
       })();
     },
-    [onArchiveToggle]
+    [assignmentSnapshotKey, onArchiveToggle, optimisticAssignmentUpdates]
   );
 
   const defaultActions = useCallback(
@@ -408,20 +505,34 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           assignment={editingAssignment}
           courseId={courseId}
           onUpdatedAction={updated => {
-            setAssignmentRows(current =>
-              current.map(row =>
-                row.id === updated.id
-                  ? {
-                      ...row,
-                      ...updated,
-                      description:
-                        updated.description === undefined
-                          ? row.description
-                          : updated.description,
-                    }
-                  : row
-              )
+            const currentAssignment = assignmentRows.find(
+              row => row.id === updated.id
             );
+            if (!currentAssignment) {
+              return;
+            }
+
+            setAssignmentOverlayState(current => {
+              const next = getCurrentAssignmentOverlayState(
+                current,
+                assignmentSnapshotKey
+              );
+
+              return {
+                ...next,
+                optimisticAssignmentUpdates: {
+                  ...next.optimisticAssignmentUpdates,
+                  [updated.id]: {
+                    ...(next.optimisticAssignmentUpdates[updated.id] ?? {}),
+                    ...updated,
+                    description:
+                      updated.description === undefined
+                        ? currentAssignment.description
+                        : updated.description,
+                  },
+                },
+              };
+            });
           }}
         />
       )}

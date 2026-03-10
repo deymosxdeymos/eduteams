@@ -4,16 +4,16 @@ import { getTranslations } from 'next-intl/server';
 import { DemoLoginButton } from '@/components/auth/demo-login-button';
 import { LoginButton } from '@/components/auth/login-button';
 import { LanguageSwitcherServer } from '@/components/dashboard/language-switcher-server';
-import { AnimatedEntj } from '@/components/landing/animated-entj';
-import { HeroMbtiCollage } from '@/components/landing/hero-mbti-collage';
+import {
+  DeferredAnimatedEntj,
+  DeferredHeroMbtiCollage,
+} from '@/components/landing/deferred-decorations';
 import Logo from '@/components/logo';
 import { isDemoModeEnabled } from '@/lib/demo/config';
 import { HighlightText } from '@/components/ui/highlight-text';
 import { ScrollToTopClient } from '@/components/ui/scroll-to-top-client';
 import { SkipLink } from '@/components/ui/skip-link';
 import { SocialRow } from '@/components/ui/social-row';
-
-export const dynamic = 'force-dynamic';
 
 function AuthCallToActionGroup({
   demoLoginEnabled,
@@ -83,7 +83,9 @@ export default async function Home() {
               />
             </div>
             <div className='relative z-20 flex w-full items-center justify-center'>
-              <HeroMbtiCollage />
+              <div className='animate-mascot relative mt-4 mb-6 h-[255px] w-full max-w-[980px] sm:h-[365px] md:h-[350px] lg:mb-0 lg:h-[420px]'>
+                <DeferredHeroMbtiCollage />
+              </div>
             </div>
           </div>
         </section>
@@ -116,7 +118,9 @@ export default async function Home() {
                 <p>{t('homepage.about.description')}</p>
               </div>
             </div>
-            <AnimatedEntj />
+            <div className='absolute right-0 -bottom-16 z-20 w-[120px] sm:w-[150px] lg:w-[200px]'>
+              <DeferredAnimatedEntj />
+            </div>
           </div>
         </section>
 

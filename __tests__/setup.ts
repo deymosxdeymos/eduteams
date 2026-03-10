@@ -122,6 +122,8 @@ mock.module('framer-motion', () => {
   return {
     AnimatePresence: ({ children }: any) =>
       React.createElement(React.Fragment, null, children),
+    MotionConfig: ({ children }: any) =>
+      React.createElement(React.Fragment, null, children),
     motion: new Proxy(
       {},
       {

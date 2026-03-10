@@ -878,7 +878,12 @@ export const ManageCoursesView = memo(function ManageCoursesView({
   renderActions,
   onArchiveToggle,
 }: ManageCoursesViewProps) {
-  const [courseRows, setCourseRows] = useState(courses);
+  const [optimisticCourseUpdates, setOptimisticCourseUpdates] = useState<
+    Record<string, Partial<ManageCourseRow>>
+  >({});
+  const [optimisticDeletedCourseIds, setOptimisticDeletedCourseIds] = useState<
+    Set<string>
+  >(new Set());
   const [searchTerm, setSearchTerm] = useQueryState('search', {
     defaultValue: '',
     shallow: true,
@@ -895,49 +900,77 @@ export const ManageCoursesView = memo(function ManageCoursesView({
   });
   const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setCourseRows(courses);
-  }, [courses]);
+  const courseRows = useMemo(
+    () =>
+      courses
+        .filter(course => !optimisticDeletedCourseIds.has(course.id))
+        .map(course => {
+          const optimisticUpdate = optimisticCourseUpdates[course.id];
+          if (!optimisticUpdate) {
+            return course;
+          }
+
+          return {
+            ...course,
+            ...optimisticUpdate,
+          };
+        }),
+    [courses, optimisticDeletedCourseIds, optimisticCourseUpdates]
+  );
 
   const handleCourseUpdated = useCallback(
     (
       courseId: string,
       values: Pick<ManageCourseRow, 'name' | 'classCode' | 'semester'>
     ) => {
-      setCourseRows(current =>
-        current.map(course => {
-          if (course.id !== courseId) {
-            return course;
-          }
+      const course = courseRows.find(row => row.id === courseId);
+      if (!course) {
+        return;
+      }
 
-          const nextCourse = {
-            ...course,
-            name: values.name,
-            classCode: values.classCode,
-            semester: values.semester,
-            periodLabel: formatPeriodLabel(
-              course.startYear,
-              course.endYear,
-              values.semester
-            ),
-            updatedAt: new Date().toISOString(),
-          };
+      const nextCourse = {
+        ...course,
+        name: values.name,
+        classCode: values.classCode,
+        semester: values.semester,
+        periodLabel: formatPeriodLabel(
+          course.startYear,
+          course.endYear,
+          values.semester
+        ),
+        updatedAt: new Date().toISOString(),
+      };
 
-          return {
-            ...nextCourse,
-            isArchived: resolveArchivedState(
-              nextCourse,
-              nextCourse.isManuallyArchived
-            ),
-          };
-        })
-      );
+      setOptimisticCourseUpdates(current => ({
+        ...current,
+        [courseId]: {
+          ...(current[courseId] ?? {}),
+          name: nextCourse.name,
+          classCode: nextCourse.classCode,
+          semester: nextCourse.semester,
+          periodLabel: nextCourse.periodLabel,
+          updatedAt: nextCourse.updatedAt,
+          isArchived: resolveArchivedState(
+            nextCourse,
+            nextCourse.isManuallyArchived
+          ),
+        },
+      }));
     },
-    []
+    [courseRows]
   );
 
   const handleCourseDeleted = useCallback((courseId: string) => {
-    setCourseRows(current => current.filter(course => course.id !== courseId));
+    setOptimisticDeletedCourseIds(current => new Set(current).add(courseId));
+    setOptimisticCourseUpdates(current => {
+      if (!current[courseId]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[courseId];
+      return next;
+    });
   }, []);
 
   const handleArchiveToggle = useCallback(
@@ -946,38 +979,39 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         return;
       }
 
-      const previousCourse = course;
       const nextIsManuallyArchived = !course.isManuallyArchived;
+      const previousOverlay = optimisticCourseUpdates[course.id];
+      const nextCourse = {
+        ...course,
+        isManuallyArchived: nextIsManuallyArchived,
+        updatedAt: new Date().toISOString(),
+      };
       setPendingCourseId(course.id);
-      setCourseRows(current =>
-        current.map(row => {
-          if (row.id !== course.id) {
-            return row;
-          }
-
-          const nextCourse = {
-            ...row,
-            isManuallyArchived: nextIsManuallyArchived,
-            updatedAt: new Date().toISOString(),
-          };
-
-          return {
-            ...nextCourse,
-            isArchived: resolveArchivedState(
-              nextCourse,
-              nextIsManuallyArchived
-            ),
-          };
-        })
-      );
+      setOptimisticCourseUpdates(current => ({
+        ...current,
+        [course.id]: {
+          ...(current[course.id] ?? {}),
+          isManuallyArchived: nextIsManuallyArchived,
+          isArchived: resolveArchivedState(nextCourse, nextIsManuallyArchived),
+          updatedAt: nextCourse.updatedAt,
+        },
+      }));
       void (async () => {
         try {
           await onArchiveToggle(course);
         } catch (error) {
           console.error('Failed to toggle archive status', error);
-          setCourseRows(current =>
-            current.map(row => (row.id === previousCourse.id ? previousCourse : row))
-          );
+          setOptimisticCourseUpdates(current => {
+            const next = { ...current };
+
+            if (previousOverlay) {
+              next[course.id] = previousOverlay;
+            } else {
+              delete next[course.id];
+            }
+
+            return next;
+          });
         } finally {
           setPendingCourseId(current =>
             current === course.id ? null : current
@@ -985,7 +1019,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         }
       })();
     },
-    [onArchiveToggle]
+    [onArchiveToggle, optimisticCourseUpdates]
   );
 
   const defaultActions = useCallback(

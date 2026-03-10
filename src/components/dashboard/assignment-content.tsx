@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
@@ -52,7 +52,6 @@ interface EnrolledStudent {
   gender: string | null;
 }
 
-
 interface AssignmentContentProps {
   assignmentId: string;
   classId: string;
@@ -77,6 +76,48 @@ interface AssignmentContentProps {
   enrolledStudents?: EnrolledStudent[];
   submittedStudentIds?: Set<string>;
   retryFormationModalSignal?: number;
+}
+
+interface TeamOverlayState {
+  serverSnapshotKey: string;
+  committedTeamMembersByTeamId: Record<string, TeamMemberItem[]>;
+  removedStudentIds: Set<string>;
+  pendingAdditionIds: Set<string>;
+}
+
+function getTeamOverlaySnapshotKey(
+  teams: Team[],
+  enrolledStudents: EnrolledStudent[]
+) {
+  const teamMembershipKey = teams
+    .map(
+      team =>
+        `${team.id}:${team.members.map(member => member.user.id).join(',')}`
+    )
+    .join('|');
+  const enrolledStudentKey = enrolledStudents.map(student => student.id).join(',');
+
+  return `${teamMembershipKey}::${enrolledStudentKey}`;
+}
+
+function createTeamOverlayState(serverSnapshotKey: string): TeamOverlayState {
+  return {
+    serverSnapshotKey,
+    committedTeamMembersByTeamId: {},
+    removedStudentIds: new Set(),
+    pendingAdditionIds: new Set(),
+  };
+}
+
+function getCurrentTeamOverlayState(
+  state: TeamOverlayState,
+  serverSnapshotKey: string
+) {
+  if (state.serverSnapshotKey === serverSnapshotKey) {
+    return state;
+  }
+
+  return createTeamOverlayState(serverSnapshotKey);
 }
 
 export function AssignmentContent({
@@ -109,33 +150,54 @@ export function AssignmentContent({
   const [retryModalSignal, setRetryModalSignal] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(0);
-  const [teamItems, setTeamItems] = useState(teams);
-  const [enrolledStudentItems, setEnrolledStudentItems] = useState(enrolledStudents);
-  const [pendingAdditionIds, setPendingAdditionIds] = useState<Set<string>>(
-    new Set()
+  const serverSnapshotKey = getTeamOverlaySnapshotKey(teams, enrolledStudents);
+  const [teamOverlayState, setTeamOverlayState] = useState<TeamOverlayState>(
+    () => createTeamOverlayState(serverSnapshotKey)
   );
   const [isSaving, setIsSaving] = useState(false);
+  const activeTeamOverlayState = getCurrentTeamOverlayState(
+    teamOverlayState,
+    serverSnapshotKey
+  );
+  const {
+    committedTeamMembersByTeamId,
+    removedStudentIds,
+    pendingAdditionIds,
+  } = activeTeamOverlayState;
 
-  useEffect(() => {
-    setTeamItems(teams);
-  }, [teams]);
+  const visibleTeamItems = useMemo(
+    () =>
+      teams.map(team => ({
+        ...team,
+        members: (committedTeamMembersByTeamId[team.id] ?? team.members).filter(
+          member => !removedStudentIds.has(member.user.id)
+        ),
+      })),
+    [teams, committedTeamMembersByTeamId, removedStudentIds]
+  );
 
-  useEffect(() => {
-    setEnrolledStudentItems(enrolledStudents);
-  }, [enrolledStudents]);
+  const visibleEnrolledStudents = useMemo(
+    () =>
+      enrolledStudents.filter(student => !removedStudentIds.has(student.id)),
+    [enrolledStudents, removedStudentIds]
+  );
 
-  const allAssignedStudentIds = useMemo(() => new Set(
-    teamItems.flatMap(team => team.members.map(m => m.user.id))
-  ), [teamItems]);
+  const allAssignedStudentIds = useMemo(
+    () =>
+      new Set(
+        visibleTeamItems.flatMap(team => team.members.map(member => member.user.id))
+      ),
+    [visibleTeamItems]
+  );
 
   const visibleMissingStudents = useMemo(() => {
-    const missingStudents = enrolledStudentItems.filter(
+    const missingStudents = visibleEnrolledStudents.filter(
       student => !allAssignedStudentIds.has(student.id)
     );
     return missingStudents.filter(
       student => !pendingAdditionIds.has(student.id)
     );
-  }, [enrolledStudentItems, allAssignedStudentIds, pendingAdditionIds]);
+  }, [visibleEnrolledStudents, allAssignedStudentIds, pendingAdditionIds]);
 
   const adjustedIncompleteCount = visibleMissingStudents.length;
 
@@ -189,7 +251,7 @@ export function AssignmentContent({
         {isStudent ? (
           hasTeams ? (
             <AssignmentTeamsClient
-              teams={teamItems}
+              teams={visibleTeamItems}
               assignmentId={assignmentId}
               courseId={courseId}
               topicNames={topicNames}
@@ -262,7 +324,7 @@ export function AssignmentContent({
               </ChartsToggle>
             )}
             <AssignmentTeamsClient
-              teams={teamItems}
+              teams={visibleTeamItems}
               assignmentId={assignmentId}
               courseId={courseId}
               topicNames={topicNames}
@@ -274,31 +336,55 @@ export function AssignmentContent({
               canManage={canManage}
               currentUserId={currentUserId}
               isEditMode={isEditMode}
-              enrolledStudents={enrolledStudentItems}
+              enrolledStudents={visibleEnrolledStudents}
               submittedStudentIds={submittedStudentIds}
               saveTrigger={saveTrigger}
               onMembersCommitted={(teamId, members) => {
-                setTeamItems(current =>
-                  current.map(team =>
-                    team.id === teamId ? { ...team, members } : team
-                  )
-                );
+                setTeamOverlayState(current => {
+                  const next = getCurrentTeamOverlayState(
+                    current,
+                    serverSnapshotKey
+                  );
+
+                  return {
+                    ...next,
+                    committedTeamMembersByTeamId: {
+                      ...next.committedTeamMembersByTeamId,
+                      [teamId]: members,
+                    },
+                  };
+                });
               }}
               onCourseStudentRemoved={studentId => {
-                setEnrolledStudentItems(current =>
-                  current.filter(student => student.id !== studentId)
-                );
-                setTeamItems(current =>
-                  current.map(team => ({
-                    ...team,
-                    members: team.members.filter(
-                      member => member.user.id !== studentId
-                    ),
-                  }))
-                );
+                setTeamOverlayState(current => {
+                  const next = getCurrentTeamOverlayState(
+                    current,
+                    serverSnapshotKey
+                  );
+                  const nextRemovedStudentIds = new Set(next.removedStudentIds);
+                  nextRemovedStudentIds.add(studentId);
+                  const nextPendingAdditionIds = new Set(next.pendingAdditionIds);
+                  nextPendingAdditionIds.delete(studentId);
+
+                  return {
+                    ...next,
+                    removedStudentIds: nextRemovedStudentIds,
+                    pendingAdditionIds: nextPendingAdditionIds,
+                  };
+                });
               }}
               onPendingAdditionsChange={ids =>
-                setPendingAdditionIds(new Set(ids))
+                setTeamOverlayState(current => {
+                  const next = getCurrentTeamOverlayState(
+                    current,
+                    serverSnapshotKey
+                  );
+
+                  return {
+                    ...next,
+                    pendingAdditionIds: new Set(ids),
+                  };
+                })
               }
               onSavingChange={setIsSaving}
             />
