@@ -1,8 +1,8 @@
-import { AssignmentContent } from '@/components/dashboard/assignment-content';
-import { AssignmentLayout } from '@/components/dashboard/assignment-layout';
-import prisma from '@/lib/prisma';
-import { getAssignmentStats } from '@/lib/stats/assignment';
-import type { Course, ExtendedUser } from '@/lib/types';
+import { AssignmentContent } from "@/components/dashboard/assignment-content";
+import { AssignmentLayout } from "@/components/dashboard/assignment-layout";
+import prisma from "@/lib/prisma";
+import { getAssignmentStats } from "@/lib/stats/assignment";
+import type { Course, ExtendedUser } from "@/lib/types";
 
 type TeamMemberFromQuery = {
   id: string;
@@ -115,24 +115,24 @@ export async function AssignmentDetailAsync({
     prisma.teamFormationRequest.findFirst({
       where: {
         assignmentId,
-        status: { in: ['PENDING', 'PROCESSING'] },
+        status: { in: ["PENDING", "PROCESSING"] },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       select: { id: true },
     }),
     // Completed team formation - for percentage calc and team display
     prisma.teamFormationRequest.findFirst({
       where: {
         assignmentId,
-        status: 'COMPLETED',
+        status: "COMPLETED",
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         teams: {
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: "asc" },
           include: {
             members: {
-              orderBy: { createdAt: 'asc' },
+              orderBy: { createdAt: "asc" },
               select: {
                 id: true,
                 userId: true,
@@ -187,9 +187,9 @@ export async function AssignmentDetailAsync({
   ]);
 
   const hasSubmitted = !!submissionCheck;
-  const assignmentTitle = assignment?.title ?? 'Tugas';
+  const assignmentTitle = assignment?.title ?? "Tugas";
   const submittedStudentIds = new Set<string>(
-    submittedForAssignment.map((s: { studentId: string }) => s.studentId)
+    submittedForAssignment.map((s: { studentId: string }) => s.studentId),
   );
   const isTeamFormationProcessing = Boolean(pendingFormation);
 
@@ -203,7 +203,7 @@ export async function AssignmentDetailAsync({
       };
       if (Array.isArray(parsed?.topics)) {
         topicCount = parsed.topics
-          .map(topic => (typeof topic === 'string' ? topic.trim() : ''))
+          .map((topic) => (typeof topic === "string" ? topic.trim() : ""))
           .filter(Boolean).length;
       } else {
         topicCount = 0;
@@ -217,16 +217,13 @@ export async function AssignmentDetailAsync({
 
   const totalEnrollments = students.length;
   const quizCompletionPercent = totalEnrollments
-    ? Math.round(
-        (Math.min(stats.quizSubmissions, totalEnrollments) / totalEnrollments) *
-          100
-      )
+    ? Math.round((Math.min(stats.quizSubmissions, totalEnrollments) / totalEnrollments) * 100)
     : 0;
 
   // Calculate how many students haven't submitted the assignment quiz
   const incompleteCount = totalEnrollments - submittedStudentIds.size;
 
-  const enrolledStudentsList = students.map(student => ({
+  const enrolledStudentsList = students.map((student) => ({
     id: student.id,
     name: student.name,
     nim: student.nim,
@@ -263,13 +260,11 @@ export async function AssignmentDetailAsync({
   if (latestFormation) {
     const memberIds = new Set(
       latestFormation.teams.flatMap((t: { members: { userId: string }[] }) =>
-        t.members.map((m: { userId: string }) => m.userId)
-      )
+        t.members.map((m: { userId: string }) => m.userId),
+      ),
     );
     percentAssigned =
-      totalEnrollments > 0
-        ? Math.round((memberIds.size / totalEnrollments) * 100)
-        : 0;
+      totalEnrollments > 0 ? Math.round((memberIds.size / totalEnrollments) * 100) : 0;
   }
 
   if (latestFormation && latestFormation.teams.length > 0) {
@@ -293,18 +288,13 @@ export async function AssignmentDetailAsync({
             name: skill.skill?.name ?? null,
           })) ?? [];
 
-        const sortedSkills = personSkills.toSorted(
-          (a, b) => (b.level ?? 0) - (a.level ?? 0)
+        const sortedSkills = personSkills.toSorted((a, b) => (b.level ?? 0) - (a.level ?? 0));
+        const filteredSkills = sortedSkills.filter((skill) =>
+          assignedSkillSet.size === 0 ? true : assignedSkillSet.has(skill.skillId),
         );
-        const filteredSkills = sortedSkills.filter(skill =>
-          assignedSkillSet.size === 0
-            ? true
-            : assignedSkillSet.has(skill.skillId)
-        );
-        const relevantSkills =
-          filteredSkills.length > 0 ? filteredSkills : sortedSkills;
+        const relevantSkills = filteredSkills.length > 0 ? filteredSkills : sortedSkills;
         const topSkills = Array.from(
-          new Set(relevantSkills.map(skill => skill.name).filter(Boolean))
+          new Set(relevantSkills.map((skill) => skill.name).filter(Boolean)),
         ) as string[];
 
         type TopicPrefItem = {
@@ -320,8 +310,7 @@ export async function AssignmentDetailAsync({
         const preferredTopics = topicPreferences
           .filter((pref: TopicPrefMapped) => pref.name)
           .toSorted(
-            (a: TopicPrefMapped, b: TopicPrefMapped) =>
-              (b.preference ?? 0) - (a.preference ?? 0)
+            (a: TopicPrefMapped, b: TopicPrefMapped) => (b.preference ?? 0) - (a.preference ?? 0),
           )
           .map((pref: TopicPrefMapped) => pref.name as string);
 
@@ -352,7 +341,7 @@ export async function AssignmentDetailAsync({
         teams?: Array<{ taskId: string }>;
       } | null;
       if (resp?.teams?.length) {
-        taskIdByIndex = resp.teams.map(t => t.taskId);
+        taskIdByIndex = resp.teams.map((t) => t.taskId);
       }
     } catch {
       // ignore
@@ -364,7 +353,7 @@ export async function AssignmentDetailAsync({
       topicNames = Object.fromEntries(
         topicRecords
           .filter((r: { id: string; name: string }) => taskIdSet.has(r.id))
-          .map((r: { id: string; name: string }) => [r.id, r.name] as const)
+          .map((r: { id: string; name: string }) => [r.id, r.name] as const),
       );
     }
   }
@@ -403,7 +392,7 @@ export async function AssignmentDetailAsync({
         incompleteStudentCount={incompleteCount}
         currentUserId={user.id}
         enrolledStudents={enrolledStudentsList}
-        submittedStudentIds={submittedStudentIds}
+        submittedStudentIds={Array.from(submittedStudentIds)}
       />
     </AssignmentLayout>
   );

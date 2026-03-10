@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
-import { AssignmentActions } from '@/components/dashboard/assignment-actions';
-import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
-import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
-import { ChartsToggle } from '@/components/dashboard/charts-toggle';
-import { TeamFormationLoading } from '@/components/dashboard/team-formation-loading';
-import { Button } from '@/components/ui/button';
-import type { Gender } from '@/generated/prisma/client';
-import { EMPTY_SET } from '@/lib/constants';
-import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
-import { useRouter } from '@/i18n/routing';
-import type { AssignmentStats } from '@/lib/stats/assignment';
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { AssignmentActions } from "@/components/dashboard/assignment-actions";
+import { AssignmentCharts } from "@/components/dashboard/assignment-charts";
+import { AssignmentTeamsClient } from "@/components/dashboard/assignment-teams-client";
+import { ChartsToggle } from "@/components/dashboard/charts-toggle";
+import { TeamFormationLoading } from "@/components/dashboard/team-formation-loading";
+import { Button } from "@/components/ui/button";
+import type { Gender } from "@/generated/prisma/client";
+import { EMPTY_STRING_ARRAY } from "@/lib/constants";
+import { useTeamFormationStatus } from "@/hooks/use-team-formation-status";
+import { useRouter } from "@/i18n/routing";
+import type { AssignmentStats } from "@/lib/stats/assignment";
 
 interface TeamMemberUser {
   id: string;
@@ -74,7 +74,7 @@ interface AssignmentContentProps {
   incompleteStudentCount?: number;
   currentUserId?: string;
   enrolledStudents?: EnrolledStudent[];
-  submittedStudentIds?: Set<string>;
+  submittedStudentIds?: readonly string[];
   retryFormationModalSignal?: number;
 }
 
@@ -85,17 +85,11 @@ interface TeamOverlayState {
   pendingAdditionIds: Set<string>;
 }
 
-function getTeamOverlaySnapshotKey(
-  teams: Team[],
-  enrolledStudents: EnrolledStudent[]
-) {
+function getTeamOverlaySnapshotKey(teams: Team[], enrolledStudents: EnrolledStudent[]) {
   const teamMembershipKey = teams
-    .map(
-      team =>
-        `${team.id}:${team.members.map(member => member.user.id).join(',')}`
-    )
-    .join('|');
-  const enrolledStudentKey = enrolledStudents.map(student => student.id).join(',');
+    .map((team) => `${team.id}:${team.members.map((member) => member.user.id).join(",")}`)
+    .join("|");
+  const enrolledStudentKey = enrolledStudents.map((student) => student.id).join(",");
 
   return `${teamMembershipKey}::${enrolledStudentKey}`;
 }
@@ -109,10 +103,7 @@ function createTeamOverlayState(serverSnapshotKey: string): TeamOverlayState {
   };
 }
 
-function getCurrentTeamOverlayState(
-  state: TeamOverlayState,
-  serverSnapshotKey: string
-) {
+function getCurrentTeamOverlayState(state: TeamOverlayState, serverSnapshotKey: string) {
   if (state.serverSnapshotKey === serverSnapshotKey) {
     return state;
   }
@@ -140,63 +131,55 @@ export function AssignmentContent({
   isTeamFormationProcessing = false,
   currentUserId,
   enrolledStudents = [],
-  submittedStudentIds = EMPTY_SET,
+  submittedStudentIds: submittedStudentIdsProp = EMPTY_STRING_ARRAY,
 }: AssignmentContentProps) {
-  const t = useTranslations('dashboard.assignment');
-  const tTeams = useTranslations('dashboard.teams');
+  const t = useTranslations("dashboard.assignment");
+  const tTeams = useTranslations("dashboard.teams");
   const router = useRouter();
-  const [searchValue, setSearchValue] = useState('');
+  const submittedStudentIds = useMemo(
+    () => new Set(submittedStudentIdsProp),
+    [submittedStudentIdsProp],
+  );
+  const [searchValue, setSearchValue] = useState("");
   const [showError, setShowError] = useState(false);
   const [retryModalSignal, setRetryModalSignal] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(0);
   const serverSnapshotKey = getTeamOverlaySnapshotKey(teams, enrolledStudents);
-  const [teamOverlayState, setTeamOverlayState] = useState<TeamOverlayState>(
-    () => createTeamOverlayState(serverSnapshotKey)
+  const [teamOverlayState, setTeamOverlayState] = useState<TeamOverlayState>(() =>
+    createTeamOverlayState(serverSnapshotKey),
   );
   const [isSaving, setIsSaving] = useState(false);
-  const activeTeamOverlayState = getCurrentTeamOverlayState(
-    teamOverlayState,
-    serverSnapshotKey
-  );
-  const {
-    committedTeamMembersByTeamId,
-    removedStudentIds,
-    pendingAdditionIds,
-  } = activeTeamOverlayState;
+  const activeTeamOverlayState = getCurrentTeamOverlayState(teamOverlayState, serverSnapshotKey);
+  const { committedTeamMembersByTeamId, removedStudentIds, pendingAdditionIds } =
+    activeTeamOverlayState;
 
   const visibleTeamItems = useMemo(
     () =>
-      teams.map(team => ({
+      teams.map((team) => ({
         ...team,
         members: (committedTeamMembersByTeamId[team.id] ?? team.members).filter(
-          member => !removedStudentIds.has(member.user.id)
+          (member) => !removedStudentIds.has(member.user.id),
         ),
       })),
-    [teams, committedTeamMembersByTeamId, removedStudentIds]
+    [teams, committedTeamMembersByTeamId, removedStudentIds],
   );
 
   const visibleEnrolledStudents = useMemo(
-    () =>
-      enrolledStudents.filter(student => !removedStudentIds.has(student.id)),
-    [enrolledStudents, removedStudentIds]
+    () => enrolledStudents.filter((student) => !removedStudentIds.has(student.id)),
+    [enrolledStudents, removedStudentIds],
   );
 
   const allAssignedStudentIds = useMemo(
-    () =>
-      new Set(
-        visibleTeamItems.flatMap(team => team.members.map(member => member.user.id))
-      ),
-    [visibleTeamItems]
+    () => new Set(visibleTeamItems.flatMap((team) => team.members.map((member) => member.user.id))),
+    [visibleTeamItems],
   );
 
   const visibleMissingStudents = useMemo(() => {
     const missingStudents = visibleEnrolledStudents.filter(
-      student => !allAssignedStudentIds.has(student.id)
+      (student) => !allAssignedStudentIds.has(student.id),
     );
-    return missingStudents.filter(
-      student => !pendingAdditionIds.has(student.id)
-    );
+    return missingStudents.filter((student) => !pendingAdditionIds.has(student.id));
   }, [visibleEnrolledStudents, allAssignedStudentIds, pendingAdditionIds]);
 
   const adjustedIncompleteCount = visibleMissingStudents.length;
@@ -218,16 +201,16 @@ export function AssignmentContent({
     },
   });
 
-  const effectiveShowError = showError && status === 'FAILED';
+  const effectiveShowError = showError && status === "FAILED";
 
   const handleRetry = () => {
     setShowError(false);
-    setRetryModalSignal(prev => prev + 1);
+    setRetryModalSignal((prev) => prev + 1);
   };
 
   return (
-    <div className='flex-1 p-8 min-h-0'>
-      <div className='h-full flex flex-col space-y-4 text-gray-500 overflow-y-auto'>
+    <div className="flex-1 p-8 min-h-0">
+      <div className="h-full flex flex-col space-y-4 text-gray-500 overflow-y-auto">
         <AssignmentActions
           assignmentId={assignmentId}
           classId={classId}
@@ -244,7 +227,7 @@ export function AssignmentContent({
           onSearchChange={setSearchValue}
           isTeamFormationProcessing={isTeamFormationProcessing}
           isEditMode={isEditMode}
-          onSaveClick={() => setSaveTrigger(prev => prev + 1)}
+          onSaveClick={() => setSaveTrigger((prev) => prev + 1)}
           isSaving={isSaving}
         />
 
@@ -265,46 +248,38 @@ export function AssignmentContent({
               currentUserId={currentUserId}
             />
           ) : (
-            <div className='flex-1 flex items-center justify-center'>
-              <div className='flex flex-col items-center text-center max-w-xl'>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="flex flex-col items-center text-center max-w-xl">
                 <Image
-                  src='/waiting-form.svg'
-                  alt={t('studentWaiting.alt')}
+                  src="/waiting-form.svg"
+                  alt={t("studentWaiting.alt")}
                   width={120}
                   height={120}
-                  className='mb-6'
+                  className="mb-6"
                   priority
                 />
-                <h1 className='text-2xl font-bold text-gray-800 mb-2'>
-                  {t('studentWaiting.title')}
+                <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                  {t("studentWaiting.title")}
                 </h1>
-                <p className='text-gray-600'>
-                  {t('studentWaiting.description')}
-                </p>
+                <p className="text-gray-600">{t("studentWaiting.description")}</p>
               </div>
             </div>
           )
-        ) : isTeamFormationProcessing && status !== 'FAILED' ? (
+        ) : isTeamFormationProcessing && status !== "FAILED" ? (
           // Show loading animation for teachers when team formation is processing
           <TeamFormationLoading />
-        ) : effectiveShowError || status === 'FAILED' ? (
+        ) : effectiveShowError || status === "FAILED" ? (
           // Show error message with retry button
-          <div className='flex-1 flex items-center justify-center'>
-            <div className='flex flex-col items-center text-center max-w-xl gap-4'>
-              <div className='rounded-2xl border border-red-200 bg-red-50 text-red-900 px-6 py-4'>
-                <h3 className='font-semibold text-lg mb-2'>
-                  {tTeams('formationFailed')}
-                </h3>
-                <p className='text-sm text-red-700'>
-                  {errorMessage || tTeams('formationFailedDesc')}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="flex flex-col items-center text-center max-w-xl gap-4">
+              <div className="rounded-2xl border border-red-200 bg-red-50 text-red-900 px-6 py-4">
+                <h3 className="font-semibold text-lg mb-2">{tTeams("formationFailed")}</h3>
+                <p className="text-sm text-red-700">
+                  {errorMessage || tTeams("formationFailedDesc")}
                 </p>
               </div>
-              <Button
-                onClick={handleRetry}
-                variant='onboarding'
-                className='rounded-full px-8 py-6'
-              >
-                {tTeams('retryFormation')}
+              <Button onClick={handleRetry} variant="onboarding" className="rounded-full px-8 py-6">
+                {tTeams("retryFormation")}
               </Button>
             </div>
           </div>
@@ -340,11 +315,8 @@ export function AssignmentContent({
               submittedStudentIds={submittedStudentIds}
               saveTrigger={saveTrigger}
               onMembersCommitted={(teamId, members) => {
-                setTeamOverlayState(current => {
-                  const next = getCurrentTeamOverlayState(
-                    current,
-                    serverSnapshotKey
-                  );
+                setTeamOverlayState((current) => {
+                  const next = getCurrentTeamOverlayState(current, serverSnapshotKey);
 
                   return {
                     ...next,
@@ -355,12 +327,9 @@ export function AssignmentContent({
                   };
                 });
               }}
-              onCourseStudentRemoved={studentId => {
-                setTeamOverlayState(current => {
-                  const next = getCurrentTeamOverlayState(
-                    current,
-                    serverSnapshotKey
-                  );
+              onCourseStudentRemoved={(studentId) => {
+                setTeamOverlayState((current) => {
+                  const next = getCurrentTeamOverlayState(current, serverSnapshotKey);
                   const nextRemovedStudentIds = new Set(next.removedStudentIds);
                   nextRemovedStudentIds.add(studentId);
                   const nextPendingAdditionIds = new Set(next.pendingAdditionIds);
@@ -373,12 +342,9 @@ export function AssignmentContent({
                   };
                 });
               }}
-              onPendingAdditionsChange={ids =>
-                setTeamOverlayState(current => {
-                  const next = getCurrentTeamOverlayState(
-                    current,
-                    serverSnapshotKey
-                  );
+              onPendingAdditionsChange={(ids) =>
+                setTeamOverlayState((current) => {
+                  const next = getCurrentTeamOverlayState(current, serverSnapshotKey);
 
                   return {
                     ...next,
