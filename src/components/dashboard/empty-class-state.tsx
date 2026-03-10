@@ -1,9 +1,13 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import type { Course } from '@/lib/types';
-import CreateClassModal from './create-class-modal';
+
+const CreateClassModal = dynamic(() => import('./create-class-modal'), {
+  ssr: false,
+});
 
 interface EmptyClassStateProps {
   onClassCreated?: (course: Course) => void;

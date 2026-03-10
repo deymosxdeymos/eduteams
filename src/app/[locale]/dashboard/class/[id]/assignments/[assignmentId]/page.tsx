@@ -21,6 +21,7 @@ type EnrollmentWithStudent = {
     name: string | null;
     email: string | null;
     nim: string | null;
+    gender: string | null;
     personalityProfile: {
       mbtiType: string | null;
       ei: number | null;
@@ -54,6 +55,7 @@ const mapEnrollmentStudents = (enrollments: EnrollmentWithStudent[]) =>
     name: e.student.name || 'Unknown',
     nim: e.student.nim || 'N/A',
     email: e.student.email || 'N/A',
+    gender: e.student.gender,
     mbtiType: e.student.personalityProfile?.mbtiType ?? null,
     ei: e.student.personalityProfile?.ei ?? null,
     sn: e.student.personalityProfile?.sn ?? null,
@@ -80,6 +82,7 @@ const getDosenCourseAndStudents = cache(async (courseId: string, userId: string)
             name: true,
             email: true,
             nim: true,
+            gender: true,
             personalityProfile: {
               select: {
                 mbtiType: true,
@@ -118,6 +121,7 @@ const getMahasiswaCourseAndStudents = cache(async (courseId: string, userId: str
                   name: true,
                   email: true,
                   nim: true,
+                  gender: true,
                   personalityProfile: {
                     select: {
                       mbtiType: true,

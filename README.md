@@ -117,9 +117,9 @@ CRON_SECRET="your-cron-secret"
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch or change with `jj`
+2. Create a feature branch with `git`
 3. Test, type-check, and lint: `bun test` && `bun run tsgo` && `bun run lint`
-4. Commit with `jj`
+4. Commit with `git`
 5. Push & open a PR
 
 ## Deployment

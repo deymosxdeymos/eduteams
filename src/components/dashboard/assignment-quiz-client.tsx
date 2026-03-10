@@ -1,14 +1,25 @@
 'use client';
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useReducer, useRef, useState } from 'react';
-import PreferenceTestInstructionModal from '@/components/dashboard/preference-test-instruction-modal';
 import SkillTestInstructionModal from '@/components/dashboard/skill-test-instruction-modal';
 import { Button } from '@/components/ui/button';
 import SkillsQuiz from './skills-quiz';
-import TopicsQuiz from './topics-quiz';
+
+const PreferenceTestInstructionModal = dynamic(
+  () => import('@/components/dashboard/preference-test-instruction-modal'),
+  {
+    loading: () => null,
+    ssr: false,
+  }
+);
+
+const TopicsQuiz = dynamic(() => import('./topics-quiz'), {
+  loading: () => <div className='min-h-[24rem]' />,
+});
 
 interface Assignment {
   id: string;
@@ -305,10 +316,12 @@ export function AssignmentQuizClient({
         isOpen={isSkillModalOpen && state.currentStep === 'skills'}
         onCloseAction={() => setIsSkillModalOpen(false)}
       />
-      <PreferenceTestInstructionModal
-        isOpen={isPreferenceModalOpen && state.currentStep === 'topics'}
-        onCloseAction={() => setIsPreferenceModalOpen(false)}
-      />
+      {assignment.hasTopics ? (
+        <PreferenceTestInstructionModal
+          isOpen={isPreferenceModalOpen && state.currentStep === 'topics'}
+          onCloseAction={() => setIsPreferenceModalOpen(false)}
+        />
+      ) : null}
       <div className='flex items-center justify-center space-x-2 pt-20'>
         <h1 className='font-bold text-black text-6xl tracking-tighter'>
           {state.currentStep === 'skills' ? t('skillsTitle') : t('topicsTitle')}
@@ -331,7 +344,7 @@ export function AssignmentQuizClient({
               answers={state.skillsAnswers}
               prefills={assignment.skillPrefills}
             />
-          ) : (
+          ) : assignment.hasTopics ? (
             <TopicsQuiz
               topics={assignment.topics}
               onAnswerAction={handleTopicsAnswer}
@@ -339,7 +352,7 @@ export function AssignmentQuizClient({
               answers={state.topicsAnswers}
               prefills={assignment.topicPrefills}
             />
-          )}
+          ) : null}
         </div>
       </form>
 

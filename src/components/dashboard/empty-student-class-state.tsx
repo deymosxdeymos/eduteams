@@ -1,8 +1,12 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import JoinClassModal from './join-class-modal';
+
+const JoinClassModal = dynamic(() => import('./join-class-modal'), {
+  ssr: false,
+});
 
 interface EmptyStudentClassStateProps {
   onClassJoined?: () => void;

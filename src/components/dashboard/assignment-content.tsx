@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AssignmentActions } from '@/components/dashboard/assignment-actions';
 import { AssignmentCharts } from '@/components/dashboard/assignment-charts';
 import { AssignmentTeamsClient } from '@/components/dashboard/assignment-teams-client';
@@ -51,7 +51,6 @@ interface EnrolledStudent {
   mbtiType: string | null;
   gender: string | null;
 }
-
 
 interface AssignmentContentProps {
   assignmentId: string;
@@ -109,33 +108,49 @@ export function AssignmentContent({
   const [retryModalSignal, setRetryModalSignal] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(0);
-  const [teamItems, setTeamItems] = useState(teams);
-  const [enrolledStudentItems, setEnrolledStudentItems] = useState(enrolledStudents);
+  const [committedTeamMembersByTeamId, setCommittedTeamMembersByTeamId] =
+    useState<Record<string, TeamMemberItem[]>>({});
+  const [removedStudentIds, setRemovedStudentIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const [pendingAdditionIds, setPendingAdditionIds] = useState<Set<string>>(
     new Set()
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    setTeamItems(teams);
-  }, [teams]);
+  const visibleTeamItems = useMemo(
+    () =>
+      teams.map(team => ({
+        ...team,
+        members: (committedTeamMembersByTeamId[team.id] ?? team.members).filter(
+          member => !removedStudentIds.has(member.user.id)
+        ),
+      })),
+    [teams, committedTeamMembersByTeamId, removedStudentIds]
+  );
 
-  useEffect(() => {
-    setEnrolledStudentItems(enrolledStudents);
-  }, [enrolledStudents]);
+  const visibleEnrolledStudents = useMemo(
+    () =>
+      enrolledStudents.filter(student => !removedStudentIds.has(student.id)),
+    [enrolledStudents, removedStudentIds]
+  );
 
-  const allAssignedStudentIds = useMemo(() => new Set(
-    teamItems.flatMap(team => team.members.map(m => m.user.id))
-  ), [teamItems]);
+  const allAssignedStudentIds = useMemo(
+    () =>
+      new Set(
+        visibleTeamItems.flatMap(team => team.members.map(member => member.user.id))
+      ),
+    [visibleTeamItems]
+  );
 
   const visibleMissingStudents = useMemo(() => {
-    const missingStudents = enrolledStudentItems.filter(
+    const missingStudents = visibleEnrolledStudents.filter(
       student => !allAssignedStudentIds.has(student.id)
     );
     return missingStudents.filter(
       student => !pendingAdditionIds.has(student.id)
     );
-  }, [enrolledStudentItems, allAssignedStudentIds, pendingAdditionIds]);
+  }, [visibleEnrolledStudents, allAssignedStudentIds, pendingAdditionIds]);
 
   const adjustedIncompleteCount = visibleMissingStudents.length;
 
@@ -189,7 +204,7 @@ export function AssignmentContent({
         {isStudent ? (
           hasTeams ? (
             <AssignmentTeamsClient
-              teams={teamItems}
+              teams={visibleTeamItems}
               assignmentId={assignmentId}
               courseId={courseId}
               topicNames={topicNames}
@@ -262,7 +277,7 @@ export function AssignmentContent({
               </ChartsToggle>
             )}
             <AssignmentTeamsClient
-              teams={teamItems}
+              teams={visibleTeamItems}
               assignmentId={assignmentId}
               courseId={courseId}
               topicNames={topicNames}
@@ -274,28 +289,30 @@ export function AssignmentContent({
               canManage={canManage}
               currentUserId={currentUserId}
               isEditMode={isEditMode}
-              enrolledStudents={enrolledStudentItems}
+              enrolledStudents={visibleEnrolledStudents}
               submittedStudentIds={submittedStudentIds}
               saveTrigger={saveTrigger}
               onMembersCommitted={(teamId, members) => {
-                setTeamItems(current =>
-                  current.map(team =>
-                    team.id === teamId ? { ...team, members } : team
-                  )
-                );
+                setCommittedTeamMembersByTeamId(current => ({
+                  ...current,
+                  [teamId]: members,
+                }));
               }}
               onCourseStudentRemoved={studentId => {
-                setEnrolledStudentItems(current =>
-                  current.filter(student => student.id !== studentId)
-                );
-                setTeamItems(current =>
-                  current.map(team => ({
-                    ...team,
-                    members: team.members.filter(
-                      member => member.user.id !== studentId
-                    ),
-                  }))
-                );
+                setRemovedStudentIds(current => {
+                  const next = new Set(current);
+                  next.add(studentId);
+                  return next;
+                });
+                setPendingAdditionIds(current => {
+                  if (!current.has(studentId)) {
+                    return current;
+                  }
+
+                  const next = new Set(current);
+                  next.delete(studentId);
+                  return next;
+                });
               }}
               onPendingAdditionsChange={ids =>
                 setPendingAdditionIds(new Set(ids))

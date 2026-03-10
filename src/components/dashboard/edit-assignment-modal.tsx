@@ -2,7 +2,7 @@
 
 import { Pencil } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -52,7 +52,7 @@ function areStringArraysEqual(left: string[], right: string[]) {
   );
 }
 
-export function EditAssignmentModal({
+function EditAssignmentModalBody({
   open,
   onOpenChange,
   assignment,
@@ -60,37 +60,28 @@ export function EditAssignmentModal({
   onUpdatedAction,
 }: EditAssignmentModalProps) {
   const t = useTranslations('dashboard.assignments.edit');
-  const [skills, setSkills] = useState<string[]>([]);
-  const [topics, setTopics] = useState<string[]>([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const parsedAssignmentDescription = parseDescriptionJSON(assignment.description);
+  const [title, setTitle] = useState(() => assignment.title);
+  const [description, setDescription] = useState(
+    () => parsedAssignmentDescription.text
+  );
+  const [skills, setSkills] = useState<string[]>(
+    () => parsedAssignmentDescription.skills
+  );
+  const [topics, setTopics] = useState<string[]>(
+    () => parsedAssignmentDescription.topics
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [editImpact, setEditImpact] = useState<EditImpact | null>(null);
-  const parsedAssignmentDescription = useMemo(
-    () => parseDescriptionJSON(assignment.description),
-    [assignment.description]
-  );
+
   const isFormValid = Boolean(title.trim()) && skills.length > 0;
   const hasUnsavedChanges =
-    open &&
-    (title !== assignment.title ||
-      description !== parsedAssignmentDescription.text ||
-      !areStringArraysEqual(skills, parsedAssignmentDescription.skills) ||
-      !areStringArraysEqual(topics, parsedAssignmentDescription.topics));
-
-  useEffect(() => {
-    if (open) {
-      setTitle(assignment.title);
-      setDescription(parsedAssignmentDescription.text);
-      setSkills(parsedAssignmentDescription.skills);
-      setTopics(parsedAssignmentDescription.topics);
-      setError(null);
-      setShowConfirmation(false);
-      setEditImpact(null);
-    }
-  }, [open, assignment.title, parsedAssignmentDescription]);
+    title !== assignment.title ||
+    description !== parsedAssignmentDescription.text ||
+    !areStringArraysEqual(skills, parsedAssignmentDescription.skills) ||
+    !areStringArraysEqual(topics, parsedAssignmentDescription.topics);
 
   const handleClose = (newOpen: boolean) => {
     if (newOpen) {
@@ -102,56 +93,12 @@ export function EditAssignmentModal({
       const confirmClose = window.confirm(
         'You have unsaved changes. Are you sure you want to close?'
       );
-      if (!confirmClose) return;
+      if (!confirmClose) {
+        return;
+      }
     }
 
     onOpenChange(false);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isFormValid || submitting) {
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      // Check edit impact first
-      const impactRes = await fetch(
-        `/api/assignments/${assignment.id}/check-edit-impact`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            skills,
-            topics,
-          }),
-        }
-      );
-
-      const impactData = await impactRes.json();
-      if (!impactRes.ok || !impactData?.success) {
-        throw new Error(impactData?.error || t('error'));
-      }
-
-      const impact = impactData.data as EditImpact;
-      setEditImpact(impact);
-
-      // Tier 1: Safe changes, submit directly
-      if (impact.tier === 1) {
-        await performUpdate(false);
-        return;
-      }
-
-      // Tier 2, 3, 4: Show confirmation dialog
-      setShowConfirmation(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('error'));
-      setSubmitting(false);
-    }
   };
 
   const performUpdate = async (confirmDestructive: boolean) => {
@@ -188,12 +135,55 @@ export function EditAssignmentModal({
     }
   };
 
-  const handleConfirmEdit = async () => {
-    if (!editImpact) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    // Tier 3 requires confirmation flag
-    const needsConfirmation = editImpact.tier === 3;
-    await performUpdate(needsConfirmation);
+    if (!isFormValid || submitting) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const impactRes = await fetch(
+        `/api/assignments/${assignment.id}/check-edit-impact`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            skills,
+            topics,
+          }),
+        }
+      );
+
+      const impactData = await impactRes.json();
+      if (!impactRes.ok || !impactData?.success) {
+        throw new Error(impactData?.error || t('error'));
+      }
+
+      const impact = impactData.data as EditImpact;
+      setEditImpact(impact);
+
+      if (impact.tier === 1) {
+        await performUpdate(false);
+        return;
+      }
+
+      setShowConfirmation(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('error'));
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmEdit = async () => {
+    if (!editImpact) {
+      return;
+    }
+
+    await performUpdate(editImpact.tier === 3);
   };
 
   const handleCancelEdit = () => {
@@ -215,7 +205,6 @@ export function EditAssignmentModal({
 
           <form onSubmit={handleSubmit}>
             <div className='grid grid-cols-2 gap-8 mb-8'>
-              {/* Left Column */}
               <div className='space-y-6'>
                 <div>
                   <h3 className='font-medium text-base mb-2'>
@@ -248,7 +237,6 @@ export function EditAssignmentModal({
                 </div>
               </div>
 
-              {/* Right Column */}
               <div className='space-y-6'>
                 <div>
                   <h3 className='font-medium text-base mb-2'>{t('skills')}</h3>
@@ -259,7 +247,7 @@ export function EditAssignmentModal({
                     suggestionsEndpoint={`/api/courses/${courseId}/skills`}
                     emptyLabel={t('skillsEmptyLabel')}
                     createLabel={query => t('skillsCreateLabel', { query })}
-                    showCombobox={true}
+                    showCombobox
                   />
                 </div>
 
@@ -280,7 +268,6 @@ export function EditAssignmentModal({
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div
                 className='rounded-md border border-red-200 bg-red-50 p-3 mb-4'
@@ -291,7 +278,6 @@ export function EditAssignmentModal({
               </div>
             )}
 
-            {/* Save Button */}
             <Button
               type='submit'
               variant='onboarding'
@@ -320,4 +306,12 @@ export function EditAssignmentModal({
       />
     </>
   );
+}
+
+export function EditAssignmentModal(props: EditAssignmentModalProps) {
+  if (!props.open) {
+    return null;
+  }
+
+  return <EditAssignmentModalBody key={props.assignment.id} {...props} />;
 }

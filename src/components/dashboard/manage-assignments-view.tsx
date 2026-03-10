@@ -15,7 +15,6 @@ import {
   memo,
   type ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -182,12 +181,31 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] =
     useState<ManageAssignmentRow | null>(null);
-  const [assignmentRows, setAssignmentRows] =
-    useState<ManageAssignmentRow[]>(assignments);
+  const [optimisticAssignmentUpdates, setOptimisticAssignmentUpdates] =
+    useState<Record<string, Partial<ManageAssignmentRow>>>({});
+  const [optimisticDeletedAssignmentIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
-  useEffect(() => {
-    setAssignmentRows(assignments);
-  }, [assignments]);
+  const assignmentRows = useMemo(
+    () =>
+      assignments
+        .filter(
+          assignment => !optimisticDeletedAssignmentIds.has(assignment.id)
+        )
+        .map(assignment => {
+          const optimisticUpdate = optimisticAssignmentUpdates[assignment.id];
+          if (!optimisticUpdate) {
+            return assignment;
+          }
+
+          return {
+            ...assignment,
+            ...optimisticUpdate,
+          };
+        }),
+    [assignments, optimisticAssignmentUpdates, optimisticDeletedAssignmentIds]
+  );
 
   const handleArchiveToggle = useCallback(
     (assignment: ManageAssignmentRow) => {
@@ -196,24 +214,31 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
       }
 
       const nextIsArchived = !assignment.isArchived;
+      const previousOverlay = optimisticAssignmentUpdates[assignment.id];
       setPendingAssignmentId(assignment.id);
       setArchiveError(null);
-      setAssignmentRows(current =>
-        current.map(row =>
-          row.id === assignment.id ? { ...row, isArchived: nextIsArchived } : row
-        )
-      );
+      setOptimisticAssignmentUpdates(current => ({
+        ...current,
+        [assignment.id]: {
+          ...(current[assignment.id] ?? {}),
+          isArchived: nextIsArchived,
+        },
+      }));
       void (async () => {
         try {
           await onArchiveToggle(assignment);
         } catch (error) {
-          setAssignmentRows(current =>
-            current.map(row =>
-              row.id === assignment.id
-                ? { ...row, isArchived: assignment.isArchived }
-                : row
-            )
-          );
+          setOptimisticAssignmentUpdates(current => {
+            const next = { ...current };
+
+            if (previousOverlay) {
+              next[assignment.id] = previousOverlay;
+            } else {
+              delete next[assignment.id];
+            }
+
+            return next;
+          });
           const errorMessage =
             error instanceof Error
               ? error.message
@@ -226,7 +251,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
         }
       })();
     },
-    [onArchiveToggle]
+    [onArchiveToggle, optimisticAssignmentUpdates]
   );
 
   const defaultActions = useCallback(
@@ -408,20 +433,24 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           assignment={editingAssignment}
           courseId={courseId}
           onUpdatedAction={updated => {
-            setAssignmentRows(current =>
-              current.map(row =>
-                row.id === updated.id
-                  ? {
-                      ...row,
-                      ...updated,
-                      description:
-                        updated.description === undefined
-                          ? row.description
-                          : updated.description,
-                    }
-                  : row
-              )
+            const currentAssignment = assignmentRows.find(
+              row => row.id === updated.id
             );
+            if (!currentAssignment) {
+              return;
+            }
+
+            setOptimisticAssignmentUpdates(current => ({
+              ...current,
+              [updated.id]: {
+                ...(current[updated.id] ?? {}),
+                ...updated,
+                description:
+                  updated.description === undefined
+                    ? currentAssignment.description
+                    : updated.description,
+              },
+            }));
           }}
         />
       )}
