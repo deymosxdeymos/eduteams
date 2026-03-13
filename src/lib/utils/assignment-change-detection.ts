@@ -1,4 +1,4 @@
-import type { AssignmentStatus } from '@/generated/prisma/client';
+import type { AssignmentStatus } from "@/generated/prisma/client";
 
 /**
  * Tier system for assignment edits:
@@ -40,7 +40,7 @@ export function parseAssignmentStructure(description: string | null): {
 
   try {
     const parsed = JSON.parse(description);
-    if (parsed && typeof parsed === 'object') {
+    if (parsed && typeof parsed === "object") {
       return {
         skills: Array.isArray(parsed.skills) ? parsed.skills : [],
         topics: Array.isArray(parsed.topics) ? parsed.topics : [],
@@ -67,16 +67,13 @@ function isSimilar(a: string, b: string): boolean {
  * Detect changes between two arrays of strings.
  * Supports detecting multiple renames using substring matching.
  */
-export function detectArrayChanges(
-  oldArr: string[],
-  newArr: string[]
-): StructuralChange {
-  const oldSet = new Set(oldArr.map(s => s.toLowerCase().trim()));
-  const newSet = new Set(newArr.map(s => s.toLowerCase().trim()));
+export function detectArrayChanges(oldArr: string[], newArr: string[]): StructuralChange {
+  const oldSet = new Set(oldArr.map((s) => s.toLowerCase().trim()));
+  const newSet = new Set(newArr.map((s) => s.toLowerCase().trim()));
 
   // Create maps for original casing
-  const oldMap = new Map(oldArr.map(s => [s.toLowerCase().trim(), s]));
-  const newMap = new Map(newArr.map(s => [s.toLowerCase().trim(), s]));
+  const oldMap = new Map(oldArr.map((s) => [s.toLowerCase().trim(), s]));
+  const newMap = new Map(newArr.map((s) => [s.toLowerCase().trim(), s]));
 
   // Find initially added and removed items
   const initiallyAdded: string[] = [];
@@ -127,8 +124,8 @@ export function detectArrayChanges(
   }
 
   // Filter out matched items from added/removed
-  const added = initiallyAdded.filter(item => !matchedAdded.has(item));
-  const removed = initiallyRemoved.filter(item => !matchedRemoved.has(item));
+  const added = initiallyAdded.filter((item) => !matchedAdded.has(item));
+  const removed = initiallyRemoved.filter((item) => !matchedRemoved.has(item));
 
   return { added, removed, renamed };
 }
@@ -140,10 +137,10 @@ export function determineEditTier(
   skillChanges: StructuralChange,
   topicChanges: StructuralChange,
   status: AssignmentStatus,
-  submissionCount: number
+  submissionCount: number,
 ): { tier: EditTier; reason?: string } {
   // Tier 4: Teams already formed - block all structural edits
-  if (status === 'BERHASIL_PEMBAGIAN_GRUP') {
+  if (status === "BERHASIL_PEMBAGIAN_GRUP") {
     const hasStructuralChanges =
       skillChanges.added.length > 0 ||
       skillChanges.removed.length > 0 ||
@@ -156,7 +153,7 @@ export function determineEditTier(
       return {
         tier: 4,
         reason:
-          'Cannot edit assignment structure after teams have been formed. Please reset the assignment first.',
+          "Cannot edit assignment structure after teams have been formed. Please reset the assignment first.",
       };
     }
   }
@@ -176,18 +173,17 @@ export function determineEditTier(
   if (hasDestructiveChanges) {
     return {
       tier: 3,
-      reason: `This will invalidate ${submissionCount} existing submission${submissionCount === 1 ? '' : 's'}. Students will need to retake the assessment.`,
+      reason: `This will invalidate ${submissionCount} existing submission${submissionCount === 1 ? "" : "s"}. Students will need to retake the assessment.`,
     };
   }
 
   // Check for additive changes only
-  const hasAdditiveChanges =
-    skillChanges.added.length > 0 || topicChanges.added.length > 0;
+  const hasAdditiveChanges = skillChanges.added.length > 0 || topicChanges.added.length > 0;
 
   if (hasAdditiveChanges) {
     return {
       tier: 2,
-      reason: `New items added. ${submissionCount} student${submissionCount === 1 ? '' : 's'} who submitted will need to complete the new sections.`,
+      reason: `New items added. ${submissionCount} student${submissionCount === 1 ? "" : "s"} who submitted will need to complete the new sections.`,
     };
   }
 
@@ -203,7 +199,7 @@ export function analyzeAssignmentEditImpact(
   newSkills: string[],
   newTopics: string[],
   status: AssignmentStatus,
-  submissionCount: number
+  submissionCount: number,
 ): EditImpact {
   // Parse current structure
   const current = parseAssignmentStructure(currentDescription);
@@ -213,12 +209,7 @@ export function analyzeAssignmentEditImpact(
   const topicChanges = detectArrayChanges(current.topics, newTopics);
 
   // Determine tier
-  const { tier, reason } = determineEditTier(
-    skillChanges,
-    topicChanges,
-    status,
-    submissionCount
-  );
+  const { tier, reason } = determineEditTier(skillChanges, topicChanges, status, submissionCount);
 
   return {
     tier,
@@ -250,29 +241,29 @@ export function hasStructuralChanges(changes: AssignmentChanges): boolean {
  * Format changes for display (used in diff preview)
  */
 export function formatChangesForDisplay(changes: AssignmentChanges): {
-  skills: Array<{ type: 'added' | 'removed' | 'renamed'; text: string }>;
-  topics: Array<{ type: 'added' | 'removed' | 'renamed'; text: string }>;
+  skills: Array<{ type: "added" | "removed" | "renamed"; text: string }>;
+  topics: Array<{ type: "added" | "removed" | "renamed"; text: string }>;
 } {
   return {
     skills: [
-      ...changes.skills.removed.map(s => ({
-        type: 'removed' as const,
+      ...changes.skills.removed.map((s) => ({
+        type: "removed" as const,
         text: s,
       })),
-      ...changes.skills.added.map(s => ({ type: 'added' as const, text: s })),
-      ...changes.skills.renamed.map(r => ({
-        type: 'renamed' as const,
+      ...changes.skills.added.map((s) => ({ type: "added" as const, text: s })),
+      ...changes.skills.renamed.map((r) => ({
+        type: "renamed" as const,
         text: `${r.old} → ${r.new}`,
       })),
     ],
     topics: [
-      ...changes.topics.removed.map(t => ({
-        type: 'removed' as const,
+      ...changes.topics.removed.map((t) => ({
+        type: "removed" as const,
         text: t,
       })),
-      ...changes.topics.added.map(t => ({ type: 'added' as const, text: t })),
-      ...changes.topics.renamed.map(r => ({
-        type: 'renamed' as const,
+      ...changes.topics.added.map((t) => ({ type: "added" as const, text: t })),
+      ...changes.topics.renamed.map((r) => ({
+        type: "renamed" as const,
         text: `${r.old} → ${r.new}`,
       })),
     ],

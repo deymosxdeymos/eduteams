@@ -3,6 +3,7 @@
 ## Overview
 
 The Edu2com API (`https://ardid.iiia.csic.es/eduteams/edu2com`) is a team formation service for educational tasks. It uses an algorithm balancing:
+
 - **Skills** (alpha: 0.0-1.0)
 - **Personality compatibility** (beta: 0.0-1.0) - MBTI-based
 - **Student preferences** (gamma: 0.0-1.0)
@@ -11,27 +12,31 @@ The Edu2com API (`https://ardid.iiia.csic.es/eduteams/edu2com`) is a team format
 ## API Endpoints
 
 ### GET /v1/help
+
 Returns API info. **Response:** `{ "name": "Edu2com", "version": "0.5.0" }`
 
 ### POST /v1/teamFormation (Synchronous)
+
 Forms teams immediately. Returns `{ teams: [...] }` with `taskId`, `quality` (0-1), and `people`.
 
 **Error codes:** `200` ok, `400` insufficient students, `422` invalid payload
 
 ### POST /v1/backgroundTeamFormation (Asynchronous)
+
 Returns `202 Accepted`. Requires `replyPostUrl` for webhook callback.
 
 ### POST /v1/teamQuality
+
 Calculates quality for a given team composition.
 
 ## Parameters
 
-| Parameter | Range | Effect |
-|-----------|-------|--------|
-| `alpha` | 0.0-1.0 | Skill matching weight |
-| `beta` | 0.0-1.0 | Personality compatibility (MBTI) |
-| `gamma` | 0.0-1.0 | Student preference weight |
-| `delta` | 0.0-1.0 | Task preference weight |
+| Parameter    | Range   | Effect                                     |
+| ------------ | ------- | ------------------------------------------ |
+| `alpha`      | 0.0-1.0 | Skill matching weight                      |
+| `beta`       | 0.0-1.0 | Personality compatibility (MBTI)           |
+| `gamma`      | 0.0-1.0 | Student preference weight                  |
+| `delta`      | 0.0-1.0 | Task preference weight                     |
 | `initRandom` | boolean | Deterministic (false) or randomized (true) |
 
 **Note:** Weights don't need to sum to 1.0. With all weights at 1.0, quality scores can exceed 1.0.
@@ -41,6 +46,7 @@ Reference schema: `openapi.json#/components/schemas/Edu2comParameters`. The Open
 ## Key Behaviors
 
 ✅ **Works:**
+
 - Minimum 2 people, 1 task with teamSize ≥ 2
 - Team sizes match task requirements exactly
 - All students assigned to max 1 team (no duplicates)
@@ -52,19 +58,20 @@ Reference schema: `openapi.json#/components/schemas/Edu2comParameters`. The Open
 - Optional gender field
 
 ⚠️ **Important:**
+
 - With `initRandom=false`: assignments are deterministic—same people get grouped together and assigned to the same tasks. However, the response array order may vary, so normalize results (sort teams by `taskId`, sort people IDs within teams) before comparing in tests.
 - Few students may be left unassigned if `total_seats < total_students`
 - When `alpha + beta + gamma + delta > 1.0` the upstream API frequently emits `quality > 1.0`; the client now clamps to [0,1] and logs a warning.
 
 ## Performance
 
-| Size | Timeout | Observed Time | Status |
-|------|---------|---------------|--------|
-| 4 students | 10s | ~1s | ✅ Reliable |
-| 8 students | 15s | ~2s | ✅ Reliable |
-| 20 students | 30s | ~13s | ✅ Reliable |
-| 40 students | 60s | ~35s | ✅ Reliable |
-| 60+ students | 120s | ~60s (timeout) | ❌ Unreliable* |
+| Size         | Timeout | Observed Time  | Status          |
+| ------------ | ------- | -------------- | --------------- |
+| 4 students   | 10s     | ~1s            | ✅ Reliable     |
+| 8 students   | 15s     | ~2s            | ✅ Reliable     |
+| 20 students  | 30s     | ~13s           | ✅ Reliable     |
+| 40 students  | 60s     | ~35s           | ✅ Reliable     |
+| 60+ students | 120s    | ~60s (timeout) | ❌ Unreliable\* |
 
 \* Synchronous `/teamFormation` requests with ≥60 students or ≥15 tasks consistently return `504 Gateway Time-out` or `EDU2COM_INVALID_RESPONSE` after ~60s. **Use `/backgroundTeamFormation` (webhook) for cohorts above 50 students** or split into smaller batches.
 
@@ -97,6 +104,7 @@ EDU2COM_INTEGRATION=1 bun test src/lib/edu2com/__tests__/api-endpoints.integrati
 ```
 
 **Test files:**
+
 - `api-endpoints.integration.test.ts` - All 4 endpoints
 - `weight-parameters.integration.test.ts` - Alpha/beta/gamma/delta combinations
 - `edge-cases.integration.test.ts` - Unicode, boundaries, odd distributions
@@ -131,14 +139,17 @@ EDU2COM_INTEGRATION=1 bun test src/lib/edu2com/__tests__/api-endpoints.integrati
 ## Common Issues
 
 **Quality validation fails (> 1.0):**
+
 - This is now handled automatically in `callEdu2comTeamFormation`, but keep an eye on warnings so we can report issues upstream.
 - If you consume Edu2com elsewhere, clamp manually: `Math.min(1.0, team.quality)`.
 
 **Response array ordering with initRandom=false:**
+
 - Team compositions AND task assignments are fully deterministic and reproducible
 - Only the response array order may vary—normalize before comparing (sort by `taskId`, sort people IDs)
 
 **Personality validation errors:**
+
 - Clamp all MBTI values to [-1.0, 1.0]: `Math.max(-1, Math.min(1, value))`
 
 ## Defaults (Recommended)

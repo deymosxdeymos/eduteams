@@ -1,18 +1,15 @@
 // Minimal Edu2com API client used to call the official endpoint
 // Based on summerschool implementation but simplified (no retries/upstash)
 
-import { HttpError } from '@/lib/utils/errors';
+import { HttpError } from "@/lib/utils/errors";
 import {
   type Edu2comBackgroundParameters,
   type Edu2comParameters,
   type Edu2comTeamsResponse,
   edu2comTeamsResponseSchema,
-} from './contract';
+} from "./contract";
 
-const DEFAULT_TIMEOUT_MS = Number.parseInt(
-  process.env.EDU2COM_TIMEOUT_MS ?? '',
-  10
-);
+const DEFAULT_TIMEOUT_MS = Number.parseInt(process.env.EDU2COM_TIMEOUT_MS ?? "", 10);
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -27,7 +24,7 @@ function normalizeTeamsResponse(data: unknown): {
   normalized: unknown;
   clamped: boolean;
 } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof data !== "object" || data === null) {
     return { normalized: data, clamped: false };
   }
 
@@ -37,15 +34,15 @@ function normalizeTeamsResponse(data: unknown): {
   }
 
   let clamped = false;
-  const normalizedTeams = (record.teams as unknown[]).map(team => {
-    if (typeof team !== 'object' || team === null) {
+  const normalizedTeams = (record.teams as unknown[]).map((team) => {
+    if (typeof team !== "object" || team === null) {
       return team;
     }
 
     const teamRecord = { ...(team as UnknownRecord) };
     const currentQuality = teamRecord.quality;
 
-    if (typeof currentQuality === 'number' && Number.isFinite(currentQuality)) {
+    if (typeof currentQuality === "number" && Number.isFinite(currentQuality)) {
       const normalizedQuality = clampQualityValue(currentQuality);
       if (normalizedQuality !== currentQuality) {
         clamped = true;
@@ -69,7 +66,7 @@ async function withTimeout<T>(
   timeoutMs: number,
   code: string,
   message: string,
-  execute: (signal: AbortSignal) => Promise<T>
+  execute: (signal: AbortSignal) => Promise<T>,
 ): Promise<T> {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -86,7 +83,7 @@ async function withTimeout<T>(
   try {
     return await Promise.race([operationPromise, timeoutPromise]);
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
+    if (error instanceof DOMException && error.name === "AbortError") {
       throw new HttpError(408, message, code);
     }
     throw error;
@@ -99,7 +96,7 @@ async function withTimeout<T>(
 
 export async function callEdu2comTeamFormation(
   payload: Edu2comParameters,
-  opts: { timeoutMs?: number; headers?: Record<string, string> } = {}
+  opts: { timeoutMs?: number; headers?: Record<string, string> } = {},
 ): Promise<Edu2comTeamsResponse> {
   const timeoutMs =
     Number.isFinite(opts.timeoutMs) && (opts.timeoutMs as number) > 0
@@ -109,17 +106,16 @@ export async function callEdu2comTeamFormation(
         : 120_000;
   const { headers = {} } = opts;
 
-  const endpoint =
-    'https://ardid.iiia.csic.es/eduteams/edu2com/v1/teamFormation';
+  const endpoint = "https://ardid.iiia.csic.es/eduteams/edu2com/v1/teamFormation";
 
   return withTimeout(
     timeoutMs,
-    'EDU2COM_TIMEOUT',
+    "EDU2COM_TIMEOUT",
     `Edu2com request timed out after ${timeoutMs}ms`,
-    async signal => {
+    async (signal) => {
       const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...headers },
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify(payload),
         signal,
       });
@@ -132,27 +128,25 @@ export async function callEdu2comTeamFormation(
         // If response is not JSON, throw
         throw new HttpError(
           res.status,
-          text || 'Invalid response from Edu2com',
-          'EDU2COM_INVALID_RESPONSE'
+          text || "Invalid response from Edu2com",
+          "EDU2COM_INVALID_RESPONSE",
         );
       }
 
       if (!res.ok) {
         const message =
-          typeof data === 'object' && data !== null
-            ? JSON.stringify(data)
-            : String(data);
+          typeof data === "object" && data !== null ? JSON.stringify(data) : String(data);
         throw new HttpError(
           res.status,
-          message || 'Cannot form the teams with the provided data.',
-          'EDU2COM_ERROR'
+          message || "Cannot form the teams with the provided data.",
+          "EDU2COM_ERROR",
         );
       }
 
       const { normalized, clamped } = normalizeTeamsResponse(data);
       if (clamped) {
         console.warn(
-          '[Edu2com API] Received quality scores outside [0,1]; clamping to maintain contract.'
+          "[Edu2com API] Received quality scores outside [0,1]; clamping to maintain contract.",
         );
       }
 
@@ -161,18 +155,18 @@ export async function callEdu2comTeamFormation(
         throw new HttpError(
           502,
           `Invalid response from Edu2com: ${parsed.error.message}`,
-          'EDU2COM_SCHEMA_MISMATCH'
+          "EDU2COM_SCHEMA_MISMATCH",
         );
       }
 
       return parsed.data;
-    }
+    },
   );
 }
 
 export async function callEdu2comBackgroundTeamFormation(
   payload: Edu2comBackgroundParameters,
-  opts: { timeoutMs?: number; headers?: Record<string, string> } = {}
+  opts: { timeoutMs?: number; headers?: Record<string, string> } = {},
 ): Promise<void> {
   const timeoutMs =
     Number.isFinite(opts.timeoutMs) && (opts.timeoutMs as number) > 0
@@ -183,35 +177,34 @@ export async function callEdu2comBackgroundTeamFormation(
   const { headers = {} } = opts;
 
   const startTime = performance.now();
-  const endpoint =
-    'https://ardid.iiia.csic.es/eduteams/edu2com/v1/backgroundTeamFormation';
+  const endpoint = "https://ardid.iiia.csic.es/eduteams/edu2com/v1/backgroundTeamFormation";
 
   console.log(
-    `[Edu2com API] Calling background team formation for ${payload.people.length} people, ${payload.tasks.length} tasks (timeout: ${timeoutMs}ms)`
+    `[Edu2com API] Calling background team formation for ${payload.people.length} people, ${payload.tasks.length} tasks (timeout: ${timeoutMs}ms)`,
   );
 
   try {
     await withTimeout(
       timeoutMs,
-      'EDU2COM_BACKGROUND_TIMEOUT',
+      "EDU2COM_BACKGROUND_TIMEOUT",
       `Edu2com background request timed out after ${timeoutMs}ms`,
-      async signal => {
+      async (signal) => {
         const fetchStart = performance.now();
         const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...headers },
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...headers },
           body: JSON.stringify(payload),
           signal,
         });
         const fetchTime = performance.now() - fetchStart;
         console.log(
-          `[Edu2com API] Fetch completed in ${fetchTime.toFixed(2)}ms, status: ${res.status}`
+          `[Edu2com API] Fetch completed in ${fetchTime.toFixed(2)}ms, status: ${res.status}`,
         );
 
         if (res.status === 202) {
           const totalTime = performance.now() - startTime;
           console.log(
-            `[Edu2com API] Request accepted (202) - processing in background. Total time: ${totalTime.toFixed(2)}ms`
+            `[Edu2com API] Request accepted (202) - processing in background. Total time: ${totalTime.toFixed(2)}ms`,
           );
           return;
         }
@@ -219,20 +212,20 @@ export async function callEdu2comBackgroundTeamFormation(
         const text = await res.text();
         console.error(
           `[Edu2com API] Background team formation failed with status ${res.status}:`,
-          text
+          text,
         );
         throw new HttpError(
           res.status,
-          text || 'Cannot form the teams with the provided data.',
-          'EDU2COM_BACKGROUND_ERROR'
+          text || "Cannot form the teams with the provided data.",
+          "EDU2COM_BACKGROUND_ERROR",
         );
-      }
+      },
     );
   } catch (error) {
     if (error instanceof HttpError) throw error;
 
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Edu2com API] Request failed:', errorMsg);
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Edu2com API] Request failed:", errorMsg);
     throw error;
   }
 }

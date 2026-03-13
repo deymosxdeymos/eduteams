@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
-const actualPrisma = await import('@/lib/prisma');
+const actualPrisma = await import("@/lib/prisma");
 
-type RateLimitModule = typeof import('../rate-limit');
+type RateLimitModule = typeof import("../rate-limit");
 
 type RateLimitBucket = {
   count: number;
@@ -41,7 +41,7 @@ const queryRawMock = mock(async (...args: unknown[]) => {
 });
 
 function applyModuleMocks() {
-  mock.module('@/lib/prisma', () => ({
+  mock.module("@/lib/prisma", () => ({
     default: {
       $executeRaw: executeRawMock,
       $queryRaw: queryRawMock,
@@ -50,7 +50,7 @@ function applyModuleMocks() {
 }
 
 function restoreModuleMocks() {
-  mock.module('@/lib/prisma', () => ({ default: actualPrisma.default }));
+  mock.module("@/lib/prisma", () => ({ default: actualPrisma.default }));
 }
 
 function createRequest(headers: HeadersInit) {
@@ -78,12 +78,12 @@ function resetTrustedProxyEnv() {
   process.env.TRUSTED_PROXY_HOPS = ORIGINAL_ENV.TRUSTED_PROXY_HOPS;
 }
 
-describe('rate-limit', () => {
+describe("rate-limit", () => {
   let rateLimitModule: RateLimitModule;
 
   beforeEach(async () => {
     applyModuleMocks();
-    rateLimitModule = await import('../rate-limit');
+    rateLimitModule = await import("../rate-limit");
     rateLimitBuckets.clear();
     executeRawMock.mockClear();
     queryRawMock.mockClear();
@@ -104,81 +104,73 @@ describe('rate-limit', () => {
     resetTrustedProxyEnv();
   });
 
-  describe('getClientIdentifier', () => {
-    it('uses trusted platform headers when running behind vercel', () => {
-      process.env.VERCEL = '1';
+  describe("getClientIdentifier", () => {
+    it("uses trusted platform headers when running behind vercel", () => {
+      process.env.VERCEL = "1";
 
       const request = createRequest({
-        'x-vercel-forwarded-for': '198.51.100.9',
-        'x-forwarded-for': '203.0.113.10, 198.51.100.7',
+        "x-vercel-forwarded-for": "198.51.100.9",
+        "x-forwarded-for": "203.0.113.10, 198.51.100.7",
       });
 
-      expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual([
-        'x-vercel-forwarded-for',
-      ]);
-      expect(rateLimitModule.getClientIdentifier(request)).toBe('198.51.100.9');
+      expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual(["x-vercel-forwarded-for"]);
+      expect(rateLimitModule.getClientIdentifier(request)).toBe("198.51.100.9");
     });
 
-    it('uses the cloudflare header when cloudflare is the trusted proxy', () => {
-      process.env.CF_PAGES = '1';
+    it("uses the cloudflare header when cloudflare is the trusted proxy", () => {
+      process.env.CF_PAGES = "1";
 
       const request = createRequest({
-        'cf-connecting-ip': '203.0.113.25',
-        'x-forwarded-for': '198.51.100.11',
+        "cf-connecting-ip": "203.0.113.25",
+        "x-forwarded-for": "198.51.100.11",
       });
 
-      expect(rateLimitModule.getClientIdentifier(request)).toBe('203.0.113.25');
+      expect(rateLimitModule.getClientIdentifier(request)).toBe("203.0.113.25");
     });
 
-    it('uses the left-most x-forwarded-for entry by default for self-hosted deployments', () => {
-      process.env.TRUSTED_CLIENT_IP_HEADERS = 'x-forwarded-for, x-real-ip';
+    it("uses the left-most x-forwarded-for entry by default for self-hosted deployments", () => {
+      process.env.TRUSTED_CLIENT_IP_HEADERS = "x-forwarded-for, x-real-ip";
 
       const request = createRequest({
-        'x-forwarded-for': '203.0.113.10, 198.51.100.7, 192.0.2.3',
-        'x-real-ip': '198.51.100.7',
+        "x-forwarded-for": "203.0.113.10, 198.51.100.7, 192.0.2.3",
+        "x-real-ip": "198.51.100.7",
       });
 
-      expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual([
-        'x-forwarded-for',
-        'x-real-ip',
-      ]);
-      expect(rateLimitModule.getClientIdentifier(request)).toBe('203.0.113.10');
+      expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual(["x-forwarded-for", "x-real-ip"]);
+      expect(rateLimitModule.getClientIdentifier(request)).toBe("203.0.113.10");
     });
 
-    it('skips trusted proxy hops already present in x-forwarded-for chains', () => {
-      process.env.TRUSTED_CLIENT_IP_HEADERS = 'x-forwarded-for';
-      process.env.TRUSTED_PROXY_HOPS = '2';
+    it("skips trusted proxy hops already present in x-forwarded-for chains", () => {
+      process.env.TRUSTED_CLIENT_IP_HEADERS = "x-forwarded-for";
+      process.env.TRUSTED_PROXY_HOPS = "2";
 
       const request = createRequest({
-        'x-forwarded-for': '203.0.113.10, 198.51.100.7, 192.0.2.3',
+        "x-forwarded-for": "203.0.113.10, 198.51.100.7, 192.0.2.3",
       });
 
-      expect(rateLimitModule.getClientIdentifier(request)).toBe('203.0.113.10');
+      expect(rateLimitModule.getClientIdentifier(request)).toBe("203.0.113.10");
     });
 
-    it('ignores invalid configured trusted proxy header names', () => {
-      process.env.TRUSTED_CLIENT_IP_HEADERS = 'x-forwarded-for, x bad header, X-Real-IP';
+    it("ignores invalid configured trusted proxy header names", () => {
+      process.env.TRUSTED_CLIENT_IP_HEADERS = "x-forwarded-for, x bad header, X-Real-IP";
 
-      expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual([
-        'x-forwarded-for',
-        'x-real-ip',
-      ]);
+      expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual(["x-forwarded-for", "x-real-ip"]);
     });
 
-    it('ignores malformed trusted proxy header values', () => {
-      process.env.TRUSTED_CLIENT_IP_HEADERS = 'x-forwarded-for';
+    it("ignores malformed trusted proxy header values", () => {
+      process.env.TRUSTED_CLIENT_IP_HEADERS = "x-forwarded-for";
 
       const request = createRequest({
-        'x-forwarded-for': 'not-an-ip, 198.51.100.7',
+        "x-forwarded-for": "not-an-ip, 198.51.100.7",
       });
 
       expect(rateLimitModule.getClientIdentifier(request)).toBeNull();
     });
 
-    it('returns null when no trusted proxy is configured', () => {
+    it("returns null when no trusted proxy is configured", () => {
       const request = createRequest({
-        'x-real-ip': '198.51.100.8',
-        'x-forwarded-for': '203.0.113.10, 198.51.100.7, 192.0.2.3',
+        "x-real-ip": "198.51.100.8",
+        "x-forwarded-for": "203.0.113.10, 198.51.100.7, 192.0.2.3",
       });
 
       expect(rateLimitModule.getTrustedClientIpHeaders()).toEqual([]);
@@ -186,22 +178,22 @@ describe('rate-limit', () => {
     });
   });
 
-  describe('checkRateLimit', () => {
-    it('tracks counts in the shared backing store and blocks once the limit is exceeded', async () => {
+  describe("checkRateLimit", () => {
+    it("tracks counts in the shared backing store and blocks once the limit is exceeded", async () => {
       Date.now = () => 1_700_000_000_000;
 
       const first = await rateLimitModule.checkRateLimit({
-        key: 'demo-login:ip:198.51.100.9',
+        key: "demo-login:ip:198.51.100.9",
         limit: 2,
         windowMs: 60_000,
       });
       const second = await rateLimitModule.checkRateLimit({
-        key: 'demo-login:ip:198.51.100.9',
+        key: "demo-login:ip:198.51.100.9",
         limit: 2,
         windowMs: 60_000,
       });
       const third = await rateLimitModule.checkRateLimit({
-        key: 'demo-login:ip:198.51.100.9',
+        key: "demo-login:ip:198.51.100.9",
         limit: 2,
         windowMs: 60_000,
       });
@@ -223,19 +215,19 @@ describe('rate-limit', () => {
       expect(executeRawMock).toHaveBeenCalledTimes(1);
     });
 
-    it('starts a fresh bucket after the rate-limit window rolls over', async () => {
+    it("starts a fresh bucket after the rate-limit window rolls over", async () => {
       let now = 1_700_000_200_000;
       Date.now = () => now;
 
       await rateLimitModule.checkRateLimit({
-        key: 'demo-switch:visitor:visitor1234',
+        key: "demo-switch:visitor:visitor1234",
         limit: 1,
         windowMs: 60_000,
       });
       now += 60_000;
 
       const nextWindow = await rateLimitModule.checkRateLimit({
-        key: 'demo-switch:visitor:visitor1234',
+        key: "demo-switch:visitor:visitor1234",
         limit: 1,
         windowMs: 60_000,
       });
@@ -248,16 +240,16 @@ describe('rate-limit', () => {
       expect(executeRawMock).toHaveBeenCalledTimes(2);
     });
 
-    it('globally prunes expired buckets even when the expired key does not recur', async () => {
+    it("globally prunes expired buckets even when the expired key does not recur", async () => {
       Date.now = () => 1_700_000_400_000;
 
       const expiredSameKey = getBucketKey(
-        'demo-login:ip:198.51.100.9',
-        new Date(1_700_000_000_000)
+        "demo-login:ip:198.51.100.9",
+        new Date(1_700_000_000_000),
       );
       const expiredDifferentKey = getBucketKey(
-        'demo-login:ip:198.51.100.10',
-        new Date(1_700_000_000_000)
+        "demo-login:ip:198.51.100.10",
+        new Date(1_700_000_000_000),
       );
       rateLimitBuckets.set(expiredSameKey, {
         count: 3,
@@ -269,15 +261,12 @@ describe('rate-limit', () => {
       });
 
       await rateLimitModule.checkRateLimit({
-        key: 'demo-login:ip:198.51.100.9',
+        key: "demo-login:ip:198.51.100.9",
         limit: 2,
         windowMs: 60_000,
       });
 
-      expect(executeRawMock).toHaveBeenCalledWith(
-        expect.any(Array),
-        new Date(1_700_000_400_000)
-      );
+      expect(executeRawMock).toHaveBeenCalledWith(expect.any(Array), new Date(1_700_000_400_000));
       expect(rateLimitBuckets.has(expiredSameKey)).toBe(false);
       expect(rateLimitBuckets.has(expiredDifferentKey)).toBe(false);
     });

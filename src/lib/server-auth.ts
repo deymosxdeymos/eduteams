@@ -1,14 +1,14 @@
-import 'server-only';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/api-utils';
-import { getRedirectPath, permissions } from '@/lib/authorization';
-import type { ExtendedUser } from '@/lib/types';
+import "server-only";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/api-utils";
+import { getRedirectPath, permissions } from "@/lib/authorization";
+import type { ExtendedUser } from "@/lib/types";
 
 async function requireAuth(): Promise<ExtendedUser> {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/api/auth/clear-session?redirect=/');
+    redirect("/api/auth/clear-session?redirect=/");
   }
 
   return user;
@@ -25,14 +25,12 @@ async function _requireOnboarded(): Promise<ExtendedUser> {
   return user;
 }
 
-async function _requireRole(
-  allowedRoles: string | string[]
-): Promise<ExtendedUser> {
+async function _requireRole(allowedRoles: string | string[]): Promise<ExtendedUser> {
   const user = await requireAuth();
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
   if (!user.role || !roles.includes(user.role)) {
-    redirect('/dashboard');
+    redirect("/dashboard");
   }
 
   return user;
@@ -57,7 +55,7 @@ export async function protectOnboardingPage(): Promise<ExtendedUser> {
   const user = await requireAuth();
 
   if (user.isOnboarded) {
-    redirect('/dashboard');
+    redirect("/dashboard");
   }
 
   return user;

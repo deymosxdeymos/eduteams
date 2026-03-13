@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { motion, useReducedMotion } from 'framer-motion';
-import { EntJMascot } from './mascots/entj';
+import { motion, useReducedMotion } from "framer-motion";
+import { EntJMascot } from "./mascots/entj";
 
 const springEntry = {
-  type: 'spring' as const,
+  type: "spring" as const,
   mass: 4,
   stiffness: 800,
   damping: 80,
@@ -18,8 +18,8 @@ const entjFloat = {
       duration: 3.2,
       delay: 0.12,
       repeat: Infinity,
-      repeatType: 'mirror' as const,
-      ease: 'easeInOut' as const,
+      repeatType: "mirror" as const,
+      ease: "easeInOut" as const,
     },
   },
   rotate: {
@@ -28,8 +28,8 @@ const entjFloat = {
       duration: 3.4,
       delay: 0.08,
       repeat: Infinity,
-      repeatType: 'mirror' as const,
-      ease: 'easeInOut' as const,
+      repeatType: "mirror" as const,
+      ease: "easeInOut" as const,
     },
   },
 };
@@ -46,12 +46,12 @@ export function AnimatedEntj() {
     >
       {/* Layer 1: Y float */}
       <motion.div
-        style={{ transformOrigin: 'center bottom' }}
+        style={{ transformOrigin: "center bottom" }}
         {...(shouldReduceMotion ? {} : entjFloat.y)}
       >
         {/* Layer 2: Rotate float */}
         <motion.div
-          style={{ transformOrigin: 'center bottom' }}
+          style={{ transformOrigin: "center bottom" }}
           {...(shouldReduceMotion ? {} : entjFloat.rotate)}
         >
           {/* Layer 3: Draggable with spring snap-back */}
@@ -61,8 +61,8 @@ export function AnimatedEntj() {
             dragElastic={0.12}
             dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
             dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-            style={{ cursor: shouldReduceMotion ? 'default' : 'grab' }}
-            whileDrag={{ cursor: 'grabbing', scale: 1.05 }}
+            style={{ cursor: shouldReduceMotion ? "default" : "grab" }}
+            whileDrag={{ cursor: "grabbing", scale: 1.05 }}
           >
             <EntJMascot className="h-auto w-auto" />
           </motion.div>

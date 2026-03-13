@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { handleAuthRedirect } from '@/lib/server-auth';
-import { JoinClassClient } from './join-class-client';
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { handleAuthRedirect } from "@/lib/server-auth";
+import { JoinClassClient } from "./join-class-client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Join Class - EduTeams',
-    description: 'Join a class using invitation link',
+    title: "Join Class - EduTeams",
+    description: "Join a class using invitation link",
   };
 }
 

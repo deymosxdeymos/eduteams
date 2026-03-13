@@ -1,12 +1,12 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { afterAll, beforeEach, describe, expect, it, mock } from 'bun:test';
-import { SWRConfig } from 'swr';
-import { useTeamFormationStatus } from '@/hooks/use-team-formation-status';
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
+import { SWRConfig } from "swr";
+import { useTeamFormationStatus } from "@/hooks/use-team-formation-status";
 
 type MockStatusResponse = {
   errorMessage: string | null;
-  status: 'COMPLETED' | 'FAILED' | 'PENDING' | 'PROCESSING' | null;
+  status: "COMPLETED" | "FAILED" | "PENDING" | "PROCESSING" | null;
 };
 
 interface HarnessProps {
@@ -29,7 +29,7 @@ function createFetchResponse(response: MockStatusResponse): Response {
 }
 
 function HookHarness({
-  assignmentId = 'assignment-1',
+  assignmentId = "assignment-1",
   enabled = true,
   onComplete,
   onFailed,
@@ -47,17 +47,14 @@ function HookHarness({
 
   return (
     <div>
-      <span data-testid='status'>{result.status ?? 'null'}</span>
-      <span data-testid='polling'>{result.isPolling ? 'yes' : 'no'}</span>
-      <span data-testid='error'>{result.errorMessage ?? 'null'}</span>
+      <span data-testid="status">{result.status ?? "null"}</span>
+      <span data-testid="polling">{result.isPolling ? "yes" : "no"}</span>
+      <span data-testid="error">{result.errorMessage ?? "null"}</span>
     </div>
   );
 }
 
-function renderHookHarness(
-  props: HarnessProps,
-  cache = new Map()
-) {
+function renderHookHarness(props: HarnessProps, cache = new Map()) {
   const renderTree = (nextProps: HarnessProps) => (
     <SWRConfig value={{ provider: () => cache }}>
       <HookHarness {...nextProps} />
@@ -81,21 +78,21 @@ beforeEach(() => {
   global.fetch = originalFetch;
 });
 
-describe('useTeamFormationStatus', () => {
-  it('revalidates when polling restarts from a cached completed status', async () => {
+describe("useTeamFormationStatus", () => {
+  it("revalidates when polling restarts from a cached completed status", async () => {
     let callIndex = 0;
     const fetchMock = mock(async () =>
       createFetchResponse({
-        status: callIndex++ === 0 ? 'COMPLETED' : 'PENDING',
+        status: callIndex++ === 0 ? "COMPLETED" : "PENDING",
         errorMessage: null,
-      })
+      }),
     );
     global.fetch = fetchMock as typeof fetch;
 
     const view = renderHookHarness({ shouldPoll: false });
 
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('COMPLETED');
+      expect(screen.getByTestId("status")).toHaveTextContent("COMPLETED");
     });
     expect(fetchMock.mock.calls.length).toBe(1);
 
@@ -105,21 +102,21 @@ describe('useTeamFormationStatus', () => {
       expect(fetchMock.mock.calls.length).toBe(2);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('PENDING');
-      expect(screen.getByTestId('polling')).toHaveTextContent('yes');
+      expect(screen.getByTestId("status")).toHaveTextContent("PENDING");
+      expect(screen.getByTestId("polling")).toHaveTextContent("yes");
     });
   });
 
-  it('fires onComplete after a restarted run finishes', async () => {
+  it("fires onComplete after a restarted run finishes", async () => {
     const onComplete = mock(() => {});
     const responses: MockStatusResponse[] = [
-      { status: 'COMPLETED', errorMessage: null },
-      { status: 'PENDING', errorMessage: null },
-      { status: 'COMPLETED', errorMessage: null },
+      { status: "COMPLETED", errorMessage: null },
+      { status: "PENDING", errorMessage: null },
+      { status: "COMPLETED", errorMessage: null },
     ];
     let callIndex = 0;
     const fetchMock = mock(async () =>
-      createFetchResponse(responses[callIndex++] ?? responses[responses.length - 1]!)
+      createFetchResponse(responses[callIndex++] ?? responses[responses.length - 1]!),
     );
     global.fetch = fetchMock as typeof fetch;
 
@@ -130,7 +127,7 @@ describe('useTeamFormationStatus', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('COMPLETED');
+      expect(screen.getByTestId("status")).toHaveTextContent("COMPLETED");
     });
 
     view.rerenderHarness({
@@ -140,25 +137,25 @@ describe('useTeamFormationStatus', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('PENDING');
+      expect(screen.getByTestId("status")).toHaveTextContent("PENDING");
     });
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('COMPLETED');
+      expect(screen.getByTestId("status")).toHaveTextContent("COMPLETED");
       expect(onComplete.mock.calls.length).toBe(1);
     });
   });
 
-  it('ignores cached completed data until a fresh polling response arrives', async () => {
+  it("ignores cached completed data until a fresh polling response arrives", async () => {
     const cache = new Map();
     const onComplete = mock(() => {});
     const responses: MockStatusResponse[] = [
-      { status: 'COMPLETED', errorMessage: null },
-      { status: 'PENDING', errorMessage: null },
-      { status: 'COMPLETED', errorMessage: null },
+      { status: "COMPLETED", errorMessage: null },
+      { status: "PENDING", errorMessage: null },
+      { status: "COMPLETED", errorMessage: null },
     ];
     let callIndex = 0;
     const fetchMock = mock(async () =>
-      createFetchResponse(responses[callIndex++] ?? responses[responses.length - 1]!)
+      createFetchResponse(responses[callIndex++] ?? responses[responses.length - 1]!),
     );
     global.fetch = fetchMock as typeof fetch;
 
@@ -167,11 +164,11 @@ describe('useTeamFormationStatus', () => {
         shouldPoll: false,
         pollInterval: 10,
       },
-      cache
+      cache,
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('COMPLETED');
+      expect(screen.getByTestId("status")).toHaveTextContent("COMPLETED");
     });
 
     initialView.unmount();
@@ -182,16 +179,16 @@ describe('useTeamFormationStatus', () => {
         onComplete,
         pollInterval: 200,
       },
-      cache
+      cache,
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('PENDING');
+      expect(screen.getByTestId("status")).toHaveTextContent("PENDING");
     });
     expect(onComplete.mock.calls.length).toBe(0);
 
     await waitFor(() => {
-      expect(screen.getByTestId('status')).toHaveTextContent('COMPLETED');
+      expect(screen.getByTestId("status")).toHaveTextContent("COMPLETED");
       expect(onComplete.mock.calls.length).toBe(1);
     });
   });

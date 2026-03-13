@@ -1,7 +1,7 @@
-import { unstable_cache } from 'next/cache';
-import { cache } from 'react';
-import type { PersonalityAxis } from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import type { PersonalityAxis } from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
 
 type PersonalityAxisKey = PersonalityAxis;
 
@@ -23,36 +23,36 @@ export interface ActivePersonalityBank {
 }
 
 const DIMENSION_NORMALIZER: Record<PersonalityAxis, PersonalityAxisKey> = {
-  ei: 'ei',
-  sn: 'sn',
-  tf: 'tf',
-  pj: 'pj',
-  i: 'i',
-  e: 'e',
-  s: 's',
-  n: 'n',
-  f: 'f',
-  t: 't',
-  j: 'j',
-  p: 'p',
-  nj: 'nj',
-  np: 'np',
-  sj: 'sj',
-  sp: 'sp',
-  ef: 'ef',
-  et: 'et',
-  if: 'if',
-  it: 'it',
+  ei: "ei",
+  sn: "sn",
+  tf: "tf",
+  pj: "pj",
+  i: "i",
+  e: "e",
+  s: "s",
+  n: "n",
+  f: "f",
+  t: "t",
+  j: "j",
+  p: "p",
+  nj: "nj",
+  np: "np",
+  sj: "sj",
+  sp: "sp",
+  ef: "ef",
+  et: "et",
+  if: "if",
+  it: "it",
 };
 
-const DEFAULT_LOCALE = 'id-ID';
-const FALLBACK_LOCALES = ['id-ID'];
+const DEFAULT_LOCALE = "id-ID";
+const FALLBACK_LOCALES = ["id-ID"];
 
 const NEXT_INTL_TO_PRISMA_LOCALE: Record<string, string> = {
-  en: 'en-US',
-  'en-us': 'en-US',
-  id: 'id-ID',
-  'id-id': 'id-ID',
+  en: "en-US",
+  "en-us": "en-US",
+  id: "id-ID",
+  "id-id": "id-ID",
 };
 
 function resolvePrismaLocale(locale?: string): string[] {
@@ -66,8 +66,7 @@ function resolvePrismaLocale(locale?: string): string[] {
   };
 
   const normalized = locale?.toLowerCase();
-  const mapped =
-    (normalized && NEXT_INTL_TO_PRISMA_LOCALE[normalized]) ?? locale;
+  const mapped = (normalized && NEXT_INTL_TO_PRISMA_LOCALE[normalized]) ?? locale;
 
   pushUnique(mapped);
   pushUnique(DEFAULT_LOCALE);
@@ -78,12 +77,10 @@ function resolvePrismaLocale(locale?: string): string[] {
   return priorities;
 }
 
-async function loadBankForLocaleUncached(
-  locale: string
-): Promise<ActivePersonalityBank | null> {
+async function loadBankForLocaleUncached(locale: string): Promise<ActivePersonalityBank | null> {
   const latest = await prisma.personalityQuestion.findFirst({
-    where: { status: 'ACTIVE', locale },
-    orderBy: [{ bankVersion: 'desc' }, { orderHint: 'asc' }],
+    where: { status: "ACTIVE", locale },
+    orderBy: [{ bankVersion: "desc" }, { orderHint: "asc" }],
     select: { bankVersion: true },
   });
 
@@ -93,11 +90,11 @@ async function loadBankForLocaleUncached(
 
   const questions = await prisma.personalityQuestion.findMany({
     where: {
-      status: 'ACTIVE',
+      status: "ACTIVE",
       locale,
       bankVersion: latest.bankVersion,
     },
-    orderBy: { orderHint: 'asc' },
+    orderBy: { orderHint: "asc" },
     select: {
       id: true,
       bankVersion: true,
@@ -135,17 +132,17 @@ async function loadBankForLocaleUncached(
           reversed: question.reversed ?? false,
           isAttentionCheck: question.isAttentionCheck ?? false,
         } satisfies PersonalityQuestionRecord;
-      }
+      },
     ),
   };
 }
 
 const loadBankForLocale = unstable_cache(
   async (locale: string) => loadBankForLocaleUncached(locale),
-  ['mbti-active-personality-bank'],
+  ["mbti-active-personality-bank"],
   {
     revalidate: 60 * 60,
-  }
+  },
 );
 
 const getActivePersonalityBankCached = cache(
@@ -160,11 +157,11 @@ const getActivePersonalityBankCached = cache(
     }
 
     return null;
-  }
+  },
 );
 
 export async function getActivePersonalityBank(
-  locale?: string
+  locale?: string,
 ): Promise<ActivePersonalityBank | null> {
   return getActivePersonalityBankCached(locale);
 }
@@ -172,12 +169,10 @@ export async function getActivePersonalityBank(
 const getMBTIQuestionsCached = cache(
   async (locale?: string): Promise<PersonalityQuestionRecord[]> => {
     const bank = await getActivePersonalityBank(locale);
-    return bank?.questions.filter(q => !q.isAttentionCheck) ?? [];
-  }
+    return bank?.questions.filter((q) => !q.isAttentionCheck) ?? [];
+  },
 );
 
-export async function getMBTIQuestions(
-  locale?: string
-): Promise<PersonalityQuestionRecord[]> {
+export async function getMBTIQuestions(locale?: string): Promise<PersonalityQuestionRecord[]> {
   return getMBTIQuestionsCached(locale);
 }

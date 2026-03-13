@@ -1,16 +1,16 @@
-import prisma from '@/lib/prisma';
+import prisma from "@/lib/prisma";
 
 export async function getTeamFormationForAssignment(
   assignmentId: string,
   ownerId: string,
-  assignmentStartAt?: Date | null
+  assignmentStartAt?: Date | null,
 ) {
   // First try to find team formation with assignmentId (new data)
   const teamFormation = await prisma.teamFormationRequest.findFirst({
     where: {
       assignmentId,
       ownerId,
-      status: 'COMPLETED',
+      status: "COMPLETED",
     },
     select: {
       id: true,
@@ -36,13 +36,13 @@ export async function getTeamFormationForAssignment(
                 },
               },
             },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: "asc" },
           },
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   if (teamFormation) {
@@ -55,7 +55,7 @@ export async function getTeamFormationForAssignment(
     where: {
       ownerId,
       assignmentId: null,
-      status: 'COMPLETED',
+      status: "COMPLETED",
       createdAt: assignmentStartAt ? { gte: assignmentStartAt } : undefined,
     },
     select: {
@@ -82,13 +82,13 @@ export async function getTeamFormationForAssignment(
                 },
               },
             },
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: "asc" },
           },
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   return legacyTeamFormation || null;

@@ -1,40 +1,41 @@
-import { revalidateTag } from 'next/cache';
-import { headers as nextHeaders } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { routing } from '@/i18n/routing';
-import { getRequestLocale } from '@/lib/api-i18n';
-import { auth } from '@/lib/auth';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { isSameOrigin } from '@/lib/csrf';
+import { revalidateTag } from "next/cache";
+import { headers as nextHeaders } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { routing } from "@/i18n/routing";
+import { getRequestLocale } from "@/lib/api-i18n";
+import { auth } from "@/lib/auth";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { isSameOrigin } from "@/lib/csrf";
 import {
   clearAuthSessionCookies,
+  deleteAuthSessionCookies,
   getDemoAccount,
   getDemoAuthRecoveryState,
   parseDemoVisitorIdFromEmail,
   resolveDemoVisitorId,
   setDemoVisitorCookie,
-} from '@/lib/demo/auth';
-import { isDemoModeEnabled } from '@/lib/demo/config';
-import { getDemoStudentVisitorEmailPrefix } from '@/lib/demo/seed-students';
-import { bootstrapDemoStudentAccount } from '@/lib/demo/sync-account';
-import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
-import prisma, { type TransactionClient } from '@/lib/prisma';
-import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
+} from "@/lib/demo/auth";
+import { isDemoModeEnabled } from "@/lib/demo/config";
+import { setDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
+import { clearDemoSandboxRosterCookie } from "@/lib/demo/sandbox-roster";
+import { buildDemoSandboxSession } from "@/lib/demo/sandbox";
+import { getDemoStudentVisitorEmailPrefix } from "@/lib/demo/seed-students";
+import { bootstrapDemoStudentAccount } from "@/lib/demo/sync-account";
+import { DASHBOARD_STATISTICS_TAG } from "@/lib/dashboard/statistics";
+import prisma, { type TransactionClient } from "@/lib/prisma";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX = 10;
 
 const demoLoginSchema = z.object({
-  role: z.enum(['TEACHER', 'STUDENT']).optional(),
+  role: z.enum(["TEACHER", "STUDENT"]).optional(),
 });
 
-function getLocalizedPath(
-  locale: ReturnType<typeof getRequestLocale>,
-  path: string
-) {
+function getLocalizedPath(locale: ReturnType<typeof getRequestLocale>, path: string) {
   if (locale === routing.defaultLocale) {
     return path;
   }
@@ -45,7 +46,7 @@ function getLocalizedPath(
 async function getRequestedDemoRole(request: NextRequest) {
   const rawBody = await request.text();
   if (!rawBody) {
-    return { success: true as const, role: 'TEACHER' as const };
+    return { success: true as const, role: "TEACHER" as const };
   }
 
   let parsedJson: unknown;
@@ -62,15 +63,15 @@ async function getRequestedDemoRole(request: NextRequest) {
 
   return {
     success: true as const,
-    role: parsedBody.data.role ?? 'TEACHER',
+    role: parsedBody.data.role ?? "TEACHER",
   };
 }
 
 async function getPairedDemoTeacherId(
   tx: TransactionClient,
-  account: ReturnType<typeof getDemoAccount>
+  account: ReturnType<typeof getDemoAccount>,
 ) {
-  if (account.role !== 'STUDENT') {
+  if (account.role !== "STUDENT") {
     return null;
   }
 
@@ -80,7 +81,7 @@ async function getPairedDemoTeacherId(
   }
 
   const pairedTeacher = await tx.user.findUnique({
-    where: { email: getDemoAccount('TEACHER', visitorId).email },
+    where: { email: getDemoAccount("TEACHER", visitorId).email },
     select: { id: true },
   });
 
@@ -90,29 +91,28 @@ async function getPairedDemoTeacherId(
 async function resetDemoUserState(
   tx: TransactionClient,
   userId: string,
-  account: ReturnType<typeof getDemoAccount>
+  account: ReturnType<typeof getDemoAccount>,
 ) {
   const pairedDemoTeacherId = await getPairedDemoTeacherId(tx, account);
-  const submittedAssignmentIds =
-    pairedDemoTeacherId
-      ? Array.from(
-          new Set(
-            (
-              await tx.assignmentSubmission.findMany({
-                where: {
-                  studentId: userId,
-                  assignment: {
-                    course: {
-                      dosenId: pairedDemoTeacherId,
-                    },
+  const submittedAssignmentIds = pairedDemoTeacherId
+    ? Array.from(
+        new Set(
+          (
+            await tx.assignmentSubmission.findMany({
+              where: {
+                studentId: userId,
+                assignment: {
+                  course: {
+                    dosenId: pairedDemoTeacherId,
                   },
                 },
-                select: { assignmentId: true },
-              })
-            ).map(submission => submission.assignmentId)
-          )
-        )
-      : [];
+              },
+              select: { assignmentId: true },
+            })
+          ).map((submission) => submission.assignmentId),
+        ),
+      )
+    : [];
 
   if (pairedDemoTeacherId) {
     await tx.courseEnrollment.deleteMany({
@@ -195,17 +195,14 @@ async function resetDemoUserState(
   };
 }
 
-async function resetDemoAccount(
-  userId: string,
-  account: ReturnType<typeof getDemoAccount>
-) {
+async function resetDemoAccount(userId: string, account: ReturnType<typeof getDemoAccount>) {
   const visitorId = parseDemoVisitorIdFromEmail(account.email);
 
   return prisma.$transaction(async (tx: TransactionClient) => {
     let pairedStudentId: string | null = null;
     let clearedTeamFormationRequestCount = 0;
 
-    if (account.role === 'TEACHER') {
+    if (account.role === "TEACHER") {
       await tx.course.deleteMany({ where: { dosenId: userId } });
       const deletedTeacherRequests = await tx.teamFormationRequest.deleteMany({
         where: { ownerId: userId },
@@ -221,7 +218,7 @@ async function resetDemoAccount(
           },
         });
 
-        const pairedStudentAccount = getDemoAccount('STUDENT', visitorId);
+        const pairedStudentAccount = getDemoAccount("STUDENT", visitorId);
         const pairedStudent = await tx.user.findUnique({
           where: { email: pairedStudentAccount.email },
           select: { id: true },
@@ -229,20 +226,14 @@ async function resetDemoAccount(
 
         if (pairedStudent) {
           pairedStudentId = pairedStudent.id;
-          const pairedReset = await resetDemoUserState(
-            tx,
-            pairedStudent.id,
-            pairedStudentAccount
-          );
-          clearedTeamFormationRequestCount +=
-            pairedReset.clearedTeamFormationRequestCount;
+          const pairedReset = await resetDemoUserState(tx, pairedStudent.id, pairedStudentAccount);
+          clearedTeamFormationRequestCount += pairedReset.clearedTeamFormationRequestCount;
         }
       }
     }
 
     const resetResult = await resetDemoUserState(tx, userId, account);
-    clearedTeamFormationRequestCount +=
-      resetResult.clearedTeamFormationRequestCount;
+    clearedTeamFormationRequestCount += resetResult.clearedTeamFormationRequestCount;
 
     return { pairedStudentId, clearedTeamFormationRequestCount };
   });
@@ -266,55 +257,45 @@ async function rollbackCreatedDemoAuthState(userId: string) {
 
 export async function POST(request: NextRequest) {
   if (!isDemoModeEnabled()) {
-    return NextResponse.json(
-      { success: false, error: 'Not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
   }
 
   if (!isSameOrigin(request)) {
-    return NextResponse.json(
-      { success: false, error: 'Forbidden origin' },
-      { status: 403 }
-    );
+    return NextResponse.json({ success: false, error: "Forbidden origin" }, { status: 403 });
   }
 
   const locale = getRequestLocale(request);
-  const onboardingRedirect = getLocalizedPath(locale, '/onboarding/role');
+  const onboardingRedirect = getLocalizedPath(locale, "/onboarding/role");
   const demoVisitor = resolveDemoVisitorId(request);
 
-  const createResponse = (
-    body: Record<string, unknown>,
-    init?: ResponseInit
-  ) => {
+  const createResponse = (body: Record<string, unknown>, init?: ResponseInit) => {
     const response = NextResponse.json(body, init);
-
-    if (demoVisitor.shouldSetCookie) {
-      setDemoVisitorCookie(response, demoVisitor.visitorId);
-    }
-
+    setDemoVisitorCookie(response, demoVisitor.visitorId);
+    return response;
+  };
+  const createSuccessResponse = (body: Record<string, unknown>, init?: ResponseInit) => {
+    const response = createResponse(body, init);
+    clearDemoSandboxRosterCookie(response);
     return response;
   };
 
   const clientId = getClientIdentifier(request);
-  if (!clientId && process.env.NODE_ENV === 'production') {
+  if (!clientId && process.env.NODE_ENV === "production") {
     console.error(
-      'Demo login requires a trusted client identifier in production. Configure TRUSTED_CLIENT_IP_HEADERS for self-hosted deployments and set TRUSTED_PROXY_HOPS when using multi-proxy x-forwarded-for chains.'
+      "Demo login requires a trusted client identifier in production. Configure TRUSTED_CLIENT_IP_HEADERS for self-hosted deployments and set TRUSTED_PROXY_HOPS when using multi-proxy x-forwarded-for chains.",
     );
     return createResponse(
       {
         success: false,
-        error: 'Demo login is unavailable on this deployment.',
-        code: 'DEMO_CLIENT_IDENTIFIER_REQUIRED',
+        error: "Demo login is unavailable on this deployment.",
+        code: "DEMO_CLIENT_IDENTIFIER_REQUIRED",
       },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
   const rateLimit = await checkRateLimit({
-    key: clientId
-      ? `demo-login:ip:${clientId}`
-      : `demo-login:visitor:${demoVisitor.visitorId}`,
+    key: clientId ? `demo-login:ip:${clientId}` : `demo-login:visitor:${demoVisitor.visitorId}`,
     limit: RATE_LIMIT_MAX,
     windowMs: RATE_LIMIT_WINDOW_MS,
   });
@@ -325,36 +306,31 @@ export async function POST(request: NextRequest) {
         success: false,
         error: `Too many requests. Try again in ${rateLimit.retryAfterSeconds} seconds.`,
       },
-      { status: 429 }
+      { status: 429 },
     );
   }
 
   const requestedRole = await getRequestedDemoRole(request);
   if (!requestedRole.success) {
-    return createResponse(
-      { success: false, error: 'Invalid request body' },
-      { status: 400 }
-    );
+    return createResponse({ success: false, error: "Invalid request body" }, { status: 400 });
   }
+
+  let shouldDeleteAuthCookies = false;
 
   try {
     const account = getDemoAccount(requestedRole.role, demoVisitor.visitorId);
     const reqHeaders = await nextHeaders();
     const bootstrapStudentState = async (
       userId: string,
-      options: { revalidate?: boolean } = {}
+      options: { revalidate?: boolean } = {},
     ) => {
-      if (requestedRole.role !== 'STUDENT') {
+      if (requestedRole.role !== "STUDENT") {
         return;
       }
 
-      const bootstrapResult = await bootstrapDemoStudentAccount(
-        userId,
-        demoVisitor.visitorId,
-        {
-          revalidate: false,
-        }
-      );
+      const bootstrapResult = await bootstrapDemoStudentAccount(userId, demoVisitor.visitorId, {
+        revalidate: false,
+      });
 
       if (!options.revalidate) {
         return;
@@ -375,7 +351,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       const resetResult = await resetDemoAccount(existingUser.id, account);
 
-      if (account.role === 'TEACHER') {
+      if (account.role === "TEACHER") {
         revalidateTag(CACHE_TAGS.coursesByDosen(existingUser.id));
         revalidateTag(DASHBOARD_STATISTICS_TAG);
 
@@ -397,17 +373,26 @@ export async function POST(request: NextRequest) {
           headers: reqHeaders,
         });
 
-        return createResponse({
+        const response = createSuccessResponse({
           success: true,
           data: { redirectTo: onboardingRedirect },
         });
+        await setDemoSandboxSessionCookie(
+          response,
+          buildDemoSandboxSession(requestedRole.role, {
+            userId: existingUser.id,
+            email: account.email,
+            onboarded: false,
+          }),
+        );
+        return response;
       } catch (error) {
         const recoveryState = await getDemoAuthRecoveryState(account.email, error);
         if (!recoveryState) {
           throw error;
         }
 
-        if (recoveryState.type !== 'missing-user') {
+        if (recoveryState.type !== "missing-user") {
           await prisma.user.delete({ where: { id: recoveryState.userId } });
         }
       }
@@ -424,27 +409,43 @@ export async function POST(request: NextRequest) {
 
     if (!signUpResponse?.user) {
       return createResponse(
-        { success: false, error: 'Failed to create demo user' },
-        { status: 500 }
+        { success: false, error: "Failed to create demo user" },
+        { status: 500 },
       );
     }
 
     try {
       await bootstrapStudentState(signUpResponse.user.id);
     } catch (error) {
+      shouldDeleteAuthCookies = true;
       await rollbackCreatedDemoAuthState(signUpResponse.user.id);
       throw error;
     }
 
-    return createResponse({
+    const response = createSuccessResponse({
       success: true,
       data: { redirectTo: onboardingRedirect },
     });
-  } catch (error) {
-    console.error('Demo login error:', error);
-    return createResponse(
-      { success: false, error: 'Failed to create demo session' },
-      { status: 500 }
+    await setDemoSandboxSessionCookie(
+      response,
+      buildDemoSandboxSession(requestedRole.role, {
+        userId: signUpResponse.user.id,
+        email: account.email,
+        onboarded: false,
+      }),
     );
+    return response;
+  } catch (error) {
+    console.error("Demo login error:", error);
+    const response = createResponse(
+      { success: false, error: "Failed to create demo session" },
+      { status: 500 },
+    );
+
+    if (shouldDeleteAuthCookies) {
+      deleteAuthSessionCookies(response);
+    }
+
+    return response;
   }
 }

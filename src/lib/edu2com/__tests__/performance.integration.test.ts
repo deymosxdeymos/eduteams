@@ -1,15 +1,11 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
-import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
-import type { Edu2comParameters } from '@/lib/edu2com/contract';
-import {
-  EDU2COM_BASE_SKILLS as BASE_SKILLS,
-  createPerson,
-} from '@/lib/edu2com/fixtures';
-import { runEdu2comCall } from './test-helpers';
+import { callEdu2comTeamFormation } from "@/lib/edu2com/api";
+import type { Edu2comParameters } from "@/lib/edu2com/contract";
+import { EDU2COM_BASE_SKILLS as BASE_SKILLS, createPerson } from "@/lib/edu2com/fixtures";
+import { runEdu2comCall } from "./test-helpers";
 
-const describeIntegration =
-  process.env.EDU2COM_INTEGRATION === '1' ? describe : describe.skip;
+const describeIntegration = process.env.EDU2COM_INTEGRATION === "1" ? describe : describe.skip;
 
 /**
  * Performance and Load Testing for Edu2com API
@@ -18,12 +14,12 @@ const describeIntegration =
  * across different cohort sizes and complexity levels.
  */
 
-function generateCohort(numStudents: number): Edu2comParameters['people'] {
+function generateCohort(numStudents: number): Edu2comParameters["people"] {
   return Array.from({ length: numStudents }, (_, i) => {
     const id = i + 1;
     return createPerson({
       id: `student-${id}`,
-      gender: id % 2 === 0 ? 'MALE' : 'FEMALE',
+      gender: id % 2 === 0 ? "MALE" : "FEMALE",
       ei: Math.sin(id) * 0.8,
       sn: Math.cos(id) * 0.7,
       tf: Math.sin(id * 2) * 0.6,
@@ -36,10 +32,7 @@ function generateCohort(numStudents: number): Edu2comParameters['people'] {
   });
 }
 
-function generateTasks(
-  numTasks: number,
-  teamSize: number
-): Edu2comParameters['tasks'] {
+function generateTasks(numTasks: number, teamSize: number): Edu2comParameters["tasks"] {
   return Array.from({ length: numTasks }, (_, i) => ({
     id: `task-${i + 1}`,
     teamSize,
@@ -68,7 +61,7 @@ type PerformanceResult = {
   avgQuality: number;
 };
 
-describeIntegration('Performance Testing - Response Times', () => {
+describeIntegration("Performance Testing - Response Times", () => {
   const originalFetch = globalThis.fetch;
   const results: PerformanceResult[] = [];
 
@@ -81,11 +74,9 @@ describeIntegration('Performance Testing - Response Times', () => {
 
     // Print performance summary
     if (results.length > 0) {
-      console.log('\n=== PERFORMANCE TEST SUMMARY ===\n');
-      console.log(
-        'Cohort Size | Tasks | Team Size | Time (ms) | Teams | Avg Quality'
-      );
-      console.log('-'.repeat(75));
+      console.log("\n=== PERFORMANCE TEST SUMMARY ===\n");
+      console.log("Cohort Size | Tasks | Team Size | Time (ms) | Teams | Avg Quality");
+      console.log("-".repeat(75));
 
       for (const result of results) {
         console.log(
@@ -94,16 +85,16 @@ describeIntegration('Performance Testing - Response Times', () => {
             `${String(result.teamSize).padEnd(9)} | ` +
             `${String(result.elapsedMs.toFixed(0)).padEnd(9)} | ` +
             `${String(result.teamsReturned).padEnd(5)} | ` +
-            `${result.avgQuality.toFixed(3)}`
+            `${result.avgQuality.toFixed(3)}`,
         );
       }
 
-      console.log('\n');
+      console.log("\n");
     }
   });
 
-  describe('Small Cohorts (< 10 students)', () => {
-    it('4 students, 2 tasks, teams of 2 - completes quickly', async () => {
+  describe("Small Cohorts (< 10 students)", () => {
+    it("4 students, 2 tasks, teams of 2 - completes quickly", async () => {
       expect.hasAssertions();
       const cohortSize = 4;
       const numTasks = 2;
@@ -125,8 +116,7 @@ describeIntegration('Performance Testing - Response Times', () => {
       const elapsed = performance.now() - start;
 
       const avgQuality =
-        response.teams.reduce((sum, t) => sum + t.quality, 0) /
-        response.teams.length;
+        response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
       results.push({
         cohortSize,
@@ -142,7 +132,7 @@ describeIntegration('Performance Testing - Response Times', () => {
       expect(response.teams.length).toBeGreaterThan(0);
     });
 
-    it('8 students, 4 tasks, teams of 2 - baseline performance', async () => {
+    it("8 students, 4 tasks, teams of 2 - baseline performance", async () => {
       expect.hasAssertions();
       const cohortSize = 8;
       const numTasks = 4;
@@ -164,8 +154,7 @@ describeIntegration('Performance Testing - Response Times', () => {
       const elapsed = performance.now() - start;
 
       const avgQuality =
-        response.teams.reduce((sum, t) => sum + t.quality, 0) /
-        response.teams.length;
+        response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
       results.push({
         cohortSize,
@@ -182,9 +171,9 @@ describeIntegration('Performance Testing - Response Times', () => {
     });
   });
 
-  describe('Medium Cohorts (10-30 students)', () => {
+  describe("Medium Cohorts (10-30 students)", () => {
     it(
-      '12 students, 4 tasks, teams of 3',
+      "12 students, 4 tasks, teams of 3",
       async () => {
         expect.hasAssertions();
         const cohortSize = 12;
@@ -207,8 +196,7 @@ describeIntegration('Performance Testing - Response Times', () => {
         const elapsed = performance.now() - start;
 
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -223,11 +211,11 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(elapsed).toBeLessThan(15_000);
         expect(response.teams.length).toBe(numTasks);
       },
-      { timeout: 25_000 }
+      { timeout: 25_000 },
     );
 
     it(
-      '20 students, 5 tasks, teams of 4',
+      "20 students, 5 tasks, teams of 4",
       async () => {
         expect.hasAssertions();
         const cohortSize = 20;
@@ -250,8 +238,7 @@ describeIntegration('Performance Testing - Response Times', () => {
         const elapsed = performance.now() - start;
 
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -266,11 +253,11 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(elapsed).toBeLessThan(25_000);
         expect(response.teams.length).toBe(numTasks);
       },
-      { timeout: 35_000 }
+      { timeout: 35_000 },
     );
 
     it(
-      '30 students, 10 tasks, teams of 3',
+      "30 students, 10 tasks, teams of 3",
       async () => {
         expect.hasAssertions();
         const cohortSize = 30;
@@ -293,8 +280,7 @@ describeIntegration('Performance Testing - Response Times', () => {
         const elapsed = performance.now() - start;
 
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -309,13 +295,13 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(elapsed).toBeLessThan(35_000);
         expect(response.teams.length).toBeGreaterThan(0);
       },
-      { timeout: 45_000 }
+      { timeout: 45_000 },
     );
   });
 
-  describe('Large Cohorts (30-60 students)', () => {
+  describe("Large Cohorts (30-60 students)", () => {
     it(
-      '40 students, 10 tasks, teams of 4',
+      "40 students, 10 tasks, teams of 4",
       async () => {
         expect.hasAssertions();
         const cohortSize = 40;
@@ -338,8 +324,7 @@ describeIntegration('Performance Testing - Response Times', () => {
         const elapsed = performance.now() - start;
 
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -354,11 +339,11 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(elapsed).toBeLessThan(70_000);
         expect(response.teams.length).toBe(numTasks);
       },
-      { timeout: 70_000 }
+      { timeout: 70_000 },
     );
 
     it(
-      '60 students, 15 tasks, teams of 4',
+      "60 students, 15 tasks, teams of 4",
       async () => {
         expect.hasAssertions();
         const cohortSize = 60;
@@ -378,14 +363,12 @@ describeIntegration('Performance Testing - Response Times', () => {
         const result = await runEdu2comCall(() =>
           callEdu2comTeamFormation(payload, {
             timeoutMs: 90_000,
-          })
+          }),
         );
         const elapsed = performance.now() - start;
 
         if (!result.ok) {
-          console.warn(
-            `[Performance] 60-student synchronous request failed: ${result.error.code}`
-          );
+          console.warn(`[Performance] 60-student synchronous request failed: ${result.error.code}`);
           results.push({
             cohortSize,
             numTasks,
@@ -395,16 +378,13 @@ describeIntegration('Performance Testing - Response Times', () => {
             teamsReturned: 0,
             avgQuality: 0,
           });
-          expect(['EDU2COM_TIMEOUT', 'EDU2COM_INVALID_RESPONSE']).toContain(
-            result.error.code
-          );
+          expect(["EDU2COM_TIMEOUT", "EDU2COM_INVALID_RESPONSE"]).toContain(result.error.code);
           return;
         }
 
         const response = result.value;
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -419,13 +399,13 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(elapsed).toBeLessThan(75_000);
         expect(response.teams.length).toBeGreaterThan(0);
       },
-      { timeout: 100_000 }
+      { timeout: 100_000 },
     );
   });
 
-  describe('Stress Tests (60+ students)', () => {
+  describe("Stress Tests (60+ students)", () => {
     it(
-      '80 students, 20 tasks, teams of 4 - stress test',
+      "80 students, 20 tasks, teams of 4 - stress test",
       async () => {
         expect.hasAssertions();
         const cohortSize = 80;
@@ -445,14 +425,12 @@ describeIntegration('Performance Testing - Response Times', () => {
         const result = await runEdu2comCall(() =>
           callEdu2comTeamFormation(payload, {
             timeoutMs: 120_000,
-          })
+          }),
         );
         const elapsed = performance.now() - start;
 
         if (!result.ok) {
-          console.warn(
-            `[Performance] 80-student synchronous request failed: ${result.error.code}`
-          );
+          console.warn(`[Performance] 80-student synchronous request failed: ${result.error.code}`);
           results.push({
             cohortSize,
             numTasks,
@@ -462,16 +440,13 @@ describeIntegration('Performance Testing - Response Times', () => {
             teamsReturned: 0,
             avgQuality: 0,
           });
-          expect(['EDU2COM_TIMEOUT', 'EDU2COM_INVALID_RESPONSE']).toContain(
-            result.error.code
-          );
+          expect(["EDU2COM_TIMEOUT", "EDU2COM_INVALID_RESPONSE"]).toContain(result.error.code);
           return;
         }
 
         const response = result.value;
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -486,15 +461,13 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(elapsed).toBeLessThan(100_000);
         expect(response.teams.length).toBeGreaterThan(0);
 
-        console.log(
-          `\n[Stress Test] 80 students completed in ${elapsed.toFixed(0)}ms`
-        );
+        console.log(`\n[Stress Test] 80 students completed in ${elapsed.toFixed(0)}ms`);
       },
-      { timeout: 150_000 }
+      { timeout: 150_000 },
     );
 
     it(
-      '100 students, 25 tasks, teams of 4 - maximum stress',
+      "100 students, 25 tasks, teams of 4 - maximum stress",
       async () => {
         expect.hasAssertions();
         const cohortSize = 100;
@@ -514,13 +487,13 @@ describeIntegration('Performance Testing - Response Times', () => {
         const result = await runEdu2comCall(() =>
           callEdu2comTeamFormation(payload, {
             timeoutMs: 180_000, // 3 minutes
-          })
+          }),
         );
         const elapsed = performance.now() - start;
 
         if (!result.ok) {
           console.warn(
-            `[Performance] 100-student synchronous request failed: ${result.error.code}`
+            `[Performance] 100-student synchronous request failed: ${result.error.code}`,
           );
           results.push({
             cohortSize,
@@ -531,16 +504,13 @@ describeIntegration('Performance Testing - Response Times', () => {
             teamsReturned: 0,
             avgQuality: 0,
           });
-          expect(['EDU2COM_TIMEOUT', 'EDU2COM_INVALID_RESPONSE']).toContain(
-            result.error.code
-          );
+          expect(["EDU2COM_TIMEOUT", "EDU2COM_INVALID_RESPONSE"]).toContain(result.error.code);
           return;
         }
 
         const response = result.value;
         const avgQuality =
-          response.teams.reduce((sum, t) => sum + t.quality, 0) /
-          response.teams.length;
+          response.teams.reduce((sum, t) => sum + t.quality, 0) / response.teams.length;
 
         results.push({
           cohortSize,
@@ -555,16 +525,16 @@ describeIntegration('Performance Testing - Response Times', () => {
         expect(response.teams.length).toBeGreaterThan(0);
 
         console.log(
-          `\n[Maximum Stress] 100 students completed in ${elapsed.toFixed(0)}ms (${(elapsed / 1000).toFixed(1)}s)`
+          `\n[Maximum Stress] 100 students completed in ${elapsed.toFixed(0)}ms (${(elapsed / 1000).toFixed(1)}s)`,
         );
       },
-      { timeout: 200_000 }
+      { timeout: 200_000 },
     );
   });
 
-  describe('Timeout Behavior', () => {
+  describe("Timeout Behavior", () => {
     it(
-      'respects custom timeout setting',
+      "respects custom timeout setting",
       async () => {
         expect.hasAssertions();
         const payload: Edu2comParameters = {
@@ -591,13 +561,13 @@ describeIntegration('Performance Testing - Response Times', () => {
           expect(elapsed).toBeLessThan(timeoutMs + 500);
         }
       },
-      { timeout: 5_000 }
+      { timeout: 5_000 },
     );
   });
 
-  describe('Complexity Impact', () => {
+  describe("Complexity Impact", () => {
     it(
-      'measures impact of preferences on performance',
+      "measures impact of preferences on performance",
       async () => {
         expect.hasAssertions();
         const cohortSize = 20;
@@ -637,14 +607,14 @@ describeIntegration('Performance Testing - Response Times', () => {
         const elapsed2 = performance.now() - start2;
 
         console.log(
-          `\n[Complexity] Without preferences: ${elapsed1.toFixed(0)}ms, With preferences: ${elapsed2.toFixed(0)}ms (${((elapsed2 / elapsed1 - 1) * 100).toFixed(1)}% change)`
+          `\n[Complexity] Without preferences: ${elapsed1.toFixed(0)}ms, With preferences: ${elapsed2.toFixed(0)}ms (${((elapsed2 / elapsed1 - 1) * 100).toFixed(1)}% change)`,
         );
 
         // Both should complete successfully
         expect(elapsed1).toBeLessThan(30_000);
         expect(elapsed2).toBeLessThan(30_000);
       },
-      { timeout: 70_000 }
+      { timeout: 70_000 },
     );
   });
 });

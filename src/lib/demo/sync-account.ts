@@ -1,19 +1,16 @@
-import 'server-only';
-import { revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { getDemoAccount } from '@/lib/demo/auth';
-import type { DemoRole } from '@/lib/demo/config';
-import prisma, {
-  type PrismaClientInstance,
-  type TransactionClient,
-} from '@/lib/prisma';
+import "server-only";
+import { revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { getDemoAccount } from "@/lib/demo/auth";
+import type { DemoRole } from "@/lib/demo/config";
+import prisma, { type PrismaClientInstance, type TransactionClient } from "@/lib/prisma";
 
 const DEMO_STUDENT_PERSONALITY_PROFILE = {
   ei: -0.7,
   sn: -0.6,
   tf: 0.5,
   pj: 0.7,
-  mbtiType: 'INFJ',
+  mbtiType: "INFJ",
 } as const;
 
 type DemoBootstrapClient = PrismaClientInstance | TransactionClient;
@@ -34,11 +31,11 @@ export async function enrollPairedDemoStudentInCourse(
   options: {
     db?: DemoBootstrapClient;
     revalidate?: boolean;
-  } = { revalidate: false }
+  } = { revalidate: false },
 ): Promise<DemoCourseEnrollmentResult> {
   const db = options.db ?? prisma;
   const demoStudent = await db.user.findUnique({
-    where: { email: getDemoAccount('STUDENT', visitorId).email },
+    where: { email: getDemoAccount("STUDENT", visitorId).email },
     select: { id: true },
   });
 
@@ -76,7 +73,7 @@ export async function bootstrapDemoStudentAccount(
   options: {
     db?: DemoBootstrapClient;
     revalidate?: boolean;
-  } = { revalidate: false }
+  } = { revalidate: false },
 ): Promise<DemoStudentBootstrapResult> {
   const db = options.db ?? prisma;
 
@@ -90,7 +87,7 @@ export async function bootstrapDemoStudentAccount(
   });
 
   const demoTeacher = await db.user.findUnique({
-    where: { email: getDemoAccount('TEACHER', visitorId).email },
+    where: { email: getDemoAccount("TEACHER", visitorId).email },
     select: { id: true },
   });
 
@@ -133,44 +130,34 @@ export async function bootstrapDemoStudentAccount(
   };
 }
 
-export async function syncDemoAccount(
-  userId: string,
-  role: DemoRole,
-  visitorId: string
-) {
+export async function syncDemoAccount(userId: string, role: DemoRole, visitorId: string) {
   const account = getDemoAccount(role, visitorId);
 
-  const bootstrapResult = await prisma.$transaction(
-    async (tx: TransactionClient) => {
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          role,
-          isOnboarded: true,
-          hasSeenWelcomeSplash: true,
-          onboardingStep: null,
-          name: account.name,
-          gender: account.gender,
-          nim: account.nim,
-        },
-      });
+  const bootstrapResult = await prisma.$transaction(async (tx: TransactionClient) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        role,
+        isOnboarded: true,
+        hasSeenWelcomeSplash: true,
+        onboardingStep: null,
+        name: account.name,
+        gender: account.gender,
+        nim: account.nim,
+      },
+    });
 
-      if (role !== 'STUDENT') {
-        return null;
-      }
-
-      return bootstrapDemoStudentAccount(userId, visitorId, {
-        db: tx,
-        revalidate: false,
-      });
+    if (role !== "STUDENT") {
+      return null;
     }
-  );
 
-  if (
-    bootstrapResult &&
-    bootstrapResult.demoTeacherId &&
-    bootstrapResult.enrollmentCount > 0
-  ) {
+    return bootstrapDemoStudentAccount(userId, visitorId, {
+      db: tx,
+      revalidate: false,
+    });
+  });
+
+  if (bootstrapResult && bootstrapResult.demoTeacherId && bootstrapResult.enrollmentCount > 0) {
     revalidateTag(CACHE_TAGS.studentClasses(userId));
     revalidateTag(CACHE_TAGS.coursesByDosen(bootstrapResult.demoTeacherId));
   }

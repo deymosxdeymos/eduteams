@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { isDemoModeEnabled } from '../config';
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { isDemoModeEnabled } from "../config";
 
 const originalDemoMode = process.env.DEMO_MODE;
 
-describe('demo config', () => {
+describe("demo config", () => {
   beforeEach(() => {
     delete process.env.DEMO_MODE;
   });
@@ -16,12 +16,12 @@ describe('demo config', () => {
     }
   });
 
-  it('disables demo mode by default', () => {
+  it("disables demo mode by default", () => {
     expect(isDemoModeEnabled()).toBe(false);
   });
 
-  it('enables demo mode when the flag is set', () => {
-    process.env.DEMO_MODE = '1';
+  it("enables demo mode when the flag is set", () => {
+    process.env.DEMO_MODE = "1";
 
     expect(isDemoModeEnabled()).toBe(true);
   });

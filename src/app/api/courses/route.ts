@@ -1,28 +1,23 @@
-import { revalidateTag } from 'next/cache';
-import type { NextRequest } from 'next/server';
-import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
-import {
-  createApiResponse,
-  createErrorResponse,
-  withAuth,
-  withValidation,
-} from '@/lib/api-utils';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { getCoursesForDosen } from '@/lib/dashboard/courses';
-import { parseDemoVisitorIdFromEmail } from '@/lib/demo/auth';
-import { isDemoModeEnabled } from '@/lib/demo/config';
-import { seedDemoStudentsForCourse } from '@/lib/demo/seed-students';
-import { enrollPairedDemoStudentInCourse } from '@/lib/demo/sync-account';
-import prisma, { type TransactionClient } from '@/lib/prisma';
-import { getCurrentAcademicYear } from '@/lib/utils/period';
+import { revalidateTag } from "next/cache";
+import type { NextRequest } from "next/server";
+import { getLocalizedApiMessage, getRequestLocale } from "@/lib/api-i18n";
+import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { getCoursesForDosen } from "@/lib/dashboard/courses";
+import { parseDemoVisitorIdFromEmail } from "@/lib/demo/auth";
+import { isDemoModeEnabled } from "@/lib/demo/config";
+import { seedDemoStudentsForCourse } from "@/lib/demo/seed-students";
+import { enrollPairedDemoStudentInCourse } from "@/lib/demo/sync-account";
+import prisma, { type TransactionClient } from "@/lib/prisma";
+import { getCurrentAcademicYear } from "@/lib/utils/period";
 import {
   type CourseCreateInput,
   type CourseCreateUserInput,
   courseCreateInputSchema,
-} from '@/lib/validation/course';
+} from "@/lib/validation/course";
 
 // Prisma requires Node.js runtime
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export const POST = withAuth(
   withValidation(
@@ -31,8 +26,8 @@ export const POST = withAuth(
       const userInput = validatedData as CourseCreateUserInput;
 
       // Only dosen can create courses
-      if (user?.role !== 'TEACHER') {
-        return createErrorResponse('Only dosen can create courses', 403);
+      if (user?.role !== "TEACHER") {
+        return createErrorResponse("Only dosen can create courses", 403);
       }
 
       // Auto-detect current academic year
@@ -62,73 +57,73 @@ export const POST = withAuth(
         const locale = getRequestLocale(_request);
         const errorMessage = getLocalizedApiMessage(
           locale,
-          'dashboard.modals.createClass.duplicateError'
+          "dashboard.modals.createClass.duplicateError",
         );
         return createErrorResponse(errorMessage, 409);
       }
 
-      const demoVisitorId = isDemoModeEnabled()
-        ? parseDemoVisitorIdFromEmail(user.email)
-        : null;
+      const demoVisitorId = isDemoModeEnabled() ? parseDemoVisitorIdFromEmail(user.email) : null;
 
-      const { course, pairedDemoStudentId, pairedDemoEnrollmentCount } =
-        await prisma.$transaction(async (tx: TransactionClient) => {
-        const createdCourse = await tx.course.create({
-          data: {
-            ...courseData,
-            dosenId: user?.id,
-          },
-          include: {
-            dosen: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
+      const { course, pairedDemoStudentId, pairedDemoEnrollmentCount } = await prisma.$transaction(
+        async (tx: TransactionClient) => {
+          const createdCourse = await tx.course.create({
+            data: {
+              ...courseData,
+              dosenId: user?.id,
+            },
+            include: {
+              dosen: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        if (demoVisitorId) {
-          await seedDemoStudentsForCourse(createdCourse.id, demoVisitorId, tx);
+          if (demoVisitorId) {
+            await seedDemoStudentsForCourse(createdCourse.id, demoVisitorId, tx);
 
-          const pairedDemoEnrollment = await enrollPairedDemoStudentInCourse(
-            createdCourse.id,
-            demoVisitorId,
-            { db: tx, revalidate: false }
-          );
+            const pairedDemoEnrollment = await enrollPairedDemoStudentInCourse(
+              createdCourse.id,
+              demoVisitorId,
+              { db: tx, revalidate: false },
+            );
+
+            return {
+              course: createdCourse,
+              pairedDemoStudentId: pairedDemoEnrollment.studentId,
+              pairedDemoEnrollmentCount: pairedDemoEnrollment.enrollmentCount,
+            };
+          }
 
           return {
             course: createdCourse,
-            pairedDemoStudentId: pairedDemoEnrollment.studentId,
-            pairedDemoEnrollmentCount: pairedDemoEnrollment.enrollmentCount,
+            pairedDemoStudentId: null,
+            pairedDemoEnrollmentCount: 0,
           };
-        }
+        },
+      );
 
-        return {
-          course: createdCourse,
-          pairedDemoStudentId: null,
-          pairedDemoEnrollmentCount: 0,
-        };
-      });
-
-      revalidateTag(CACHE_TAGS.coursesByDosen(user?.id || ''));
+      revalidateTag(CACHE_TAGS.coursesByDosen(user?.id || ""));
       if (pairedDemoStudentId && pairedDemoEnrollmentCount > 0) {
         revalidateTag(CACHE_TAGS.studentClasses(pairedDemoStudentId));
       }
 
       return createApiResponse(course);
-    }
-  )
+    },
+  ),
+  { allowDemoSandbox: true },
 );
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
   // Only dosen can view their courses
-  if (user?.role !== 'TEACHER') {
-    return createErrorResponse('Only dosen can view courses', 403);
+  if (user?.role !== "TEACHER") {
+    return createErrorResponse("Only dosen can view courses", 403);
   }
 
-  const courses = await getCoursesForDosen(user.id);
+  const courses = await getCoursesForDosen(user);
 
   return createApiResponse(courses);
 });

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { EmptyStudentClassState } from './empty-student-class-state';
-import { SearchInput } from './search-input';
-import { StudentClassGrid } from './student-class-grid';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { EmptyStudentClassState } from "./empty-student-class-state";
+import { SearchInput } from "./search-input";
+import { StudentClassGrid } from "./student-class-grid";
 
 interface StudentClass {
   id: string;
@@ -13,6 +13,7 @@ interface StudentClass {
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
   studentCount: number;
+  canLeave?: boolean;
   dosen?: {
     name: string;
   };
@@ -24,15 +25,13 @@ interface StudentDashboardProps {
 
 export function StudentDashboard({ classes }: StudentDashboardProps) {
   const router = useRouter();
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
 
   const filteredClasses = searchValue
     ? classes.filter(
-        classItem =>
-          classItem.namaMataKuliah
-            .toLowerCase()
-            .includes(searchValue.toLowerCase()) ||
-          classItem.kelas.toLowerCase().includes(searchValue.toLowerCase())
+        (classItem) =>
+          classItem.namaMataKuliah.toLowerCase().includes(searchValue.toLowerCase()) ||
+          classItem.kelas.toLowerCase().includes(searchValue.toLowerCase()),
       )
     : classes;
 
@@ -44,10 +43,10 @@ export function StudentDashboard({ classes }: StudentDashboardProps) {
   const showNoResults = searchValue.length > 0 && filteredClasses.length === 0;
 
   return (
-    <div className='h-full flex flex-col gap-4'>
-      <div className='bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden'>
+    <div className="h-full flex flex-col gap-4">
+      <div className="bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden">
         {hasClasses && (
-          <div className='p-6 pb-0'>
+          <div className="p-6 pb-0">
             <SearchInput
               onClassCreated={handleClassJoined}
               searchValue={searchValue}
@@ -56,7 +55,7 @@ export function StudentDashboard({ classes }: StudentDashboardProps) {
             />
           </div>
         )}
-        <div className='flex-1 px-6 min-h-0 overflow-hidden'>
+        <div className="flex-1 px-6 min-h-0 overflow-hidden">
           {hasClasses ? (
             <StudentClassGrid
               classes={filteredClasses}

@@ -1,37 +1,29 @@
-import { revalidateTag } from 'next/cache';
-import type { NextRequest } from 'next/server';
-import { z } from 'zod';
-import {
-  createApiResponse,
-  createErrorResponse,
-  withAuth,
-  withValidation,
-} from '@/lib/api-utils';
-import { canAccessMahasiswaFeatures } from '@/lib/authorization';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { isSameOrigin } from '@/lib/csrf';
-import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
+import { revalidateTag } from "next/cache";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
+import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
+import { canAccessMahasiswaFeatures } from "@/lib/authorization";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { isSameOrigin } from "@/lib/csrf";
+import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const leaveClassSchema = z.object({
-  courseId: z.string().min(1, 'Course ID is required'),
+  courseId: z.string().min(1, "Course ID is required"),
 });
 
 async function leaveClass(
   request: NextRequest,
-  {
-    user,
-    validatedData,
-  }: { user?: ExtendedUser; validatedData: { courseId: string } }
+  { user, validatedData }: { user?: ExtendedUser; validatedData: { courseId: string } },
 ) {
   if (!user || !canAccessMahasiswaFeatures(user)) {
-    return createErrorResponse('Access denied', 403);
+    return createErrorResponse("Access denied", 403);
   }
 
   if (!isSameOrigin(request)) {
-    return createErrorResponse('Invalid origin', 403);
+    return createErrorResponse("Invalid origin", 403);
   }
 
   const { courseId } = validatedData;
@@ -56,7 +48,7 @@ async function leaveClass(
   });
 
   if (!enrollment) {
-    return createErrorResponse('You are not enrolled in this class.', 404);
+    return createErrorResponse("You are not enrolled in this class.", 404);
   }
 
   await prisma.courseEnrollment.delete({
@@ -77,5 +69,6 @@ async function leaveClass(
 }
 
 export const POST = withAuth(
-  withValidation((data: unknown) => leaveClassSchema.parse(data), leaveClass)
+  withValidation((data: unknown) => leaveClassSchema.parse(data), leaveClass),
+  { allowDemoSandbox: true },
 );

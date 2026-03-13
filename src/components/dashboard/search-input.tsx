@@ -1,24 +1,23 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { Search } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import type { ChangeEvent, ComponentProps, ReactNode } from 'react';
-import { Input } from '@/components/ui/input';
-import type { Course } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import dynamic from "next/dynamic";
+import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+import type { ChangeEvent, ComponentProps, ReactNode } from "react";
+import { Input } from "@/components/ui/input";
+import type { Course } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-const CreateClassModal = dynamic(() => import('./create-class-modal'), {
+const CreateClassModal = dynamic(() => import("./create-class-modal"), {
   ssr: false,
 });
-const JoinClassModal = dynamic(() => import('./join-class-modal'), {
+const JoinClassModal = dynamic(() => import("./join-class-modal"), {
   ssr: false,
 });
 
 type InputProps = ComponentProps<typeof Input>;
 
-interface SearchInputProps
-  extends Omit<InputProps, 'value' | 'onChange' | 'placeholder'> {
+interface SearchInputProps extends Omit<InputProps, "value" | "onChange" | "placeholder"> {
   onClassCreated?: (course?: Course) => void;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
@@ -34,7 +33,7 @@ interface SearchInputProps
 
 export function SearchInput({
   onClassCreated,
-  searchValue = '',
+  searchValue = "",
   onSearchChange = () => {},
   placeholder,
   ariaLabel,
@@ -48,8 +47,8 @@ export function SearchInput({
   type,
   ...inputProps
 }: SearchInputProps) {
-  const t = useTranslations('dashboard.search');
-  const actualPlaceholder = placeholder || t('placeholder');
+  const t = useTranslations("dashboard.search");
+  const actualPlaceholder = placeholder || t("placeholder");
   const actualAriaLabel = ariaLabel || actualPlaceholder;
 
   const effectiveLeftSlot =
@@ -67,16 +66,14 @@ export function SearchInput({
   };
 
   const hasLeftSlot = Boolean(effectiveLeftSlot);
-  const containerBaseClass = hasLeftSlot
-    ? 'flex items-center justify-between gap-4'
-    : 'relative';
+  const containerBaseClass = hasLeftSlot ? "flex items-center justify-between gap-4" : "relative";
 
-  const inputType = type || 'search';
+  const inputType = type || "search";
 
   const inputWrapperClasses = cn(
-    'relative',
-    hasLeftSlot && showClassActions ? 'w-86' : 'w-full',
-    inputWrapperClassName
+    "relative",
+    hasLeftSlot && showClassActions ? "w-86" : "w-full",
+    inputWrapperClassName,
   );
 
   const searchField = (
@@ -89,30 +86,26 @@ export function SearchInput({
         placeholder={actualPlaceholder}
         aria-label={actualAriaLabel}
         className={cn(
-          'rounded-full pr-10 py-2.5 h-11 text-gray-700 placeholder:text-gray-400',
-          className
+          "rounded-full pr-10 py-2.5 h-11 text-gray-700 placeholder:text-gray-400",
+          className,
         )}
       />
       <Search
         className={cn(
-          'absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400',
-          iconClassName
+          "absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400",
+          iconClassName,
         )}
       />
     </div>
   );
 
   if (!hasLeftSlot) {
-    return (
-      <div className={cn(containerBaseClass, containerClassName)}>
-        {searchField}
-      </div>
-    );
+    return <div className={cn(containerBaseClass, containerClassName)}>{searchField}</div>;
   }
 
   return (
     <div className={cn(containerBaseClass, containerClassName)}>
-      <div className='shrink-0'>{effectiveLeftSlot}</div>
+      <div className="shrink-0">{effectiveLeftSlot}</div>
       {searchField}
     </div>
   );

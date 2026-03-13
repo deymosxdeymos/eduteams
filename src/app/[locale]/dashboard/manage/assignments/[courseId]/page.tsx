@@ -1,40 +1,73 @@
-import type { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
-import { cache, Suspense } from 'react';
-import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { DosenManageAssignmentsContent } from '@/components/dashboard/dosen-manage-assignments-content';
-import { ManageAssignmentsLayout } from '@/components/dashboard/manage-assignments-layout';
-import { StudentList } from '@/components/dashboard/student-list';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { canAccessDosenFeatures } from '@/lib/authorization';
-import { getAuthorizedStudentsData } from '@/lib/data/course-data';
-import { getManageAssignmentsForCourse } from '@/lib/data/manage-assignments';
-import prisma from '@/lib/prisma';
-import { protectDashboard } from '@/lib/server-auth';
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { cache, Suspense } from "react";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { DosenManageAssignmentsContent } from "@/components/dashboard/dosen-manage-assignments-content";
+import { ManageAssignmentsLayout } from "@/components/dashboard/manage-assignments-layout";
+import { StudentList } from "@/components/dashboard/student-list";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { canAccessDosenFeatures } from "@/lib/authorization";
+import { getAuthorizedStudentsData } from "@/lib/data/course-data";
+import { getManageAssignmentsForCourse } from "@/lib/data/manage-assignments";
+import {
+  DEMO_COURSE_ID,
+  DEMO_TEACHER_ID,
+  getDemoCourse,
+  getDemoSandboxPrincipalId,
+  getDemoStudentsForCourse,
+} from "@/lib/demo/sandbox";
+import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import prisma from "@/lib/prisma";
+import { protectDashboard } from "@/lib/server-auth";
+import type { ExtendedUser } from "@/lib/types";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-const getCourseForManage = cache(async (courseId: string, dosenId: string) => {
-  return await prisma.course.findFirst({
-    where: {
-      id: courseId,
-      dosenId: dosenId,
-    },
-    select: {
-      id: true,
-      namaMataKuliah: true,
-      kelas: true,
-      tahunAwalPeriode: true,
-      tahunAkhirPeriode: true,
-      periode: true,
-      _count: {
-        select: {
-          enrollments: true,
+const getCourseForManage = cache(
+  async (
+    courseId: string,
+    user: Pick<ExtendedUser, "id"> & Partial<Pick<ExtendedUser, "email">>,
+  ) => {
+    if (courseId === DEMO_COURSE_ID && getDemoSandboxPrincipalId(user) === DEMO_TEACHER_ID) {
+      const course = getDemoCourse();
+      const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
+
+      return {
+        id: course.id,
+        namaMataKuliah: course.namaMataKuliah,
+        kelas: course.kelas,
+        tahunAwalPeriode: course.tahunAwalPeriode,
+        tahunAkhirPeriode: course.tahunAkhirPeriode,
+        periode: course.periode,
+        _count: {
+          enrollments: getDemoStudentsForCourse({
+            excludedStudentIds: removedStudentIds,
+          }).length,
+        },
+      };
+    }
+
+    return await prisma.course.findFirst({
+      where: {
+        id: courseId,
+        dosenId: user.id,
+      },
+      select: {
+        id: true,
+        namaMataKuliah: true,
+        kelas: true,
+        tahunAwalPeriode: true,
+        tahunAkhirPeriode: true,
+        periode: true,
+        _count: {
+          select: {
+            enrollments: true,
+          },
         },
       },
-    },
-  });
-});
+    });
+  },
+);
 
 export async function generateMetadata({
   params,
@@ -45,18 +78,18 @@ export async function generateMetadata({
   const { courseId } = await params;
 
   if (!canAccessDosenFeatures(user)) {
-    redirect('/dashboard');
+    redirect("/dashboard");
   }
 
-  const course = await getCourseForManage(courseId, user.id);
+  const course = await getCourseForManage(courseId, user);
 
   const title = course
     ? `Manage Assignments - ${course.namaMataKuliah} ${course.kelas} | EduTeams`
-    : 'Manage Assignments - EduTeams';
+    : "Manage Assignments - EduTeams";
 
   const description = course
     ? `Manage assignments for ${course.namaMataKuliah} - ${course.kelas}`
-    : 'Manage course assignments';
+    : "Manage course assignments";
 
   return { title, description };
 }
@@ -65,23 +98,21 @@ interface ManageAssignmentsPageProps {
   params: Promise<{ courseId: string }>;
 }
 
-export default async function ManageAssignmentsPage({
-  params,
-}: ManageAssignmentsPageProps) {
+export default async function ManageAssignmentsPage({ params }: ManageAssignmentsPageProps) {
   const user = await protectDashboard();
   const { courseId } = await params;
 
   if (!canAccessDosenFeatures(user)) {
-    redirect('/dashboard');
+    redirect("/dashboard");
   }
 
-  const coursePromise = getCourseForManage(courseId, user.id);
+  const coursePromise = getCourseForManage(courseId, user);
   const [course, assignments, students] = await Promise.all([
     coursePromise,
     getManageAssignmentsForCourse(
       courseId,
-      user.id,
-      coursePromise.then(course => course?._count.enrollments ?? 0)
+      user,
+      coursePromise.then((course) => course?._count.enrollments ?? 0),
     ),
     getAuthorizedStudentsData(courseId, user),
   ]);
@@ -94,8 +125,8 @@ export default async function ManageAssignmentsPage({
     <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
       <Suspense
         fallback={
-          <div className='flex h-screen items-center justify-center'>
-            <LoadingSpinner size='lg' />
+          <div className="flex h-screen items-center justify-center">
+            <LoadingSpinner size="lg" />
           </div>
         }
       >
@@ -110,10 +141,11 @@ export default async function ManageAssignmentsPage({
             periode: course.periode,
           }}
         >
-          <div className='grid grid-cols-[1fr_400px] h-full min-h-0'>
+          <div className="grid grid-cols-[1fr_400px] h-full min-h-0">
             <DosenManageAssignmentsContent
               assignments={assignments}
               courseId={courseId}
+              totalStudents={course._count.enrollments}
             />
             <StudentList
               classId={courseId}

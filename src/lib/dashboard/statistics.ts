@@ -1,19 +1,17 @@
-import { unstable_cache } from 'next/cache';
-import prisma from '@/lib/prisma';
+import { unstable_cache } from "next/cache";
 import {
-  DASHBOARD_STATISTICS_TAG,
-  type DashboardStatistics,
-} from './statistics-types';
+  DEMO_TEACHER_ID,
+  getDemoDashboardStatistics,
+  getDemoSandboxPrincipalId,
+} from "@/lib/demo/sandbox";
+import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
+import { DASHBOARD_STATISTICS_TAG, type DashboardStatistics } from "./statistics-types";
 
 export type { DashboardStatistics };
-export {
-  DASHBOARD_STATISTICS_TAG,
-  EMPTY_DASHBOARD_STATISTICS,
-} from './statistics-types';
+export { DASHBOARD_STATISTICS_TAG, EMPTY_DASHBOARD_STATISTICS } from "./statistics-types";
 
-async function fetchDashboardStatistics(
-  userId: string
-): Promise<DashboardStatistics> {
+async function fetchDashboardStatistics(userId: string): Promise<DashboardStatistics> {
   const [totalAssignments, totalTeams, qualityAggregates] = await Promise.all([
     prisma.assignment.count({
       where: {
@@ -68,14 +66,18 @@ async function fetchDashboardStatistics(
 
 const getDashboardStatisticsCached = unstable_cache(
   fetchDashboardStatistics,
-  ['dashboard:statistics'],
+  ["dashboard:statistics"],
   {
     tags: [DASHBOARD_STATISTICS_TAG],
-  }
+  },
 );
 
 export async function getDashboardStatisticsForUser(
-  userId: string
+  user: Pick<ExtendedUser, "id"> & Partial<Pick<ExtendedUser, "email">>,
 ): Promise<DashboardStatistics> {
-  return getDashboardStatisticsCached(userId);
+  if (getDemoSandboxPrincipalId(user) === DEMO_TEACHER_ID) {
+    return getDemoDashboardStatistics();
+  }
+
+  return getDashboardStatisticsCached(user.id);
 }

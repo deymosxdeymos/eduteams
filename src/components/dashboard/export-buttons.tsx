@@ -1,14 +1,10 @@
-'use client';
+"use client";
 
-import { FileText, Share, Table } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { FileText, Share, Table } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ExportButtonsProps {
   assignmentId: string;
@@ -16,12 +12,8 @@ interface ExportButtonsProps {
   canManage: boolean;
 }
 
-export function ExportButtons({
-  assignmentId,
-  hasTeams,
-  canManage,
-}: ExportButtonsProps) {
-  const t = useTranslations('dashboard.assignment.export');
+export function ExportButtons({ assignmentId, hasTeams, canManage }: ExportButtonsProps) {
+  const t = useTranslations("dashboard.assignment.export");
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [open, setOpen] = useState(false);
@@ -31,30 +23,25 @@ export function ExportButtons({
     return null;
   }
 
-  const handleExport = async (format: 'pdf' | 'csv') => {
-    const setLoading = format === 'pdf' ? setExportingPdf : setExportingCsv;
+  const handleExport = async (format: "pdf" | "csv") => {
+    const setLoading = format === "pdf" ? setExportingPdf : setExportingCsv;
     setLoading(true);
     setOpen(false); // Close popover when export starts
 
     try {
-      const response = await fetch(
-        `/api/assignments/${assignmentId}/export/${format}`,
-        {
-          method: 'GET',
-        }
-      );
+      const response = await fetch(`/api/assignments/${assignmentId}/export/${format}`, {
+        method: "GET",
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        alert(
-          errorData.error || t('errorFailed', { format: format.toUpperCase() })
-        );
+        alert(errorData.error || t("errorFailed", { format: format.toUpperCase() }));
         return;
       }
 
       // Get filename from Content-Disposition header or use default
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = `team-formation-${new Date().toISOString().split('T')[0]}.${format}`;
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `team-formation-${new Date().toISOString().split("T")[0]}.${format}`;
 
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="([^"]+)"/i);
@@ -66,7 +53,7 @@ export function ExportButtons({
       // Convert response to blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
@@ -79,7 +66,7 @@ export function ExportButtons({
       // Success - file downloaded (no alert needed as download is obvious)
     } catch (error) {
       console.error(`Error exporting ${format}:`, error);
-      alert(t('networkError'));
+      alert(t("networkError"));
     } finally {
       setLoading(false);
     }
@@ -91,34 +78,34 @@ export function ExportButtons({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant='outline'
-          size='icon'
-          className='rounded-full border border-gray-600 h-12 w-12'
+          variant="outline"
+          size="icon"
+          className="rounded-full border border-gray-600 h-12 w-12"
           disabled={isExporting}
-          title={isExporting ? t('exporting') : t('export') || 'Export'}
+          title={isExporting ? t("exporting") : t("export") || "Export"}
         >
-          <Share className='w-4 h-4 text-gray-600' />
+          <Share className="w-4 h-4 text-gray-600" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className='w-48 p-2' align='start'>
-        <div className='flex flex-col gap-1'>
+      <PopoverContent className="w-48 p-2" align="start">
+        <div className="flex flex-col gap-1">
           <Button
-            variant='ghost'
-            className='w-full justify-start text-left font-normal'
+            variant="ghost"
+            className="w-full justify-start text-left font-normal"
             disabled={exportingPdf}
-            onClick={() => handleExport('pdf')}
+            onClick={() => handleExport("pdf")}
           >
-            <FileText className='w-4 h-4 mr-2' />
-            <span>{exportingPdf ? t('exporting') : t('exportPdf')}</span>
+            <FileText className="w-4 h-4 mr-2" />
+            <span>{exportingPdf ? t("exporting") : t("exportPdf")}</span>
           </Button>
           <Button
-            variant='ghost'
-            className='w-full justify-start text-left font-normal'
+            variant="ghost"
+            className="w-full justify-start text-left font-normal"
             disabled={exportingCsv}
-            onClick={() => handleExport('csv')}
+            onClick={() => handleExport("csv")}
           >
-            <Table className='w-4 h-4 mr-2' />
-            <span>{exportingCsv ? t('exporting') : t('exportCsv')}</span>
+            <Table className="w-4 h-4 mr-2" />
+            <span>{exportingCsv ? t("exporting") : t("exportCsv")}</span>
           </Button>
         </div>
       </PopoverContent>

@@ -1,22 +1,20 @@
-import prisma from '@/lib/prisma';
-import type { ClassCatalog } from '@/lib/types';
+import prisma from "@/lib/prisma";
+import type { ClassCatalog } from "@/lib/types";
 
 type ClassCatalogFilters = {
   search?: string;
 };
 
-export async function getClassCatalog(
-  filters: ClassCatalogFilters = {}
-): Promise<ClassCatalog[]> {
+export async function getClassCatalog(filters: ClassCatalogFilters = {}): Promise<ClassCatalog[]> {
   const where = filters.search
     ? {
-        code: { contains: filters.search, mode: 'insensitive' as const },
+        code: { contains: filters.search, mode: "insensitive" as const },
       }
     : undefined;
 
   return prisma.classCatalog.findMany({
     where,
-    orderBy: { code: 'asc' },
+    orderBy: { code: "asc" },
   });
 }
 
@@ -25,7 +23,7 @@ interface CreateClassCatalogInput {
 }
 
 export async function createClassCatalogEntry(
-  input: CreateClassCatalogInput
+  input: CreateClassCatalogInput,
 ): Promise<ClassCatalog> {
   return prisma.classCatalog.create({
     data: {

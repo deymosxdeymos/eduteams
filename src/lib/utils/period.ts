@@ -11,7 +11,7 @@ interface AcademicYear {
 interface AcademicPeriod {
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
-  periode: 'ganjil' | 'genap' | 'pendek';
+  periode: "ganjil" | "genap" | "pendek";
   label: string;
 }
 
@@ -43,20 +43,18 @@ export function getCurrentAcademicYear(date: Date = new Date()): AcademicYear {
   };
 }
 
-export function getCurrentAcademicPeriod(
-  date: Date = new Date()
-): AcademicPeriod {
+export function getCurrentAcademicPeriod(date: Date = new Date()): AcademicPeriod {
   const academicYear = getCurrentAcademicYear(date);
   const month = date.getMonth() + 1; // 1-12
 
-  let periode: 'ganjil' | 'genap';
+  let periode: "ganjil" | "genap";
 
   if (month >= 8 || month === 1) {
     // August - January: Ganjil semester
-    periode = 'ganjil';
+    periode = "ganjil";
   } else {
     // February - July: Genap semester
-    periode = 'genap';
+    periode = "genap";
   }
 
   const label = `${academicYear.label} ${periode.charAt(0).toUpperCase() + periode.slice(1)}`;
@@ -72,7 +70,7 @@ export function getCurrentAcademicPeriod(
 export function formatAcademicPeriodLabel(
   tahunAwal: number,
   tahunAkhir: number,
-  periode: 'ganjil' | 'genap' | 'pendek'
+  periode: "ganjil" | "genap" | "pendek",
 ): string {
   return `${tahunAwal}/${tahunAkhir} ${periode.charAt(0).toUpperCase() + periode.slice(1)}`;
 }

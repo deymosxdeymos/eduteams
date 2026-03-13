@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-const genderSchema = z.enum(['FEMALE', 'MALE']).optional();
+const genderSchema = z.enum(["FEMALE", "MALE"]).optional();
 
 const personalitySchema = z.object({
   ei: z.number().min(-1).max(1),
@@ -64,15 +64,11 @@ export const edu2comParametersSchema = z.object({
 
 export type Edu2comParameters = z.infer<typeof edu2comParametersSchema>;
 
-export const edu2comBackgroundParametersSchema = edu2comParametersSchema.extend(
-  {
-    replyPostUrl: z.string().url(),
-  }
-);
+export const edu2comBackgroundParametersSchema = edu2comParametersSchema.extend({
+  replyPostUrl: z.string().url(),
+});
 
-export type Edu2comBackgroundParameters = z.infer<
-  typeof edu2comBackgroundParametersSchema
->;
+export type Edu2comBackgroundParameters = z.infer<typeof edu2comBackgroundParametersSchema>;
 
 const edu2comTeamMemberSchema = z.object({
   id: z.string().min(1),

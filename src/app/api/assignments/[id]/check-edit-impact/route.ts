@@ -1,11 +1,11 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { createErrorResponse, handleApiError, withAuth } from '@/lib/api-utils';
-import prisma from '@/lib/prisma';
-import { analyzeAssignmentEditImpact } from '@/lib/utils/assignment-change-detection';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { createErrorResponse, handleApiError, withAuth } from "@/lib/api-utils";
+import prisma from "@/lib/prisma";
+import { analyzeAssignmentEditImpact } from "@/lib/utils/assignment-change-detection";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const CheckEditImpactSchema = z.object({
   skills: z.array(z.string()),
@@ -31,19 +31,19 @@ export const POST = withAuth<{ id: string }>(
         },
       });
 
-      if (!assignment) return createErrorResponse('Assignment not found', 404);
+      if (!assignment) return createErrorResponse("Assignment not found", 404);
 
       // Only course owner (dosen) can check edit impact
       if (assignment.course.dosenId !== user.id) {
-        return createErrorResponse('Access denied', 403);
+        return createErrorResponse("Access denied", 403);
       }
 
       const body = await request.json();
       const input = CheckEditImpactSchema.parse(body);
 
       // Clean input arrays
-      const cleanedSkills = input.skills.map(s => s.trim()).filter(Boolean);
-      const cleanedTopics = input.topics.map(t => t.trim()).filter(Boolean);
+      const cleanedSkills = input.skills.map((s) => s.trim()).filter(Boolean);
+      const cleanedTopics = input.topics.map((t) => t.trim()).filter(Boolean);
 
       // Analyze edit impact
       const impact = analyzeAssignmentEditImpact(
@@ -51,7 +51,7 @@ export const POST = withAuth<{ id: string }>(
         cleanedSkills,
         cleanedTopics,
         assignment.status,
-        assignment._count.submissions
+        assignment._count.submissions,
       );
 
       return NextResponse.json({
@@ -61,5 +61,6 @@ export const POST = withAuth<{ id: string }>(
     } catch (error) {
       return handleApiError(error);
     }
-  }
+  },
+  { allowDemoSandbox: true },
 );

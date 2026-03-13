@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const defaultRect: DOMRectReadOnly = {
   x: 0,
@@ -36,12 +36,12 @@ export function useMeasure<T extends Element = HTMLDivElement>() {
     (node: T | null) => {
       cleanupObserver();
 
-      if (!node || typeof ResizeObserver === 'undefined') {
+      if (!node || typeof ResizeObserver === "undefined") {
         setRect(defaultRect);
         return;
       }
 
-      observerRef.current = new ResizeObserver(entries => {
+      observerRef.current = new ResizeObserver((entries) => {
         const entry = entries[0];
         if (entry) {
           setRect(entry.contentRect);
@@ -49,7 +49,7 @@ export function useMeasure<T extends Element = HTMLDivElement>() {
       });
       observerRef.current.observe(node);
     },
-    [cleanupObserver]
+    [cleanupObserver],
   );
 
   useEffect(() => cleanupObserver, [cleanupObserver]);

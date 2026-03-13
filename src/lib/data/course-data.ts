@@ -1,13 +1,18 @@
-import 'server-only';
+import "server-only";
+import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
+import type { MBTIType } from "@/generated/prisma/client";
 import {
-  canAccessDosenFeatures,
-  canAccessMahasiswaFeatures,
-} from '@/lib/authorization';
-import type { MBTIType } from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
-import type { AssignmentClient } from '@/lib/validation/assignments';
-import type { StudentData } from '@/types/course';
+  DEMO_COURSE_ID,
+  getDemoAssignmentsForUser,
+  getDemoSandboxPrincipalId,
+  getDemoStudentsForCourse,
+  isDemoSandboxUser,
+} from "@/lib/demo/sandbox";
+import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
+import type { AssignmentClient } from "@/lib/validation/assignments";
+import type { StudentData } from "@/types/course";
 
 type EnrollmentStudentRow = {
   enrolledAt: Date;
@@ -26,37 +31,46 @@ type EnrollmentStudentRow = {
   };
 };
 
-function mapStudentData(
-  enrollment: EnrollmentStudentRow,
-  sensitiveViewerId?: string
-): StudentData {
-  const canViewSensitiveData =
-    !sensitiveViewerId || enrollment.student.id === sensitiveViewerId;
+function mapStudentData(enrollment: EnrollmentStudentRow, sensitiveViewerId?: string): StudentData {
+  const canViewSensitiveData = !sensitiveViewerId || enrollment.student.id === sensitiveViewerId;
 
   return {
     id: enrollment.student.id,
-    name: enrollment.student.name || 'Unknown',
-    nim: enrollment.student.nim || 'N/A',
-    email: canViewSensitiveData ? enrollment.student.email || 'N/A' : 'N/A',
-    mbtiType: (
-      canViewSensitiveData
-        ? enrollment.student.personalityProfile?.mbtiType ?? null
-        : null
-    ) as MBTIType | null,
-    ei: canViewSensitiveData
-      ? enrollment.student.personalityProfile?.ei ?? null
-      : null,
-    sn: canViewSensitiveData
-      ? enrollment.student.personalityProfile?.sn ?? null
-      : null,
-    tf: canViewSensitiveData
-      ? enrollment.student.personalityProfile?.tf ?? null
-      : null,
-    pj: canViewSensitiveData
-      ? enrollment.student.personalityProfile?.pj ?? null
-      : null,
+    name: enrollment.student.name || "Unknown",
+    nim: enrollment.student.nim || "N/A",
+    email: canViewSensitiveData ? enrollment.student.email || "N/A" : "N/A",
+    mbtiType: (canViewSensitiveData
+      ? (enrollment.student.personalityProfile?.mbtiType ?? null)
+      : null) as MBTIType | null,
+    ei: canViewSensitiveData ? (enrollment.student.personalityProfile?.ei ?? null) : null,
+    sn: canViewSensitiveData ? (enrollment.student.personalityProfile?.sn ?? null) : null,
+    tf: canViewSensitiveData ? (enrollment.student.personalityProfile?.tf ?? null) : null,
+    pj: canViewSensitiveData ? (enrollment.student.personalityProfile?.pj ?? null) : null,
     enrolledAt: enrollment.enrolledAt,
   };
+}
+
+async function getDemoStudentsData(sensitiveViewerId?: string): Promise<StudentData[]> {
+  const removedStudentIds = new Set(await getRemovedDemoStudentIdsFromCookieStore());
+
+  return getDemoStudentsForCourse()
+    .filter((student) => !removedStudentIds.has(student.id))
+    .map((student) => {
+      const canViewSensitiveData = !sensitiveViewerId || student.id === sensitiveViewerId;
+
+      return {
+        id: student.id,
+        name: student.name,
+        nim: student.nim,
+        email: canViewSensitiveData ? student.email : "N/A",
+        mbtiType: canViewSensitiveData ? student.mbtiType : null,
+        ei: canViewSensitiveData ? student.ei : null,
+        sn: canViewSensitiveData ? student.sn : null,
+        tf: canViewSensitiveData ? student.tf : null,
+        pj: canViewSensitiveData ? student.pj : null,
+        enrolledAt: student.enrolledAt,
+      };
+    });
 }
 
 /**
@@ -67,16 +81,20 @@ function mapStudentData(
  */
 export async function getInitialAssignments(
   courseId: string,
-  user: ExtendedUser
+  user: ExtendedUser,
 ): Promise<AssignmentClient[]> {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
   if (!isDosen && !isMahasiswa) return [];
 
+  if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
+    return getDemoAssignmentsForUser(user);
+  }
+
   const rows = await prisma.assignment.findMany({
     where: { courseId, archivedAt: null },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     select: {
       id: true,
       courseId: true,
@@ -107,12 +125,10 @@ export async function getInitialAssignments(
     topics: [],
     submissionsCount: r._count.submissions,
     submittedByMe: Array.isArray(r.submissions)
-      ? (r.submissions as Array<{ id: string; needsUpdate: boolean }>).length >
-        0
+      ? (r.submissions as Array<{ id: string; needsUpdate: boolean }>).length > 0
       : undefined,
     needsUpdate: Array.isArray(r.submissions)
-      ? ((r.submissions as Array<{ id: string; needsUpdate: boolean }>)[0]
-          ?.needsUpdate ?? false)
+      ? ((r.submissions as Array<{ id: string; needsUpdate: boolean }>)[0]?.needsUpdate ?? false)
       : false,
   }));
 }
@@ -122,9 +138,11 @@ export async function getInitialAssignments(
  * @param courseId - The course ID
  * @returns Array of student data with enrollment information
  */
-export async function getStudentsData(
-  courseId: string
-): Promise<StudentData[]> {
+export async function getStudentsData(courseId: string): Promise<StudentData[]> {
+  if (courseId === DEMO_COURSE_ID) {
+    return await getDemoStudentsData();
+  }
+
   const enrollments = await prisma.courseEnrollment.findMany({
     where: { courseId },
     select: {
@@ -147,29 +165,33 @@ export async function getStudentsData(
         },
       },
     },
-    orderBy: { student: { name: 'asc' } },
+    orderBy: { student: { name: "asc" } },
   });
 
   return enrollments.map((enrollment: (typeof enrollments)[number]) =>
-    mapStudentData(enrollment as EnrollmentStudentRow)
+    mapStudentData(enrollment as EnrollmentStudentRow),
   );
 }
 
 export async function getAuthorizedStudentsData(
   courseId: string,
-  user: ExtendedUser
+  user: ExtendedUser,
 ): Promise<StudentData[]> {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
   if (!isDosen && !isMahasiswa) return [];
 
+  if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
+    return await getDemoStudentsData(
+      isMahasiswa ? (getDemoSandboxPrincipalId(user) ?? user.id) : undefined,
+    );
+  }
+
   const enrollments = await prisma.courseEnrollment.findMany({
     where: {
       courseId,
-      course: isDosen
-        ? { dosenId: user.id }
-        : { enrollments: { some: { studentId: user.id } } },
+      course: isDosen ? { dosenId: user.id } : { enrollments: { some: { studentId: user.id } } },
     },
     select: {
       enrolledAt: true,
@@ -191,13 +213,10 @@ export async function getAuthorizedStudentsData(
         },
       },
     },
-    orderBy: { student: { name: 'asc' } },
+    orderBy: { student: { name: "asc" } },
   });
 
   return enrollments.map((enrollment: (typeof enrollments)[number]) =>
-    mapStudentData(
-      enrollment as EnrollmentStudentRow,
-      isMahasiswa ? user.id : undefined
-    )
+    mapStudentData(enrollment as EnrollmentStudentRow, isMahasiswa ? user.id : undefined),
   );
 }

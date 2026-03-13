@@ -9,8 +9,8 @@
  * - No missing translations
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 interface ValidationResult {
   locale: string;
@@ -22,26 +22,26 @@ interface TranslationObject {
   [key: string]: string | TranslationObject;
 }
 
-const LOCALES = ['en', 'id'];
-const MESSAGES_DIR = join(process.cwd(), 'messages');
+const LOCALES = ["en", "id"];
+const MESSAGES_DIR = join(process.cwd(), "messages");
 
 function loadTranslations(locale: string): TranslationObject {
   const filePath = join(MESSAGES_DIR, `${locale}.json`);
   if (!existsSync(filePath)) {
     throw new Error(`Translation file not found: ${filePath}`);
   }
-  return JSON.parse(readFileSync(filePath, 'utf-8'));
+  return JSON.parse(readFileSync(filePath, "utf-8"));
 }
 
-function flattenKeys(obj: TranslationObject, prefix = ''): Map<string, string> {
+function flattenKeys(obj: TranslationObject, prefix = ""): Map<string, string> {
   const result = new Map<string, string>();
 
   for (const [key, value] of Object.entries(obj)) {
     const fullKey = prefix ? `${prefix}.${key}` : key;
 
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       result.set(fullKey, value);
-    } else if (typeof value === 'object' && value !== null) {
+    } else if (typeof value === "object" && value !== null) {
       const nested = flattenKeys(value, fullKey);
       for (const [nestedKey, nestedValue] of nested) {
         result.set(nestedKey, nestedValue);
@@ -84,9 +84,9 @@ function validateTranslations(): ValidationResult[] {
   }
 
   // Get reference keys from primary locale (id)
-  const referenceKeys = translationsByLocale.get('id');
+  const referenceKeys = translationsByLocale.get("id");
   if (!referenceKeys) {
-    console.error('Failed to load reference locale (id)');
+    console.error("Failed to load reference locale (id)");
     process.exit(1);
   }
 
@@ -122,19 +122,16 @@ function validateTranslations(): ValidationResult[] {
       const refPlaceholders = extractPlaceholders(refValue).sort();
       const translationPlaceholders = extractPlaceholders(value).sort();
 
-      if (
-        JSON.stringify(refPlaceholders) !==
-        JSON.stringify(translationPlaceholders)
-      ) {
+      if (JSON.stringify(refPlaceholders) !== JSON.stringify(translationPlaceholders)) {
         errors.push(
           `Placeholder mismatch in key "${key}": ` +
-            `expected [${refPlaceholders.join(', ')}], ` +
-            `found [${translationPlaceholders.join(', ')}]`
+            `expected [${refPlaceholders.join(", ")}], ` +
+            `found [${translationPlaceholders.join(", ")}]`,
         );
       }
 
       // Check for empty translations
-      if (value.trim() === '') {
+      if (value.trim() === "") {
         errors.push(`Empty translation for key: ${key}`);
       }
     }
@@ -146,7 +143,7 @@ function validateTranslations(): ValidationResult[] {
 }
 
 function main() {
-  console.log('🔍 Validating i18n translations...\n');
+  console.log("🔍 Validating i18n translations...\n");
 
   const results = validateTranslations();
   let hasErrors = false;
@@ -155,7 +152,7 @@ function main() {
     console.log(`\n📝 Locale: ${result.locale}`);
 
     if (result.errors.length === 0 && result.warnings.length === 0) {
-      console.log('✅ All checks passed!');
+      console.log("✅ All checks passed!");
       continue;
     }
 
@@ -175,17 +172,14 @@ function main() {
     }
   }
 
-  console.log(`\n${'='.repeat(50)}`);
+  console.log(`\n${"=".repeat(50)}`);
 
   if (hasErrors) {
-    console.log('❌ Validation failed with errors');
+    console.log("❌ Validation failed with errors");
     process.exit(1);
   } else {
-    console.log('✅ Validation passed!');
-    const totalWarnings = results.reduce(
-      (sum, r) => sum + r.warnings.length,
-      0
-    );
+    console.log("✅ Validation passed!");
+    const totalWarnings = results.reduce((sum, r) => sum + r.warnings.length, 0);
     if (totalWarnings > 0) {
       console.log(`⚠️  ${totalWarnings} warning(s) found`);
     }

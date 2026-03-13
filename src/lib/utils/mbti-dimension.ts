@@ -1,6 +1,6 @@
-import type { ExtendedUser } from '@/lib/types';
+import type { ExtendedUser } from "@/lib/types";
 
-type DimensionKey = 'ei' | 'sn' | 'tf' | 'pj';
+type DimensionKey = "ei" | "sn" | "tf" | "pj";
 
 type DimensionConfig = {
   key: DimensionKey;
@@ -11,7 +11,7 @@ type DimensionConfig = {
   positiveSkewsLeft?: boolean;
 };
 
-type DominantSide = 'left' | 'right' | 'balanced';
+type DominantSide = "left" | "right" | "balanced";
 
 type DimensionMetrics = {
   percentage: number;
@@ -26,7 +26,7 @@ type DimensionWithMetrics = DimensionConfig & DimensionMetrics;
 
 type RadarAxisDescriptor = {
   key: DimensionKey;
-  side: 'left' | 'right';
+  side: "left" | "right";
 };
 
 export type RadarDatum = {
@@ -41,50 +41,50 @@ export type RadarDatum = {
 
 export const DIMENSION_CONFIG: DimensionConfig[] = [
   {
-    key: 'ei',
-    leftLabel: 'Extrovert (E)',
-    rightLabel: 'Introvert (I)',
-    leftKey: 'E',
-    rightKey: 'I',
+    key: "ei",
+    leftLabel: "Extrovert (E)",
+    rightLabel: "Introvert (I)",
+    leftKey: "E",
+    rightKey: "I",
     positiveSkewsLeft: true,
   },
   {
-    key: 'sn',
-    leftLabel: 'Sensing (S)',
-    rightLabel: 'Intuition (N)',
-    leftKey: 'S',
-    rightKey: 'N',
+    key: "sn",
+    leftLabel: "Sensing (S)",
+    rightLabel: "Intuition (N)",
+    leftKey: "S",
+    rightKey: "N",
   },
   {
-    key: 'tf',
-    leftLabel: 'Thinking (T)',
-    rightLabel: 'Feeling (F)',
-    leftKey: 'T',
-    rightKey: 'F',
+    key: "tf",
+    leftLabel: "Thinking (T)",
+    rightLabel: "Feeling (F)",
+    leftKey: "T",
+    rightKey: "F",
   },
   {
-    key: 'pj',
-    leftLabel: 'Judging (J)',
-    rightLabel: 'Perceiving (P)',
-    leftKey: 'J',
-    rightKey: 'P',
+    key: "pj",
+    leftLabel: "Judging (J)",
+    rightLabel: "Perceiving (P)",
+    leftKey: "J",
+    rightKey: "P",
   },
 ];
 
 export const RADAR_AXIS_ORDER: RadarAxisDescriptor[] = [
-  { key: 'ei', side: 'left' },
-  { key: 'sn', side: 'right' },
-  { key: 'tf', side: 'left' },
-  { key: 'pj', side: 'left' },
-  { key: 'ei', side: 'right' },
-  { key: 'sn', side: 'left' },
-  { key: 'tf', side: 'right' },
-  { key: 'pj', side: 'right' },
+  { key: "ei", side: "left" },
+  { key: "sn", side: "right" },
+  { key: "tf", side: "left" },
+  { key: "pj", side: "left" },
+  { key: "ei", side: "right" },
+  { key: "sn", side: "left" },
+  { key: "tf", side: "right" },
+  { key: "pj", side: "right" },
 ];
 
 export function computeDimensionMetrics(
   score: number | null | undefined,
-  positiveSkewsLeft = false
+  positiveSkewsLeft = false,
 ): DimensionMetrics {
   if (score === null || score === undefined || Number.isNaN(score)) {
     return {
@@ -92,7 +92,7 @@ export function computeDimensionMetrics(
       isRightAligned: false,
       leftPercentage: 50,
       rightPercentage: 50,
-      dominantSide: 'balanced',
+      dominantSide: "balanced",
       dominantPercentage: 50,
     };
   }
@@ -109,16 +109,16 @@ export function computeDimensionMetrics(
       isRightAligned: false,
       leftPercentage,
       rightPercentage,
-      dominantSide: 'balanced',
+      dominantSide: "balanced",
       dominantPercentage: 50,
     };
   }
 
-  const dominantSide = leftPercentage > rightPercentage ? 'left' : 'right';
+  const dominantSide = leftPercentage > rightPercentage ? "left" : "right";
 
   return {
     percentage: Math.max(leftPercentage, rightPercentage),
-    isRightAligned: dominantSide === 'right',
+    isRightAligned: dominantSide === "right",
     leftPercentage,
     rightPercentage,
     dominantSide,
@@ -128,15 +128,13 @@ export function computeDimensionMetrics(
 
 export function getDimensionScore(
   user: ExtendedUser,
-  key: DimensionKey
+  key: DimensionKey,
 ): number | null | undefined {
   return user[key];
 }
 
-export function computeAllDimensionMetrics(
-  user: ExtendedUser
-): DimensionWithMetrics[] {
-  return DIMENSION_CONFIG.map(config => {
+export function computeAllDimensionMetrics(user: ExtendedUser): DimensionWithMetrics[] {
+  return DIMENSION_CONFIG.map((config) => {
     const score = getDimensionScore(user, config.key);
     const metrics = computeDimensionMetrics(score, config.positiveSkewsLeft);
 
@@ -148,22 +146,16 @@ export function computeAllDimensionMetrics(
 }
 
 export function buildRadarData(
-  dimensionMetricsByKey: Record<DimensionKey, DimensionWithMetrics>
+  dimensionMetricsByKey: Record<DimensionKey, DimensionWithMetrics>,
 ): RadarDatum[] {
   return RADAR_AXIS_ORDER.map(({ key, side }) => {
     const dimension = dimensionMetricsByKey[key];
-    const isLeftSide = side === 'left';
+    const isLeftSide = side === "left";
 
     const traitLabel = isLeftSide ? dimension.leftLabel : dimension.rightLabel;
-    const traitPercentage = isLeftSide
-      ? dimension.leftPercentage
-      : dimension.rightPercentage;
-    const complementLabel = isLeftSide
-      ? dimension.rightLabel
-      : dimension.leftLabel;
-    const complementPercentage = isLeftSide
-      ? dimension.rightPercentage
-      : dimension.leftPercentage;
+    const traitPercentage = isLeftSide ? dimension.leftPercentage : dimension.rightPercentage;
+    const complementLabel = isLeftSide ? dimension.rightLabel : dimension.leftLabel;
+    const complementPercentage = isLeftSide ? dimension.rightPercentage : dimension.leftPercentage;
 
     return {
       axis: isLeftSide ? dimension.leftKey : dimension.rightKey,

@@ -1,44 +1,45 @@
-import 'server-only';
-import { createHash } from 'node:crypto';
-import { createId } from '@paralleldrive/cuid2';
-import { hashPassword } from 'better-auth/crypto';
-import type { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import "server-only";
+import { createHash } from "node:crypto";
+import { createId } from "@paralleldrive/cuid2";
+import { hashPassword } from "better-auth/crypto";
+import type { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { DEMO_ACCOUNT_PROFILES, type DemoRole } from "@/lib/demo/config";
 import {
-  DEMO_ACCOUNT_PROFILES,
-  type DemoRole,
-  isDemoModeEnabled,
-} from '@/lib/demo/config';
+  DEMO_VISITOR_COOKIE_MAX_AGE,
+  DEMO_VISITOR_COOKIE_NAME,
+  DEMO_VISITOR_PUBLIC_COOKIE_NAME,
+} from "@/lib/demo/cookies";
+import { getDemoRequiredSecret } from "@/lib/demo/env";
+import { DEMO_EMAIL_DOMAIN, isDemoAccountEmail } from "@/lib/demo/identity";
 
-export const DEMO_VISITOR_COOKIE_NAME = 'eduteams-demo-visitor';
-const DEMO_EMAIL_DOMAIN = 'eduteams.local';
+export { DEMO_VISITOR_COOKIE_NAME, DEMO_VISITOR_PUBLIC_COOKIE_NAME } from "@/lib/demo/cookies";
+export {
+  isActiveDemoAccountEmail,
+  isDemoAccountEmail,
+  parseDemoRoleFromEmail,
+  parseDemoVisitorIdFromEmail,
+} from "@/lib/demo/identity";
 const DEMO_VISITOR_ID_PATTERN = /^[a-z0-9_-]{8,64}$/i;
-const DEMO_EMAIL_PATTERN = new RegExp(
-  `^demo\\.(teacher|student)\\.([a-z0-9_-]{8,64})@${DEMO_EMAIL_DOMAIN.replace('.', '\\.')}$`,
-  'i'
-);
 const BETTER_AUTH_STABLE_CODE_PATTERN = /^[A-Z0-9_]+$/;
 
 export type DemoAuthRecoveryState =
-  | { type: 'missing-user' }
+  | { type: "missing-user" }
   | {
-      type: 'missing-credential';
+      type: "missing-credential";
       userId: string;
       credentialAccountId: string | null;
     }
   | {
-      type: 'stale-credential';
+      type: "stale-credential";
       userId: string;
       credentialAccountId: string;
     };
 
-type RepairableDemoAuthRecoveryState = Exclude<
-  DemoAuthRecoveryState,
-  { type: 'missing-user' }
->;
+type RepairableDemoAuthRecoveryState = Exclude<DemoAuthRecoveryState, { type: "missing-user" }>;
 
 function getDemoPasswordSecret() {
-  return process.env.BETTER_AUTH_SECRET ?? 'eduteams-demo-mode-secret';
+  return getDemoRequiredSecret();
 }
 
 function isValidDemoVisitorId(value: string | null | undefined): value is string {
@@ -46,9 +47,9 @@ function isValidDemoVisitorId(value: string | null | undefined): value is string
 }
 
 function createDemoPassword(visitorId: string, role: DemoRole) {
-  const digest = createHash('sha256')
+  const digest = createHash("sha256")
     .update(`${getDemoPasswordSecret()}:${visitorId}:${role}`)
-    .digest('base64url');
+    .digest("base64url");
 
   return `Demo-${role}-${digest.slice(0, 32)}`;
 }
@@ -57,9 +58,7 @@ export function createDemoVisitorId() {
   return createId();
 }
 
-export function getDemoVisitorIdFromRequest(
-  request: Pick<NextRequest, 'cookies'>
-) {
+export function getDemoVisitorIdFromRequest(request: Pick<NextRequest, "cookies">) {
   const value = request.cookies.get(DEMO_VISITOR_COOKIE_NAME)?.value?.trim();
 
   if (!isValidDemoVisitorId(value)) {
@@ -69,7 +68,7 @@ export function getDemoVisitorIdFromRequest(
   return value;
 }
 
-export function resolveDemoVisitorId(request: Pick<NextRequest, 'cookies'>) {
+export function resolveDemoVisitorId(request: Pick<NextRequest, "cookies">) {
   const visitorId = getDemoVisitorIdFromRequest(request);
   if (visitorId) {
     return { visitorId, shouldSetCookie: false };
@@ -81,61 +80,53 @@ export function resolveDemoVisitorId(request: Pick<NextRequest, 'cookies'>) {
   };
 }
 
-export function parseDemoRoleFromEmail(email: string): DemoRole | null {
-  const match = DEMO_EMAIL_PATTERN.exec(email.trim());
-  const role = match?.[1]?.toUpperCase();
+export function setDemoVisitorCookie(response: NextResponse, visitorId: string) {
+  const cookieAttributes = {
+    value: visitorId,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: DEMO_VISITOR_COOKIE_MAX_AGE,
+  };
 
-  if (role === 'TEACHER' || role === 'STUDENT') {
-    return role;
-  }
-
-  return null;
-}
-
-export function parseDemoVisitorIdFromEmail(email: string) {
-  const match = DEMO_EMAIL_PATTERN.exec(email.trim());
-
-  return match?.[2] ?? null;
-}
-
-export function isDemoAccountEmail(email: string) {
-  return parseDemoVisitorIdFromEmail(email) !== null;
-}
-
-export function isActiveDemoAccountEmail(email: string) {
-  return isDemoModeEnabled() && isDemoAccountEmail(email);
-}
-
-export function setDemoVisitorCookie(
-  response: NextResponse,
-  visitorId: string
-) {
   response.cookies.set({
     name: DEMO_VISITOR_COOKIE_NAME,
-    value: visitorId,
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 30,
+    ...cookieAttributes,
+  });
+  response.cookies.set({
+    name: DEMO_VISITOR_PUBLIC_COOKIE_NAME,
+    httpOnly: false,
+    ...cookieAttributes,
   });
 }
 
+export function deleteDemoVisitorCookies(response: NextResponse) {
+  response.cookies.delete(DEMO_VISITOR_COOKIE_NAME);
+  response.cookies.delete(DEMO_VISITOR_PUBLIC_COOKIE_NAME);
+}
+
 const AUTH_SESSION_COOKIE_NAMES = [
-  'better-auth.session_token',
-  '__Secure-better-auth.session_token',
-  'better-auth.session_data',
-  '__Secure-better-auth.session_data',
-  'better-auth.dont_remember',
-  '__Secure-better-auth.dont_remember',
+  "better-auth.session_token",
+  "__Secure-better-auth.session_token",
+  "better-auth.session_data",
+  "__Secure-better-auth.session_data",
+  "better-auth.dont_remember",
+  "__Secure-better-auth.dont_remember",
 ] as const;
 
 export async function clearAuthSessionCookies() {
-  const { cookies } = await import('next/headers');
+  const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
 
   for (const cookieName of AUTH_SESSION_COOKIE_NAMES) {
     cookieStore.delete(cookieName);
+  }
+}
+
+export function deleteAuthSessionCookies(response: NextResponse) {
+  for (const cookieName of AUTH_SESSION_COOKIE_NAMES) {
+    response.cookies.delete(cookieName);
   }
 }
 
@@ -152,7 +143,7 @@ export function getDemoAccount(role: DemoRole, visitorId: string) {
 
 export async function repairDemoAuthCredential(
   recoveryState: RepairableDemoAuthRecoveryState,
-  password: string
+  password: string,
 ) {
   const passwordHash = await hashPassword(password);
 
@@ -169,14 +160,14 @@ export async function repairDemoAuthCredential(
       id: createId(),
       userId: recoveryState.userId,
       accountId: recoveryState.userId,
-      providerId: 'credential',
+      providerId: "credential",
       password: passwordHash,
     },
   });
 }
 
 function getNormalizedBetterAuthField(value: unknown) {
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return null;
   }
 
@@ -191,13 +182,11 @@ function getKnownBetterAuthErrorCode(value: unknown) {
     return null;
   }
 
-  return BETTER_AUTH_STABLE_CODE_PATTERN.test(normalizedValue)
-    ? normalizedValue
-    : null;
+  return BETTER_AUTH_STABLE_CODE_PATTERN.test(normalizedValue) ? normalizedValue : null;
 }
 
 export function getBetterAuthErrorCode(error: unknown): string | null {
-  if (!error || typeof error !== 'object') {
+  if (!error || typeof error !== "object") {
     return null;
   }
 
@@ -219,22 +208,18 @@ export function getBetterAuthErrorCode(error: unknown): string | null {
 }
 
 const RECOVERABLE_DEMO_SIGN_IN_ERRORS = new Set<string>([
-  'INVALID_EMAIL_OR_PASSWORD',
-  'USER_NOT_FOUND',
-  'CREDENTIAL_ACCOUNT_NOT_FOUND',
+  "INVALID_EMAIL_OR_PASSWORD",
+  "USER_NOT_FOUND",
+  "CREDENTIAL_ACCOUNT_NOT_FOUND",
 ]);
 
 export async function getDemoAuthRecoveryState(
   email: string,
-  error: unknown
+  error: unknown,
 ): Promise<DemoAuthRecoveryState | null> {
   const errorCode = getBetterAuthErrorCode(error);
 
-  if (
-    !isDemoAccountEmail(email) ||
-    !errorCode ||
-    !RECOVERABLE_DEMO_SIGN_IN_ERRORS.has(errorCode)
-  ) {
+  if (!isDemoAccountEmail(email) || !errorCode || !RECOVERABLE_DEMO_SIGN_IN_ERRORS.has(errorCode)) {
     return null;
   }
 
@@ -243,7 +228,7 @@ export async function getDemoAuthRecoveryState(
     select: {
       id: true,
       accounts: {
-        where: { providerId: 'credential' },
+        where: { providerId: "credential" },
         select: {
           id: true,
           password: true,
@@ -254,21 +239,21 @@ export async function getDemoAuthRecoveryState(
   });
 
   if (!user) {
-    return { type: 'missing-user' };
+    return { type: "missing-user" };
   }
 
   const credentialAccount = user.accounts[0];
   if (!credentialAccount?.password) {
     return {
-      type: 'missing-credential',
+      type: "missing-credential",
       userId: user.id,
       credentialAccountId: credentialAccount?.id ?? null,
     };
   }
 
-  if (errorCode === 'INVALID_EMAIL_OR_PASSWORD') {
+  if (errorCode === "INVALID_EMAIL_OR_PASSWORD") {
     return {
-      type: 'stale-credential',
+      type: "stale-credential",
       userId: user.id,
       credentialAccountId: credentialAccount.id,
     };

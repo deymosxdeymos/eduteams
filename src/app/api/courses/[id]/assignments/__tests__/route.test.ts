@@ -1,53 +1,52 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, mock } from "bun:test";
 
 const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
-      id: 'u1',
-      email: 'teacher@example.com',
-      role: 'TEACHER',
+      id: "u1",
+      email: "teacher@example.com",
+      role: "TEACHER",
       isOnboarded: true,
     })),
   },
   course: {
     findFirst: mock(async (args: any) =>
-      args?.where?.dosenId === 'u1' && args?.where?.id === 'c1'
-        ? { id: 'c1', dosenId: 'u1' }
-        : null
+      args?.where?.dosenId === "u1" && args?.where?.id === "c1"
+        ? { id: "c1", dosenId: "u1" }
+        : null,
     ),
   },
   courseEnrollment: {
     findUnique: mock(async (args: any) =>
-      args?.where?.courseId_studentId?.courseId === 'c1' &&
-      args?.where?.courseId_studentId?.studentId === 's1'
-        ? { courseId: 'c1', studentId: 's1' }
-        : null
+      args?.where?.courseId_studentId?.courseId === "c1" &&
+      args?.where?.courseId_studentId?.studentId === "s1"
+        ? { courseId: "c1", studentId: "s1" }
+        : null,
     ),
     findMany: mock(async () => []),
   },
   assignment: {
     findMany: mock(async (args: any) => {
-      const isSelectingSubmissions =
-        args?.select?.submissions && args.select.submissions !== false;
+      const isSelectingSubmissions = args?.select?.submissions && args.select.submissions !== false;
       return [
         {
-          id: 'a1',
-          courseId: 'c1',
-          title: 'Tugas 1',
+          id: "a1",
+          courseId: "c1",
+          title: "Tugas 1",
           description: null,
-          startAt: new Date('2025-01-01T00:00:00Z'),
-          createdAt: new Date('2025-01-02T00:00:00Z'),
-          status: 'BELUM_ISI',
+          startAt: new Date("2025-01-01T00:00:00Z"),
+          createdAt: new Date("2025-01-02T00:00:00Z"),
+          status: "BELUM_ISI",
           _count: { submissions: 2 },
-          ...(isSelectingSubmissions ? { submissions: [{ id: 'sub1' }] } : {}),
+          ...(isSelectingSubmissions ? { submissions: [{ id: "sub1" }] } : {}),
         },
       ];
     }),
     create: mock(async (args: any) => ({
-      id: 'a2',
+      id: "a2",
       ...args.data,
-      createdAt: new Date('2025-01-03T00:00:00Z'),
-      status: 'BELUM_ISI',
+      createdAt: new Date("2025-01-03T00:00:00Z"),
+      status: "BELUM_ISI",
       structureVersion: 1,
     })),
   },
@@ -78,159 +77,194 @@ const prismaMock: any = {
   }),
 };
 
-mock.module('@/lib/prisma', () => ({ default: prismaMock }));
+mock.module("@/lib/prisma", () => ({ default: prismaMock }));
 
-describe('courses/[id]/assignments API', () => {
-  it('GET returns assignments for dosen owner without submittedByMe', async () => {
+describe("courses/[id]/assignments API", () => {
+  it("GET returns assignments for dosen owner without submittedByMe", async () => {
     // Auth: dosen u1
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
 
-    const { GET } = await import('../route');
+    const { GET } = await import("../route");
     const res = await GET(
-      new Request('http://localhost/api/courses/c1/assignments') as any,
-      { params: Promise.resolve({ id: 'c1' }) } as any
+      new Request("http://localhost/api/courses/c1/assignments") as any,
+      { params: Promise.resolve({ id: "c1" }) } as any,
     );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(Array.isArray(json.data)).toBe(true);
-    expect(json.data[0].id).toBe('a1');
+    expect(json.data[0].id).toBe("a1");
     expect(json.data[0].submittedByMe).toBeUndefined();
   });
 
-  it('GET returns assignments for mahasiswa with submittedByMe', async () => {
+  it("GET returns assignments for mahasiswa with submittedByMe", async () => {
     // Auth: mahasiswa s1
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
-      id: 's1',
-      email: 'student@example.com',
-      role: 'STUDENT',
+      id: "s1",
+      email: "student@example.com",
+      role: "STUDENT",
       isOnboarded: true,
     }));
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "s1" } }) } },
     }));
 
-    const { GET } = await import('../route');
+    const { GET } = await import("../route");
     const res = await GET(
-      new Request('http://localhost/api/courses/c1/assignments') as any,
-      { params: Promise.resolve({ id: 'c1' }) } as any
+      new Request("http://localhost/api/courses/c1/assignments") as any,
+      { params: Promise.resolve({ id: "c1" }) } as any,
     );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.data[0].submittedByMe).toBe(true);
   });
 
-  it('GET returns 404 for dosen non-owner', async () => {
+  it("GET returns 404 for dosen non-owner", async () => {
     // Auth: dosen u1, wrong course id
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
-    const { GET } = await import('../route');
+    const { GET } = await import("../route");
     const res = await GET(
-      new Request('http://localhost/api/courses/wrong/assignments') as any,
-      { params: Promise.resolve({ id: 'wrong' }) } as any
+      new Request("http://localhost/api/courses/wrong/assignments") as any,
+      { params: Promise.resolve({ id: "wrong" }) } as any,
     );
     expect(res.status).toBe(404);
   });
 
-  it('POST creates assignment for dosen owner with 201', async () => {
+  it("POST creates assignment for dosen owner with 201", async () => {
     // Auth: dosen u1
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
 
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses/c1/assignments', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses/c1/assignments", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        title: 'T2',
-        description: '  desc  ',
-        skills: ['Frontend'],
-        topics: ['Topic1', ' Topic2 '],
+        title: "T2",
+        description: "  desc  ",
+        skills: ["Frontend"],
+        topics: ["Topic1", " Topic2 "],
       }),
     });
-    const res = await POST(
-      req as any,
-      { params: Promise.resolve({ id: 'c1' }) } as any
-    );
+    const res = await POST(req as any, { params: Promise.resolve({ id: "c1" }) } as any);
     expect(res.status).toBe(201);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
-    expect(json.data.skills).toEqual(['Frontend']);
-    expect(json.data.topics).toEqual(['Topic1', 'Topic2']);
+    expect(json.data.skills).toEqual(["Frontend"]);
+    expect(json.data.topics).toEqual(["Topic1", "Topic2"]);
   });
 
-  it('POST seeds demo classmates as submitted participants for demo teachers', async () => {
+  it("POST preserves the chosen start date for local demo assignments", async () => {
     const originalDemoMode = process.env.DEMO_MODE;
-    process.env.DEMO_MODE = '1';
-    const { getDemoStudentCourseEmailPrefix } = await import(
-      '@/lib/demo/seed-students'
-    );
-    const emailPrefix = getDemoStudentCourseEmailPrefix('visitor1234', 'c1');
+    process.env.DEMO_MODE = "1";
+    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+      id: "u1",
+      email: "demo.teacher.visitor1234@eduteams.local",
+      role: "TEACHER",
+      isOnboarded: true,
+    }));
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
+    }));
+
+    try {
+      const { POST } = await import("../route");
+      const scheduledStartAt = "2026-04-15T09:30:00.000Z";
+      const req = new Request("http://localhost/api/courses/demo-sandbox-course/assignments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          title: "Scheduled Demo Assignment",
+          skills: ["Frontend"],
+          topics: ["Topic1"],
+          startAt: scheduledStartAt,
+        }),
+      });
+      const res = await POST(
+        req as any,
+        { params: Promise.resolve({ id: "demo-sandbox-course" }) } as any,
+      );
+
+      expect(res.status).toBe(201);
+      const json = (await res.json()) as any;
+      expect(new Date(json.data.startAt).toISOString()).toBe(scheduledStartAt);
+    } finally {
+      if (originalDemoMode === undefined) {
+        delete process.env.DEMO_MODE;
+      } else {
+        process.env.DEMO_MODE = originalDemoMode;
+      }
+    }
+  });
+
+  it("POST seeds demo classmates as submitted participants for demo teachers", async () => {
+    const originalDemoMode = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = "1";
+    const { getDemoStudentCourseEmailPrefix } = await import("@/lib/demo/seed-students");
+    const emailPrefix = getDemoStudentCourseEmailPrefix("visitor1234", "c1");
 
     prismaMock.assignmentSubmission.createMany.mockClear();
     prismaMock.personSkill.createMany.mockClear();
     prismaMock.assignmentTopicPreference.createMany.mockClear();
     prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => [
       {
-        studentId: 'seed-20',
+        studentId: "seed-20",
         student: {
           email: `${emailPrefix}10@eduteams.local`,
         },
       },
       {
-        studentId: 'seed-03',
+        studentId: "seed-03",
         student: {
           email: `${emailPrefix}2@eduteams.local`,
         },
       },
     ]);
     prismaMock.courseSkill.findMany.mockImplementationOnce(async () => [
-      { skillId: 'skill-1' },
-      { skillId: 'skill-2' },
+      { skillId: "skill-1" },
+      { skillId: "skill-2" },
     ]);
     prismaMock.assignmentTopic.findMany.mockImplementationOnce(async () => [
-      { id: 'topic-1' },
-      { id: 'topic-2' },
+      { id: "topic-1" },
+      { id: "topic-2" },
     ]);
     prismaMock.assignmentSubmission.createMany.mockResolvedValueOnce({
       count: 2,
     });
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
-      id: 'u1',
-      email: 'demo.teacher.visitor1234@eduteams.local',
-      role: 'TEACHER',
+      id: "u1",
+      email: "demo.teacher.visitor1234@eduteams.local",
+      role: "TEACHER",
       isOnboarded: true,
     }));
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
 
     try {
-      const { POST } = await import('../route');
-      const req = new Request('http://localhost/api/courses/c1/assignments', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+      const { POST } = await import("../route");
+      const req = new Request("http://localhost/api/courses/c1/assignments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          title: 'Demo Assignment',
-          skills: ['Frontend'],
-          topics: ['Topic1'],
+          title: "Demo Assignment",
+          skills: ["Frontend"],
+          topics: ["Topic1"],
         }),
       });
-      const res = await POST(
-        req as any,
-        { params: Promise.resolve({ id: 'c1' }) } as any
-      );
+      const res = await POST(req as any, { params: Promise.resolve({ id: "c1" }) } as any);
 
       expect(res.status).toBe(201);
       expect(prismaMock.courseEnrollment.findMany).toHaveBeenCalledWith({
         where: {
-          courseId: 'c1',
+          courseId: "c1",
           student: {
             email: {
-              startsWith: expect.stringContaining('dcs.'),
+              startsWith: expect.stringContaining("dcs."),
             },
           },
         },
@@ -244,25 +278,25 @@ describe('courses/[id]/assignments API', () => {
         },
       });
       expect(prismaMock.courseSkill.findMany).toHaveBeenCalledWith({
-        where: { courseId: 'c1' },
-        orderBy: { skillId: 'asc' },
+        where: { courseId: "c1" },
+        orderBy: { skillId: "asc" },
         select: { skillId: true },
       });
       expect(prismaMock.assignmentTopic.findMany).toHaveBeenCalledWith({
-        where: { assignmentId: 'a2' },
-        orderBy: { name: 'asc' },
+        where: { assignmentId: "a2" },
+        orderBy: { name: "asc" },
         select: { id: true },
       });
       expect(prismaMock.assignmentSubmission.createMany).toHaveBeenCalledWith({
         data: [
           {
-            assignmentId: 'a2',
-            studentId: 'seed-03',
+            assignmentId: "a2",
+            studentId: "seed-03",
             structureVersion: 1,
           },
           {
-            assignmentId: 'a2',
-            studentId: 'seed-20',
+            assignmentId: "a2",
+            studentId: "seed-20",
             structureVersion: 1,
           },
         ],
@@ -271,50 +305,48 @@ describe('courses/[id]/assignments API', () => {
       expect(prismaMock.personSkill.createMany).toHaveBeenCalledWith({
         data: [
           {
-            personId: 'seed-03',
-            skillId: 'skill-1',
+            personId: "seed-03",
+            skillId: "skill-1",
             level: expect.any(Number),
           },
           {
-            personId: 'seed-03',
-            skillId: 'skill-2',
+            personId: "seed-03",
+            skillId: "skill-2",
             level: expect.any(Number),
           },
           {
-            personId: 'seed-20',
-            skillId: 'skill-1',
+            personId: "seed-20",
+            skillId: "skill-1",
             level: expect.any(Number),
           },
           {
-            personId: 'seed-20',
-            skillId: 'skill-2',
+            personId: "seed-20",
+            skillId: "skill-2",
             level: expect.any(Number),
           },
         ],
         skipDuplicates: true,
       });
-      expect(
-        prismaMock.assignmentTopicPreference.createMany
-      ).toHaveBeenCalledWith({
+      expect(prismaMock.assignmentTopicPreference.createMany).toHaveBeenCalledWith({
         data: [
           {
-            assignmentTopicId: 'topic-1',
-            personId: 'seed-03',
+            assignmentTopicId: "topic-1",
+            personId: "seed-03",
             preference: expect.any(Number),
           },
           {
-            assignmentTopicId: 'topic-2',
-            personId: 'seed-03',
+            assignmentTopicId: "topic-2",
+            personId: "seed-03",
             preference: expect.any(Number),
           },
           {
-            assignmentTopicId: 'topic-1',
-            personId: 'seed-20',
+            assignmentTopicId: "topic-1",
+            personId: "seed-20",
             preference: expect.any(Number),
           },
           {
-            assignmentTopicId: 'topic-2',
-            personId: 'seed-20',
+            assignmentTopicId: "topic-2",
+            personId: "seed-20",
             preference: expect.any(Number),
           },
         ],
@@ -331,27 +363,21 @@ describe('courses/[id]/assignments API', () => {
     }
   });
 
-  it('POST rolls back demo assignment creation when demo seeding fails', async () => {
+  it("POST rolls back demo assignment creation when demo seeding fails", async () => {
     const originalDemoMode = process.env.DEMO_MODE;
-    process.env.DEMO_MODE = '1';
+    process.env.DEMO_MODE = "1";
 
     const committedAssignments: Array<{ id: string; title: string }> = [];
     let shouldFailSeeding = true;
     let assignmentSequence = 2;
 
-    prismaMock.courseEnrollment.findMany.mockImplementation(async () => [
-      { studentId: 'seed-1' },
-    ]);
-    prismaMock.courseSkill.findMany.mockImplementation(async () => [
-      { skillId: 'skill-1' },
-    ]);
-    prismaMock.assignmentTopic.findMany.mockImplementation(async () => [
-      { id: 'topic-1' },
-    ]);
+    prismaMock.courseEnrollment.findMany.mockImplementation(async () => [{ studentId: "seed-1" }]);
+    prismaMock.courseSkill.findMany.mockImplementation(async () => [{ skillId: "skill-1" }]);
+    prismaMock.assignmentTopic.findMany.mockImplementation(async () => [{ id: "topic-1" }]);
     prismaMock.user.findUnique.mockImplementation(async () => ({
-      id: 'u1',
-      email: 'demo.teacher.visitor1234@eduteams.local',
-      role: 'TEACHER',
+      id: "u1",
+      email: "demo.teacher.visitor1234@eduteams.local",
+      role: "TEACHER",
       isOnboarded: true,
     }));
     prismaMock.$transaction.mockImplementation(async (callback: any) => {
@@ -365,8 +391,8 @@ describe('courses/[id]/assignments API', () => {
             const created = {
               id: `a${assignmentSequence}`,
               ...args.data,
-              createdAt: new Date('2025-01-03T00:00:00Z'),
-              status: 'BELUM_ISI',
+              createdAt: new Date("2025-01-03T00:00:00Z"),
+              status: "BELUM_ISI",
               structureVersion: 1,
             };
             pendingAssignments.push({ id: created.id, title: created.title });
@@ -377,7 +403,7 @@ describe('courses/[id]/assignments API', () => {
           ...prismaMock.assignmentSubmission,
           createMany: async () => {
             if (shouldFailSeeding) {
-              throw new Error('seed failed');
+              throw new Error("seed failed");
             }
             return { count: 1 };
           },
@@ -389,40 +415,37 @@ describe('courses/[id]/assignments API', () => {
       return result;
     });
 
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
 
     try {
-      const { POST } = await import('../route');
-      const req = new Request('http://localhost/api/courses/c1/assignments', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+      const { POST } = await import("../route");
+      const req = new Request("http://localhost/api/courses/c1/assignments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          title: 'Atomic Demo Assignment',
-          skills: ['Frontend'],
-          topics: ['Topic1'],
+          title: "Atomic Demo Assignment",
+          skills: ["Frontend"],
+          topics: ["Topic1"],
         }),
       });
 
       const failedRes = await POST(
         req.clone() as any,
-        { params: Promise.resolve({ id: 'c1' }) } as any
+        { params: Promise.resolve({ id: "c1" }) } as any,
       );
       expect(failedRes.status).toBe(500);
       expect(committedAssignments).toHaveLength(0);
 
       shouldFailSeeding = false;
 
-      const successRes = await POST(
-        req as any,
-        { params: Promise.resolve({ id: 'c1' }) } as any
-      );
+      const successRes = await POST(req as any, { params: Promise.resolve({ id: "c1" }) } as any);
       expect(successRes.status).toBe(201);
       expect(committedAssignments).toHaveLength(1);
       expect(committedAssignments[0]).toEqual({
-        id: 'a4',
-        title: 'Atomic Demo Assignment',
+        id: "a4",
+        title: "Atomic Demo Assignment",
       });
     } finally {
       if (originalDemoMode === undefined) {
@@ -433,28 +456,25 @@ describe('courses/[id]/assignments API', () => {
     }
   });
 
-  it('POST denies mahasiswa', async () => {
+  it("POST denies mahasiswa", async () => {
     // Auth: mahasiswa s1
     prismaMock.user.findUnique.mockImplementationOnce(async () => ({
-      id: 's1',
-      email: 'student@example.com',
-      role: 'STUDENT',
+      id: "s1",
+      email: "student@example.com",
+      role: "STUDENT",
       isOnboarded: true,
     }));
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 's1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "s1" } }) } },
     }));
 
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses/c1/assignments', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ title: 'T', skills: [], topics: [] }),
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses/c1/assignments", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: "T", skills: [], topics: [] }),
     });
-    const res = await POST(
-      req as any,
-      { params: Promise.resolve({ id: 'c1' }) } as any
-    );
+    const res = await POST(req as any, { params: Promise.resolve({ id: "c1" }) } as any);
     expect(res.status).toBe(403);
   });
 });

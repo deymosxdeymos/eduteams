@@ -1,21 +1,19 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { cache, Suspense } from 'react';
-import { ClassAssignmentsAsync } from '@/components/dashboard/async/class-assignments-async';
-import { StudentClassDataAsync } from '@/components/dashboard/async/student-class-data-async';
-import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { AssignmentListSkeleton } from '@/components/ui/skeletons/assignment-list-skeleton';
-import { StudentListSkeleton } from '@/components/ui/skeletons/student-list-skeleton';
-import {
-  canAccessDosenFeatures,
-  canAccessMahasiswaFeatures,
-} from '@/lib/authorization';
-import { getAuthorizedStudentsData } from '@/lib/data/course-data';
-import prisma from '@/lib/prisma';
-import { protectDashboard } from '@/lib/server-auth';
-import type { ExtendedUser } from '@/lib/types';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache, Suspense } from "react";
+import { ClassAssignmentsAsync } from "@/components/dashboard/async/class-assignments-async";
+import { StudentClassDataAsync } from "@/components/dashboard/async/student-class-data-async";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { AssignmentListSkeleton } from "@/components/ui/skeletons/assignment-list-skeleton";
+import { StudentListSkeleton } from "@/components/ui/skeletons/student-list-skeleton";
+import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
+import { getAuthorizedStudentsData } from "@/lib/data/course-data";
+import { DEMO_COURSE_ID, getDemoCourse, isDemoSandboxUser } from "@/lib/demo/sandbox";
+import prisma from "@/lib/prisma";
+import { protectDashboard } from "@/lib/server-auth";
+import type { ExtendedUser } from "@/lib/types";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const getDosenCourseData = cache(async (id: string, userId: string) =>
   prisma.course.findFirst({
@@ -25,7 +23,7 @@ const getDosenCourseData = cache(async (id: string, userId: string) =>
         select: { id: true, name: true, email: true },
       },
     },
-  })
+  }),
 );
 
 const getMahasiswaCourseData = cache(async (id: string, userId: string) =>
@@ -39,10 +37,14 @@ const getMahasiswaCourseData = cache(async (id: string, userId: string) =>
         select: { id: true, name: true, email: true },
       },
     },
-  })
+  }),
 );
 
 async function getCourseData(id: string, user: ExtendedUser) {
+  if (id === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
+    return getDemoCourse();
+  }
+
   if (canAccessDosenFeatures(user)) {
     return getDosenCourseData(id, user.id);
   }
@@ -63,11 +65,11 @@ export async function generateMetadata({
 
   const title = course
     ? `${course.namaMataKuliah} - ${course.kelas} | EduTeams`
-    : 'Kelas - EduTeams';
+    : "Kelas - EduTeams";
 
   const description = course
     ? `Kelola kelas ${course.namaMataKuliah} - ${course.kelas}`
-    : 'Halaman detail kelas';
+    : "Halaman detail kelas";
 
   return { title, description };
 }
@@ -98,7 +100,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
 
   return (
     <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
-      <div className='space-y-6'>
+      <div className="space-y-6">
         {isDosen && (
           <Suspense fallback={<StudentListSkeleton />}>
             <ClassAssignmentsAsync

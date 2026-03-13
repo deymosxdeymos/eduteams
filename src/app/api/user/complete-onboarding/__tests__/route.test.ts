@@ -1,45 +1,45 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const indonesianBank = {
   bankVersion: 1,
-  locale: 'id-ID',
+  locale: "id-ID",
   questions: [
     {
-      id: 'id-q1',
+      id: "id-q1",
       bankVersion: 1,
-      locale: 'id-ID',
-      text: 'q1',
-      dimension: 'ei',
+      locale: "id-ID",
+      text: "q1",
+      dimension: "ei",
       orderHint: 1,
       reversed: false,
       isAttentionCheck: false,
     },
     {
-      id: 'id-q2',
+      id: "id-q2",
       bankVersion: 1,
-      locale: 'id-ID',
-      text: 'q2',
-      dimension: 'sn',
+      locale: "id-ID",
+      text: "q2",
+      dimension: "sn",
       orderHint: 2,
       reversed: false,
       isAttentionCheck: false,
     },
     {
-      id: 'id-q3',
+      id: "id-q3",
       bankVersion: 1,
-      locale: 'id-ID',
-      text: 'q3',
-      dimension: 'tf',
+      locale: "id-ID",
+      text: "q3",
+      dimension: "tf",
       orderHint: 3,
       reversed: false,
       isAttentionCheck: false,
     },
     {
-      id: 'id-q4',
+      id: "id-q4",
       bankVersion: 1,
-      locale: 'id-ID',
-      text: 'q4',
-      dimension: 'pj',
+      locale: "id-ID",
+      text: "q4",
+      dimension: "pj",
       orderHint: 4,
       reversed: false,
       isAttentionCheck: false,
@@ -49,44 +49,44 @@ const indonesianBank = {
 
 const englishBank = {
   bankVersion: 2,
-  locale: 'en-US',
+  locale: "en-US",
   questions: [
     {
-      id: 'en-q1',
+      id: "en-q1",
       bankVersion: 2,
-      locale: 'en-US',
-      text: 'q1',
-      dimension: 'ei',
+      locale: "en-US",
+      text: "q1",
+      dimension: "ei",
       orderHint: 1,
       reversed: false,
       isAttentionCheck: false,
     },
     {
-      id: 'en-q2',
+      id: "en-q2",
       bankVersion: 2,
-      locale: 'en-US',
-      text: 'q2',
-      dimension: 'sn',
+      locale: "en-US",
+      text: "q2",
+      dimension: "sn",
       orderHint: 2,
       reversed: false,
       isAttentionCheck: false,
     },
     {
-      id: 'en-q3',
+      id: "en-q3",
       bankVersion: 2,
-      locale: 'en-US',
-      text: 'q3',
-      dimension: 'tf',
+      locale: "en-US",
+      text: "q3",
+      dimension: "tf",
       orderHint: 3,
       reversed: false,
       isAttentionCheck: false,
     },
     {
-      id: 'en-q4',
+      id: "en-q4",
       bankVersion: 2,
-      locale: 'en-US',
-      text: 'q4',
-      dimension: 'pj',
+      locale: "en-US",
+      text: "q4",
+      dimension: "pj",
       orderHint: 4,
       reversed: false,
       isAttentionCheck: false,
@@ -96,7 +96,7 @@ const englishBank = {
 
 const prismaMock: any = {
   user: {
-    findUnique: mock(async () => ({ id: 'u1', role: 'STUDENT' })),
+    findUnique: mock(async () => ({ id: "u1", role: "STUDENT" })),
     update: mock(async () => ({})),
   },
   personalityProfile: {
@@ -106,25 +106,26 @@ const prismaMock: any = {
     cb({
       user: prismaMock.user,
       personalityProfile: prismaMock.personalityProfile,
-    })
+    }),
   ),
 };
 
-const getActivePersonalityBankMock = mock(
-  async (_locale?: string) => indonesianBank
-);
+const getActivePersonalityBankMock = mock(async (_locale?: string) => indonesianBank);
 
-mock.module('@/lib/prisma', () => ({ default: prismaMock }));
-mock.module('@/lib/mbti-questions-simple', () => ({
+mock.module("@/lib/prisma", () => ({ default: prismaMock }));
+mock.module("@/lib/mbti-questions-simple", () => ({
   getActivePersonalityBank: getActivePersonalityBankMock,
 }));
 
-describe('POST /api/user/complete-onboarding', () => {
+describe("POST /api/user/complete-onboarding", () => {
+  const originalDemoMode = process.env.DEMO_MODE;
+
   beforeEach(() => {
+    delete process.env.DEMO_MODE;
     prismaMock.user.findUnique.mockReset();
     prismaMock.user.findUnique.mockImplementation(async () => ({
-      id: 'u1',
-      role: 'STUDENT',
+      id: "u1",
+      role: "STUDENT",
     }));
 
     prismaMock.user.update.mockReset();
@@ -134,21 +135,28 @@ describe('POST /api/user/complete-onboarding', () => {
     prismaMock.$transaction.mockClear();
 
     getActivePersonalityBankMock.mockReset();
-    getActivePersonalityBankMock.mockImplementation(
-      async (_locale?: string) => indonesianBank
-    );
+    getActivePersonalityBankMock.mockImplementation(async (_locale?: string) => indonesianBank);
   });
 
-  it('calculates personality for mahasiswa answers', async () => {
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+  afterEach(() => {
+    if (originalDemoMode === undefined) {
+      delete process.env.DEMO_MODE;
+      return;
+    }
+
+    process.env.DEMO_MODE = originalDemoMode;
+  });
+
+  it("calculates personality for mahasiswa answers", async () => {
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
     const answers: Record<string, number> = {};
     for (let i = 1; i <= 4; i++) answers[String(i)] = 3;
-    const req = new Request('http://localhost/api/user/complete-onboarding', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const req = new Request("http://localhost/api/user/complete-onboarding", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ answers }),
     });
     const res = await POST(req as any, undefined as any);
@@ -156,67 +164,63 @@ describe('POST /api/user/complete-onboarding', () => {
     expect(prismaMock.personalityProfile.upsert).toHaveBeenCalled();
   });
 
-  it('uses matching bank when answers are keyed by question id', async () => {
-    getActivePersonalityBankMock.mockImplementation(
-      async (locale?: string): Promise<any> => {
-        if (!locale) return indonesianBank;
-        if (locale === 'en-US') return englishBank;
-        if (locale === 'id-ID') return indonesianBank;
-        return null;
-      }
-    );
+  it("uses matching bank when answers are keyed by question id", async () => {
+    getActivePersonalityBankMock.mockImplementation(async (locale?: string): Promise<any> => {
+      if (!locale) return indonesianBank;
+      if (locale === "en-US") return englishBank;
+      if (locale === "id-ID") return indonesianBank;
+      return null;
+    });
 
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
     const answers: Record<string, number> = {
-      'en-q1': 5,
-      'en-q2': 4,
-      'en-q3': 3,
-      'en-q4': 2,
+      "en-q1": 5,
+      "en-q2": 4,
+      "en-q3": 3,
+      "en-q4": 2,
     };
 
-    const req = new Request('http://localhost/api/user/complete-onboarding', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const req = new Request("http://localhost/api/user/complete-onboarding", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ answers }),
     });
 
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(200);
-    expect(
-      getActivePersonalityBankMock.mock.calls.some(
-        ([locale]) => locale === 'en-US'
-      )
-    ).toBe(true);
+    expect(getActivePersonalityBankMock.mock.calls.some(([locale]) => locale === "en-US")).toBe(
+      true,
+    );
     expect(prismaMock.personalityProfile.upsert).toHaveBeenCalled();
     const profileArg = prismaMock.personalityProfile.upsert.mock.calls[0][0];
     const personalityData = (profileArg.create.personalityData as any) ?? {};
-    expect(personalityData.answers['en-q1']).toBe(5);
+    expect(personalityData.answers["en-q1"]).toBe(5);
   });
 
-  it('rejects answers with mismatched question IDs (v2 IDs with v3 bank)', async () => {
+  it("rejects answers with mismatched question IDs (v2 IDs with v3 bank)", async () => {
     const v3Bank = {
       bankVersion: 3 as const,
-      locale: 'id-ID' as const,
+      locale: "id-ID" as const,
       questions: [
         {
-          id: 'v3-new-q1',
+          id: "v3-new-q1",
           bankVersion: 3,
-          locale: 'id-ID',
-          text: 'q1',
-          dimension: 'ei' as const,
+          locale: "id-ID",
+          text: "q1",
+          dimension: "ei" as const,
           orderHint: 1,
           reversed: false,
           isAttentionCheck: false,
         },
         {
-          id: 'v3-new-q2',
+          id: "v3-new-q2",
           bankVersion: 3,
-          locale: 'id-ID',
-          text: 'q2',
-          dimension: 'sn' as const,
+          locale: "id-ID",
+          text: "q2",
+          dimension: "sn" as const,
           orderHint: 2,
           reversed: false,
           isAttentionCheck: false,
@@ -226,19 +230,19 @@ describe('POST /api/user/complete-onboarding', () => {
 
     getActivePersonalityBankMock.mockImplementation(async () => v3Bank as any);
 
-    mock.module('@/lib/auth', () => ({
-      auth: { api: { getSession: async () => ({ user: { id: 'u1' } }) } },
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
     }));
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
 
     const answersWithV2Ids: Record<string, number> = {
-      'id-q1': 5,
-      'id-q2': 4,
+      "id-q1": 5,
+      "id-q2": 4,
     };
 
-    const req = new Request('http://localhost/api/user/complete-onboarding', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const req = new Request("http://localhost/api/user/complete-onboarding", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ answers: answersWithV2Ids }),
     });
 
@@ -246,5 +250,41 @@ describe('POST /api/user/complete-onboarding', () => {
     expect(res.status).toBe(400);
     expect(prismaMock.user.update).not.toHaveBeenCalled();
     expect(prismaMock.personalityProfile.upsert).not.toHaveBeenCalled();
+  });
+
+  it("allows demo users to complete onboarding", async () => {
+    process.env.DEMO_MODE = "1";
+    prismaMock.user.findUnique.mockImplementation(async () => ({
+      id: "demo-user",
+      name: "Demo Student",
+      email: "demo.student.visitor-alpha@eduteams.local",
+      emailVerified: true,
+      image: null,
+      role: "STUDENT",
+      isOnboarded: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nim: "20260001",
+      gender: "MALE",
+      hasSeenWelcomeSplash: false,
+      onboardingStep: "kepribadian",
+      onboardingData: null,
+      personalityProfile: null,
+    }));
+
+    mock.module("@/lib/auth", () => ({
+      auth: { api: { getSession: async () => ({ user: { id: "demo-user" } }) } },
+    }));
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/user/complete-onboarding", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ answers: { 1: 3, 2: 3, 3: 3, 4: 3 } }),
+    });
+
+    const res = await POST(req as any, undefined as any);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
   });
 });

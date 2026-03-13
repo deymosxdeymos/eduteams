@@ -1,18 +1,18 @@
-import { randomInt, randomUUID } from 'node:crypto';
-import type { MBTIType, Prisma } from '@/generated/prisma/client';
+import { randomInt, randomUUID } from "node:crypto";
+import type { MBTIType, Prisma } from "@/generated/prisma/client";
 import {
   type ActivePersonalityBank,
   getActivePersonalityBank,
   type PersonalityQuestionRecord,
-} from '@/lib/mbti-questions-simple';
+} from "@/lib/mbti-questions-simple";
 import {
   type AnswerRecord,
   calculatePersonalityScoresFromQuestions,
   getMBTIType,
   type PersonalityScores,
-} from '@/lib/personality';
-import prisma, { type TransactionClient } from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
+} from "@/lib/personality";
+import prisma, { type TransactionClient } from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
 
 interface PersonalityQuestionRow {
   id: string;
@@ -29,7 +29,7 @@ const ATTENTION_INSERT_MAX = 28; // 1-indexed
 export interface SessionQuestionPayload {
   id: string;
   text: string;
-  dimension: PersonalityQuestionRecord['dimension'];
+  dimension: PersonalityQuestionRecord["dimension"];
   reversed: boolean;
   isAttentionCheck: boolean;
 }
@@ -41,11 +41,11 @@ export interface CreatePersonalitySessionResult {
 }
 
 type PersonalitySessionStatus =
-  | 'not_started'
-  | 'in_progress'
-  | 'completed_valid'
-  | 'completed_attention_failed'
-  | 'completed_speeding';
+  | "not_started"
+  | "in_progress"
+  | "completed_valid"
+  | "completed_attention_failed"
+  | "completed_speeding";
 
 export interface UserPersonalitySessionStatus {
   bankVersion: number;
@@ -59,10 +59,10 @@ export interface UserPersonalitySessionStatus {
 }
 
 type PersonalitySessionSubmitStatus =
-  | 'completed'
-  | 'attention_check_failed'
-  | 'speeding'
-  | 'incomplete';
+  | "completed"
+  | "attention_check_failed"
+  | "speeding"
+  | "incomplete";
 
 interface SubmitPersonalitySessionResult {
   status: PersonalitySessionSubmitStatus;
@@ -85,16 +85,12 @@ function clamp(value: number, min: number, max: number): number {
 
 type QuestionForScoring = Pick<
   PersonalityQuestionRecord,
-  'id' | 'dimension' | 'reversed' | 'isAttentionCheck'
+  "id" | "dimension" | "reversed" | "isAttentionCheck"
 >;
 
-function normalizePresentedOrder(
-  presentedOrder: Prisma.JsonValue | null | undefined
-): string[] {
+function normalizePresentedOrder(presentedOrder: Prisma.JsonValue | null | undefined): string[] {
   if (Array.isArray(presentedOrder)) {
-    return presentedOrder.filter(
-      (value: unknown): value is string => typeof value === 'string'
-    );
+    return presentedOrder.filter((value: unknown): value is string => typeof value === "string");
   }
   return [];
 }
@@ -102,7 +98,7 @@ function normalizePresentedOrder(
 function resolveAnswerValue(
   answers: AnswerRecord,
   questionId: string,
-  orderIndex: number
+  orderIndex: number,
 ): number | undefined {
   // Accept both UUID keyed answers and legacy ordinal keys ("1", "2", ...)
   if (Object.hasOwn(answers, questionId)) {
@@ -122,25 +118,25 @@ function classifySessionStatus(options: {
 }): PersonalitySessionStatus {
   const { submittedAt, attentionPassed, durationMs } = options;
   if (!submittedAt) {
-    return 'in_progress';
+    return "in_progress";
   }
 
   if (!attentionPassed) {
-    return 'completed_attention_failed';
+    return "completed_attention_failed";
   }
 
   if ((durationMs ?? 0) < SPEEDER_THRESHOLD_MS) {
-    return 'completed_speeding';
+    return "completed_speeding";
   }
 
-  return 'completed_valid';
+  return "completed_valid";
 }
 
 function buildQuestionPayloadFromOrder(
   order: string[],
-  questionMap: Map<string, PersonalityQuestionRecord>
+  questionMap: Map<string, PersonalityQuestionRecord>,
 ): SessionQuestionPayload[] {
-  return order.map(questionId => {
+  return order.map((questionId) => {
     const question = questionMap.get(questionId);
     if (!question) {
       throw new Error(`Question ${questionId} not found in active bank`);
@@ -155,12 +151,10 @@ function buildQuestionPayloadFromOrder(
   });
 }
 
-async function rebuildScoresFromResponses(
-  sessionId: string
-): Promise<PersonalityScores | null> {
+async function rebuildScoresFromResponses(sessionId: string): Promise<PersonalityScores | null> {
   const responses = await prisma.personalityResponse.findMany({
     where: { sessionId },
-    orderBy: { position: 'asc' },
+    orderBy: { position: "asc" },
     select: {
       questionId: true,
       rawValue: true,
@@ -189,28 +183,28 @@ async function rebuildScoresFromResponses(
     }
 
     const dimensionValue =
-      typeof question.dimension === 'string'
+      typeof question.dimension === "string"
         ? question.dimension.toLowerCase()
         : question.dimension;
-    const dimension = dimensionValue as PersonalityQuestionRecord['dimension'];
+    const dimension = dimensionValue as PersonalityQuestionRecord["dimension"];
 
     const validDimensions = [
-      'ei',
-      'sn',
-      'tf',
-      'pj',
-      'i',
-      's',
-      'f',
-      'j',
-      'nj',
-      'np',
-      'sj',
-      'sp',
-      'ef',
-      'et',
-      'if',
-      'it',
+      "ei",
+      "sn",
+      "tf",
+      "pj",
+      "i",
+      "s",
+      "f",
+      "j",
+      "nj",
+      "np",
+      "sj",
+      "sp",
+      "ef",
+      "et",
+      "if",
+      "it",
     ];
     if (!validDimensions.includes(dimension)) {
       continue;
@@ -234,7 +228,7 @@ async function rebuildScoresFromResponses(
 
 async function getUserPersonalitySessionStatusForBank(
   userId: string,
-  bank: ActivePersonalityBank
+  bank: ActivePersonalityBank,
 ): Promise<UserPersonalitySessionStatus> {
   const pending = await prisma.personalitySession.findFirst({
     where: {
@@ -242,7 +236,7 @@ async function getUserPersonalitySessionStatusForBank(
       bankVersion: bank.bankVersion,
       submittedAt: null,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     select: {
       id: true,
       presentedOrder: true,
@@ -253,7 +247,7 @@ async function getUserPersonalitySessionStatusForBank(
     return {
       bankVersion: bank.bankVersion,
       locale: bank.locale,
-      status: 'in_progress',
+      status: "in_progress",
       sessionId: pending.id,
       presentedOrder: normalizePresentedOrder(pending.presentedOrder),
     } satisfies UserPersonalitySessionStatus;
@@ -265,7 +259,7 @@ async function getUserPersonalitySessionStatusForBank(
       bankVersion: bank.bankVersion,
       submittedAt: { not: null },
     },
-    orderBy: { submittedAt: 'desc' },
+    orderBy: { submittedAt: "desc" },
     select: {
       id: true,
       submittedAt: true,
@@ -278,7 +272,7 @@ async function getUserPersonalitySessionStatusForBank(
     return {
       bankVersion: bank.bankVersion,
       locale: bank.locale,
-      status: 'not_started',
+      status: "not_started",
     } satisfies UserPersonalitySessionStatus;
   }
 
@@ -301,7 +295,7 @@ async function getUserPersonalitySessionStatusForBank(
 
 export async function getUserPersonalitySessionStatus(
   userId: string,
-  locale?: string
+  locale?: string,
 ): Promise<UserPersonalitySessionStatus | null> {
   const bank = await getActivePersonalityBank(locale);
   if (!bank) return null;
@@ -309,22 +303,20 @@ export async function getUserPersonalitySessionStatus(
 }
 
 export async function createPersonalitySessionForUser(
-  user: Pick<ExtendedUser, 'id'>,
-  locale?: string
+  user: Pick<ExtendedUser, "id">,
+  locale?: string,
 ): Promise<CreatePersonalitySessionResult | null> {
   const bank = await getActivePersonalityBank(locale);
   if (!bank) return null;
 
-  const questionMap = new Map(bank.questions.map(q => [q.id, q] as const));
+  const questionMap = new Map(bank.questions.map((q) => [q.id, q] as const));
 
   const status = await getUserPersonalitySessionStatusForBank(user.id, bank);
 
-  if (status.status === 'in_progress') {
+  if (status.status === "in_progress") {
     const order = status.presentedOrder ?? [];
     if (order.length === 0 || !status.sessionId) {
-      throw new Error(
-        `Active session for user ${user.id} is missing presented order data`
-      );
+      throw new Error(`Active session for user ${user.id} is missing presented order data`);
     }
 
     return {
@@ -334,37 +326,26 @@ export async function createPersonalitySessionForUser(
     } satisfies CreatePersonalitySessionResult;
   }
 
-  if (status.status === 'completed_valid') {
+  if (status.status === "completed_valid") {
     return null;
   }
 
-  const scored = bank.questions.filter(q => !q.isAttentionCheck);
-  const attentionChecks = bank.questions.filter(q => q.isAttentionCheck);
+  const scored = bank.questions.filter((q) => !q.isAttentionCheck);
+  const attentionChecks = bank.questions.filter((q) => q.isAttentionCheck);
   if (attentionChecks.length !== 1) {
-    throw new Error(
-      `Bank v${bank.bankVersion} must contain exactly one attention check`
-    );
+    throw new Error(`Bank v${bank.bankVersion} must contain exactly one attention check`);
   }
 
   const attentionCheck = attentionChecks[0];
   const ordered = [...scored];
   shuffleInPlace(ordered);
 
-  const minIndex = clamp(
-    ATTENTION_INSERT_MIN - 1,
-    0,
-    Math.max(ordered.length, 0)
-  );
-  const maxIndex = clamp(
-    ATTENTION_INSERT_MAX - 1,
-    minIndex,
-    Math.max(ordered.length, 0)
-  );
-  const insertIndex =
-    ordered.length === 0 ? 0 : randomInt(minIndex, maxIndex + 1); // randomInt upper bound exclusive
+  const minIndex = clamp(ATTENTION_INSERT_MIN - 1, 0, Math.max(ordered.length, 0));
+  const maxIndex = clamp(ATTENTION_INSERT_MAX - 1, minIndex, Math.max(ordered.length, 0));
+  const insertIndex = ordered.length === 0 ? 0 : randomInt(minIndex, maxIndex + 1); // randomInt upper bound exclusive
   ordered.splice(insertIndex, 0, attentionCheck);
 
-  const presentedOrder = ordered.map(q => q.id);
+  const presentedOrder = ordered.map((q) => q.id);
 
   const session = await prisma.personalitySession.create({
     data: {
@@ -413,18 +394,18 @@ export async function submitPersonalitySession(options: {
   });
 
   if (!session || session.userId !== userId) {
-    throw new Error('Session not found or does not belong to user');
+    throw new Error("Session not found or does not belong to user");
   }
 
   if (session.submittedAt) {
     const persistedDurationMs = session.durationMs ?? 0;
     const status: PersonalitySessionSubmitStatus = !session.attentionPassed
-      ? 'attention_check_failed'
+      ? "attention_check_failed"
       : persistedDurationMs < SPEEDER_THRESHOLD_MS
-        ? 'speeding'
-        : 'completed';
+        ? "speeding"
+        : "completed";
 
-    if (status === 'completed') {
+    if (status === "completed") {
       let scores: PersonalityScores | null = null;
       if (session.score) {
         scores = {
@@ -459,7 +440,7 @@ export async function submitPersonalitySession(options: {
     ? (session.presentedOrder as string[])
     : [];
   if (presentedOrder.length === 0) {
-    throw new Error('Session missing presented order metadata');
+    throw new Error("Session missing presented order metadata");
   }
 
   const questions = await prisma.personalityQuestion.findMany({
@@ -473,34 +454,34 @@ export async function submitPersonalitySession(options: {
   });
 
   const questionMap = new Map<string, PersonalityQuestionRow>(
-    questions.map((q: PersonalityQuestionRow) => [q.id, q] as const)
+    questions.map((q: PersonalityQuestionRow) => [q.id, q] as const),
   );
 
-  const orderedQuestions: QuestionForScoring[] = presentedOrder.map(id => {
+  const orderedQuestions: QuestionForScoring[] = presentedOrder.map((id) => {
     const q = questionMap.get(id);
     if (!q) {
       throw new Error(`Question ${id} not found for session`);
     }
     const dimensionValue =
-      typeof q.dimension === 'string' ? q.dimension.toLowerCase() : q.dimension;
-    const dimension = dimensionValue as PersonalityQuestionRecord['dimension'];
+      typeof q.dimension === "string" ? q.dimension.toLowerCase() : q.dimension;
+    const dimension = dimensionValue as PersonalityQuestionRecord["dimension"];
     const validDimensions = [
-      'ei',
-      'sn',
-      'tf',
-      'pj',
-      'i',
-      's',
-      'f',
-      'j',
-      'nj',
-      'np',
-      'sj',
-      'sp',
-      'ef',
-      'et',
-      'if',
-      'it',
+      "ei",
+      "sn",
+      "tf",
+      "pj",
+      "i",
+      "s",
+      "f",
+      "j",
+      "nj",
+      "np",
+      "sj",
+      "sp",
+      "ef",
+      "et",
+      "if",
+      "it",
     ];
     if (!validDimensions.includes(dimension)) {
       throw new Error(`Invalid dimension ${q.dimension} for question ${id}`);
@@ -518,24 +499,19 @@ export async function submitPersonalitySession(options: {
   });
   if (missing.length > 0) {
     return {
-      status: 'incomplete',
+      status: "incomplete",
       attentionPassed: false,
       durationMs: 0,
     };
   }
 
   const submittedAt = new Date();
-  const durationMs = Math.max(
-    0,
-    submittedAt.getTime() - new Date(session.startedAt).getTime()
-  );
+  const durationMs = Math.max(0, submittedAt.getTime() - new Date(session.startedAt).getTime());
 
   let attentionPassed = false;
   const answersSnapshot: Record<string, number> = {};
-  for (const [key, value] of Object.entries(
-    answers as Record<string, number>
-  )) {
-    if (typeof value === 'number') {
+  for (const [key, value] of Object.entries(answers as Record<string, number>)) {
+    if (typeof value === "number") {
       answersSnapshot[key] = value;
     }
   }
@@ -561,10 +537,7 @@ export async function submitPersonalitySession(options: {
     };
   });
 
-  const scores = calculatePersonalityScoresFromQuestions(
-    answersSnapshot,
-    orderedQuestions
-  );
+  const scores = calculatePersonalityScoresFromQuestions(answersSnapshot, orderedQuestions);
   const mbtiType = getMBTIType(scores);
 
   const result = await prisma.$transaction(async (tx: TransactionClient) => {
@@ -609,7 +582,7 @@ export async function submitPersonalitySession(options: {
           attentionPassed: true,
           submittedAt: { not: null },
         },
-        orderBy: { submittedAt: 'desc' },
+        orderBy: { submittedAt: "desc" },
         select: { id: true },
       });
 
@@ -680,12 +653,12 @@ export async function submitPersonalitySession(options: {
   });
 
   if (!result) {
-    throw new Error('Failed to persist personality session data');
+    throw new Error("Failed to persist personality session data");
   }
 
   if (!attentionPassed) {
     return {
-      status: 'attention_check_failed',
+      status: "attention_check_failed",
       attentionPassed: false,
       durationMs,
     };
@@ -693,14 +666,14 @@ export async function submitPersonalitySession(options: {
 
   if (durationMs < SPEEDER_THRESHOLD_MS) {
     return {
-      status: 'speeding',
+      status: "speeding",
       attentionPassed: true,
       durationMs,
     };
   }
 
   return {
-    status: 'completed',
+    status: "completed",
     attentionPassed: true,
     durationMs,
     scores,

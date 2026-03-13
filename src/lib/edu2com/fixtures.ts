@@ -1,8 +1,8 @@
-import type { Edu2comParameters } from './contract';
+import type { Edu2comParameters } from "./contract";
 
 type PersonConfig = {
   id: string;
-  gender?: 'MALE' | 'FEMALE';
+  gender?: "MALE" | "FEMALE";
   ei: number;
   sn: number;
   tf: number;
@@ -12,14 +12,12 @@ type PersonConfig = {
 };
 
 export const EDU2COM_BASE_SKILLS = {
-  frontend: 'skill-frontend',
-  backend: 'skill-backend',
-  devops: 'skill-devops',
+  frontend: "skill-frontend",
+  backend: "skill-backend",
+  devops: "skill-devops",
 } as const;
 
-export const EDU2COM_BASE_SIMILARITIES: NonNullable<
-  Edu2comParameters['similarities']
-> = [
+export const EDU2COM_BASE_SIMILARITIES: NonNullable<Edu2comParameters["similarities"]> = [
   {
     sourceId: EDU2COM_BASE_SKILLS.frontend,
     targetId: EDU2COM_BASE_SKILLS.backend,
@@ -61,8 +59,8 @@ export function createBasePayload(): Edu2comParameters {
     initRandom: false,
     people: [
       createPerson({
-        id: 'student-1',
-        gender: 'FEMALE',
+        id: "student-1",
+        gender: "FEMALE",
         ei: 0.3,
         sn: -0.2,
         tf: 0.5,
@@ -73,8 +71,8 @@ export function createBasePayload(): Edu2comParameters {
         ],
       }),
       createPerson({
-        id: 'student-2',
-        gender: 'MALE',
+        id: "student-2",
+        gender: "MALE",
         ei: -0.1,
         sn: 0.6,
         tf: -0.2,
@@ -85,8 +83,8 @@ export function createBasePayload(): Edu2comParameters {
         ],
       }),
       createPerson({
-        id: 'student-3',
-        gender: 'FEMALE',
+        id: "student-3",
+        gender: "FEMALE",
         ei: 0.5,
         sn: -0.4,
         tf: 0.3,
@@ -97,8 +95,8 @@ export function createBasePayload(): Edu2comParameters {
         ],
       }),
       createPerson({
-        id: 'student-4',
-        gender: 'MALE',
+        id: "student-4",
+        gender: "MALE",
         ei: -0.3,
         sn: 0.2,
         tf: 0.6,
@@ -111,7 +109,7 @@ export function createBasePayload(): Edu2comParameters {
     ],
     tasks: [
       {
-        id: 'task-frontend',
+        id: "task-frontend",
         teamSize: 2,
         skills: [
           { id: EDU2COM_BASE_SKILLS.frontend, level: 0.7, importance: 1 },
@@ -119,7 +117,7 @@ export function createBasePayload(): Edu2comParameters {
         ],
       },
       {
-        id: 'task-backend',
+        id: "task-backend",
         teamSize: 2,
         skills: [
           { id: EDU2COM_BASE_SKILLS.backend, level: 0.7, importance: 1 },
@@ -127,6 +125,6 @@ export function createBasePayload(): Edu2comParameters {
         ],
       },
     ],
-    similarities: EDU2COM_BASE_SIMILARITIES.map(item => ({ ...item })),
+    similarities: EDU2COM_BASE_SIMILARITIES.map((item) => ({ ...item })),
   };
 }

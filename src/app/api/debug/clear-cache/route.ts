@@ -1,14 +1,14 @@
-import { revalidateTag } from 'next/cache';
-import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { withRole, withValidation } from '@/lib/api-utils';
+import { revalidateTag } from "next/cache";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { withRole, withValidation } from "@/lib/api-utils";
 
 const clearCacheSchema = z.object({
-  tag: z.string().min(1, 'Tag is required'),
+  tag: z.string().min(1, "Tag is required"),
 });
 
 export const POST = withRole(
-  'ADMIN',
+  "ADMIN",
   withValidation(
     (data: unknown) => clearCacheSchema.parse(data),
     async (_request: NextRequest, { validatedData }) => {
@@ -18,6 +18,6 @@ export const POST = withRole(
         success: true,
         message: `Cache cleared for tag: ${tag}`,
       });
-    }
-  )
+    },
+  ),
 );

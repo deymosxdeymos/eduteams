@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import type { Gender } from '@/generated/prisma/client';
-import { AssignmentTeamsContent } from './assignment-teams-content';
+import { useMemo } from "react";
+import type { Gender } from "@/generated/prisma/client";
+import { AssignmentTeamsContent } from "./assignment-teams-content";
 
 interface TeamMemberUser {
   id: string;
@@ -30,6 +30,7 @@ interface Team {
   quality?: number | null;
   createdAt: Date;
   members: TeamMemberItem[];
+  taskId?: string;
   topicId?: string;
   topicName?: string;
   groupNumber?: number;
@@ -77,7 +78,7 @@ export function AssignmentTeamsClient({
   courseNameLabel,
   courseClassLabel,
   isStudent = false,
-  searchValue: externalSearchValue = '',
+  searchValue: externalSearchValue = "",
   canManage = false,
   currentUserId,
   isEditMode = false,
@@ -94,8 +95,8 @@ export function AssignmentTeamsClient({
   // Attach topic metadata to each team before filtering
   const teamsWithTopics = useMemo(() => {
     return teams.map((team, idx) => {
-      const topicId = taskIdByIndex[idx] || '';
-      const topicName = topicNames[topicId] || '-';
+      const topicId = team.topicId ?? team.taskId ?? taskIdByIndex[idx] ?? "";
+      const topicName = topicNames[topicId] || "-";
       return { ...team, topicId, topicName, groupNumber: idx + 1 };
     });
   }, [teams, taskIdByIndex, topicNames]);
@@ -108,17 +109,16 @@ export function AssignmentTeamsClient({
 
     const searchTerm = trimmedSearchValue.toLowerCase();
 
-    return teamsWithTopics.filter(team =>
-      team.members.some(member => {
-        const name = member.user.name?.toLowerCase() ?? '';
-        const nim = member.user.nim?.toLowerCase() ?? '';
+    return teamsWithTopics.filter((team) =>
+      team.members.some((member) => {
+        const name = member.user.name?.toLowerCase() ?? "";
+        const nim = member.user.nim?.toLowerCase() ?? "";
         return name.includes(searchTerm) || nim.includes(searchTerm);
-      })
+      }),
     );
   }, [teamsWithTopics, searchValue]);
 
-  const hasSearchResults =
-    searchValue.trim() === '' || filteredTeams.length > 0;
+  const hasSearchResults = searchValue.trim() === "" || filteredTeams.length > 0;
 
   return (
     <AssignmentTeamsContent

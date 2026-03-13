@@ -1,21 +1,14 @@
-import type { NextRequest } from 'next/server';
-import {
-  createApiResponse,
-  createErrorResponse,
-  withAuth,
-} from '@/lib/api-utils';
-import { canAccessMahasiswaFeatures } from '@/lib/authorization';
-import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
+import type { NextRequest } from "next/server";
+import { createApiResponse, createErrorResponse, withAuth } from "@/lib/api-utils";
+import { canAccessMahasiswaFeatures } from "@/lib/authorization";
+import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
-async function getStudentClasses(
-  _request: NextRequest,
-  { user }: { user: ExtendedUser }
-) {
+async function getStudentClasses(_request: NextRequest, { user }: { user: ExtendedUser }) {
   if (!canAccessMahasiswaFeatures(user)) {
-    return createErrorResponse('Access denied', 403);
+    return createErrorResponse("Access denied", 403);
   }
 
   const enrollments = await prisma.courseEnrollment.findMany({
@@ -42,25 +35,23 @@ async function getStudentClasses(
       },
     },
     orderBy: [
-      { course: { tahunAwalPeriode: 'desc' } },
-      { course: { periode: 'desc' } },
-      { course: { namaMataKuliah: 'asc' } },
+      { course: { tahunAwalPeriode: "desc" } },
+      { course: { periode: "desc" } },
+      { course: { namaMataKuliah: "asc" } },
     ],
   });
 
-  const courses = enrollments.map(
-    (enrollment: (typeof enrollments)[number]) => ({
-      id: enrollment.course.id,
-      namaMataKuliah: enrollment.course.namaMataKuliah,
-      kelas: enrollment.course.kelas,
-      tahunAwalPeriode: enrollment.course.tahunAwalPeriode,
-      tahunAkhirPeriode: enrollment.course.tahunAkhirPeriode,
-      periode: enrollment.course.periode,
-      dosen: enrollment.course.dosen,
-      enrolledAt: enrollment.enrolledAt,
-      studentCount: enrollment.course._count.enrollments,
-    })
-  );
+  const courses = enrollments.map((enrollment: (typeof enrollments)[number]) => ({
+    id: enrollment.course.id,
+    namaMataKuliah: enrollment.course.namaMataKuliah,
+    kelas: enrollment.course.kelas,
+    tahunAwalPeriode: enrollment.course.tahunAwalPeriode,
+    tahunAkhirPeriode: enrollment.course.tahunAkhirPeriode,
+    periode: enrollment.course.periode,
+    dosen: enrollment.course.dosen,
+    enrolledAt: enrollment.enrolledAt,
+    studentCount: enrollment.course._count.enrollments,
+  }));
 
   return createApiResponse(courses);
 }

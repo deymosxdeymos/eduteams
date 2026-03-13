@@ -1,6 +1,6 @@
-import { GlobalRegistrator } from '@happy-dom/global-registrator';
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
 // Register happy-dom globals so DOM APIs are available in tests
 GlobalRegistrator.register({
-  url: 'http://localhost/',
+  url: "http://localhost/",
 });

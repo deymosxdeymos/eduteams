@@ -56,6 +56,8 @@ interface AssignmentContentProps {
   assignmentId: string;
   classId: string;
   courseId: string;
+  demoSkills?: readonly string[];
+  demoTopics?: readonly string[];
   assignmentTitleLabel: string;
   courseNameLabel: string;
   courseClassLabel: string;
@@ -64,6 +66,7 @@ interface AssignmentContentProps {
   hasSubmitted?: boolean;
   stats: AssignmentStats;
   hasTeams?: boolean;
+  allowPersistedTeamActions?: boolean;
   topicCount?: number;
   enrollmentCount?: number;
   quizCompletionPercent?: number;
@@ -115,6 +118,8 @@ export function AssignmentContent({
   assignmentId,
   classId,
   courseId,
+  demoSkills,
+  demoTopics,
   assignmentTitleLabel,
   courseNameLabel,
   courseClassLabel,
@@ -122,6 +127,7 @@ export function AssignmentContent({
   isStudent = false,
   stats,
   hasTeams = false,
+  allowPersistedTeamActions = true,
   topicCount = 0,
   enrollmentCount = 0,
   quizCompletionPercent = 0,
@@ -214,6 +220,9 @@ export function AssignmentContent({
         <AssignmentActions
           assignmentId={assignmentId}
           classId={classId}
+          assignmentTitle={assignmentTitleLabel}
+          demoSkills={demoSkills}
+          demoTopics={demoTopics}
           canManage={canManage}
           disableForm={!canManage}
           incompleteStudentCount={adjustedIncompleteCount}
@@ -221,6 +230,7 @@ export function AssignmentContent({
           onEditModeChange={setIsEditMode}
           isStudent={isStudent}
           hasTeams={hasTeams}
+          allowPersistedTeamActions={allowPersistedTeamActions}
           topicCount={topicCount}
           enrollmentCount={enrollmentCount}
           searchValue={searchValue}

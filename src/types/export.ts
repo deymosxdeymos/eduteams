@@ -1,4 +1,4 @@
-import type { Gender, MBTIType } from '@/generated/prisma/client';
+import type { Gender, MBTIType } from "@/generated/prisma/client";
 
 export interface TeamMemberExportData {
   id: string;

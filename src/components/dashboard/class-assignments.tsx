@@ -4,13 +4,24 @@ import { ArrowLeft, Calendar, Plus, Share2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useQueryState } from "nuqs";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
 import { dateFormatterUTC, timeFormatterUTC } from "@/lib/constants";
+import {
+  buildDemoAssignmentHref,
+  DEMO_COURSE_ID,
+  DEMO_SANDBOX_STORAGE_KEY,
+  DEMO_TEAM_FORMATION_STORAGE_EVENT,
+} from "@/lib/demo/sandbox";
+import {
+  getDemoAssignmentStatus,
+  getDemoCreatedAssignments,
+  mergeDemoAssignments,
+} from "@/lib/demo/sandbox-client";
 import { useFuzzySearch } from "@/lib/hooks/use-fuzzy-search";
 import type { AssignmentResponse } from "@/lib/validation/assignments";
 import { EmptyAssignmentState } from "./empty-assignment-state";
@@ -58,6 +69,8 @@ export function ClassAssignments({
     shallow: true,
   });
   const hasInitialAssignments = initialAssignments !== undefined;
+  const isDemoCourse = classId === DEMO_COURSE_ID;
+  const [localAssignments, setLocalAssignments] = useState<AssignmentResponse[]>([]);
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
     fetcher<{ data: AssignmentResponse[] }>,
@@ -70,7 +83,61 @@ export function ClassAssignments({
     },
   );
 
-  const assignments: AssignmentResponse[] = assignmentsData?.data ?? [];
+  useEffect(() => {
+    if (!isDemoCourse) {
+      return;
+    }
+
+    const syncLocalAssignments = () => {
+      setLocalAssignments(
+        getDemoCreatedAssignments(classId).map((assignment) => ({
+          id: assignment.id,
+          courseId: assignment.courseId,
+          title: assignment.title,
+          description: assignment.description ?? undefined,
+          startAt: new Date(assignment.startAt),
+          createdAt: new Date(assignment.createdAt),
+          status: getDemoAssignmentStatus(assignment.id),
+          skills: assignment.skills,
+          topics: assignment.topics,
+          submissionsCount: assignment.submissionsCount,
+        })),
+      );
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.storageArea !== window.localStorage) {
+        return;
+      }
+
+      if (
+        event.key !== null &&
+        event.key !== DEMO_SANDBOX_STORAGE_KEY &&
+        !event.key.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)
+      ) {
+        return;
+      }
+
+      syncLocalAssignments();
+    };
+
+    syncLocalAssignments();
+    window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [classId, isDemoCourse]);
+
+  const assignments: AssignmentResponse[] = useMemo(() => {
+    const serverAssignments = assignmentsData?.data ?? [];
+    if (!isDemoCourse) {
+      return serverAssignments;
+    }
+
+    return mergeDemoAssignments(serverAssignments, localAssignments);
+  }, [assignmentsData?.data, isDemoCourse, localAssignments]);
   const hasAssignments = assignments.length > 0;
 
   const filteredAssignments = useFuzzySearch<AssignmentResponse>({
@@ -159,12 +226,28 @@ export function ClassAssignments({
                         role="button"
                         tabIndex={0}
                         onClick={() =>
-                          router.push(`/dashboard/class/${classId}/assignments/${a.id}`)
+                          router.push(
+                            buildDemoAssignmentHref({
+                              classId,
+                              assignmentId: a.id,
+                              title: a.title,
+                              skills: a.skills,
+                              topics: a.topics,
+                            }),
+                          )
                         }
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            router.push(`/dashboard/class/${classId}/assignments/${a.id}`);
+                            router.push(
+                              buildDemoAssignmentHref({
+                                classId,
+                                assignmentId: a.id,
+                                title: a.title,
+                                skills: a.skills,
+                                topics: a.topics,
+                              }),
+                            );
                           }
                         }}
                       >

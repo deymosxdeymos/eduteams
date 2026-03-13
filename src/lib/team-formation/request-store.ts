@@ -1,26 +1,26 @@
 import type {
   Prisma,
   TeamFormationProvider as PrismaTeamFormationProvider,
-} from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
+} from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
 import type {
   BuiltTeamFormationPayload,
   PersistedTeamFormationRequest,
   TeamFormationProviderName,
-} from './types';
+} from "./types";
 
 export const STUCK_TEAM_FORMATION_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
 
 export function toPrismaTeamFormationProvider(
-  provider: TeamFormationProviderName
+  provider: TeamFormationProviderName,
 ): PrismaTeamFormationProvider {
-  return provider === 'local' ? 'LOCAL' : 'EDU2COM';
+  return provider === "local" ? "LOCAL" : "EDU2COM";
 }
 
 function fromPrismaTeamFormationProvider(
-  provider: PrismaTeamFormationProvider
+  provider: PrismaTeamFormationProvider,
 ): TeamFormationProviderName {
-  return provider === 'LOCAL' ? 'local' : 'edu2com';
+  return provider === "LOCAL" ? "local" : "edu2com";
 }
 
 function toPersistedRequest(record: {
@@ -28,7 +28,7 @@ function toPersistedRequest(record: {
   ownerId: string;
   assignmentId: string | null;
   provider: PrismaTeamFormationProvider;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   replyPostUrl: string | null;
 }): PersistedTeamFormationRequest {
   return {
@@ -55,7 +55,7 @@ export async function createTeamFormationRequest(args: {
       ownerId: args.ownerId,
       assignmentId: args.assignmentId,
       provider: toPrismaTeamFormationProvider(args.provider),
-      status: 'PENDING',
+      status: "PENDING",
       alpha: args.builtPayload.weights.alpha,
       beta: args.builtPayload.weights.beta,
       gamma: args.builtPayload.weights.gamma,
@@ -79,17 +79,16 @@ export async function createTeamFormationRequest(args: {
 
 export async function markTeamFormationRequestProcessing(
   requestId: string,
-  options: { replyPostUrl?: string | null } = {}
+  options: { replyPostUrl?: string | null } = {},
 ): Promise<PersistedTeamFormationRequest> {
   const record = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const transition = await tx.teamFormationRequest.updateMany({
-      where: { id: requestId, status: 'PENDING' },
+      where: { id: requestId, status: "PENDING" },
       data: {
-        status: 'PROCESSING',
+        status: "PROCESSING",
         errorMessage: null,
         completedAt: null,
-        replyPostUrl:
-          options.replyPostUrl === undefined ? undefined : options.replyPostUrl,
+        replyPostUrl: options.replyPostUrl === undefined ? undefined : options.replyPostUrl,
       },
     });
 
@@ -106,13 +105,13 @@ export async function markTeamFormationRequestProcessing(
     });
 
     if (!updatedRequest) {
-      throw new Error('Team formation request not found');
+      throw new Error("Team formation request not found");
     }
 
     if (transition.count > 0 && updatedRequest.assignmentId) {
       await tx.assignment.update({
         where: { id: updatedRequest.assignmentId },
-        data: { status: 'MENUNGGU' },
+        data: { status: "MENUNGGU" },
       });
     }
 
@@ -124,21 +123,21 @@ export async function markTeamFormationRequestProcessing(
 
 export async function markTeamFormationRequestFailed(
   requestId: string,
-  errorMessage: string
+  errorMessage: string,
 ): Promise<void> {
   const existing = await prisma.teamFormationRequest.findUnique({
     where: { id: requestId },
     select: { status: true },
   });
 
-  if (!existing || existing.status === 'COMPLETED') {
+  if (!existing || existing.status === "COMPLETED") {
     return;
   }
 
   await prisma.teamFormationRequest.update({
     where: { id: requestId },
     data: {
-      status: 'FAILED',
+      status: "FAILED",
       errorMessage: errorMessage.slice(0, 250),
       completedAt: new Date(),
     },
@@ -147,33 +146,29 @@ export async function markTeamFormationRequestFailed(
 
 export async function cleanupStaleTeamFormationRequests(
   assignmentId: string,
-  errorMessage: string = 'Permintaan otomatis gagal karena tidak ada respons dari Edu2com dalam batas waktu.'
+  errorMessage: string = "Permintaan otomatis gagal karena tidak ada respons dari Edu2com dalam batas waktu.",
 ) {
   const now = new Date();
-  const staleCutoff = new Date(
-    now.getTime() - STUCK_TEAM_FORMATION_REQUEST_TIMEOUT_MS
-  );
+  const staleCutoff = new Date(now.getTime() - STUCK_TEAM_FORMATION_REQUEST_TIMEOUT_MS);
 
   return prisma.teamFormationRequest.updateMany({
     where: {
       assignmentId,
-      status: { in: ['PENDING', 'PROCESSING'] },
+      status: { in: ["PENDING", "PROCESSING"] },
       updatedAt: { lt: staleCutoff },
     },
     data: {
-      status: 'FAILED',
+      status: "FAILED",
       errorMessage,
       completedAt: now,
     },
   });
 }
 
-export async function getLatestTeamFormationRequestForAssignment(
-  assignmentId: string
-) {
+export async function getLatestTeamFormationRequestForAssignment(assignmentId: string) {
   return prisma.teamFormationRequest.findFirst({
     where: { assignmentId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     select: {
       id: true,
       status: true,
@@ -183,13 +178,11 @@ export async function getLatestTeamFormationRequestForAssignment(
   });
 }
 
-export async function getInFlightTeamFormationRequestForAssignment(
-  assignmentId: string
-) {
+export async function getInFlightTeamFormationRequestForAssignment(assignmentId: string) {
   return prisma.teamFormationRequest.findFirst({
     where: {
       assignmentId,
-      status: { in: ['PENDING', 'PROCESSING'] },
+      status: { in: ["PENDING", "PROCESSING"] },
     },
     select: { id: true },
   });

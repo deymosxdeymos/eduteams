@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
-const actualAuth = await import('@/lib/auth');
-const actualDashboardCourses = await import('@/lib/dashboard/courses');
-const actualPrisma = await import('@/lib/prisma');
+const actualAuth = await import("@/lib/auth");
+const actualDashboardCourses = await import("@/lib/dashboard/courses");
+const actualPrisma = await import("@/lib/prisma");
 
 function createSession(userId: string) {
   return {
@@ -18,16 +18,16 @@ function createSession(userId: string) {
   };
 }
 
-let currentUserId: 'u1' | 'u2' | 'demo-teacher' = 'u1';
+let currentUserId: "u1" | "u2" | "demo-teacher" = "u1";
 
 const courseCreateMock = mock(async (args: any) => ({
-  id: 'c1',
+  id: "c1",
   ...args.data,
-  dosenId: args.data.dosenId || 'u1',
+  dosenId: args.data.dosenId || "u1",
   createdAt: new Date(),
   updatedAt: new Date(),
   shareToken: null,
-  dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
+  dosen: { id: "u1", name: "Test User", email: "test@example.com" },
 }));
 const seedUsersCreateManyMock = mock(async () => ({ count: 24 }));
 const seedProfilesCreateManyMock = mock(async () => ({ count: 24 }));
@@ -47,23 +47,23 @@ const transactionMock = mock(async (callback: (tx: any) => Promise<unknown>) =>
     courseEnrollment: {
       createMany: seedEnrollmentsCreateManyMock,
     },
-  })
+  }),
 );
 const authGetSessionMock = mock(async () => createSession(currentUserId));
 const getCoursesForDosenMock = mock(async () => [
   {
-    id: 'c1',
-    namaMataKuliah: 'Test Course',
-    kelas: 'A',
+    id: "c1",
+    namaMataKuliah: "Test Course",
+    kelas: "A",
     tahunAwalPeriode: 2025,
     tahunAkhirPeriode: 2025,
-    periode: 'ganjil',
-    dosenId: 'u1',
+    periode: "ganjil",
+    dosenId: "u1",
     shareToken: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     studentCount: 3,
-    dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
+    dosen: { id: "u1", name: "Test User", email: "test@example.com" },
   },
 ]);
 
@@ -71,19 +71,19 @@ const prismaMock = {
   $transaction: transactionMock,
   user: {
     findUnique: mock(async ({ where }: any) => {
-      if (where.id === 'u1') {
+      if (where.id === "u1") {
         return {
-          id: 'u1',
-          name: 'Test User',
-          email: 'test@example.com',
+          id: "u1",
+          name: "Test User",
+          email: "test@example.com",
           emailVerified: true,
           image: null,
-          role: 'TEACHER',
+          role: "TEACHER",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: 'MALE',
+          gender: "MALE",
           hasSeenWelcomeSplash: false,
           onboardingStep: null,
           onboardingData: null,
@@ -91,19 +91,19 @@ const prismaMock = {
         };
       }
 
-      if (where.id === 'u2') {
+      if (where.id === "u2") {
         return {
-          id: 'u2',
-          name: 'Mahasiswa',
-          email: 'student@example.com',
+          id: "u2",
+          name: "Mahasiswa",
+          email: "student@example.com",
           emailVerified: true,
           image: null,
-          role: 'STUDENT',
+          role: "STUDENT",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
-          nim: '12345',
-          gender: 'FEMALE',
+          nim: "12345",
+          gender: "FEMALE",
           hasSeenWelcomeSplash: false,
           onboardingStep: null,
           onboardingData: null,
@@ -111,19 +111,19 @@ const prismaMock = {
         };
       }
 
-      if (where.id === 'demo-teacher') {
+      if (where.id === "demo-teacher") {
         return {
-          id: 'demo-teacher',
-          name: 'Demo Teacher',
-          email: 'demo.teacher.visitor1234@eduteams.local',
+          id: "demo-teacher",
+          name: "Demo Teacher",
+          email: "demo.teacher.visitor1234@eduteams.local",
           emailVerified: true,
           image: null,
-          role: 'TEACHER',
+          role: "TEACHER",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: 'FEMALE',
+          gender: "FEMALE",
           hasSeenWelcomeSplash: true,
           onboardingStep: null,
           onboardingData: null,
@@ -140,7 +140,7 @@ const prismaMock = {
 };
 
 function applyModuleMocks() {
-  mock.module('@/lib/auth', () => ({
+  mock.module("@/lib/auth", () => ({
     auth: {
       api: {
         getSession: authGetSessionMock,
@@ -148,24 +148,24 @@ function applyModuleMocks() {
     },
   }));
 
-  mock.module('@/lib/prisma', () => ({
+  mock.module("@/lib/prisma", () => ({
     default: prismaMock,
   }));
 
-  mock.module('@/lib/dashboard/courses', () => ({
+  mock.module("@/lib/dashboard/courses", () => ({
     getCoursesForDosen: getCoursesForDosenMock,
   }));
 }
 
 function restoreModuleMocks() {
-  mock.module('@/lib/auth', () => ({ ...actualAuth }));
-  mock.module('@/lib/prisma', () => ({ default: actualPrisma.default }));
-  mock.module('@/lib/dashboard/courses', () => actualDashboardCourses);
+  mock.module("@/lib/auth", () => ({ ...actualAuth }));
+  mock.module("@/lib/prisma", () => ({ default: actualPrisma.default }));
+  mock.module("@/lib/dashboard/courses", () => actualDashboardCourses);
 }
 
-describe('courses API', () => {
+describe("courses API", () => {
   beforeEach(() => {
-    currentUserId = 'u1';
+    currentUserId = "u1";
     delete process.env.DEMO_MODE;
 
     authGetSessionMock.mockReset();
@@ -180,13 +180,13 @@ describe('courses API', () => {
 
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
     courseCreateMock.mockImplementation(async (args: any) => ({
-      id: 'c1',
+      id: "c1",
       ...args.data,
-      dosenId: args.data.dosenId || 'u1',
+      dosenId: args.data.dosenId || "u1",
       createdAt: new Date(),
       updatedAt: new Date(),
       shareToken: null,
-      dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
+      dosen: { id: "u1", name: "Test User", email: "test@example.com" },
     }));
     seedUsersCreateManyMock.mockResolvedValue({ count: 24 });
     seedProfilesCreateManyMock.mockResolvedValue({ count: 24 });
@@ -206,38 +206,38 @@ describe('courses API', () => {
         courseEnrollment: {
           createMany: seedEnrollmentsCreateManyMock,
         },
-      })
+      }),
     );
     getCoursesForDosenMock.mockResolvedValue([
       {
-        id: 'c1',
-        namaMataKuliah: 'Test Course',
-        kelas: 'A',
+        id: "c1",
+        namaMataKuliah: "Test Course",
+        kelas: "A",
         tahunAwalPeriode: 2025,
         tahunAkhirPeriode: 2025,
-        periode: 'ganjil',
-        dosenId: 'u1',
+        periode: "ganjil",
+        dosenId: "u1",
         shareToken: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         studentCount: 3,
-        dosen: { id: 'u1', name: 'Test User', email: 'test@example.com' },
+        dosen: { id: "u1", name: "Test User", email: "test@example.com" },
       },
     ]);
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
-      if (where.id === 'u1') {
+      if (where.id === "u1") {
         return {
-          id: 'u1',
-          name: 'Test User',
-          email: 'test@example.com',
+          id: "u1",
+          name: "Test User",
+          email: "test@example.com",
           emailVerified: true,
           image: null,
-          role: 'TEACHER',
+          role: "TEACHER",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: 'MALE',
+          gender: "MALE",
           hasSeenWelcomeSplash: false,
           onboardingStep: null,
           onboardingData: null,
@@ -245,19 +245,19 @@ describe('courses API', () => {
         };
       }
 
-      if (where.id === 'u2') {
+      if (where.id === "u2") {
         return {
-          id: 'u2',
-          name: 'Mahasiswa',
-          email: 'student@example.com',
+          id: "u2",
+          name: "Mahasiswa",
+          email: "student@example.com",
           emailVerified: true,
           image: null,
-          role: 'STUDENT',
+          role: "STUDENT",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
-          nim: '12345',
-          gender: 'FEMALE',
+          nim: "12345",
+          gender: "FEMALE",
           hasSeenWelcomeSplash: false,
           onboardingStep: null,
           onboardingData: null,
@@ -265,19 +265,19 @@ describe('courses API', () => {
         };
       }
 
-      if (where.id === 'demo-teacher') {
+      if (where.id === "demo-teacher") {
         return {
-          id: 'demo-teacher',
-          name: 'Demo Teacher',
-          email: 'demo.teacher.visitor1234@eduteams.local',
+          id: "demo-teacher",
+          name: "Demo Teacher",
+          email: "demo.teacher.visitor1234@eduteams.local",
           emailVerified: true,
           image: null,
-          role: 'TEACHER',
+          role: "TEACHER",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: 'FEMALE',
+          gender: "FEMALE",
           hasSeenWelcomeSplash: true,
           onboardingStep: null,
           onboardingData: null,
@@ -285,7 +285,7 @@ describe('courses API', () => {
         };
       }
 
-      if (where.email === 'demo.student.visitor1234@eduteams.local') {
+      if (where.email === "demo.student.visitor1234@eduteams.local") {
         return null;
       }
 
@@ -301,37 +301,58 @@ describe('courses API', () => {
     restoreModuleMocks();
   });
 
-  it('POST creates course for dosen', async () => {
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+  it("POST creates course for dosen", async () => {
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        namaMataKuliah: 'Algoritma',
-        kelas: 'RA',
-        periode: 'ganjil',
+        namaMataKuliah: "Algoritma",
+        kelas: "RA",
+        periode: "ganjil",
       }),
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(json.data.namaMataKuliah).toBe('Algoritma');
+    expect(json.data.namaMataKuliah).toBe("Algoritma");
     expect(courseCreateMock).toHaveBeenCalled();
     expect(seedUsersCreateManyMock).not.toHaveBeenCalled();
   });
 
-  it('does not seed demo students for non-demo teachers when demo mode is enabled', async () => {
-    process.env.DEMO_MODE = '1';
+  it("POST still allows real demo-account teachers to create courses", async () => {
+    process.env.DEMO_MODE = "1";
+    currentUserId = "demo-teacher";
+    authGetSessionMock.mockResolvedValue(createSession(currentUserId));
 
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        namaMataKuliah: 'Algoritma',
-        kelas: 'RB',
-        periode: 'ganjil',
+        namaMataKuliah: "Algoritma Demo",
+        kelas: "RE",
+        periode: "ganjil",
+      }),
+    });
+    const res = await POST(req as any, undefined as any);
+
+    expect(res.status).toBe(200);
+    expect(courseCreateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not seed demo students for non-demo teachers when demo mode is enabled", async () => {
+    process.env.DEMO_MODE = "1";
+
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        namaMataKuliah: "Algoritma",
+        kelas: "RB",
+        periode: "ganjil",
       }),
     });
     const res = await POST(req as any, undefined as any);
@@ -342,19 +363,19 @@ describe('courses API', () => {
     expect(seedEnrollmentsCreateManyMock).not.toHaveBeenCalled();
   });
 
-  it('seeds demo students for demo teachers when demo mode is enabled', async () => {
-    process.env.DEMO_MODE = '1';
-    currentUserId = 'demo-teacher';
+  it("seeds demo students for demo teachers when demo mode is enabled", async () => {
+    process.env.DEMO_MODE = "1";
+    currentUserId = "demo-teacher";
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
 
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        namaMataKuliah: 'Algoritma',
-        kelas: 'RC',
-        periode: 'ganjil',
+        namaMataKuliah: "Algoritma",
+        kelas: "RC",
+        periode: "ganjil",
       }),
     });
     const res = await POST(req as any, undefined as any);
@@ -365,24 +386,24 @@ describe('courses API', () => {
     expect(seedEnrollmentsCreateManyMock).toHaveBeenCalled();
   });
 
-  it('enrolls an existing paired demo student into newly created demo courses', async () => {
-    process.env.DEMO_MODE = '1';
-    currentUserId = 'demo-teacher';
+  it("enrolls an existing paired demo student into newly created demo courses", async () => {
+    process.env.DEMO_MODE = "1";
+    currentUserId = "demo-teacher";
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
-      if (where.id === 'demo-teacher') {
+      if (where.id === "demo-teacher") {
         return {
-          id: 'demo-teacher',
-          name: 'Demo Teacher',
-          email: 'demo.teacher.visitor1234@eduteams.local',
+          id: "demo-teacher",
+          name: "Demo Teacher",
+          email: "demo.teacher.visitor1234@eduteams.local",
           emailVerified: true,
           image: null,
-          role: 'TEACHER',
+          role: "TEACHER",
           isOnboarded: true,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: 'FEMALE',
+          gender: "FEMALE",
           hasSeenWelcomeSplash: true,
           onboardingStep: null,
           onboardingData: null,
@@ -390,8 +411,8 @@ describe('courses API', () => {
         };
       }
 
-      if (where.email === 'demo.student.visitor1234@eduteams.local') {
-        return { id: 'demo-student' };
+      if (where.email === "demo.student.visitor1234@eduteams.local") {
+        return { id: "demo-student" };
       }
 
       return null;
@@ -400,14 +421,14 @@ describe('courses API', () => {
       .mockResolvedValueOnce({ count: 24 })
       .mockResolvedValueOnce({ count: 1 });
 
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        namaMataKuliah: 'Algoritma',
-        kelas: 'RD',
-        periode: 'ganjil',
+        namaMataKuliah: "Algoritma",
+        kelas: "RD",
+        periode: "ganjil",
       }),
     });
     const res = await POST(req as any, undefined as any);
@@ -417,8 +438,8 @@ describe('courses API', () => {
     expect(seedEnrollmentsCreateManyMock.mock.calls[1]?.[0]).toEqual({
       data: [
         {
-          courseId: 'c1',
-          studentId: 'demo-student',
+          courseId: "c1",
+          studentId: "demo-student",
           enrolledAt: expect.any(Date),
         },
       ],
@@ -426,49 +447,47 @@ describe('courses API', () => {
     });
   });
 
-  it('POST denies non-dosen', async () => {
-    currentUserId = 'u2';
+  it("POST denies non-dosen", async () => {
+    currentUserId = "u2";
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
 
-    const { POST } = await import('../route');
-    const req = new Request('http://localhost/api/courses', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        namaMataKuliah: 'Algo',
-        kelas: 'RA',
+        namaMataKuliah: "Algo",
+        kelas: "RA",
         tahunAwalPeriode: 2025,
         tahunAkhirPeriode: 2025,
-        periode: 'ganjil',
+        periode: "ganjil",
       }),
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(403);
   });
 
-  it('GET lists courses for dosen', async () => {
-    const { GET } = await import('../route');
-    const res = await GET(
-      new Request('http://localhost/api/courses') as any,
-      undefined as any
-    );
+  it("GET lists courses for dosen", async () => {
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/courses") as any, undefined as any);
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(Array.isArray(json.data)).toBe(true);
     expect(json.data[0].studentCount).toBe(3);
-    expect(json.data[0].dosen.id).toBe('u1');
-    expect(getCoursesForDosenMock).toHaveBeenCalledWith('u1');
+    expect(json.data[0].dosen.id).toBe("u1");
+    expect(getCoursesForDosenMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "u1",
+      }),
+    );
   });
 
-  it('GET denies non-dosen', async () => {
-    currentUserId = 'u2';
+  it("GET denies non-dosen", async () => {
+    currentUserId = "u2";
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
 
-    const { GET } = await import('../route');
-    const res = await GET(
-      new Request('http://localhost/api/courses') as any,
-      undefined as any
-    );
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/courses") as any, undefined as any);
     expect(res.status).toBe(403);
   });
 });

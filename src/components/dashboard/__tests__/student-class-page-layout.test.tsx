@@ -1,0 +1,109 @@
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { render, screen } from "@testing-library/react";
+import { DEMO_COURSE_ID } from "@/lib/demo/sandbox";
+
+const getSidebarDataForUserMock = mock(async (user: any) => ({
+  user,
+  notStartedCount: 0,
+}));
+
+mock.module("@/lib/dashboard/sidebar-data", () => ({
+  getSidebarDataForUser: getSidebarDataForUserMock,
+}));
+
+mock.module("../nav", () => ({
+  default: () => <div data-testid="nav" />,
+}));
+
+mock.module("../sidebar", () => ({
+  default: () => <div data-testid="sidebar" />,
+}));
+
+mock.module("../student-class-assignments", () => ({
+  StudentClassAssignments: () => <div data-testid="student-class-assignments" />,
+}));
+
+mock.module("../student-list", () => ({
+  StudentList: ({ currentUserId }: any) => (
+    <div data-testid="student-list" data-current-user-id={currentUserId} />
+  ),
+}));
+
+describe("StudentClassPageLayout", () => {
+  const originalDemoMode = process.env.DEMO_MODE;
+
+  beforeEach(() => {
+    process.env.DEMO_MODE = "1";
+    getSidebarDataForUserMock.mockReset();
+    getSidebarDataForUserMock.mockResolvedValue({
+      user: {
+        id: "student-db-id",
+        email: "demo.student.visitor1234@eduteams.local",
+      },
+      notStartedCount: 0,
+    });
+  });
+
+  afterEach(() => {
+    mock.restore();
+
+    if (originalDemoMode === undefined) {
+      delete process.env.DEMO_MODE;
+      return;
+    }
+
+    process.env.DEMO_MODE = originalDemoMode;
+  });
+
+  it("maps demo sandbox students to their synthetic roster row on the sandbox class page", async () => {
+    const { StudentClassPageLayout } = await import("../student-class-page-layout");
+
+    render(
+      await StudentClassPageLayout({
+        classId: DEMO_COURSE_ID,
+        user: {
+          id: "student-db-id",
+          name: "Demo Student",
+          email: "demo.student.visitor1234@eduteams.local",
+          role: "STUDENT",
+        } as any,
+        course: {
+          id: DEMO_COURSE_ID,
+          namaMataKuliah: "Machine Learning",
+          kelas: "K01",
+        } as any,
+        studentsData: [],
+      }),
+    );
+
+    expect(screen.getByTestId("student-list").getAttribute("data-current-user-id")).toBe(
+      "demo-sandbox-student",
+    );
+  });
+
+  it("keeps the authenticated database id on persisted class pages", async () => {
+    const { StudentClassPageLayout } = await import("../student-class-page-layout");
+
+    render(
+      await StudentClassPageLayout({
+        classId: "persisted-course",
+        user: {
+          id: "student-db-id",
+          name: "Demo Student",
+          email: "demo.student.visitor1234@eduteams.local",
+          role: "STUDENT",
+        } as any,
+        course: {
+          id: "persisted-course",
+          namaMataKuliah: "Persisted Course",
+          kelas: "K99",
+        } as any,
+        studentsData: [],
+      }),
+    );
+
+    expect(screen.getByTestId("student-list").getAttribute("data-current-user-id")).toBe(
+      "student-db-id",
+    );
+  });
+});

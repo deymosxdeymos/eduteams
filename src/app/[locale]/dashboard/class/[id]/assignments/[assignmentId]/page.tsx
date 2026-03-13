@@ -1,18 +1,29 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { cache, Suspense } from 'react';
-import { AssignmentDetailAsync } from '@/components/dashboard/async/assignment-detail-async';
-import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { AssignmentSkeleton } from '@/components/ui/skeletons/assignment-skeleton';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache, Suspense } from "react";
+import { AssignmentDetailAsync } from "@/components/dashboard/async/assignment-detail-async";
+import { AssignmentLayout } from "@/components/dashboard/assignment-layout";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { DemoLocalAssignmentBody } from "@/components/demo/demo-local-assignment-body";
+import { AssignmentSkeleton } from "@/components/ui/skeletons/assignment-skeleton";
+import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import {
-  canAccessDosenFeatures,
-  canAccessMahasiswaFeatures,
-} from '@/lib/authorization';
-import prisma from '@/lib/prisma';
-import { protectDashboard } from '@/lib/server-auth';
-import type { Course, ExtendedUser } from '@/lib/types';
+  DEMO_ASSIGNMENT_ID,
+  DEMO_COURSE_ID,
+  getDemoAssignmentDefinitionFromSearchParams,
+  getDemoCourse,
+  getDemoSandboxPrincipalId,
+  getDemoSeededAssignment,
+  getDemoStudentsForCourse,
+  isDemoSandboxAssignmentId,
+  isDemoSandboxUser,
+} from "@/lib/demo/sandbox";
+import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import prisma from "@/lib/prisma";
+import { protectDashboard } from "@/lib/server-auth";
+import type { Course, ExtendedUser } from "@/lib/types";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 type EnrollmentWithStudent = {
   enrolledAt: Date;
@@ -42,19 +53,19 @@ export async function generateMetadata({
   const { course } = await getCourseAndStudents(id, user);
   const title = course
     ? `${course.namaMataKuliah} - ${course.kelas} | Tugas | EduTeams`
-    : 'Tugas - EduTeams';
+    : "Tugas - EduTeams";
   const description = course
     ? `Detail tugas untuk ${course.namaMataKuliah} - ${course.kelas}`
-    : 'Halaman detail tugas';
+    : "Halaman detail tugas";
   return { title, description };
 }
 
 const mapEnrollmentStudents = (enrollments: EnrollmentWithStudent[]) =>
   enrollments.map((e: EnrollmentWithStudent) => ({
     id: e.student.id,
-    name: e.student.name || 'Unknown',
-    nim: e.student.nim || 'N/A',
-    email: e.student.email || 'N/A',
+    name: e.student.name || "Unknown",
+    nim: e.student.nim || "N/A",
+    email: e.student.email || "N/A",
     gender: e.student.gender,
     mbtiType: e.student.personalityProfile?.mbtiType ?? null,
     ei: e.student.personalityProfile?.ei ?? null,
@@ -95,7 +106,7 @@ const getDosenCourseAndStudents = cache(async (courseId: string, userId: string)
           },
         },
       },
-      orderBy: { student: { name: 'asc' } },
+      orderBy: { student: { name: "asc" } },
     }),
   ]);
 
@@ -134,7 +145,7 @@ const getMahasiswaCourseAndStudents = cache(async (courseId: string, userId: str
                 },
               },
             },
-            orderBy: { student: { name: 'asc' } },
+            orderBy: { student: { name: "asc" } },
           },
         },
       },
@@ -164,9 +175,16 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
 
 interface AssignmentPageProps {
   params: Promise<{ id: string; assignmentId: string }>;
+  searchParams: Promise<{
+    demoTitle?: string | string[];
+    demoSkill?: string | string[];
+    demoTopic?: string | string[];
+    demoSkillsEmpty?: string | string[];
+    demoTopicsEmpty?: string | string[];
+  }>;
 }
 
-export default async function AssignmentPage({ params }: AssignmentPageProps) {
+export default async function AssignmentPage({ params, searchParams }: AssignmentPageProps) {
   const user = await protectDashboard();
   const { id, assignmentId } = await params;
 
@@ -175,6 +193,63 @@ export default async function AssignmentPage({ params }: AssignmentPageProps) {
 
   if (!isDosen && !isMahasiswa) {
     notFound();
+  }
+
+  if (id === DEMO_COURSE_ID && isDemoSandboxUser(user) && isDemoSandboxAssignmentId(assignmentId)) {
+    const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
+    const assignmentDefinition = getDemoAssignmentDefinitionFromSearchParams(await searchParams);
+    const course = getDemoCourse();
+    const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
+    const seededAssignment = assignmentId === DEMO_ASSIGNMENT_ID ? getDemoSeededAssignment() : null;
+    const students = getDemoStudentsForCourse({
+      excludedStudentIds: removedStudentIds,
+    }).map((student) => ({
+      id: student.id,
+      name: student.name,
+      nim: student.nim,
+      email: student.email,
+      gender: student.gender,
+      mbtiType: student.mbtiType,
+      ei: student.ei,
+      sn: student.sn,
+      tf: student.tf,
+      pj: student.pj,
+      enrolledAt: student.enrolledAt,
+    }));
+
+    return (
+      <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
+        <AssignmentLayout
+          user={user}
+          course={course}
+          classId={id}
+          assignmentId={assignmentId}
+          students={students}
+          canManage={isDosen}
+          assignmentTitle={assignmentDefinition.title}
+          submittedStudentIds={students.map((student) => student.id)}
+        >
+          <DemoLocalAssignmentBody
+            classId={id}
+            assignmentId={assignmentId}
+            courseName={course.namaMataKuliah}
+            courseClass={course.kelas}
+            canManage={isDosen}
+            isStudent={isMahasiswa}
+            currentUserId={currentUserId}
+            initialTitle={assignmentDefinition.title}
+            initialSkills={assignmentDefinition.skills}
+            initialTopics={assignmentDefinition.topics}
+            initialSubmissionsCount={
+              seededAssignment
+                ? Math.min(seededAssignment.submissionsCount, students.length)
+                : undefined
+            }
+            enrolledStudents={students}
+          />
+        </AssignmentLayout>
+      </DashboardClient>
+    );
   }
 
   // Fetch course and students data

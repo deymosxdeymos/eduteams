@@ -1,23 +1,25 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useTransition } from 'react';
-import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useTranslations } from "next-intl";
+import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { clearDemoSandboxClientState } from "@/lib/demo/sandbox-client";
 
 export function DemoLoginButton({ className }: { className?: string }) {
-  const t = useTranslations('auth');
+  const t = useTranslations("auth");
   const [isPending, startTransition] = useTransition();
 
   function handleDemoLogin() {
     startTransition(async () => {
-      const response = await fetch('/api/demo/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/demo/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
       const data = await response.json();
 
       if (data.success) {
+        clearDemoSandboxClientState();
         window.location.href = data.data.redirectTo;
       }
     });
@@ -25,15 +27,15 @@ export function DemoLoginButton({ className }: { className?: string }) {
 
   return (
     <Button
-      type='button'
-      variant='outline'
-      size='lg'
+      type="button"
+      variant="outline"
+      size="lg"
       className={className}
       onClick={handleDemoLogin}
       disabled={isPending}
     >
-      {isPending ? <LoadingSpinner size='sm' /> : null}
-      {isPending ? t('signingIn') : t('tryDemo')}
+      {isPending ? <LoadingSpinner size="sm" /> : null}
+      {isPending ? t("signingIn") : t("tryDemo")}
     </Button>
   );
 }

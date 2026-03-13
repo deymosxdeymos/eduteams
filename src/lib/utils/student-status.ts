@@ -1,4 +1,4 @@
-import type { AssignmentStatus } from '@/generated/prisma/client';
+import type { AssignmentStatus } from "@/generated/prisma/client";
 
 interface StatusDetectionInput {
   assignmentStatus: AssignmentStatus;
@@ -6,7 +6,7 @@ interface StatusDetectionInput {
   isInTeam: boolean;
 }
 
-export type StudentAssignmentStatus = 'my-group' | 'waiting' | 'not-started';
+export type StudentAssignmentStatus = "my-group" | "waiting" | "not-started";
 
 /**
  * Determines the student's status for a specific assignment
@@ -19,21 +19,19 @@ export type StudentAssignmentStatus = 'my-group' | 'waiting' | 'not-started';
  * - 'waiting': Student has submitted and is waiting for team formation
  * - 'not-started': Student hasn't submitted yet (regardless of assignment status)
  */
-export function getStudentAssignmentStatus(
-  input: StatusDetectionInput
-): StudentAssignmentStatus {
+export function getStudentAssignmentStatus(input: StatusDetectionInput): StudentAssignmentStatus {
   const { hasSubmission, isInTeam } = input;
 
   // If student is in a team, they're in 'my-group' status
   if (isInTeam) {
-    return 'my-group';
+    return "my-group";
   }
 
   // If student has submitted, they're waiting for team formation
   if (hasSubmission) {
-    return 'waiting';
+    return "waiting";
   }
 
   // Otherwise, they haven't started (even if assignment status is MENUNGGU)
-  return 'not-started';
+  return "not-started";
 }

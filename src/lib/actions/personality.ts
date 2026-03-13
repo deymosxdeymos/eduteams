@@ -1,16 +1,16 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { z } from 'zod';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 
-import { getCurrentUser } from '@/lib/api-utils';
+import { getCurrentUser } from "@/lib/api-utils";
 import {
   createPersonalitySessionForUser,
   getUserPersonalitySessionStatus,
   submitPersonalitySession,
-} from '@/lib/personality-session';
-import { AuthError, ValidationError } from '@/lib/types';
+} from "@/lib/personality-session";
+import { AuthError, ValidationError } from "@/lib/types";
 
 const personalitySubmissionSchema = z.object({
   sessionId: z.string().uuid(),
@@ -20,34 +20,34 @@ const personalitySubmissionSchema = z.object({
 export async function ensurePersonalitySession(locale?: string) {
   const user = await getCurrentUser();
   if (!user) {
-    throw new AuthError('Authentication required');
+    throw new AuthError("Authentication required");
   }
   const session = await createPersonalitySessionForUser(user, locale);
   if (!session) {
     const status = await getUserPersonalitySessionStatus(user.id, locale);
-    if (status?.status === 'completed_valid') {
-      redirect('/dashboard?firstVisit=true');
+    if (status?.status === "completed_valid") {
+      redirect("/dashboard?firstVisit=true");
     }
-    throw new ValidationError('Personality questionnaire is not available');
+    throw new ValidationError("Personality questionnaire is not available");
   }
   return session;
 }
 
 export async function submitPersonalityTest(
   formData: FormData,
-  getCurrentUserImpl?: typeof getCurrentUser
+  getCurrentUserImpl?: typeof getCurrentUser,
 ) {
   const resolveUser = getCurrentUserImpl ?? getCurrentUser;
   const user = await resolveUser();
   if (!user) {
-    throw new AuthError('Authentication required');
+    throw new AuthError("Authentication required");
   }
 
-  const answersJson = formData.get('answers');
-  const sessionId = formData.get('sessionId');
+  const answersJson = formData.get("answers");
+  const sessionId = formData.get("sessionId");
 
-  if (typeof answersJson !== 'string' || typeof sessionId !== 'string') {
-    throw new ValidationError('Jawaban dan sesi wajib diisi');
+  if (typeof answersJson !== "string" || typeof sessionId !== "string") {
+    throw new ValidationError("Jawaban dan sesi wajib diisi");
   }
 
   const parsedData = personalitySubmissionSchema.parse({
@@ -61,20 +61,16 @@ export async function submitPersonalityTest(
     answers: parsedData.answers,
   });
 
-  if (result.status === 'attention_check_failed') {
-    throw new ValidationError(
-      'Tes perhatian tidak lolos. Ikuti instruksi dan coba lagi.'
-    );
+  if (result.status === "attention_check_failed") {
+    throw new ValidationError("Tes perhatian tidak lolos. Ikuti instruksi dan coba lagi.");
   }
-  if (result.status === 'speeding') {
-    throw new ValidationError(
-      'Waktu pengerjaan terlalu singkat. Mohon isi dengan lebih teliti.'
-    );
+  if (result.status === "speeding") {
+    throw new ValidationError("Waktu pengerjaan terlalu singkat. Mohon isi dengan lebih teliti.");
   }
-  if (result.status === 'incomplete') {
-    throw new ValidationError('Lengkapi semua pernyataan sebelum mengirim.');
+  if (result.status === "incomplete") {
+    throw new ValidationError("Lengkapi semua pernyataan sebelum mengirim.");
   }
 
-  revalidatePath('/dashboard');
-  redirect('/dashboard?firstVisit=true');
+  revalidatePath("/dashboard");
+  redirect("/dashboard?firstVisit=true");
 }

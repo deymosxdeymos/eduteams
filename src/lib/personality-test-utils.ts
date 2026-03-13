@@ -1,4 +1,4 @@
-import type { SessionQuestionPayload } from '@/lib/personality-session';
+import type { SessionQuestionPayload } from "@/lib/personality-session";
 
 interface PersonalityTestState {
   currentPage: number;
@@ -8,13 +8,13 @@ interface PersonalityTestState {
 }
 
 type PersonalityTestAction =
-  | { type: 'SET_ANSWER'; payload: { questionId: string; value: number } }
-  | { type: 'NEXT_PAGE' }
-  | { type: 'PREV_PAGE' }
-  | { type: 'SET_VALIDATION_ERRORS'; payload: Set<string> }
-  | { type: 'CLEAR_VALIDATION_ERROR'; payload: string }
-  | { type: 'SET_SUBMITTING'; payload: boolean }
-  | { type: 'RESET' };
+  | { type: "SET_ANSWER"; payload: { questionId: string; value: number } }
+  | { type: "NEXT_PAGE" }
+  | { type: "PREV_PAGE" }
+  | { type: "SET_VALIDATION_ERRORS"; payload: Set<string> }
+  | { type: "CLEAR_VALIDATION_ERROR"; payload: string }
+  | { type: "SET_SUBMITTING"; payload: boolean }
+  | { type: "RESET" };
 
 export const initialPersonalityTestState: PersonalityTestState = {
   currentPage: 1,
@@ -25,10 +25,10 @@ export const initialPersonalityTestState: PersonalityTestState = {
 
 export function personalityTestReducer(
   state: PersonalityTestState,
-  action: PersonalityTestAction
+  action: PersonalityTestAction,
 ): PersonalityTestState {
   switch (action.type) {
-    case 'SET_ANSWER': {
+    case "SET_ANSWER": {
       const newErrors = new Set(state.validationErrors);
       newErrors.delete(action.payload.questionId);
       return {
@@ -41,25 +41,25 @@ export function personalityTestReducer(
       };
     }
 
-    case 'NEXT_PAGE':
+    case "NEXT_PAGE":
       return {
         ...state,
         currentPage: state.currentPage + 1,
       };
 
-    case 'PREV_PAGE':
+    case "PREV_PAGE":
       return {
         ...state,
         currentPage: state.currentPage - 1,
       };
 
-    case 'SET_VALIDATION_ERRORS':
+    case "SET_VALIDATION_ERRORS":
       return {
         ...state,
         validationErrors: action.payload,
       };
 
-    case 'CLEAR_VALIDATION_ERROR': {
+    case "CLEAR_VALIDATION_ERROR": {
       const clearedErrors = new Set(state.validationErrors);
       clearedErrors.delete(action.payload);
       return {
@@ -68,13 +68,13 @@ export function personalityTestReducer(
       };
     }
 
-    case 'SET_SUBMITTING':
+    case "SET_SUBMITTING":
       return {
         ...state,
         isSubmitting: action.payload,
       };
 
-    case 'RESET':
+    case "RESET":
       return initialPersonalityTestState;
 
     default:
@@ -85,7 +85,7 @@ export function personalityTestReducer(
 export function getQuestionsForPage(
   questions: SessionQuestionPayload[],
   page: number,
-  questionsPerPage: number
+  questionsPerPage: number,
 ): SessionQuestionPayload[] {
   const startIndex = (page - 1) * questionsPerPage;
   return questions.slice(startIndex, startIndex + questionsPerPage);
@@ -93,9 +93,9 @@ export function getQuestionsForPage(
 
 export function validateCurrentPageQuestions(
   questions: SessionQuestionPayload[],
-  answers: Record<string, number>
+  answers: Record<string, number>,
 ): string[] {
-  return questions.filter(q => !answers[q.id]).map(q => q.id);
+  return questions.filter((q) => !answers[q.id]).map((q) => q.id);
 }
 
 export function scrollToFirstError(unansweredQuestions: string[]): void {
@@ -103,19 +103,19 @@ export function scrollToFirstError(unansweredQuestions: string[]): void {
     const firstUnanswered = unansweredQuestions[0];
     const element = document.getElementById(`question-${firstUnanswered}`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
 }
 
 export function convertAnswersForSubmission(
   questions: SessionQuestionPayload[],
-  answers: Record<string, number>
+  answers: Record<string, number>,
 ): Record<string, number> {
   const convertedAnswers: Record<string, number> = {};
   for (const question of questions) {
     const value = answers[question.id];
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
       convertedAnswers[question.id] = value;
     }
   }

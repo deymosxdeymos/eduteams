@@ -1,9 +1,9 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 function shouldLog(level: LogLevel): boolean {
-  const env = process.env.NODE_ENV || 'development';
-  if (env === 'test') return false;
-  if (env === 'production') return level === 'warn' || level === 'error';
+  const env = process.env.NODE_ENV || "development";
+  if (env === "test") return false;
+  if (env === "production") return level === "warn" || level === "error";
   return true;
 }
 
@@ -21,15 +21,15 @@ function fmt(level: LogLevel, msg: unknown, args: unknown[]) {
 
 export const logger = {
   debug: (msg: unknown, ...args: unknown[]) => {
-    if (shouldLog('debug')) fmt('debug', msg, args);
+    if (shouldLog("debug")) fmt("debug", msg, args);
   },
   info: (msg: unknown, ...args: unknown[]) => {
-    if (shouldLog('info')) fmt('info', msg, args);
+    if (shouldLog("info")) fmt("info", msg, args);
   },
   warn: (msg: unknown, ...args: unknown[]) => {
-    if (shouldLog('warn')) fmt('warn', msg, args);
+    if (shouldLog("warn")) fmt("warn", msg, args);
   },
   error: (msg: unknown, ...args: unknown[]) => {
-    if (shouldLog('error')) fmt('error', msg, args);
+    if (shouldLog("error")) fmt("error", msg, args);
   },
 };

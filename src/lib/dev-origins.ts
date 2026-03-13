@@ -1,7 +1,7 @@
-const DEV_ALLOWED_ORIGINS_ENV_NAME = 'DEV_ALLOWED_ORIGINS';
+const DEV_ALLOWED_ORIGINS_ENV_NAME = "DEV_ALLOWED_ORIGINS";
 
 function getConfiguredDevOrigins() {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     return [];
   }
 
@@ -12,7 +12,7 @@ function getConfiguredDevOrigins() {
 
   return rawOrigins
     .split(/[\n,]/)
-    .map(origin => origin.trim())
+    .map((origin) => origin.trim())
     .filter(Boolean);
 }
 
@@ -21,7 +21,7 @@ export function getAllowedDevOrigins() {
 }
 
 export function getAllowedDevOriginHosts() {
-  return getConfiguredDevOrigins().flatMap(origin => {
+  return getConfiguredDevOrigins().flatMap((origin) => {
     try {
       return [new URL(origin).hostname];
     } catch {

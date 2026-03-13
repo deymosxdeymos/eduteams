@@ -1,19 +1,20 @@
-import type { NextRequest } from 'next/server';
-import { z } from 'zod';
-import { CompetencyKind } from '@/generated/prisma/client';
+import type { NextRequest } from "next/server";
+import { z } from "zod";
+import { CompetencyKind } from "@/generated/prisma/client";
+import { createApiResponse, createErrorResponse, handleApiError, withAuth } from "@/lib/api-utils";
+import { canAccessMahasiswaFeatures } from "@/lib/authorization";
+import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
+import { normalizeTopicKey } from "@/lib/data/student-competency-profiles";
 import {
-  createApiResponse,
-  createErrorResponse,
-  handleApiError,
-  withAuth,
-} from '@/lib/api-utils';
-import { canAccessMahasiswaFeatures } from '@/lib/authorization';
-import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
-import { normalizeTopicKey } from '@/lib/data/student-competency-profiles';
-import prisma, { type TransactionClient } from '@/lib/prisma';
-import { HttpError } from '@/lib/types';
+  DEMO_ASSIGNMENT_ID,
+  DEMO_COURSE_ID,
+  isDemoSandboxUser,
+  isLocalDemoAssignmentId,
+} from "@/lib/demo/sandbox";
+import prisma, { type TransactionClient } from "@/lib/prisma";
+import { HttpError } from "@/lib/types";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export const POST = withAuth<{ id: string; assignmentId: string }>(
   async (request: NextRequest, { user, params }) => {
@@ -23,39 +24,47 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
 
       const isMahasiswa = canAccessMahasiswaFeatures(user);
       if (!isMahasiswa) {
-        return createErrorResponse('Access denied', 403);
+        return createErrorResponse("Access denied", 403);
       }
+
+      if (
+        courseId === DEMO_COURSE_ID &&
+        isDemoSandboxUser(user) &&
+        (assignmentId === DEMO_ASSIGNMENT_ID || isLocalDemoAssignmentId(assignmentId))
+      ) {
+        return createApiResponse({ success: true });
+      }
+
       const isDemoAccount = isActiveDemoAccountEmail(user.email);
 
-      const [body, enrollment, assignment, existingSubmission] =
-        await Promise.all([
-          bodyPromise,
-          prisma.courseEnrollment.findUnique({
-            where: {
-              courseId_studentId: { courseId, studentId: user.id },
-            },
-          }),
-          prisma.assignment.findUnique({
-            where: { id: assignmentId, courseId },
-            select: { id: true, description: true, structureVersion: true },
-          }),
-          prisma.assignmentSubmission.findUnique({
-            where: {
-              assignmentId_studentId: { assignmentId, studentId: user.id },
-            },
-          }),
-        ]);
+      const [body, enrollment, assignment, existingSubmission] = await Promise.all([
+        bodyPromise,
+        prisma.courseEnrollment.findUnique({
+          where: {
+            courseId_studentId: { courseId, studentId: user.id },
+          },
+        }),
+        prisma.assignment.findUnique({
+          where: { id: assignmentId, courseId },
+          select: { id: true, description: true, structureVersion: true },
+        }),
+        prisma.assignmentSubmission.findUnique({
+          where: {
+            assignmentId_studentId: { assignmentId, studentId: user.id },
+          },
+        }),
+      ]);
 
       if (!enrollment) {
-        return createErrorResponse('Not enrolled in this course', 403);
+        return createErrorResponse("Not enrolled in this course", 403);
       }
 
       if (!assignment) {
-        return createErrorResponse('Assignment not found', 404);
+        return createErrorResponse("Assignment not found", 404);
       }
 
       if (existingSubmission && !existingSubmission.needsUpdate) {
-        return createErrorResponse('Already submitted', 400);
+        return createErrorResponse("Already submitted", 400);
       }
 
       // New structured shape: arrays of { name, level/preference }
@@ -67,7 +76,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
               level: z.number().min(0).max(1), // normalized 0..1
               profileId: z.string().uuid().optional(),
               profileUpdatedAt: z.string().optional(),
-            })
+            }),
           )
           .optional(),
         topics: z
@@ -77,7 +86,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
               preference: z.number().min(0).max(1), // normalized 0..1
               profileId: z.string().uuid().optional(),
               profileUpdatedAt: z.string().optional(),
-            })
+            }),
           )
           .optional(),
       });
@@ -109,9 +118,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       // Helper to parse skills/topics from assignment.description JSON if present
       const parsedDesc = (() => {
         try {
-          return dbAssignment.description
-            ? JSON.parse(dbAssignment.description)
-            : null;
+          return dbAssignment.description ? JSON.parse(dbAssignment.description) : null;
         } catch {
           return null;
         }
@@ -123,17 +130,14 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         ? parsedDesc?.topics
         : [];
 
-      if (
-        arraysParse.success &&
-        (arraysParse.data.skills || arraysParse.data.topics)
-      ) {
-        skillsToPersist = (arraysParse.data.skills ?? []).map(s => ({
+      if (arraysParse.success && (arraysParse.data.skills || arraysParse.data.topics)) {
+        skillsToPersist = (arraysParse.data.skills ?? []).map((s) => ({
           name: s.name.trim(),
           level: s.level,
           profileId: s.profileId,
           profileUpdatedAt: s.profileUpdatedAt,
         }));
-        topicsToPersist = (arraysParse.data.topics ?? []).map(t => ({
+        topicsToPersist = (arraysParse.data.topics ?? []).map((t) => ({
           name: t.name.trim(),
           preference: t.preference,
           profileId: t.profileId,
@@ -144,51 +148,38 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         (mapsParse.data.skillsAnswers || mapsParse.data.topicsAnswers)
       ) {
         // Back-compat: map index-based answers to names from assignment description arrays
-        const normalize = (val: number) =>
-          Math.max(0, Math.min(1, (val - 1) / 4));
+        const normalize = (val: number) => Math.max(0, Math.min(1, (val - 1) / 4));
         if (mapsParse.data.skillsAnswers && assignmentSkills.length > 0) {
           skillsToPersist = Object.entries(mapsParse.data.skillsAnswers)
-            .map(([k, v]) => ({ index: Number(k.replace(/\D/g, '')), raw: v }))
-            .filter(
-              x =>
-                Number.isFinite(x.index) &&
-                assignmentSkills[x.index] !== undefined
-            )
-            .map(x => ({
+            .map(([k, v]) => ({ index: Number(k.replace(/\D/g, "")), raw: v }))
+            .filter((x) => Number.isFinite(x.index) && assignmentSkills[x.index] !== undefined)
+            .map((x) => ({
               name: String(assignmentSkills[x.index]).trim(),
               level: normalize(x.raw),
             }));
         }
         if (mapsParse.data.topicsAnswers && assignmentTopics.length > 0) {
           topicsToPersist = Object.entries(mapsParse.data.topicsAnswers)
-            .map(([k, v]) => ({ index: Number(k.replace(/\D/g, '')), raw: v }))
-            .filter(
-              x =>
-                Number.isFinite(x.index) &&
-                assignmentTopics[x.index] !== undefined
-            )
-            .map(x => ({
+            .map(([k, v]) => ({ index: Number(k.replace(/\D/g, "")), raw: v }))
+            .filter((x) => Number.isFinite(x.index) && assignmentTopics[x.index] !== undefined)
+            .map((x) => ({
               name: String(assignmentTopics[x.index]).trim(),
               preference: normalize(x.raw),
             }));
         }
       } else {
-        return createErrorResponse('Missing or invalid answers', 400);
+        return createErrorResponse("Missing or invalid answers", 400);
       }
 
       skillsToPersist = Array.from(
-        new Map(skillsToPersist.map(skill => [skill.name, skill])).values()
+        new Map(skillsToPersist.map((skill) => [skill.name, skill])).values(),
       );
       topicsToPersist = Array.from(
-        new Map(topicsToPersist.map(topic => [topic.name, topic])).values()
+        new Map(topicsToPersist.map((topic) => [topic.name, topic])).values(),
       );
 
-      const uniqueSkillNames = Array.from(
-        new Set(skillsToPersist.map(s => s.name))
-      );
-      const uniqueTopicNames = Array.from(
-        new Set(topicsToPersist.map(t => t.name))
-      );
+      const uniqueSkillNames = Array.from(new Set(skillsToPersist.map((s) => s.name)));
+      const uniqueTopicNames = Array.from(new Set(topicsToPersist.map((t) => t.name)));
 
       const [nameToSkillId, topicNameToId] = await Promise.all([
         (async () => {
@@ -201,16 +192,13 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
             select: { id: true, name: true },
           });
           const existingByName = new Map(
-            existingSkills.map((s: { id: string; name: string }) => [
-              s.name,
-              s.id,
-            ])
+            existingSkills.map((s: { id: string; name: string }) => [s.name, s.id]),
           );
-          const missing = uniqueSkillNames.filter(n => !existingByName.has(n));
+          const missing = uniqueSkillNames.filter((n) => !existingByName.has(n));
 
           if (missing.length > 0 && !isDemoAccount) {
             await prisma.skill.createMany({
-              data: missing.map(n => ({ name: n })),
+              data: missing.map((n) => ({ name: n })),
               skipDuplicates: true,
             });
           }
@@ -224,7 +212,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
               : existingSkills;
 
           return new Map<string, string>(
-            allSkills.map((s: { id: string; name: string }) => [s.name, s.id])
+            allSkills.map((s: { id: string; name: string }) => [s.name, s.id]),
           );
         })(),
         (async () => {
@@ -237,18 +225,13 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
             select: { id: true, name: true },
           });
           const existingTopicByName = new Map(
-            existingTopics.map((topic: { id: string; name: string }) => [
-              topic.name,
-              topic.id,
-            ])
+            existingTopics.map((topic: { id: string; name: string }) => [topic.name, topic.id]),
           );
-          const missingTopics = uniqueTopicNames.filter(
-            name => !existingTopicByName.has(name)
-          );
+          const missingTopics = uniqueTopicNames.filter((name) => !existingTopicByName.has(name));
 
           if (missingTopics.length > 0) {
             await prisma.assignmentTopic.createMany({
-              data: missingTopics.map(name => ({ assignmentId, name })),
+              data: missingTopics.map((name) => ({ assignmentId, name })),
               skipDuplicates: true,
             });
           }
@@ -262,10 +245,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
               : existingTopics;
 
           return new Map<string, string>(
-            allTopics.map((topic: { id: string; name: string }) => [
-              topic.name,
-              topic.id,
-            ])
+            allTopics.map((topic: { id: string; name: string }) => [topic.name, topic.id]),
           );
         })(),
       ]);
@@ -279,7 +259,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
 
       await prisma.$transaction(async (tx: TransactionClient) => {
         await Promise.all(
-          skillsToPersist.map(async s => {
+          skillsToPersist.map(async (s) => {
             const skillId = nameToSkillId.get(s.name);
             if (!skillId) {
               return;
@@ -316,8 +296,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 if (Number.isNaN(expected.getTime())) {
                   throw new HttpError(
                     400,
-                    'Profil kompetensi tidak valid.',
-                    'INVALID_PROFILE_VERSION'
+                    "Profil kompetensi tidak valid.",
+                    "INVALID_PROFILE_VERSION",
                   );
                 }
                 const updated = await tx.studentCompetencyProfile.updateMany({
@@ -327,8 +307,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 if (updated.count === 0) {
                   throw new HttpError(
                     409,
-                    'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
-                    'COMPETENCY_CONFLICT'
+                    "Profil kompetensi telah berubah. Silakan muat ulang halaman.",
+                    "COMPETENCY_CONFLICT",
                   );
                 }
                 return;
@@ -365,11 +345,11 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 sourceAssignmentId: assignmentId,
               },
             });
-          })
+          }),
         );
 
         await Promise.all(
-          topicsToPersist.map(async t => {
+          topicsToPersist.map(async (t) => {
             const assignmentTopicId = topicNameToId.get(t.name);
             if (!assignmentTopicId) {
               return;
@@ -421,8 +401,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 if (Number.isNaN(expected.getTime())) {
                   throw new HttpError(
                     400,
-                    'Profil kompetensi tidak valid.',
-                    'INVALID_PROFILE_VERSION'
+                    "Profil kompetensi tidak valid.",
+                    "INVALID_PROFILE_VERSION",
                   );
                 }
                 const updated = await tx.studentCompetencyProfile.updateMany({
@@ -432,8 +412,8 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 if (updated.count === 0) {
                   throw new HttpError(
                     409,
-                    'Profil kompetensi telah berubah. Silakan muat ulang halaman.',
-                    'COMPETENCY_CONFLICT'
+                    "Profil kompetensi telah berubah. Silakan muat ulang halaman.",
+                    "COMPETENCY_CONFLICT",
                   );
                 }
                 return;
@@ -470,7 +450,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
                 sourceAssignmentId: assignmentId,
               },
             });
-          })
+          }),
         );
 
         await tx.assignmentSubmission.upsert({
@@ -494,5 +474,6 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
     } catch (error) {
       return handleApiError(error);
     }
-  }
+  },
+  { allowDemoSandbox: true },
 );

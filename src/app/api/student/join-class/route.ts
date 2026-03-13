@@ -1,45 +1,34 @@
-import { revalidateTag } from 'next/cache';
-import type { NextRequest } from 'next/server';
-import { z } from 'zod';
-import {
-  createApiResponse,
-  createErrorResponse,
-  withAuth,
-  withValidation,
-} from '@/lib/api-utils';
-import { canAccessMahasiswaFeatures } from '@/lib/authorization';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { isSameOrigin } from '@/lib/csrf';
-import {
-  isActiveDemoAccountEmail,
-  isDemoAccountEmail,
-} from '@/lib/demo/auth';
-import prisma from '@/lib/prisma';
-import type { ExtendedUser } from '@/lib/types';
+import { revalidateTag } from "next/cache";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
+import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
+import { canAccessMahasiswaFeatures } from "@/lib/authorization";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { isSameOrigin } from "@/lib/csrf";
+import { isActiveDemoAccountEmail, isDemoAccountEmail } from "@/lib/demo/auth";
+import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const joinClassSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
+  token: z.string().min(1, "Token is required"),
 });
 
 async function joinClass(
   request: NextRequest,
-  {
-    user,
-    validatedData,
-  }: { user?: ExtendedUser; validatedData: { token: string } }
+  { user, validatedData }: { user?: ExtendedUser; validatedData: { token: string } },
 ) {
   if (!user || !canAccessMahasiswaFeatures(user)) {
-    return createErrorResponse('Access denied', 403);
+    return createErrorResponse("Access denied", 403);
   }
 
   if (isActiveDemoAccountEmail(user.email)) {
-    return createErrorResponse('Demo accounts cannot join shared classes.', 403);
+    return createErrorResponse("Demo accounts cannot join shared classes.", 403);
   }
 
   if (!isSameOrigin(request)) {
-    return createErrorResponse('Invalid origin', 403);
+    return createErrorResponse("Invalid origin", 403);
   }
 
   const { token } = validatedData;
@@ -59,11 +48,11 @@ async function joinClass(
   });
 
   if (!course) {
-    return createErrorResponse('Invalid token. Class not found.', 404);
+    return createErrorResponse("Invalid token. Class not found.", 404);
   }
 
   if (isDemoAccountEmail(course.dosen.email)) {
-    return createErrorResponse('Demo classes cannot be joined from shared invites.', 403);
+    return createErrorResponse("Demo classes cannot be joined from shared invites.", 403);
   }
 
   const existingEnrollment = await prisma.courseEnrollment.findUnique({
@@ -76,7 +65,7 @@ async function joinClass(
   });
 
   if (existingEnrollment) {
-    return createErrorResponse('You are already enrolled in this class.', 409);
+    return createErrorResponse("You are already enrolled in this class.", 409);
   }
 
   await prisma.courseEnrollment.create({
@@ -102,5 +91,5 @@ async function joinClass(
 }
 
 export const POST = withAuth(
-  withValidation((data: unknown) => joinClassSchema.parse(data), joinClass)
+  withValidation((data: unknown) => joinClassSchema.parse(data), joinClass),
 );

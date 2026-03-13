@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 
-import { randomInt } from 'node:crypto';
+import { randomInt } from "node:crypto";
 
-import { createId } from '@paralleldrive/cuid2';
+import { createId } from "@paralleldrive/cuid2";
 import {
   generateBalancedMBTI,
   generateEmail,
@@ -14,18 +14,18 @@ import {
   generateRandomSkills,
   generateScoresForMBTI,
   getMBTIType,
-} from '../__tests__/helpers/dev-data-generators';
-import { z } from 'zod';
-import prisma from '@/lib/prisma';
+} from "../__tests__/helpers/dev-data-generators";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
 
-const SUPPORTED_PERSONALITY_LOCALES = ['id-ID', 'en-US'] as const;
+const SUPPORTED_PERSONALITY_LOCALES = ["id-ID", "en-US"] as const;
 
 const argsSchema = z.object({
   count: z.number().int().min(0).default(20),
   courseId: z.string().optional(),
   courseName: z.string().optional(),
-  courseClass: z.enum(['RA', 'RB', 'RC', 'RD', 'RE']).default('RA'),
-  coursePeriod: z.enum(['ganjil', 'genap', 'pendek']).default('ganjil'),
+  courseClass: z.enum(["RA", "RB", "RC", "RD", "RE"]).default("RA"),
+  coursePeriod: z.enum(["ganjil", "genap", "pendek"]).default("ganjil"),
   dosenEmail: z.string().email().optional(),
   mbtiBalanced: z.boolean().default(false),
   listCourses: z.boolean().default(false),
@@ -55,31 +55,29 @@ function parseArgs(): Args {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg.startsWith('--')) {
-      const key = arg
-        .slice(2)
-        .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-      if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+    if (arg.startsWith("--")) {
+      const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
         const value = args[i + 1];
-        if (key === 'count') {
+        if (key === "count") {
           parsed[key] = parseInt(value, 10);
         } else if (
-          key === 'courseId' ||
-          key === 'courseClass' ||
-          key === 'coursePeriod' ||
-          key === 'personalityLocale'
+          key === "courseId" ||
+          key === "courseClass" ||
+          key === "coursePeriod" ||
+          key === "personalityLocale"
         ) {
           parsed[key] = value;
-        } else if (key === 'courseName' || key === 'dosenEmail') {
+        } else if (key === "courseName" || key === "dosenEmail") {
           parsed[key] = value;
         } else if (
-          key === 'mbtiBalanced' ||
-          key === 'listCourses' ||
-          key === 'listDosen' ||
-          key === 'assignmentsOnly' ||
-          key === 'skipPersonality'
+          key === "mbtiBalanced" ||
+          key === "listCourses" ||
+          key === "listDosen" ||
+          key === "assignmentsOnly" ||
+          key === "skipPersonality"
         ) {
-          parsed[key] = value === 'true';
+          parsed[key] = value === "true";
         } else {
           parsed[key] = true;
         }
@@ -109,39 +107,39 @@ async function listCourses(): Promise<void> {
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   if (courses.length === 0) {
-    console.log('📚 No courses found in database.');
+    console.log("📚 No courses found in database.");
     return;
   }
 
-  console.log('\n📚 Available Courses:');
+  console.log("\n📚 Available Courses:");
   for (const [i, course] of courses.entries()) {
     console.log(
-      `  [${i + 1}] ${course.id} | ${course.namaMataKuliah} | Kelas ${course.kelas} | ${course.dosen.name} (${course.dosen.email})`
+      `  [${i + 1}] ${course.id} | ${course.namaMataKuliah} | Kelas ${course.kelas} | ${course.dosen.name} (${course.dosen.email})`,
     );
   }
 }
 
 async function listDosen(): Promise<void> {
   const dosen = await prisma.user.findMany({
-    where: { role: 'dosen' },
+    where: { role: "dosen" },
     select: {
       id: true,
       name: true,
       email: true,
     },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
   });
 
   if (dosen.length === 0) {
-    console.log('👨‍🏫 No dosen accounts found in database.');
+    console.log("👨‍🏫 No dosen accounts found in database.");
     return;
   }
 
-  console.log('\n👨‍🏫 Available Dosen:');
+  console.log("\n👨‍🏫 Available Dosen:");
   for (const [i, d] of dosen.entries()) {
     console.log(`  [${i + 1}] ${d.name} (${d.email})`);
   }
@@ -149,19 +147,17 @@ async function listDosen(): Promise<void> {
 
 async function selectDosen(): Promise<string> {
   const dosen = await prisma.user.findMany({
-    where: { role: 'dosen' },
+    where: { role: "dosen" },
     select: {
       id: true,
       name: true,
       email: true,
     },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
   });
 
   if (dosen.length === 0) {
-    throw new Error(
-      'No dosen accounts found. Please create a dosen account first.'
-    );
+    throw new Error("No dosen accounts found. Please create a dosen account first.");
   }
 
   if (dosen.length === 1) {
@@ -169,28 +165,24 @@ async function selectDosen(): Promise<string> {
     return dosen[0].id;
   }
 
-  console.log('\n👨‍🏫 Available Dosen:');
+  console.log("\n👨‍🏫 Available Dosen:");
   for (const [i, d] of dosen.entries()) {
     console.log(`  [${i + 1}] ${d.name} (${d.email})`);
   }
 
   console.log(`Which dosen should own this course? [1-${dosen.length}]:`);
-  const selection = await new Promise<string>(resolve => {
-    process.stdin.once('data', data => {
+  const selection = await new Promise<string>((resolve) => {
+    process.stdin.once("data", (data) => {
       resolve(data.toString().trim());
     });
   });
   if (!selection) {
-    throw new Error('No dosen selected');
+    throw new Error("No dosen selected");
   }
 
   const selectionIndex = parseInt(selection, 10) - 1;
-  if (
-    Number.isNaN(selectionIndex) ||
-    selectionIndex < 0 ||
-    selectionIndex >= dosen.length
-  ) {
-    throw new Error('Invalid dosen selection');
+  if (Number.isNaN(selectionIndex) || selectionIndex < 0 || selectionIndex >= dosen.length) {
+    throw new Error("Invalid dosen selection");
   }
 
   const selected = dosen[selectionIndex];
@@ -199,14 +191,12 @@ async function selectDosen(): Promise<string> {
 }
 
 async function createCourse(args: Args): Promise<CourseInfo> {
-  const dosenId = args.dosenEmail
-    ? await getDosenByEmail(args.dosenEmail)
-    : await selectDosen();
+  const dosenId = args.dosenEmail ? await getDosenByEmail(args.dosenEmail) : await selectDosen();
 
   const currentYear = new Date().getFullYear();
   const courseData = {
     id: createId(),
-    namaMataKuliah: args.courseName || 'Algoritma Pemrograman',
+    namaMataKuliah: args.courseName || "Algoritma Pemrograman",
     kelas: args.courseClass,
     tahunAwalPeriode: currentYear,
     tahunAkhirPeriode: currentYear + 1,
@@ -227,15 +217,13 @@ async function createCourse(args: Args): Promise<CourseInfo> {
     },
   });
 
-  console.log(
-    `✓ Created course: ${course.namaMataKuliah} (Kelas ${course.kelas})`
-  );
+  console.log(`✓ Created course: ${course.namaMataKuliah} (Kelas ${course.kelas})`);
   return course;
 }
 
 async function getDosenByEmail(email: string): Promise<string> {
   const dosen = await prisma.user.findUnique({
-    where: { email, role: 'dosen' },
+    where: { email, role: "dosen" },
     select: { id: true },
   });
 
@@ -265,9 +253,7 @@ async function getCourseById(courseId: string): Promise<CourseInfo> {
     throw new Error(`Course with ID ${courseId} not found`);
   }
 
-  console.log(
-    `✓ Found course: ${course.namaMataKuliah} (Kelas ${course.kelas})`
-  );
+  console.log(`✓ Found course: ${course.namaMataKuliah} (Kelas ${course.kelas})`);
   return course;
 }
 
@@ -276,16 +262,14 @@ async function generateCompletePersonalitySession(
   index: number,
   total: number,
   mbtiBalanced: boolean,
-  questionIds: string[]
+  questionIds: string[],
 ): Promise<void> {
   // When balanced mode, generate type first then create matching scores
   const mbtiType = mbtiBalanced ? generateBalancedMBTI(index, total) : null;
 
   // Generate scores: either matching the balanced type or random
   const scores =
-    mbtiBalanced && mbtiType
-      ? generateScoresForMBTI(mbtiType)
-      : generatePersonalityScores();
+    mbtiBalanced && mbtiType ? generateScoresForMBTI(mbtiType) : generatePersonalityScores();
 
   // Recalculate final type to ensure consistency
   const finalMbtiType = getMBTIType(scores);
@@ -314,16 +298,14 @@ async function generateCompletePersonalitySession(
     });
 
     // Create personality responses (41 questions)
-    const responsePayload = Object.entries(responses).map(
-      ([questionId, rawValue], index) => ({
-        id: createId(),
-        sessionId: session.id,
-        questionId: questionId,
-        rawValue: Number(rawValue),
-        scoredValue: Number(rawValue) === 4 ? 4 : Number(rawValue), // Attention check not reversed
-        position: index + 1,
-      })
-    );
+    const responsePayload = Object.entries(responses).map(([questionId, rawValue], index) => ({
+      id: createId(),
+      sessionId: session.id,
+      questionId: questionId,
+      rawValue: Number(rawValue),
+      scoredValue: Number(rawValue) === 4 ? 4 : Number(rawValue), // Attention check not reversed
+      position: index + 1,
+    }));
 
     await tx.personalityResponse.createMany({
       data: responsePayload,
@@ -421,7 +403,7 @@ async function generateStudent(index: number): Promise<string> {
       emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      role: 'mahasiswa',
+      role: "mahasiswa",
       gender,
       nim: nim,
       isOnboarded: false, // Will be set to true after personality session
@@ -439,10 +421,10 @@ async function assignSkillsToStudent(userId: string): Promise<void> {
 
   // Ensure skills exist before creating person skills
   const skillNames: Record<string, string> = {
-    '9f030e3d-abab-4d99-aeae-823d5ef6959e': 'Rust',
-    'eb5fdd35-8798-4930-85ec-74973e1bc70c': 'Linux',
-    'a1b2c3d4-e5f6-7890-abcd-ef1234567890': 'JavaScript',
-    'b2c3d4e5-f6a7-8901-bcde-f12345678901': 'Python',
+    "9f030e3d-abab-4d99-aeae-823d5ef6959e": "Rust",
+    "eb5fdd35-8798-4930-85ec-74973e1bc70c": "Linux",
+    "a1b2c3d4-e5f6-7890-abcd-ef1234567890": "JavaScript",
+    "b2c3d4e5-f6a7-8901-bcde-f12345678901": "Python",
   };
 
   for (const skill of skills) {
@@ -485,10 +467,7 @@ async function assignSkillsToStudent(userId: string): Promise<void> {
   }
 }
 
-async function enrollStudentInCourse(
-  userId: string,
-  courseId: string
-): Promise<void> {
+async function enrollStudentInCourse(userId: string, courseId: string): Promise<void> {
   await prisma.courseEnrollment.upsert({
     where: {
       courseId_studentId: {
@@ -506,44 +485,31 @@ async function enrollStudentInCourse(
   });
 }
 
-async function createSampleAssignments(
-  courseId: string,
-  dosenId: string
-): Promise<string[]> {
+async function createSampleAssignments(courseId: string, dosenId: string): Promise<string[]> {
   const sampleAssignments = [
     {
-      title: 'Tugas Besar 1 - Struktur Data Linear',
+      title: "Tugas Besar 1 - Struktur Data Linear",
       description: JSON.stringify({
-        skills: ['Rust', 'Linux', 'JavaScript', 'Python'],
-        topics: [
-          'Array Implementation',
-          'Linked List',
-          'Stack Application',
-          'Queue System',
-        ],
+        skills: ["Rust", "Linux", "JavaScript", "Python"],
+        topics: ["Array Implementation", "Linked List", "Stack Application", "Queue System"],
       }),
     },
     {
-      title: 'Tugas Besar 2 - Struktur Data Non-Linear',
+      title: "Tugas Besar 2 - Struktur Data Non-Linear",
       description: JSON.stringify({
-        skills: ['Rust', 'Linux', 'JavaScript', 'Python'],
-        topics: [
-          'Binary Tree',
-          'Graph Traversal',
-          'Shortest Path',
-          'Tree Balancing',
-        ],
+        skills: ["Rust", "Linux", "JavaScript", "Python"],
+        topics: ["Binary Tree", "Graph Traversal", "Shortest Path", "Tree Balancing"],
       }),
     },
     {
-      title: 'Quiz 1 - Array dan Linked List',
+      title: "Quiz 1 - Array dan Linked List",
       description: JSON.stringify({
-        skills: ['Rust', 'Linux', 'JavaScript', 'Python'],
+        skills: ["Rust", "Linux", "JavaScript", "Python"],
         topics: [
-          'Array Concepts',
-          'Linked List Operations',
-          'Time Complexity',
-          'Memory Management',
+          "Array Concepts",
+          "Linked List Operations",
+          "Time Complexity",
+          "Memory Management",
         ],
       }),
     },
@@ -563,7 +529,7 @@ async function createSampleAssignments(
         title: assignment.title,
         description: assignment.description,
         startAt: new Date(),
-        status: 'BELUM_ISI',
+        status: "BELUM_ISI",
       },
     });
 
@@ -590,15 +556,13 @@ async function createSampleAssignments(
     assignmentIds.push(assignmentId);
   }
 
-  console.log(
-    `  ✓ Created ${sampleAssignments.length} sample assignments with topics`
-  );
+  console.log(`  ✓ Created ${sampleAssignments.length} sample assignments with topics`);
   return assignmentIds;
 }
 
 async function createStudentSubmissions(
   studentIds: string[],
-  assignmentIds: string[]
+  assignmentIds: string[],
 ): Promise<void> {
   for (const assignmentId of assignmentIds) {
     // Get topics for this assignment
@@ -648,14 +612,12 @@ async function createStudentSubmissions(
     }
   }
 
-  console.log(
-    `  ✓ Created submissions and topic preferences for ${studentIds.length} students`
-  );
+  console.log(`  ✓ Created submissions and topic preferences for ${studentIds.length} students`);
 }
 
 async function seedStudents(args: Args): Promise<void> {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Cannot run dev seeding in production!');
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Cannot run dev seeding in production!");
   }
 
   let courseInfo: CourseInfo;
@@ -665,20 +627,20 @@ async function seedStudents(args: Args): Promise<void> {
   } else if (args.courseName) {
     courseInfo = await createCourse(args);
   } else {
-    throw new Error('Either --courseId or --courseName must be provided');
+    throw new Error("Either --courseId or --courseName must be provided");
   }
 
   if (args.assignmentsOnly) {
-    console.log('\n📝 Creating sample assignments only...');
+    console.log("\n📝 Creating sample assignments only...");
     await createSampleAssignments(courseInfo.id, courseInfo.dosenId);
     console.log(
-      `\n🎉 Successfully added assignments to course: ${courseInfo.namaMataKuliah} (Kelas ${courseInfo.kelas})`
+      `\n🎉 Successfully added assignments to course: ${courseInfo.namaMataKuliah} (Kelas ${courseInfo.kelas})`,
     );
-    console.log('\n📊 Summary:');
+    console.log("\n📊 Summary:");
     console.log(`  • Course: ${courseInfo.namaMataKuliah}`);
     console.log(`  • Class: ${courseInfo.kelas}`);
     console.log(`  • Assignments: 3 sample assignments created`);
-    console.log('\n✅ Assignments are ready for team formation!');
+    console.log("\n✅ Assignments are ready for team formation!");
     return;
   }
 
@@ -693,20 +655,18 @@ async function seedStudents(args: Args): Promise<void> {
   }
 
   if (!args.skipPersonality) {
-    console.log('\n🧠 Generating personality test data...');
+    console.log("\n🧠 Generating personality test data...");
     console.log(`   Locale: ${args.personalityLocale}`);
 
     // Fetch question IDs from database
     const questions = await prisma.personalityQuestion.findMany({
       where: { locale: args.personalityLocale },
-      orderBy: { orderHint: 'asc' },
+      orderBy: { orderHint: "asc" },
       select: { id: true },
     });
 
     if (questions.length === 0) {
-      console.log(
-        '⚠️  No personality questions found in database. Skipping personality data.'
-      );
+      console.log("⚠️  No personality questions found in database. Skipping personality data.");
     } else {
       const questionIds = questions.map((q: { id: string }) => q.id);
 
@@ -716,7 +676,7 @@ async function seedStudents(args: Args): Promise<void> {
           i,
           args.count,
           args.mbtiBalanced,
-          questionIds
+          questionIds,
         );
         if ((i + 1) % 5 === 0) {
           console.log(`  ✓ Completed ${i + 1}/${args.count} personality tests`);
@@ -724,12 +684,10 @@ async function seedStudents(args: Args): Promise<void> {
       }
     }
   } else {
-    console.log(
-      '\n⏭️  Skipping personality test data (--skipPersonality enabled)'
-    );
+    console.log("\n⏭️  Skipping personality test data (--skipPersonality enabled)");
   }
 
-  console.log('\n🛠️  Assigning skills...');
+  console.log("\n🛠️  Assigning skills...");
   for (let i = 0; i < studentIds.length; i++) {
     await assignSkillsToStudent(studentIds[i]);
     if ((i + 1) % 5 === 0) {
@@ -737,7 +695,7 @@ async function seedStudents(args: Args): Promise<void> {
     }
   }
 
-  console.log('\n📚 Enrolling students in course...');
+  console.log("\n📚 Enrolling students in course...");
   for (let i = 0; i < studentIds.length; i++) {
     await enrollStudentInCourse(studentIds[i], courseInfo.id);
     if ((i + 1) % 5 === 0) {
@@ -745,35 +703,26 @@ async function seedStudents(args: Args): Promise<void> {
     }
   }
 
-  console.log('\n📝 Creating sample assignments...');
-  const assignmentIds = await createSampleAssignments(
-    courseInfo.id,
-    courseInfo.dosenId
-  );
+  console.log("\n📝 Creating sample assignments...");
+  const assignmentIds = await createSampleAssignments(courseInfo.id, courseInfo.dosenId);
 
-  console.log('\n📋 Creating student submissions and topic preferences...');
+  console.log("\n📋 Creating student submissions and topic preferences...");
   await createStudentSubmissions(studentIds, assignmentIds);
 
   console.log(
-    `\n🎉 Successfully seeded ${args.count} students into course: ${courseInfo.namaMataKuliah} (Kelas ${courseInfo.kelas})`
+    `\n🎉 Successfully seeded ${args.count} students into course: ${courseInfo.namaMataKuliah} (Kelas ${courseInfo.kelas})`,
   );
-  console.log('\n📊 Summary:');
+  console.log("\n📊 Summary:");
   console.log(`  • Students: ${args.count}`);
   console.log(`  • Course: ${courseInfo.namaMataKuliah}`);
   console.log(`  • Class: ${courseInfo.kelas}`);
   console.log(
-    `  • Period: ${courseInfo.periode} ${courseInfo.tahunAwalPeriode}/${courseInfo.tahunAkhirPeriode}`
+    `  • Period: ${courseInfo.periode} ${courseInfo.tahunAwalPeriode}/${courseInfo.tahunAkhirPeriode}`,
   );
-  console.log(
-    `  • Assignments: ${assignmentIds.length} sample assignments created`
-  );
-  console.log(
-    `  • Submissions: ${args.count * assignmentIds.length} student submissions created`
-  );
+  console.log(`  • Assignments: ${assignmentIds.length} sample assignments created`);
+  console.log(`  • Submissions: ${args.count * assignmentIds.length} student submissions created`);
   console.log(`  • Topic Preferences: Generated for all students`);
-  console.log(
-    '\n✅ Everything is ready for team formation! Dosen can now click "Buat Kelompok"!'
-  );
+  console.log('\n✅ Everything is ready for team formation! Dosen can now click "Buat Kelompok"!');
 }
 
 async function main(): Promise<void> {
@@ -793,8 +742,8 @@ async function main(): Promise<void> {
     await seedStudents(args);
   } catch (error) {
     console.error(
-      '❌ Error during seeding:',
-      error instanceof Error ? error.message : String(error)
+      "❌ Error during seeding:",
+      error instanceof Error ? error.message : String(error),
     );
     process.exit(1);
   } finally {

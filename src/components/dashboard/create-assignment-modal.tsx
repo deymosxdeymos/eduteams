@@ -15,6 +15,7 @@ import { InputRounded } from "@/components/ui/input-rounded";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { MultiSelectComboboxBadges } from "@/components/ui/multi-select-combobox-badges";
 import { Textarea } from "@/components/ui/textarea";
+import { persistDemoCreatedAssignment } from "@/lib/demo/sandbox-client";
 import type { AssignmentResponse } from "@/lib/validation/assignments";
 
 interface CreateAssignmentModalProps {
@@ -139,6 +140,7 @@ export function CreateAssignmentModal({
               setDescription("");
               setSkills([]);
               setTopics([]);
+              persistDemoCreatedAssignment(data.data);
               onOpenChange(false);
               // Pass the new assignment back so the caller can optimistically update
               onCreatedAction?.(data.data);

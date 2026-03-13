@@ -1,20 +1,17 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const AssignmentStatusSchema = z.enum([
-  'BELUM_ISI', // no submissions yet
-  'MENUNGGU', // waiting for grouping or review
-  'BERHASIL_PEMBAGIAN_GRUP', // grouping done
+  "BELUM_ISI", // no submissions yet
+  "MENUNGGU", // waiting for grouping or review
+  "BERHASIL_PEMBAGIAN_GRUP", // grouping done
 ]);
 
 type _AssignmentStatus = z.infer<typeof AssignmentStatusSchema>;
 
-const SkillOrTopicItemSchema = z.union([
-  z.string().min(1),
-  z.object({ name: z.string().min(1) }),
-]);
+const SkillOrTopicItemSchema = z.union([z.string().min(1), z.object({ name: z.string().min(1) })]);
 
 export const AssignmentCreateSchema = z.object({
-  title: z.string().min(1, 'Judul tugas wajib diisi'),
+  title: z.string().min(1, "Judul tugas wajib diisi"),
   description: z.string().optional(),
   // Accept arrays of strings or objects with name field
   skills: z.array(SkillOrTopicItemSchema).optional().default([]),
@@ -56,9 +53,7 @@ const _AssignmentSubmissionCreateSchema = z.object({
   // empty body for now; URL carries the assignmentId
 });
 
-type _AssignmentSubmissionCreate = z.infer<
-  typeof _AssignmentSubmissionCreateSchema
->;
+type _AssignmentSubmissionCreate = z.infer<typeof _AssignmentSubmissionCreateSchema>;
 
 export type AssignmentClient = AssignmentResponse & {
   submittedByMe?: boolean;

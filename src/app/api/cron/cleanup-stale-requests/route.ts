@@ -1,21 +1,21 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const STUCK_REQUEST_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours (Hobby plan runs once daily)
 
 // Vercel Cron Job endpoint - runs daily at 2 AM to clean up stale requests
 export async function GET(req: Request) {
   // Verify cron secret for security (Vercel automatically sets CRON_SECRET from dashboard)
-  const authHeader = req.headers.get('authorization');
+  const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
   // Vercel automatically sends the CRON_SECRET as a bearer token
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] Unauthorized cleanup attempt - invalid bearer token');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.warn("[Cron] Unauthorized cleanup attempt - invalid bearer token");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -23,18 +23,17 @@ export async function GET(req: Request) {
     const staleCutoff = new Date(now.getTime() - STUCK_REQUEST_TIMEOUT_MS);
 
     console.log(
-      `[Cron] Starting cleanup of stale team formation requests older than ${staleCutoff.toISOString()}`
+      `[Cron] Starting cleanup of stale team formation requests older than ${staleCutoff.toISOString()}`,
     );
 
     const result = await prisma.teamFormationRequest.updateMany({
       where: {
-        status: { in: ['PENDING', 'PROCESSING'] },
+        status: { in: ["PENDING", "PROCESSING"] },
         updatedAt: { lt: staleCutoff },
       },
       data: {
-        status: 'FAILED',
-        errorMessage:
-          'Request timed out - no response from Edu2com within 10 minutes.',
+        status: "FAILED",
+        errorMessage: "Request timed out - no response from Edu2com within 10 minutes.",
         completedAt: now,
       },
     });
@@ -42,11 +41,9 @@ export async function GET(req: Request) {
     const count = result.count;
 
     if (count > 0) {
-      console.log(
-        `[Cron] Marked ${count} stale team formation request(s) as FAILED`
-      );
+      console.log(`[Cron] Marked ${count} stale team formation request(s) as FAILED`);
     } else {
-      console.log('[Cron] No stale team formation requests found');
+      console.log("[Cron] No stale team formation requests found");
     }
 
     return NextResponse.json({
@@ -56,16 +53,16 @@ export async function GET(req: Request) {
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Cron] Failed to cleanup stale requests:', errorMsg);
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Cron] Failed to cleanup stale requests:", errorMsg);
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to cleanup stale requests',
+        error: "Failed to cleanup stale requests",
         details: errorMsg,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,57 +1,57 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { AssignmentQuizClient } from '@/components/dashboard/assignment-quiz-client';
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { AssignmentQuizClient } from "@/components/dashboard/assignment-quiz-client";
 
 const dismissInstructions = async (user: ReturnType<typeof userEvent.setup>) => {
-  const buttons = screen.queryAllByRole('button', {
-    name: 'Start Now',
+  const buttons = screen.queryAllByRole("button", {
+    name: "Start Now",
   });
   for (const button of buttons) {
     await user.click(button);
   }
 };
 
-describe('AssignmentQuizClient', () => {
+describe("AssignmentQuizClient", () => {
   beforeEach(() => {
     const fetchMock = mock(() =>
       Promise.resolve({
         ok: true,
         json: async () => ({}),
-      })
+      }),
     );
     globalThis.fetch = fetchMock as any;
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.scrollTo = () => {};
     }
-    if (typeof globalThis.scrollTo === 'undefined') {
+    if (typeof globalThis.scrollTo === "undefined") {
       globalThis.scrollTo = () => {};
     }
   });
 
-  it('submits immediately once skills are filled when no topics are provided', async () => {
+  it("submits immediately once skills are filled when no topics are provided", async () => {
     const user = userEvent.setup();
     const fetchMock = mock(() =>
       Promise.resolve({
         ok: true,
         json: async () => ({}),
-      })
+      }),
     );
     globalThis.fetch = fetchMock as any;
 
     render(
       <AssignmentQuizClient
-        classId='class-1'
-        assignmentId='assignment-1'
+        classId="class-1"
+        assignmentId="assignment-1"
         assignment={{
-          id: 'assignment-1',
-          title: 'Sample',
-          skills: ['Design Thinking'],
+          id: "assignment-1",
+          title: "Sample",
+          skills: ["Design Thinking"],
           topics: [],
           hasTopics: false,
           skillPrefills: [
             {
-              name: 'Design Thinking',
+              name: "Design Thinking",
               level: null,
               profileId: null,
               profileUpdatedAt: null,
@@ -60,18 +60,16 @@ describe('AssignmentQuizClient', () => {
           ],
           topicPrefills: [],
         }}
-      />
+      />,
     );
 
     await dismissInstructions(user);
 
-    const skillOption = screen.getByAltText(
-      'Novice'
-    );
+    const skillOption = screen.getByAltText("Novice");
     await user.click(skillOption);
 
-    const submitButton = screen.getByRole('button', {
-      name: 'Finish',
+    const submitButton = screen.getByRole("button", {
+      name: "Finish",
     });
     await user.click(submitButton);
 
@@ -79,34 +77,30 @@ describe('AssignmentQuizClient', () => {
       expect(fetchMock.mock.calls.length).toBe(1);
     });
     const [, requestInit] = fetchMock.mock.calls[0];
-    expect(requestInit?.method).toBe('POST');
+    expect(requestInit?.method).toBe("POST");
     const payload = JSON.parse(String(requestInit?.body));
-    expect(payload.skills).toEqual([
-      { name: 'Design Thinking', level: 0 },
-    ]);
+    expect(payload.skills).toEqual([{ name: "Design Thinking", level: 0 }]);
     expect(payload.topics).toEqual([]);
 
-    expect(
-      screen.queryByText(/How interested are you in topic/)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/How interested are you in topic/)).not.toBeInTheDocument();
   });
 
-  it('clears validation errors after retrying and moving to topics step', async () => {
+  it("clears validation errors after retrying and moving to topics step", async () => {
     const user = userEvent.setup();
 
     render(
       <AssignmentQuizClient
-        classId='class-2'
-        assignmentId='assignment-2'
+        classId="class-2"
+        assignmentId="assignment-2"
         assignment={{
-          id: 'assignment-2',
-          title: 'Another Sample',
-          skills: ['User Research'],
-          topics: ['Wellbeing'],
+          id: "assignment-2",
+          title: "Another Sample",
+          skills: ["User Research"],
+          topics: ["Wellbeing"],
           hasTopics: true,
           skillPrefills: [
             {
-              name: 'User Research',
+              name: "User Research",
               level: null,
               profileId: null,
               profileUpdatedAt: null,
@@ -115,7 +109,7 @@ describe('AssignmentQuizClient', () => {
           ],
           topicPrefills: [
             {
-              name: 'Wellbeing',
+              name: "Wellbeing",
               preference: null,
               profileId: null,
               profileUpdatedAt: null,
@@ -123,37 +117,29 @@ describe('AssignmentQuizClient', () => {
             },
           ],
         }}
-      />
+      />,
     );
 
     await dismissInstructions(user);
 
-    const nextButton = screen.getByRole('button', {
-      name: 'Continue to Topic Preferences',
+    const nextButton = screen.getByRole("button", {
+      name: "Continue to Topic Preferences",
     });
     await user.click(nextButton);
 
-    expect(
-      screen.getByText('This question is required')
-    ).toBeInTheDocument();
+    expect(screen.getByText("This question is required")).toBeInTheDocument();
 
-    const skillOption = screen.getByAltText(
-      'Novice'
-    );
+    const skillOption = screen.getByAltText("Novice");
     await user.click(skillOption);
 
     await user.click(nextButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('📚 Topic Preferences')
-      ).toBeInTheDocument();
+      expect(screen.getByText("📚 Topic Preferences")).toBeInTheDocument();
     });
 
     await dismissInstructions(user);
 
-    expect(
-      screen.queryByText('This question is required')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("This question is required")).not.toBeInTheDocument();
   });
 });

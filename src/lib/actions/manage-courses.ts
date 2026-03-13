@@ -1,32 +1,27 @@
-'use server';
+"use server";
 
-import { revalidateTag } from 'next/cache';
-import { z } from 'zod';
+import { revalidateTag } from "next/cache";
+import { z } from "zod";
 
-import { getCurrentUser } from '@/lib/api-utils';
-import { canAccessDosenFeatures } from '@/lib/authorization';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import prisma from '@/lib/prisma';
-import {
-  AuthError,
-  AuthorizationError,
-  NotFoundError,
-  ValidationError,
-} from '@/lib/utils/errors';
+import { getCurrentUser } from "@/lib/api-utils";
+import { canAccessDosenFeatures } from "@/lib/authorization";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import prisma from "@/lib/prisma";
+import { AuthError, AuthorizationError, NotFoundError, ValidationError } from "@/lib/utils/errors";
 
 const toggleCourseArchiveInputSchema = z.object({
-  courseId: z.string().uuid({ message: 'ID kelas tidak valid.' }),
+  courseId: z.string().uuid({ message: "ID kelas tidak valid." }),
   archive: z.boolean(),
 });
 
 type ToggleCourseArchiveInput = z.infer<typeof toggleCourseArchiveInputSchema>;
 
 export async function toggleCourseArchive(
-  input: ToggleCourseArchiveInput
+  input: ToggleCourseArchiveInput,
 ): Promise<{ success: true }> {
   const parsed = toggleCourseArchiveInputSchema.safeParse(input);
   if (!parsed.success) {
-    const message = parsed.error.issues.map(issue => issue.message).join(', ');
+    const message = parsed.error.issues.map((issue) => issue.message).join(", ");
     throw new ValidationError(message);
   }
 
@@ -38,7 +33,7 @@ export async function toggleCourseArchive(
   }
 
   if (!canAccessDosenFeatures(user)) {
-    throw new AuthorizationError('Hanya dosen yang dapat mengarsipkan kelas.');
+    throw new AuthorizationError("Hanya dosen yang dapat mengarsipkan kelas.");
   }
 
   const course = await prisma.course.findUnique({
@@ -47,11 +42,11 @@ export async function toggleCourseArchive(
   });
 
   if (!course) {
-    throw new NotFoundError('Kelas tidak ditemukan.');
+    throw new NotFoundError("Kelas tidak ditemukan.");
   }
 
   if (course.dosenId !== user.id) {
-    throw new AuthorizationError('Tidak memiliki akses ke kelas ini.');
+    throw new AuthorizationError("Tidak memiliki akses ke kelas ini.");
   }
 
   await prisma.course.update({
@@ -65,17 +60,15 @@ export async function toggleCourseArchive(
 }
 
 const deleteCourseInputSchema = z.object({
-  courseId: z.string().uuid({ message: 'ID kelas tidak valid.' }),
+  courseId: z.string().uuid({ message: "ID kelas tidak valid." }),
 });
 
 type DeleteCourseInput = z.infer<typeof deleteCourseInputSchema>;
 
-async function _deleteCourse(
-  input: DeleteCourseInput
-): Promise<{ success: true }> {
+async function _deleteCourse(input: DeleteCourseInput): Promise<{ success: true }> {
   const parsed = deleteCourseInputSchema.safeParse(input);
   if (!parsed.success) {
-    const message = parsed.error.issues.map(issue => issue.message).join(', ');
+    const message = parsed.error.issues.map((issue) => issue.message).join(", ");
     throw new ValidationError(message);
   }
 
@@ -87,7 +80,7 @@ async function _deleteCourse(
   }
 
   if (!canAccessDosenFeatures(user)) {
-    throw new AuthorizationError('Hanya dosen yang dapat menghapus kelas.');
+    throw new AuthorizationError("Hanya dosen yang dapat menghapus kelas.");
   }
 
   const course = await prisma.course.findUnique({
@@ -96,11 +89,11 @@ async function _deleteCourse(
   });
 
   if (!course) {
-    throw new NotFoundError('Kelas tidak ditemukan.');
+    throw new NotFoundError("Kelas tidak ditemukan.");
   }
 
   if (course.dosenId !== user.id) {
-    throw new AuthorizationError('Tidak memiliki akses ke kelas ini.');
+    throw new AuthorizationError("Tidak memiliki akses ke kelas ini.");
   }
 
   await prisma.course.delete({

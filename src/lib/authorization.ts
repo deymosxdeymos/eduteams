@@ -1,4 +1,4 @@
-import type { ExtendedUser, UserRole } from '@/lib/types';
+import type { ExtendedUser, UserRole } from "@/lib/types";
 
 export function canAccessDashboard(user: ExtendedUser): boolean {
   return user.isOnboarded && !!user.role;
@@ -8,40 +8,31 @@ export function canAccessOnboarding(user: ExtendedUser): boolean {
   return !user.isOnboarded;
 }
 
-export function canAccessRole(
-  user: ExtendedUser,
-  requiredRole: UserRole
-): boolean {
+export function canAccessRole(user: ExtendedUser, requiredRole: UserRole): boolean {
   return user.role === requiredRole;
 }
 
 export function canAccessMahasiswaFeatures(user: ExtendedUser): boolean {
-  return user.role === 'STUDENT' && user.isOnboarded;
+  return user.role === "STUDENT" && user.isOnboarded;
 }
 
 export function canAccessDosenFeatures(user: ExtendedUser): boolean {
-  return user.role === 'TEACHER' && user.isOnboarded;
+  return user.role === "TEACHER" && user.isOnboarded;
 }
 
 export function canAccessAdminFeatures(user: ExtendedUser): boolean {
-  return user.role === 'ADMIN';
+  return user.role === "ADMIN";
 }
 
-export function canModifyUser(
-  currentUser: ExtendedUser,
-  targetUserId: string
-): boolean {
-  return currentUser.id === targetUserId || currentUser.role === 'ADMIN';
+export function canModifyUser(currentUser: ExtendedUser, targetUserId: string): boolean {
+  return currentUser.id === targetUserId || currentUser.role === "ADMIN";
 }
 
-export function canViewUserProfile(
-  currentUser: ExtendedUser,
-  targetUserId: string
-): boolean {
+export function canViewUserProfile(currentUser: ExtendedUser, targetUserId: string): boolean {
   return (
     currentUser.id === targetUserId ||
-    currentUser.role === 'ADMIN' ||
-    currentUser.role === 'TEACHER'
+    currentUser.role === "ADMIN" ||
+    currentUser.role === "TEACHER"
   );
 }
 
@@ -58,36 +49,36 @@ export function needsRoleSelection(user: ExtendedUser): boolean {
 }
 
 export function needsDataDiri(user: ExtendedUser): boolean {
-  if (user.role === 'STUDENT') {
+  if (user.role === "STUDENT") {
     return !user.nim;
   }
-  if (user.role === 'TEACHER') {
+  if (user.role === "TEACHER") {
     return !user.name || !user.gender;
   }
   return false;
 }
 
 export function needsKepribadianTest(user: ExtendedUser): boolean {
-  return user.role === 'STUDENT' && !user.isOnboarded;
+  return user.role === "STUDENT" && !user.isOnboarded;
 }
 
 export function getNextOnboardingStep(user: ExtendedUser): string | null {
   if (!user.role) {
-    return '/onboarding/resume';
+    return "/onboarding/resume";
   }
 
-  const roleSlug = user.role === 'TEACHER' ? 'dosen' : 'mahasiswa';
+  const roleSlug = user.role === "TEACHER" ? "dosen" : "mahasiswa";
 
   if (needsDataDiri(user)) {
     return `/onboarding/data-diri/${roleSlug}`;
   }
 
-  if (user.role === 'STUDENT' && !user.isOnboarded) {
-    return '/onboarding/kepribadian';
+  if (user.role === "STUDENT" && !user.isOnboarded) {
+    return "/onboarding/kepribadian";
   }
 
   if (!user.isOnboarded) {
-    return '/onboarding/resume';
+    return "/onboarding/resume";
   }
 
   return null;
@@ -99,7 +90,7 @@ export function getRedirectPath(user: ExtendedUser): string {
     return nextStep;
   }
 
-  return '/dashboard';
+  return "/dashboard";
 }
 
 export const permissions = {
