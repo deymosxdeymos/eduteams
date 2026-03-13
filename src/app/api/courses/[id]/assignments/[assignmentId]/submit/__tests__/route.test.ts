@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const originalDemoMode = process.env.DEMO_MODE;
+let currentSessionUserId = "s1";
 
 // Prisma mock with minimal methods used in the route
 const prismaMock: any = {
@@ -105,11 +106,15 @@ const prismaMock: any = {
 
 function registerMocks() {
   mock.module("@/lib/prisma", () => ({ default: prismaMock }));
+  mock.module("@/lib/auth", () => ({
+    auth: { api: { getSession: async () => ({ user: { id: currentSessionUserId } }) } },
+  }));
 }
 
 describe("POST /api/courses/[id]/assignments/[assignmentId]/submit", () => {
   beforeEach(() => {
     mock.restore();
+    currentSessionUserId = "s1";
     registerMocks();
     prismaMock.user.findUnique.mockReset();
     prismaMock.skill.__call = 0;

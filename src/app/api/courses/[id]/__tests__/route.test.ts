@@ -73,12 +73,17 @@ const unstableCacheMock = mock(
       fn(...args),
 );
 
+let currentSessionUserId = "u1";
+
 function registerMocks() {
   mock.module("next/cache", () => ({
     revalidateTag: revalidateTagMock,
     unstable_cache: unstableCacheMock,
   }));
   mock.module("@/lib/prisma", () => ({ default: prismaMock }));
+  mock.module("@/lib/auth", () => ({
+    auth: { api: { getSession: async () => ({ user: { id: currentSessionUserId } }) } },
+  }));
 }
 
 afterEach(() => {
@@ -87,6 +92,7 @@ afterEach(() => {
 
 beforeEach(() => {
   mock.restore();
+  currentSessionUserId = "u1";
   registerMocks();
   revalidateTagMock.mockClear();
   unstableCacheMock.mockClear();
