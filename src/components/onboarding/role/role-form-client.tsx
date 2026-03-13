@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useState, useTransition } from 'react';
-import RoleSelect from '@/components/onboarding/role/role-select';
-import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { submitRole } from '@/lib/actions/role';
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState, useTransition } from "react";
+import RoleSelect from "@/components/onboarding/role/role-select";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { submitRole } from "@/lib/actions/role";
 
 interface RoleFormClientProps {
-  initialRole?: 'dosen' | 'mahasiswa';
+  initialRole?: "dosen" | "mahasiswa";
   hasInstitutionalEmail?: boolean;
   enableDemoLogin?: boolean;
 }
@@ -20,33 +20,31 @@ export default function RoleFormClient({
   hasInstitutionalEmail = false,
   enableDemoLogin = false,
 }: RoleFormClientProps) {
-  const t = useTranslations('onboarding.role');
-  const [selectedRole, setSelectedRole] = useState<
-    'dosen' | 'mahasiswa' | undefined
-  >(initialRole);
+  const t = useTranslations("onboarding.role");
+  const [selectedRole, setSelectedRole] = useState<"dosen" | "mahasiswa" | undefined>(initialRole);
   const [isPending, startTransition] = useTransition();
   const [shakeKey, setShakeKey] = useState(0);
 
-  const isDosenInvalid = selectedRole === 'dosen' && !hasInstitutionalEmail;
+  const isDosenInvalid = selectedRole === "dosen" && !hasInstitutionalEmail;
   const isBlocked = !selectedRole || isPending || isDosenInvalid;
 
-  const handleRoleSelect = (role: 'dosen' | 'mahasiswa') => {
+  const handleRoleSelect = (role: "dosen" | "mahasiswa") => {
     setSelectedRole(role);
   };
 
   const handleSubmit = async (formData: FormData) => {
     if (!selectedRole || isDosenInvalid) {
-      setShakeKey(prev => prev + 1);
+      setShakeKey((prev) => prev + 1);
       return;
     }
 
     startTransition(async () => {
       if (enableDemoLogin) {
-        const response = await fetch('/api/demo/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/demo/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            role: selectedRole === 'dosen' ? 'TEACHER' : 'STUDENT',
+            role: selectedRole === "dosen" ? "TEACHER" : "STUDENT",
           }),
         });
 
@@ -64,50 +62,45 @@ export default function RoleFormClient({
     if (isDosenInvalid || !selectedRole) {
       e.preventDefault();
       e.stopPropagation();
-      setShakeKey(prev => prev + 1);
+      setShakeKey((prev) => prev + 1);
     }
   };
 
   return (
     <form action={handleSubmit}>
-      <div className='flex flex-col items-center justify-center space-y-6 py-20'>
+      <div className="flex flex-col items-center justify-center space-y-6 py-20">
         <RoleSelect
           onRoleSelect={handleRoleSelect}
           selectedRole={selectedRole}
           showDosenInvalid={isDosenInvalid}
         />
       </div>
-      <div className='flex items-center justify-center gap-x-2'>
-        <input type='hidden' name='role' value={selectedRole || ''} readOnly />
+      <div className="flex items-center justify-center gap-x-2">
+        <input type="hidden" name="role" value={selectedRole || ""} readOnly />
         <motion.div
           key={shakeKey}
           animate={
             shakeKey > 0
               ? {
                   x: [-4, 4, -3, 3, -2, 2, 0],
-                  transition: { duration: 0.18, ease: 'easeInOut' },
+                  transition: { duration: 0.18, ease: "easeInOut" },
                 }
               : {}
           }
-          className='w-[700px]'
+          className="w-[700px]"
         >
           <Button
-            type='submit'
-            variant='onboarding'
-            size='long'
+            type="submit"
+            variant="onboarding"
+            size="long"
             disabled={isPending}
             aria-disabled={isBlocked}
             onClick={handleBlockedClick}
-            className={`w-full ${
-              isBlocked ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`w-full ${isBlocked ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {isPending && <LoadingSpinner size='sm' color='white' />}
-            {isPending ? t('loading') : t('continue')}
-            <ArrowRight
-              strokeWidth={3}
-              className='font-bold text-neutral-400 text-lg'
-            />
+            {isPending && <LoadingSpinner size="sm" color="white" />}
+            {isPending ? t("loading") : t("continue")}
+            <ArrowRight strokeWidth={3} className="font-bold text-neutral-400 text-lg" />
           </Button>
         </motion.div>
       </div>

@@ -12,38 +12,38 @@ export const blinkTransition = {
   duration: 1,
   repeatDelay: 3,
   repeat: Infinity,
-  ease: 'easeInOut' as const,
+  ease: "easeInOut" as const,
 };
 
 /** Arm sway: ±17 deg observed on family.co */
 export const armSwayLeft = {
   animate: { rotate: [0, 17, 0, -17, 0] },
-  transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' as const },
+  transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const },
 };
 
 export const armSwayRight = {
   animate: { rotate: [0, -17, 0, 17, 0] },
-  transition: { duration: 4.3, repeat: Infinity, ease: 'easeInOut' as const },
+  transition: { duration: 4.3, repeat: Infinity, ease: "easeInOut" as const },
 };
 
 /** Leg sway: ±7–12 deg observed on family.co (asymmetric L/R) */
 export const legSwayLeft = {
   animate: { rotate: [0, -10, 0, 10, 0] },
-  transition: { duration: 3.6, repeat: Infinity, ease: 'easeInOut' as const },
+  transition: { duration: 3.6, repeat: Infinity, ease: "easeInOut" as const },
 };
 
 export const legSwayRight = {
   animate: { rotate: [0, 12, 0, -12, 0] },
-  transition: { duration: 3.9, repeat: Infinity, ease: 'easeInOut' as const },
+  transition: { duration: 3.9, repeat: Infinity, ease: "easeInOut" as const },
 };
 
 /** Continuous spin for accessories (stars, wheels) */
 export const spinSlow = {
   animate: { rotate: 360 },
-  transition: { duration: 10, repeat: Infinity, ease: 'linear' as const },
+  transition: { duration: 10, repeat: Infinity, ease: "linear" as const },
 };
 
 export const spinMedium = {
   animate: { rotate: 360 },
-  transition: { duration: 6, repeat: Infinity, ease: 'linear' as const },
+  transition: { duration: 6, repeat: Infinity, ease: "linear" as const },
 };

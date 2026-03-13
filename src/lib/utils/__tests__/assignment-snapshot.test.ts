@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import {
   createAssignmentSnapshot,
   getLatestSnapshotVersion,
   invalidateAssignmentSubmissions,
   markSubmissionsNeedUpdate,
-} from '../assignment-snapshot';
+} from "../assignment-snapshot";
 
 const mockPrisma = {
   assignmentSnapshot: {
@@ -25,55 +25,55 @@ const mockPrisma = {
   $transaction: mock((fn: (tx: unknown) => Promise<unknown>) => fn(mockPrisma)),
 };
 
-mock.module('@/lib/prisma', () => ({
+mock.module("@/lib/prisma", () => ({
   default: mockPrisma,
 }));
 
-describe('createAssignmentSnapshot', () => {
+describe("createAssignmentSnapshot", () => {
   beforeEach(() => {
     mockPrisma.assignmentSnapshot.create.mockClear();
   });
 
-  it('creates snapshot with all required fields', async () => {
+  it("creates snapshot with all required fields", async () => {
     await createAssignmentSnapshot({
-      assignmentId: 'assignment-123',
+      assignmentId: "assignment-123",
       version: 1,
-      title: 'Test Assignment',
-      description: JSON.stringify({ skills: ['JS'], topics: ['React'] }),
+      title: "Test Assignment",
+      description: JSON.stringify({ skills: ["JS"], topics: ["React"] }),
     });
 
     expect(mockPrisma.assignmentSnapshot.create).toHaveBeenCalledWith({
       data: {
-        assignmentId: 'assignment-123',
+        assignmentId: "assignment-123",
         version: 1,
-        title: 'Test Assignment',
-        description: JSON.stringify({ skills: ['JS'], topics: ['React'] }),
-        snapshotReason: 'structural_edit',
+        title: "Test Assignment",
+        description: JSON.stringify({ skills: ["JS"], topics: ["React"] }),
+        snapshotReason: "structural_edit",
       },
     });
   });
 
-  it('uses custom reason when provided', async () => {
+  it("uses custom reason when provided", async () => {
     await createAssignmentSnapshot({
-      assignmentId: 'assignment-123',
+      assignmentId: "assignment-123",
       version: 2,
-      title: 'Test',
+      title: "Test",
       description: null,
-      reason: 'tier_3_destructive',
+      reason: "tier_3_destructive",
     });
 
     expect(mockPrisma.assignmentSnapshot.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        snapshotReason: 'tier_3_destructive',
+        snapshotReason: "tier_3_destructive",
       }),
     });
   });
 
-  it('handles null description', async () => {
+  it("handles null description", async () => {
     await createAssignmentSnapshot({
-      assignmentId: 'assignment-123',
+      assignmentId: "assignment-123",
       version: 1,
-      title: 'Test',
+      title: "Test",
       description: null,
     });
 
@@ -84,159 +84,155 @@ describe('createAssignmentSnapshot', () => {
     });
   });
 
-  it('propagates database errors', async () => {
+  it("propagates database errors", async () => {
     mockPrisma.assignmentSnapshot.create.mockRejectedValueOnce(
-      new Error('Database connection failed')
+      new Error("Database connection failed"),
     );
 
     await expect(
       createAssignmentSnapshot({
-        assignmentId: 'assignment-123',
+        assignmentId: "assignment-123",
         version: 1,
-        title: 'Test',
+        title: "Test",
         description: null,
-      })
-    ).rejects.toThrow('Database connection failed');
+      }),
+    ).rejects.toThrow("Database connection failed");
   });
 });
 
-describe('getLatestSnapshotVersion', () => {
+describe("getLatestSnapshotVersion", () => {
   beforeEach(() => {
     mockPrisma.assignmentSnapshot.findFirst.mockClear();
   });
 
-  it('returns 0 when no snapshots exist', async () => {
+  it("returns 0 when no snapshots exist", async () => {
     mockPrisma.assignmentSnapshot.findFirst.mockResolvedValueOnce(null);
 
-    const result = await getLatestSnapshotVersion('assignment-123');
+    const result = await getLatestSnapshotVersion("assignment-123");
 
     expect(result).toBe(0);
     expect(mockPrisma.assignmentSnapshot.findFirst).toHaveBeenCalledWith({
-      where: { assignmentId: 'assignment-123' },
+      where: { assignmentId: "assignment-123" },
       select: { version: true },
-      orderBy: { version: 'desc' },
+      orderBy: { version: "desc" },
     });
   });
 
-  it('returns the latest version number', async () => {
+  it("returns the latest version number", async () => {
     mockPrisma.assignmentSnapshot.findFirst.mockResolvedValueOnce({
       version: 5,
     });
 
-    const result = await getLatestSnapshotVersion('assignment-123');
+    const result = await getLatestSnapshotVersion("assignment-123");
 
     expect(result).toBe(5);
   });
 
-  it('returns version 1 when only one snapshot exists', async () => {
+  it("returns version 1 when only one snapshot exists", async () => {
     mockPrisma.assignmentSnapshot.findFirst.mockResolvedValueOnce({
       version: 1,
     });
 
-    const result = await getLatestSnapshotVersion('assignment-123');
+    const result = await getLatestSnapshotVersion("assignment-123");
 
     expect(result).toBe(1);
   });
 
-  it('handles large version numbers', async () => {
+  it("handles large version numbers", async () => {
     mockPrisma.assignmentSnapshot.findFirst.mockResolvedValueOnce({
       version: 9999,
     });
 
-    const result = await getLatestSnapshotVersion('assignment-123');
+    const result = await getLatestSnapshotVersion("assignment-123");
 
     expect(result).toBe(9999);
   });
 });
 
-describe('invalidateAssignmentSubmissions', () => {
+describe("invalidateAssignmentSubmissions", () => {
   beforeEach(() => {
     mockPrisma.assignmentSubmission.findMany.mockClear();
     mockPrisma.assignmentSubmission.deleteMany.mockClear();
     mockPrisma.assignmentTopicPreference.deleteMany.mockClear();
     mockPrisma.assignmentTopic.deleteMany.mockClear();
     mockPrisma.$transaction.mockClear();
-    mockPrisma.$transaction.mockImplementation(
-      (fn: (tx: unknown) => Promise<unknown>) => fn(mockPrisma)
+    mockPrisma.$transaction.mockImplementation((fn: (tx: unknown) => Promise<unknown>) =>
+      fn(mockPrisma),
     );
   });
 
-  it('returns 0 when no submissions exist', async () => {
+  it("returns 0 when no submissions exist", async () => {
     mockPrisma.assignmentSubmission.findMany.mockResolvedValueOnce([]);
 
-    const result = await invalidateAssignmentSubmissions('assignment-123');
+    const result = await invalidateAssignmentSubmissions("assignment-123");
 
     expect(result).toBe(0);
     expect(mockPrisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it('deletes all related data in transaction', async () => {
+  it("deletes all related data in transaction", async () => {
     mockPrisma.assignmentSubmission.findMany.mockResolvedValueOnce([
-      { studentId: 'student-1' },
-      { studentId: 'student-2' },
-      { studentId: 'student-3' },
+      { studentId: "student-1" },
+      { studentId: "student-2" },
+      { studentId: "student-3" },
     ]);
 
-    const result = await invalidateAssignmentSubmissions('assignment-123');
+    const result = await invalidateAssignmentSubmissions("assignment-123");
 
     expect(result).toBe(3);
     expect(mockPrisma.$transaction).toHaveBeenCalled();
-    expect(
-      mockPrisma.assignmentTopicPreference.deleteMany
-    ).toHaveBeenCalledWith({
+    expect(mockPrisma.assignmentTopicPreference.deleteMany).toHaveBeenCalledWith({
       where: {
         topic: {
-          assignmentId: 'assignment-123',
+          assignmentId: "assignment-123",
         },
       },
     });
     expect(mockPrisma.assignmentTopic.deleteMany).toHaveBeenCalledWith({
-      where: { assignmentId: 'assignment-123' },
+      where: { assignmentId: "assignment-123" },
     });
     expect(mockPrisma.assignmentSubmission.deleteMany).toHaveBeenCalledWith({
-      where: { assignmentId: 'assignment-123' },
+      where: { assignmentId: "assignment-123" },
     });
   });
 
-  it('returns correct count for single submission', async () => {
-    mockPrisma.assignmentSubmission.findMany.mockResolvedValueOnce([
-      { studentId: 'student-1' },
-    ]);
+  it("returns correct count for single submission", async () => {
+    mockPrisma.assignmentSubmission.findMany.mockResolvedValueOnce([{ studentId: "student-1" }]);
 
-    const result = await invalidateAssignmentSubmissions('assignment-123');
+    const result = await invalidateAssignmentSubmissions("assignment-123");
 
     expect(result).toBe(1);
   });
 
-  it('counts all submissions including duplicates', async () => {
+  it("counts all submissions including duplicates", async () => {
     mockPrisma.assignmentSubmission.findMany.mockResolvedValueOnce([
-      { studentId: 'student-1' },
-      { studentId: 'student-1' },
-      { studentId: 'student-2' },
+      { studentId: "student-1" },
+      { studentId: "student-1" },
+      { studentId: "student-2" },
     ]);
 
-    const result = await invalidateAssignmentSubmissions('assignment-123');
+    const result = await invalidateAssignmentSubmissions("assignment-123");
 
     expect(result).toBe(3);
   });
 });
 
-describe('markSubmissionsNeedUpdate', () => {
+describe("markSubmissionsNeedUpdate", () => {
   beforeEach(() => {
     mockPrisma.assignmentSubmission.updateMany.mockClear();
   });
 
-  it('marks submissions with version less than current+1', async () => {
+  it("marks submissions with version less than current+1", async () => {
     mockPrisma.assignmentSubmission.updateMany.mockResolvedValueOnce({
       count: 10,
     });
 
-    const result = await markSubmissionsNeedUpdate('assignment-123', 5);
+    const result = await markSubmissionsNeedUpdate("assignment-123", 5);
 
     expect(result).toBe(10);
     expect(mockPrisma.assignmentSubmission.updateMany).toHaveBeenCalledWith({
       where: {
-        assignmentId: 'assignment-123',
+        assignmentId: "assignment-123",
         structureVersion: {
           lt: 6,
         },
@@ -247,27 +243,27 @@ describe('markSubmissionsNeedUpdate', () => {
     });
   });
 
-  it('returns 0 when no submissions need update', async () => {
+  it("returns 0 when no submissions need update", async () => {
     mockPrisma.assignmentSubmission.updateMany.mockResolvedValueOnce({
       count: 0,
     });
 
-    const result = await markSubmissionsNeedUpdate('assignment-123', 1);
+    const result = await markSubmissionsNeedUpdate("assignment-123", 1);
 
     expect(result).toBe(0);
   });
 
-  it('handles version 0 correctly', async () => {
+  it("handles version 0 correctly", async () => {
     mockPrisma.assignmentSubmission.updateMany.mockResolvedValueOnce({
       count: 5,
     });
 
-    const result = await markSubmissionsNeedUpdate('assignment-123', 0);
+    const result = await markSubmissionsNeedUpdate("assignment-123", 0);
 
     expect(result).toBe(5);
     expect(mockPrisma.assignmentSubmission.updateMany).toHaveBeenCalledWith({
       where: {
-        assignmentId: 'assignment-123',
+        assignmentId: "assignment-123",
         structureVersion: {
           lt: 1,
         },
@@ -278,16 +274,16 @@ describe('markSubmissionsNeedUpdate', () => {
     });
   });
 
-  it('marks all submissions with version less than or equal to current', async () => {
+  it("marks all submissions with version less than or equal to current", async () => {
     mockPrisma.assignmentSubmission.updateMany.mockResolvedValueOnce({
       count: 3,
     });
 
-    await markSubmissionsNeedUpdate('assignment-123', 5);
+    await markSubmissionsNeedUpdate("assignment-123", 5);
 
     expect(mockPrisma.assignmentSubmission.updateMany).toHaveBeenCalledWith({
       where: {
-        assignmentId: 'assignment-123',
+        assignmentId: "assignment-123",
         structureVersion: {
           lt: 6,
         },
@@ -299,31 +295,31 @@ describe('markSubmissionsNeedUpdate', () => {
   });
 });
 
-describe('integration scenarios', () => {
+describe("integration scenarios", () => {
   beforeEach(() => {
     mockPrisma.assignmentSnapshot.create.mockClear();
     mockPrisma.assignmentSnapshot.findFirst.mockClear();
     mockPrisma.assignmentSubmission.findMany.mockClear();
     mockPrisma.assignmentSubmission.updateMany.mockClear();
-    mockPrisma.$transaction.mockImplementation(
-      (fn: (tx: unknown) => Promise<unknown>) => fn(mockPrisma)
+    mockPrisma.$transaction.mockImplementation((fn: (tx: unknown) => Promise<unknown>) =>
+      fn(mockPrisma),
     );
   });
 
-  it('workflow: create snapshot then invalidate submissions', async () => {
+  it("workflow: create snapshot then invalidate submissions", async () => {
     mockPrisma.assignmentSnapshot.findFirst.mockResolvedValueOnce({
       version: 2,
     });
 
-    const currentVersion = await getLatestSnapshotVersion('assignment-123');
+    const currentVersion = await getLatestSnapshotVersion("assignment-123");
     expect(currentVersion).toBe(2);
 
     await createAssignmentSnapshot({
-      assignmentId: 'assignment-123',
+      assignmentId: "assignment-123",
       version: currentVersion + 1,
-      title: 'Updated Assignment',
-      description: JSON.stringify({ skills: ['New'], topics: [] }),
-      reason: 'tier_3_destructive',
+      title: "Updated Assignment",
+      description: JSON.stringify({ skills: ["New"], topics: [] }),
+      reason: "tier_3_destructive",
     });
 
     expect(mockPrisma.assignmentSnapshot.create).toHaveBeenCalledWith({
@@ -333,37 +329,34 @@ describe('integration scenarios', () => {
     });
 
     mockPrisma.assignmentSubmission.findMany.mockResolvedValueOnce([
-      { studentId: 's1' },
-      { studentId: 's2' },
+      { studentId: "s1" },
+      { studentId: "s2" },
     ]);
 
-    const invalidated = await invalidateAssignmentSubmissions('assignment-123');
+    const invalidated = await invalidateAssignmentSubmissions("assignment-123");
     expect(invalidated).toBe(2);
   });
 
-  it('workflow: create snapshot then mark submissions for update', async () => {
+  it("workflow: create snapshot then mark submissions for update", async () => {
     mockPrisma.assignmentSnapshot.findFirst.mockResolvedValueOnce({
       version: 1,
     });
 
-    const currentVersion = await getLatestSnapshotVersion('assignment-123');
+    const currentVersion = await getLatestSnapshotVersion("assignment-123");
 
     await createAssignmentSnapshot({
-      assignmentId: 'assignment-123',
+      assignmentId: "assignment-123",
       version: currentVersion + 1,
-      title: 'Assignment with New Items',
-      description: JSON.stringify({ skills: ['Old', 'New'], topics: [] }),
-      reason: 'tier_2_additive',
+      title: "Assignment with New Items",
+      description: JSON.stringify({ skills: ["Old", "New"], topics: [] }),
+      reason: "tier_2_additive",
     });
 
     mockPrisma.assignmentSubmission.updateMany.mockResolvedValueOnce({
       count: 15,
     });
 
-    const markedCount = await markSubmissionsNeedUpdate(
-      'assignment-123',
-      currentVersion
-    );
+    const markedCount = await markSubmissionsNeedUpdate("assignment-123", currentVersion);
     expect(markedCount).toBe(15);
   });
 });

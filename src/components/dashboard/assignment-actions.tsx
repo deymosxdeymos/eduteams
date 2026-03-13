@@ -38,10 +38,15 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
+import { buildDemoAssignmentAnswersHref, buildDemoAssignmentQuizHref } from "@/lib/demo/sandbox";
+import { persistDemoTeamFormation } from "@/lib/demo/sandbox-client";
 
 interface AssignmentActionsProps {
   classId: string;
   assignmentId: string;
+  assignmentTitle?: string;
+  demoSkills?: readonly string[];
+  demoTopics?: readonly string[];
   canManage: boolean;
   disableForm?: boolean;
   incompleteStudentCount?: number;
@@ -54,6 +59,7 @@ interface AssignmentActionsProps {
   };
   isStudent?: boolean;
   hasTeams?: boolean;
+  allowPersistedTeamActions?: boolean;
   topicCount?: number;
   enrollmentCount?: number;
   searchValue?: string;
@@ -91,6 +97,9 @@ const mapApiWeights = (weights: ApiWeights): TeamWeights => ({
 export function AssignmentActions({
   assignmentId,
   classId,
+  assignmentTitle,
+  demoSkills,
+  demoTopics,
   canManage,
   disableForm,
   incompleteStudentCount = 0,
@@ -99,6 +108,7 @@ export function AssignmentActions({
   defaultWeights,
   isStudent = false,
   hasTeams = false,
+  allowPersistedTeamActions = true,
   topicCount,
   enrollmentCount,
   searchValue = "",
@@ -184,6 +194,7 @@ export function AssignmentActions({
         body: JSON.stringify({
           method,
           value: Number(value),
+          demoTopics: demoTopics ? [...demoTopics] : undefined,
           // Only send weight overrides if user explicitly modified them
           weights: weightsModified
             ? {
@@ -200,6 +211,9 @@ export function AssignmentActions({
           res.status === 409 ? t("alreadyProcessing") : data?.error || t("errorCreateFailed"),
         );
         return;
+      }
+      if (data?.data?.assignmentId) {
+        persistDemoTeamFormation(data.data);
       }
       setSuccess(t("successCreate"));
       setMethod("");
@@ -257,9 +271,19 @@ export function AssignmentActions({
         <Button
           variant="outline"
           className="rounded-full border border-black p-6 w-[14rem]"
-          onClick={() =>
-            router.push(`/dashboard/class/${classId}/assignments/${assignmentId}/quiz`)
-          }
+          onClick={() => {
+            const href =
+              assignmentTitle && demoSkills && demoTopics
+                ? buildDemoAssignmentQuizHref({
+                    classId,
+                    assignmentId,
+                    title: assignmentTitle,
+                    skills: demoSkills,
+                    topics: demoTopics,
+                  })
+                : `/dashboard/class/${classId}/assignments/${assignmentId}/quiz`;
+            router.push(href);
+          }}
         >
           <ChartLineIcon className="w-4 h-4 text-black" />
           <span className="text-black font-semibold text-sm">{t("viewMyAnswers")}</span>
@@ -569,20 +593,30 @@ export function AssignmentActions({
           <Button
             variant="outline"
             className="rounded-full border border-black p-6 w-[15rem]"
-            onClick={() =>
-              router.push(`/dashboard/class/${classId}/assignments/${assignmentId}/answers`)
-            }
+            onClick={() => {
+              const href =
+                assignmentTitle && demoSkills && demoTopics
+                  ? buildDemoAssignmentAnswersHref({
+                      classId,
+                      assignmentId,
+                      title: assignmentTitle,
+                      skills: demoSkills,
+                      topics: demoTopics,
+                    })
+                  : `/dashboard/class/${classId}/assignments/${assignmentId}/answers`;
+              router.push(href);
+            }}
           >
             <ChartLineIcon className="w-4 h-4 text-black" />
             <span className="text-black font-semibold text-sm">{t("viewAnswers")}</span>
           </Button>
         )}
 
-        {!isEditMode && (
+        {!isEditMode && allowPersistedTeamActions && (
           <ExportButtons assignmentId={assignmentId} hasTeams={hasTeams} canManage={canManage} />
         )}
 
-        {canManage && hasTeams && !isEditMode && (
+        {canManage && hasTeams && allowPersistedTeamActions && !isEditMode && (
           <Button
             variant="outline"
             size="icon"

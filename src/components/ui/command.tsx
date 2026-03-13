@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Command as CommandPrimitive } from 'cmdk';
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import { Command as CommandPrimitive } from "cmdk";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -11,8 +11,8 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md border shadow-md',
-      className
+      "bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md border shadow-md",
+      className,
     )}
     {...props}
   />
@@ -25,7 +25,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn('max-h-60 overflow-y-auto overflow-x-hidden', className)}
+    className={cn("max-h-60 overflow-y-auto overflow-x-hidden", className)}
     {...props}
   />
 ));
@@ -37,7 +37,7 @@ const CommandEmpty = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className={cn('py-6 text-center text-sm', className)}
+    className={cn("py-6 text-center text-sm", className)}
     {...props}
   />
 ));
@@ -50,8 +50,8 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      'text-muted-foreground [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-1.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs',
-      className
+      "text-muted-foreground [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-1.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs",
+      className,
     )}
     {...props}
   />
@@ -64,7 +64,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn('bg-border -mx-1 h-px', className)}
+    className={cn("bg-border -mx-1 h-px", className)}
     {...props}
   />
 ));
@@ -74,12 +74,12 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className='flex items-center border-b px-3' data-slot='command-input'>
+  <div className="flex items-center border-b px-3" data-slot="command-input">
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50',
-        className
+        "placeholder:text-muted-foreground flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        className,
       )}
       {...props}
     />
@@ -95,28 +95,22 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       'aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled="true"]:opacity-50 data-[disabled="true"]:pointer-events-none data-[disabled="true"]:cursor-not-allowed [&_svg:not([class*="text-"])]:text-muted-foreground cursor-pointer px-3 py-2 text-sm transition-colors first:mt-1 last:mb-1 [&_svg]:mr-2 [&_svg]:size-4',
-      className
+      className,
     )}
     {...props}
   />
 ));
 CommandItem.displayName = CommandPrimitive.Item.displayName;
 
-const CommandShortcut = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) => {
+const CommandShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn(
-        'text-muted-foreground ml-auto text-xs tracking-widest',
-        className
-      )}
+      className={cn("text-muted-foreground ml-auto text-xs tracking-widest", className)}
       {...props}
     />
   );
 };
-CommandShortcut.displayName = 'CommandShortcut';
+CommandShortcut.displayName = "CommandShortcut";
 
 export {
   Command,

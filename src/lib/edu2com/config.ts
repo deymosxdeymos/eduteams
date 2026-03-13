@@ -27,14 +27,12 @@ function parseWeightFromEnv(envKey: string, fallback: number): number {
   return clamp01(parsed);
 }
 
-export function getEdu2comWeights(
-  overrides: Partial<Edu2comWeights> = {}
-): Edu2comWeights {
+export function getEdu2comWeights(overrides: Partial<Edu2comWeights> = {}): Edu2comWeights {
   const envBackedWeights: Edu2comWeights = {
-    alpha: parseWeightFromEnv('EDU2COM_ALPHA_WEIGHT', DEFAULT_WEIGHTS.alpha),
-    beta: parseWeightFromEnv('EDU2COM_BETA_WEIGHT', DEFAULT_WEIGHTS.beta),
-    gamma: parseWeightFromEnv('EDU2COM_GAMMA_WEIGHT', DEFAULT_WEIGHTS.gamma),
-    delta: parseWeightFromEnv('EDU2COM_DELTA_WEIGHT', DEFAULT_WEIGHTS.delta),
+    alpha: parseWeightFromEnv("EDU2COM_ALPHA_WEIGHT", DEFAULT_WEIGHTS.alpha),
+    beta: parseWeightFromEnv("EDU2COM_BETA_WEIGHT", DEFAULT_WEIGHTS.beta),
+    gamma: parseWeightFromEnv("EDU2COM_GAMMA_WEIGHT", DEFAULT_WEIGHTS.gamma),
+    delta: parseWeightFromEnv("EDU2COM_DELTA_WEIGHT", DEFAULT_WEIGHTS.delta),
   };
 
   const rawWeights = {
@@ -64,7 +62,7 @@ export function normalizeWeights(weights: Edu2comWeights): Edu2comWeights {
     console.warn(
       `[Edu2com Config] Weights sum to ${total.toFixed(2)} (not 1.0). Normalizing to maintain quality scaling:`,
       `[${weights.alpha}, ${weights.beta}, ${weights.gamma}, ${weights.delta}] ->`,
-      `[${normalized.alpha.toFixed(3)}, ${normalized.beta.toFixed(3)}, ${normalized.gamma.toFixed(3)}, ${normalized.delta.toFixed(3)}]`
+      `[${normalized.alpha.toFixed(3)}, ${normalized.beta.toFixed(3)}, ${normalized.gamma.toFixed(3)}, ${normalized.delta.toFixed(3)}]`,
     );
     return normalized;
   }
@@ -101,11 +99,9 @@ export function getEdu2comBackgroundTimeoutMs(opts: {
     return envTimeout;
   }
 
-  const extraStudentBudget =
-    Math.max(0, opts.studentCount - 40) * PER_STUDENT_BUDGET_MS;
+  const extraStudentBudget = Math.max(0, opts.studentCount - 40) * PER_STUDENT_BUDGET_MS;
   const extraTaskBudget = Math.max(0, opts.taskCount - 10) * PER_TASK_BUDGET_MS;
-  const computed =
-    BASE_BACKGROUND_TIMEOUT_MS + extraStudentBudget + extraTaskBudget;
+  const computed = BASE_BACKGROUND_TIMEOUT_MS + extraStudentBudget + extraTaskBudget;
   return Math.min(MAX_BACKGROUND_TIMEOUT_MS, computed);
 }
 

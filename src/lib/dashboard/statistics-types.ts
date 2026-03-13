@@ -22,4 +22,4 @@ export const EMPTY_DASHBOARD_STATISTICS: DashboardStatistics = {
   },
 };
 
-export const DASHBOARD_STATISTICS_TAG = 'dashboard:statistics';
+export const DASHBOARD_STATISTICS_TAG = "dashboard:statistics";

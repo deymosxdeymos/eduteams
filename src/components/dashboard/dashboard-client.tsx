@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { WelcomeSplash } from './welcome-splash';
+import { useEffect, useState } from "react";
+import { WelcomeSplash } from "./welcome-splash";
 
 interface DashboardClientProps {
   children: React.ReactNode;
@@ -20,16 +20,16 @@ export function DashboardClient({
     if (isFirstVisit) {
       // Clean up URL to remove firstVisit parameter
       const url = new URL(window.location.href);
-      url.searchParams.delete('firstVisit');
-      window.history.replaceState({}, '', url.pathname + url.search);
+      url.searchParams.delete("firstVisit");
+      window.history.replaceState({}, "", url.pathname + url.search);
     }
   }, [isFirstVisit]);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
     // Mark splash as seen after animation completes
-    void fetch('/api/user/welcome-splash', {
-      method: 'POST',
+    void fetch("/api/user/welcome-splash", {
+      method: "POST",
       keepalive: true,
     }).catch(() => {
       // non-critical telemetry-style call

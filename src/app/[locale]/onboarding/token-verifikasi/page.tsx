@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Deprecated: replaced by email domain verification
 export default async function TokenVerificationPage() {
-  redirect('/onboarding/role');
+  redirect("/onboarding/role");
 }

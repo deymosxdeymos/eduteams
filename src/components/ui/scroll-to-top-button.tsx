@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { ArrowUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowUp } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function ScrollToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
@@ -11,7 +11,7 @@ export function ScrollToTopButton() {
     let domObserver: MutationObserver | null = null;
 
     const watchFooter = () => {
-      const footer = document.querySelector('footer');
+      const footer = document.querySelector("footer");
       if (!footer) return false;
 
       footerObserver?.disconnect();
@@ -44,7 +44,7 @@ export function ScrollToTopButton() {
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   };
 
@@ -52,13 +52,13 @@ export function ScrollToTopButton() {
 
   return (
     <button
-      type='button'
+      type="button"
       onClick={scrollToTop}
-      className='scroll-top-button fixed bottom-8 left-8 z-50 cursor-pointer'
-      aria-label='Scroll to top'
+      className="scroll-top-button fixed bottom-8 left-8 z-50 cursor-pointer"
+      aria-label="Scroll to top"
     >
-      <ArrowUp className='h-5 w-5 text-black' />
-      <ArrowUp className='h-5 w-5 text-black' />
+      <ArrowUp className="h-5 w-5 text-black" />
+      <ArrowUp className="h-5 w-5 text-black" />
     </button>
   );
 }

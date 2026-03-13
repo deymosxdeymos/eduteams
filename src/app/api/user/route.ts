@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/api-utils';
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/api-utils";
 
 export async function GET() {
   try {
@@ -18,7 +18,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Failed to get user:', error);
+    console.error("Failed to get user:", error);
     return NextResponse.json({ data: null }, { status: 500 });
   }
 }

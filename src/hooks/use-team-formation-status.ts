@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef } from 'react';
-import useSWR from 'swr';
-import type { TeamFormationStatus } from '@/generated/prisma/client';
+import { useCallback, useEffect, useRef } from "react";
+import useSWR from "swr";
+import type { TeamFormationStatus } from "@/generated/prisma/client";
 
 interface UseTeamFormationStatusOptions {
   assignmentId: string;
@@ -34,9 +34,7 @@ export function useTeamFormationStatus({
   onFailed,
   pollInterval = 3000,
 }: UseTeamFormationStatusOptions): TeamFormationStatusResult {
-  const key = enabled
-    ? `/api/assignments/${assignmentId}/form-teams/status`
-    : null;
+  const key = enabled ? `/api/assignments/${assignmentId}/form-teams/status` : null;
   const onCompleteRef = useRef(onComplete);
   const onFailedRef = useRef(onFailed);
   const enabledRef = useRef(enabled);
@@ -95,8 +93,8 @@ export function useTeamFormationStatus({
       };
 
       const res = await fetch(url, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!res.ok) {
@@ -105,27 +103,25 @@ export function useTeamFormationStatus({
 
       return res.json();
     },
-    [assignmentId]
+    [assignmentId],
   );
 
   const { data, mutate } = useSWR<TeamFormationStatusResponse>(key, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: pollInterval,
-    refreshInterval: currentData => {
+    refreshInterval: (currentData) => {
       if (!enabled || !shouldPoll) {
         return 0;
       }
 
       const currentStatus = currentData?.status ?? null;
       const shouldContinuePolling =
-        currentStatus === null ||
-        currentStatus === 'PENDING' ||
-        currentStatus === 'PROCESSING';
+        currentStatus === null || currentStatus === "PENDING" || currentStatus === "PROCESSING";
 
       return shouldContinuePolling ? pollInterval : 0;
     },
-    onSuccess: nextData => {
+    onSuccess: (nextData) => {
       const nextStatus = nextData.status ?? null;
       const currentAssignmentId = assignmentId;
       const previousStatus =
@@ -142,8 +138,8 @@ export function useTeamFormationStatus({
           : false;
 
       const wasInProgress =
-        previousStatus === 'PENDING' ||
-        previousStatus === 'PROCESSING' ||
+        previousStatus === "PENDING" ||
+        previousStatus === "PROCESSING" ||
         (previousStatus === null &&
           enabledRef.current &&
           shouldPollRef.current &&
@@ -157,30 +153,26 @@ export function useTeamFormationStatus({
       }
 
       if (
-        nextStatus === 'COMPLETED' &&
+        nextStatus === "COMPLETED" &&
         wasInProgress &&
-        lastHandledTerminalStatus !== 'COMPLETED'
+        lastHandledTerminalStatus !== "COMPLETED"
       ) {
         onCompleteRef.current?.();
         lastHandledTerminalStatusRef.current = {
           assignmentId: currentAssignmentId,
-          status: 'COMPLETED',
+          status: "COMPLETED",
         };
       } else if (
-        nextStatus === 'FAILED' &&
+        nextStatus === "FAILED" &&
         wasInProgress &&
-        lastHandledTerminalStatus !== 'FAILED'
+        lastHandledTerminalStatus !== "FAILED"
       ) {
         onFailedRef.current?.(nextData.errorMessage ?? null);
         lastHandledTerminalStatusRef.current = {
           assignmentId: currentAssignmentId,
-          status: 'FAILED',
+          status: "FAILED",
         };
-      } else if (
-        nextStatus === null ||
-        nextStatus === 'PENDING' ||
-        nextStatus === 'PROCESSING'
-      ) {
+      } else if (nextStatus === null || nextStatus === "PENDING" || nextStatus === "PROCESSING") {
         lastHandledTerminalStatusRef.current = {
           assignmentId: currentAssignmentId,
           status: null,
@@ -194,12 +186,10 @@ export function useTeamFormationStatus({
     },
   });
 
-  const status = enabled ? data?.status ?? null : null;
-  const errorMessage = enabled ? data?.errorMessage ?? null : null;
+  const status = enabled ? (data?.status ?? null) : null;
+  const errorMessage = enabled ? (data?.errorMessage ?? null) : null;
   const isPolling =
-    enabled &&
-    shouldPoll &&
-    (status === null || status === 'PENDING' || status === 'PROCESSING');
+    enabled && shouldPoll && (status === null || status === "PENDING" || status === "PROCESSING");
 
   useEffect(() => {
     if (!enabled) {
@@ -217,15 +207,9 @@ export function useTeamFormationStatus({
     const hasFreshStatusForAssignment =
       hasFreshStatusRef.current.assignmentId === assignmentId &&
       hasFreshStatusRef.current.hasFreshStatus;
-    const hasCachedTerminalStatus =
-      status === 'COMPLETED' || status === 'FAILED';
+    const hasCachedTerminalStatus = status === "COMPLETED" || status === "FAILED";
 
-    if (
-      !enabled ||
-      !shouldPoll ||
-      !hasCachedTerminalStatus ||
-      hasFreshStatusForAssignment
-    ) {
+    if (!enabled || !shouldPoll || !hasCachedTerminalStatus || hasFreshStatusForAssignment) {
       return;
     }
 
@@ -240,7 +224,7 @@ export function useTeamFormationStatus({
         status: null,
         errorMessage: null,
       },
-      { revalidate: true }
+      { revalidate: true },
     );
   }, [assignmentId, enabled, mutate, shouldPoll, status]);
 
@@ -264,7 +248,7 @@ export function useTeamFormationStatus({
         status: null,
         errorMessage: null,
       },
-      { revalidate: true }
+      { revalidate: true },
     );
   }, [assignmentId, enabled, mutate, shouldPoll]);
 
@@ -285,7 +269,7 @@ export function useTeamFormationStatus({
         status: null,
         errorMessage: null,
       },
-      { revalidate: false }
+      { revalidate: false },
     );
   }, [assignmentId, mutate]);
 

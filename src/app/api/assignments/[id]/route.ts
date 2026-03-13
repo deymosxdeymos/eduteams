@@ -1,20 +1,20 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { createErrorResponse, withAuth } from '@/lib/api-utils';
-import prisma from '@/lib/prisma';
-import { analyzeAssignmentEditImpact } from '@/lib/utils/assignment-change-detection';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { createErrorResponse, withAuth } from "@/lib/api-utils";
+import prisma from "@/lib/prisma";
+import { analyzeAssignmentEditImpact } from "@/lib/utils/assignment-change-detection";
 import {
   ensureSkillsForCourse,
   ensureTopicsForAssignment,
-} from '@/lib/utils/assignment-skills-topics';
+} from "@/lib/utils/assignment-skills-topics";
 import {
   createAssignmentSnapshot,
   invalidateAssignmentSubmissions,
   markSubmissionsNeedUpdate,
-} from '@/lib/utils/assignment-snapshot';
-import { AssignmentUpdateSchema } from '@/lib/validation/assignments';
+} from "@/lib/utils/assignment-snapshot";
+import { AssignmentUpdateSchema } from "@/lib/validation/assignments";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // PATCH /api/assignments/[id]
 export const PATCH = withAuth<{ id: string }>(
@@ -35,9 +35,9 @@ export const PATCH = withAuth<{ id: string }>(
         _count: { select: { submissions: true } },
       },
     });
-    if (!assignment) return createErrorResponse('Assignment not found', 404);
+    if (!assignment) return createErrorResponse("Assignment not found", 404);
     if (assignment.course.dosenId !== user.id) {
-      return createErrorResponse('Access denied', 403);
+      return createErrorResponse("Access denied", 403);
     }
 
     const body = await request.json();
@@ -45,15 +45,14 @@ export const PATCH = withAuth<{ id: string }>(
 
     // Normalize skills/topics arrays (handles both string and { name: string } inputs)
     const cleanedSkills = (input.skills || [])
-      .map(s => (typeof s === 'string' ? s.trim() : s.name.trim()))
+      .map((s) => (typeof s === "string" ? s.trim() : s.name.trim()))
       .filter(Boolean);
     const cleanedTopics = (input.topics || [])
-      .map(t => (typeof t === 'string' ? t.trim() : t.name.trim()))
+      .map((t) => (typeof t === "string" ? t.trim() : t.name.trim()))
       .filter(Boolean);
 
     // Analyze edit impact if skills/topics are being changed
-    const hasStructuralEdit =
-      input.skills !== undefined || input.topics !== undefined;
+    const hasStructuralEdit = input.skills !== undefined || input.topics !== undefined;
 
     let editTier = 1;
     if (hasStructuralEdit) {
@@ -62,7 +61,7 @@ export const PATCH = withAuth<{ id: string }>(
         cleanedSkills,
         cleanedTopics,
         assignment.status,
-        assignment._count.submissions
+        assignment._count.submissions,
       );
       editTier = impact.tier;
 
@@ -70,8 +69,8 @@ export const PATCH = withAuth<{ id: string }>(
       if (editTier === 4) {
         return createErrorResponse(
           impact.reason ||
-            'Cannot edit assignment structure after teams have been formed. Please reset the assignment first.',
-          403
+            "Cannot edit assignment structure after teams have been formed. Please reset the assignment first.",
+          403,
         );
       }
 
@@ -79,8 +78,8 @@ export const PATCH = withAuth<{ id: string }>(
       if (editTier === 3 && !input.confirmDestructiveChanges) {
         return createErrorResponse(
           impact.reason ||
-            'This edit will invalidate existing submissions. Please confirm by setting confirmDestructiveChanges to true.',
-          400
+            "This edit will invalidate existing submissions. Please confirm by setting confirmDestructiveChanges to true.",
+          400,
         );
       }
     }
@@ -96,8 +95,7 @@ export const PATCH = withAuth<{ id: string }>(
     try {
       if (assignment.description) {
         const parsed = JSON.parse(assignment.description);
-        if (parsed && typeof parsed === 'object')
-          descJson = parsed as Record<string, unknown>;
+        if (parsed && typeof parsed === "object") descJson = parsed as Record<string, unknown>;
       }
     } catch {}
     if (input.description !== undefined) descJson.text = input.description;
@@ -116,7 +114,7 @@ export const PATCH = withAuth<{ id: string }>(
           version: assignment.structureVersion,
           title: assignment.title,
           description: assignment.description,
-          reason: 'before_destructive_edit',
+          reason: "before_destructive_edit",
         });
       }
 
@@ -130,10 +128,7 @@ export const PATCH = withAuth<{ id: string }>(
         await invalidateAssignmentSubmissions(assignment.id);
       } else if (editTier === 2) {
         // Tier 2: Mark submissions as needing update
-        await markSubmissionsNeedUpdate(
-          assignment.id,
-          assignment.structureVersion
-        );
+        await markSubmissionsNeedUpdate(assignment.id, assignment.structureVersion);
       }
     }
 
@@ -181,12 +176,8 @@ export const PATCH = withAuth<{ id: string }>(
           try {
             if (!updated.description) return { skills: [], topics: [] };
             const parsed = JSON.parse(updated.description);
-            const skills = Array.isArray(parsed?.skills)
-              ? (parsed.skills as string[])
-              : [];
-            const topics = Array.isArray(parsed?.topics)
-              ? (parsed.topics as string[])
-              : [];
+            const skills = Array.isArray(parsed?.skills) ? (parsed.skills as string[]) : [];
+            const topics = Array.isArray(parsed?.topics) ? (parsed.topics as string[]) : [];
             return { skills, topics };
           } catch {
             return { skills: [], topics: [] };
@@ -195,5 +186,6 @@ export const PATCH = withAuth<{ id: string }>(
         submissionsCount: updated._count.submissions,
       },
     });
-  }
+  },
+  { allowDemoSandbox: true },
 );

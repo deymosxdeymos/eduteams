@@ -1,5 +1,5 @@
-import type { Gender, MBTIType } from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
+import type { Gender, MBTIType } from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
 
 type MbtiStat = { kategori: MBTIType; jumlah: number };
 type SkillStat = { label: string; value: number };
@@ -26,9 +26,7 @@ export interface AssignmentStats {
   teamQuality?: TeamQualityMetrics;
 }
 
-export function calculateQualityMetrics(
-  qualityScores: number[]
-): TeamQualityMetrics | null {
+export function calculateQualityMetrics(qualityScores: number[]): TeamQualityMetrics | null {
   if (qualityScores.length === 0) {
     return null;
   }
@@ -36,8 +34,7 @@ export function calculateQualityMetrics(
   const sorted = [...qualityScores].sort((a, b) => a - b);
   const min = sorted[0];
   const max = sorted[sorted.length - 1];
-  const mean =
-    qualityScores.reduce((sum, val) => sum + val, 0) / qualityScores.length;
+  const mean = qualityScores.reduce((sum, val) => sum + val, 0) / qualityScores.length;
 
   const median =
     sorted.length % 2 === 0
@@ -45,8 +42,7 @@ export function calculateQualityMetrics(
       : sorted[Math.floor(sorted.length / 2)];
 
   const variance =
-    qualityScores.reduce((sum, val) => sum + (val - mean) ** 2, 0) /
-    qualityScores.length;
+    qualityScores.reduce((sum, val) => sum + (val - mean) ** 2, 0) / qualityScores.length;
   const stdDev = Math.sqrt(variance);
 
   return {
@@ -61,7 +57,7 @@ export function calculateQualityMetrics(
 
 export async function getAssignmentStats(
   assignmentId: string,
-  courseId: string
+  courseId: string,
 ): Promise<AssignmentStats> {
   // Load enrollments with minimal selects
   const [enrollments, assignmentMeta, quizSubmissionCount] = await Promise.all([
@@ -100,24 +96,24 @@ export async function getAssignmentStats(
     mbtiCountsMap.set(t, (mbtiCountsMap.get(t) ?? 0) + 1);
   }
   const mbtiOrder: MBTIType[] = [
-    'INTJ',
-    'INTP',
-    'ENTJ',
-    'ENTP',
-    'INFJ',
-    'INFP',
-    'ENFJ',
-    'ENFP',
-    'ISTJ',
-    'ISFJ',
-    'ESTJ',
-    'ESFJ',
-    'ISTP',
-    'ISFP',
-    'ESTP',
-    'ESFP',
+    "INTJ",
+    "INTP",
+    "ENTJ",
+    "ENTP",
+    "INFJ",
+    "INFP",
+    "ENFJ",
+    "ENFP",
+    "ISTJ",
+    "ISFJ",
+    "ESTJ",
+    "ESFJ",
+    "ISTP",
+    "ISFP",
+    "ESTP",
+    "ESFP",
   ];
-  const mbti: MbtiStat[] = mbtiOrder.map(k => ({
+  const mbti: MbtiStat[] = mbtiOrder.map((k) => ({
     kategori: k,
     jumlah: mbtiCountsMap.get(k) ?? 0,
   }));
@@ -127,21 +123,19 @@ export async function getAssignmentStats(
   let female = 0;
   for (const e of enrollments) {
     const g = e.student.gender as Gender | null;
-    if (g === 'MALE') male += 1;
-    else if (g === 'FEMALE') female += 1;
+    if (g === "MALE") male += 1;
+    else if (g === "FEMALE") female += 1;
   }
   const gender: NamedValue[] = [
-    { name: 'laki', value: male },
-    { name: 'perempuan', value: female },
+    { name: "laki", value: male },
+    { name: "perempuan", value: female },
   ];
 
   // Determine assignment-specific skills and topics from assignment.description JSON
   let skillNames: string[] = [];
   let topicNames: string[] = [];
   try {
-    const parsed = assignmentMeta?.description
-      ? JSON.parse(assignmentMeta.description)
-      : null;
+    const parsed = assignmentMeta?.description ? JSON.parse(assignmentMeta.description) : null;
     if (Array.isArray(parsed?.skills)) {
       skillNames = parsed.skills as string[];
     }
@@ -153,11 +147,7 @@ export async function getAssignmentStats(
   }
   if (skillNames.length === 0) {
     // Fallback to the same defaults used in the quiz page
-    skillNames = [
-      'UI/UX Design',
-      'Frontend Development',
-      'Backend Development',
-    ];
+    skillNames = ["UI/UX Design", "Frontend Development", "Backend Development"];
   }
   // Fetch only declared skills
   const skillRecords = skillNames.length
@@ -167,7 +157,7 @@ export async function getAssignmentStats(
       })
     : [];
   const skillIdByName = new Map<string, string>(
-    skillRecords.map((s: { id: string; name: string }) => [s.name, s.id])
+    skillRecords.map((s: { id: string; name: string }) => [s.name, s.id]),
   );
   const studentIds = enrollments.map((e: { studentId: string }) => e.studentId);
 
@@ -189,7 +179,7 @@ export async function getAssignmentStats(
     levelSums.set(s.skillId, cur);
   }
 
-  const skills: SkillStat[] = skillNames.map(label => {
+  const skills: SkillStat[] = skillNames.map((label) => {
     const id = skillIdByName.get(label);
     if (!id) return { label, value: 0 };
     const agg = levelSums.get(id);
@@ -198,18 +188,15 @@ export async function getAssignmentStats(
     return { label, value: Math.round((agg.sum / agg.count) * 100) };
   });
 
-  const skillsReady = skills.some(s => s.value > 0);
+  const skillsReady = skills.some((s) => s.value > 0);
 
   // Assignment topics preference distribution
   // Prefer labels from description if present; fallback to DB topics
-  const topicRows: { id: string; name: string }[] =
-    await prisma.assignmentTopic.findMany({
-      where: topicNames.length
-        ? { assignmentId, name: { in: topicNames } }
-        : { assignmentId },
-      select: { id: true, name: true },
-      orderBy: { name: 'asc' },
-    });
+  const topicRows: { id: string; name: string }[] = await prisma.assignmentTopic.findMany({
+    where: topicNames.length ? { assignmentId, name: { in: topicNames } } : { assignmentId },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
   const topicIds = topicRows.map((t: { id: string }) => t.id);
   const topicPrefs = topicIds.length
     ? await prisma.assignmentTopicPreference.findMany({
@@ -229,7 +216,7 @@ export async function getAssignmentStats(
     prefSumsById.set(p.assignmentTopicId, cur);
   }
   const idToName = new Map(
-    topicRows.map((t: { id: string; name: string }) => [t.id, t.name] as const)
+    topicRows.map((t: { id: string; name: string }) => [t.id, t.name] as const),
   );
   const avgByName = new Map<string, number>();
   for (const [id, agg] of prefSumsById) {
@@ -252,7 +239,7 @@ export async function getAssignmentStats(
       where: {
         ownerId: assignmentMeta.course.dosenId,
         createdAt: { gte: assignmentMeta.startAt },
-        status: { in: ['PROCESSING', 'COMPLETED'] },
+        status: { in: ["PROCESSING", "COMPLETED"] },
       },
     });
     teamsFormed = tfCount > 0;
@@ -266,7 +253,7 @@ export async function getAssignmentStats(
       where: {
         assignmentId,
         ownerId: assignmentMeta.course.dosenId,
-        status: 'COMPLETED',
+        status: "COMPLETED",
       },
       select: {
         teams: {
@@ -276,7 +263,7 @@ export async function getAssignmentStats(
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     if (latestFormation) {
@@ -296,7 +283,7 @@ export async function getAssignmentStats(
         const taskQualityMap = new Map<string, number[]>();
         for (const team of teams) {
           if (team.quality === null) continue;
-          const taskKey = team.taskId ?? 'unassigned';
+          const taskKey = team.taskId ?? "unassigned";
           const existing = taskQualityMap.get(taskKey) ?? [];
           existing.push(team.quality);
           taskQualityMap.set(taskKey, existing);
@@ -306,8 +293,7 @@ export async function getAssignmentStats(
         const taskAverages: number[] = [];
         for (const [, qualities] of taskQualityMap) {
           if (qualities.length === 0) continue;
-          const avg =
-            qualities.reduce((sum, q) => sum + q, 0) / qualities.length;
+          const avg = qualities.reduce((sum, q) => sum + q, 0) / qualities.length;
           taskAverages.push(avg);
         }
 

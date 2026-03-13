@@ -1,19 +1,16 @@
-import type { Prisma } from '@/generated/prisma/client';
-import prisma, {
-  type PrismaClientInstance,
-  type TransactionClient,
-} from '@/lib/prisma';
+import type { Prisma } from "@/generated/prisma/client";
+import prisma, { type PrismaClientInstance, type TransactionClient } from "@/lib/prisma";
 
 type AssignmentSkillsTopicsClient = {
-  skill: Pick<PrismaClientInstance['skill'], 'findMany' | 'createMany'>;
-  courseSkill: Pick<PrismaClientInstance['courseSkill'], 'createMany'>;
-  assignmentTopic: Pick<PrismaClientInstance['assignmentTopic'], 'createMany'>;
+  skill: Pick<PrismaClientInstance["skill"], "findMany" | "createMany">;
+  courseSkill: Pick<PrismaClientInstance["courseSkill"], "createMany">;
+  assignmentTopic: Pick<PrismaClientInstance["assignmentTopic"], "createMany">;
 };
 
 async function ensureSkillsForCourseWithClient(
   client: AssignmentSkillsTopicsClient,
   courseId: string,
-  skillNames: string[]
+  skillNames: string[],
 ): Promise<void> {
   // Step 1: Ensure all Skill records exist
   // Note: Skill.name has @unique constraint, so we handle case-insensitive matching manually
@@ -25,7 +22,7 @@ async function ensureSkillsForCourseWithClient(
     existing.map((s: { id: string; name: string }) => [
       s.name.toLowerCase(),
       { id: s.id, name: s.name },
-    ])
+    ]),
   );
 
   // Create missing skills
@@ -35,7 +32,7 @@ async function ensureSkillsForCourseWithClient(
     if (!existingMap.has(lowerName)) {
       toCreate.push({ name });
       // Add to map to avoid duplicates in toCreate array
-      existingMap.set(lowerName, { id: '', name });
+      existingMap.set(lowerName, { id: "", name });
     }
   }
 
@@ -52,10 +49,7 @@ async function ensureSkillsForCourseWithClient(
   });
 
   const skillIdMap = new Map<string, string>(
-    allSkills.map((s: { id: string; name: string }) => [
-      s.name.toLowerCase(),
-      s.id,
-    ])
+    allSkills.map((s: { id: string; name: string }) => [s.name.toLowerCase(), s.id]),
   );
 
   // Step 3: Create CourseSkill links (idempotent)
@@ -84,7 +78,7 @@ async function ensureSkillsForCourseWithClient(
 export async function ensureSkillsForCourse(
   courseId: string,
   skillNames: string[],
-  client?: AssignmentSkillsTopicsClient
+  client?: AssignmentSkillsTopicsClient,
 ): Promise<void> {
   if (skillNames.length === 0) return;
 
@@ -107,17 +101,15 @@ export async function ensureSkillsForCourse(
 export async function ensureTopicsForAssignment(
   assignmentId: string,
   topicNames: string[],
-  client?: AssignmentSkillsTopicsClient
+  client?: AssignmentSkillsTopicsClient,
 ): Promise<void> {
   if (topicNames.length === 0) return;
 
   // AssignmentTopic model has (assignmentId, name) unique constraint
-  const toCreate: Prisma.AssignmentTopicCreateManyInput[] = topicNames.map(
-    name => ({
-      assignmentId,
-      name,
-    })
-  );
+  const toCreate: Prisma.AssignmentTopicCreateManyInput[] = topicNames.map((name) => ({
+    assignmentId,
+    name,
+  }));
 
   await (client?.assignmentTopic ?? prisma.assignmentTopic).createMany({
     data: toCreate,

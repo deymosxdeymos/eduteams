@@ -1,25 +1,18 @@
-import { revalidateTag } from 'next/cache';
-import type { NextRequest } from 'next/server';
-import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
-import {
-  createApiResponse,
-  createErrorResponse,
-  withAuth,
-} from '@/lib/api-utils';
-import {
-  canAccessDosenFeatures,
-  canAccessMahasiswaFeatures,
-} from '@/lib/authorization';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { parseDemoVisitorIdFromEmail } from '@/lib/demo/auth';
-import { getDemoStudentCourseEmailPrefix } from '@/lib/demo/seed-students';
-import prisma, { type TransactionClient } from '@/lib/prisma';
-import { courseUpdateSchema } from '@/lib/validation/course';
+import { revalidateTag } from "next/cache";
+import type { NextRequest } from "next/server";
+import { getLocalizedApiMessage, getRequestLocale } from "@/lib/api-i18n";
+import { createApiResponse, createErrorResponse, withAuth } from "@/lib/api-utils";
+import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { parseDemoVisitorIdFromEmail } from "@/lib/demo/auth";
+import { getDemoStudentCourseEmailPrefix } from "@/lib/demo/seed-students";
+import prisma, { type TransactionClient } from "@/lib/prisma";
+import { courseUpdateSchema } from "@/lib/validation/course";
 
 // Cache for 10 minutes since course data doesn't change frequently
 export const revalidate = 600;
 // Prisma requires Node.js runtime
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 type CourseWithDosen = {
   id: string;
@@ -39,74 +32,72 @@ type CourseWithDosen = {
   };
 };
 
-export const GET = withAuth<{ id: string }>(
-  async (_request: NextRequest, { user, params }) => {
-    const isDosen = canAccessDosenFeatures(user);
-    const isMahasiswa = canAccessMahasiswaFeatures(user);
+export const GET = withAuth<{ id: string }>(async (_request: NextRequest, { user, params }) => {
+  const isDosen = canAccessDosenFeatures(user);
+  const isMahasiswa = canAccessMahasiswaFeatures(user);
 
-    if (!isDosen && !isMahasiswa) {
-      return createErrorResponse('Access denied', 403);
-    }
+  if (!isDosen && !isMahasiswa) {
+    return createErrorResponse("Access denied", 403);
+  }
 
-    const { id } = await params;
+  const { id } = await params;
 
-    let course: CourseWithDosen | null = null;
+  let course: CourseWithDosen | null = null;
 
-    if (isDosen) {
-      // Dosen can only access their own courses
-      course = await prisma.course.findFirst({
-        where: {
-          id,
-          dosenId: user?.id,
-        },
-        include: {
-          dosen: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
+  if (isDosen) {
+    // Dosen can only access their own courses
+    course = await prisma.course.findFirst({
+      where: {
+        id,
+        dosenId: user?.id,
+      },
+      include: {
+        dosen: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
         },
-      });
-    } else if (isMahasiswa) {
-      // Students can only access courses they're enrolled in
-      const enrollment = await prisma.courseEnrollment.findUnique({
-        where: {
-          courseId_studentId: {
-            courseId: id,
-            studentId: user.id,
-          },
+      },
+    });
+  } else if (isMahasiswa) {
+    // Students can only access courses they're enrolled in
+    const enrollment = await prisma.courseEnrollment.findUnique({
+      where: {
+        courseId_studentId: {
+          courseId: id,
+          studentId: user.id,
         },
-        include: {
-          course: {
-            include: {
-              dosen: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
+      },
+      include: {
+        course: {
+          include: {
+            dosen: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
               },
             },
           },
         },
-      });
-      course = enrollment?.course || null;
-    }
-
-    if (!course) {
-      return createErrorResponse('Course not found', 404);
-    }
-
-    return createApiResponse(course);
+      },
+    });
+    course = enrollment?.course || null;
   }
-);
+
+  if (!course) {
+    return createErrorResponse("Course not found", 404);
+  }
+
+  return createApiResponse(course);
+});
 
 export const PATCH = withAuth<{ id: string }>(
   async (request: NextRequest, { user, params }) => {
     if (!canAccessDosenFeatures(user)) {
-      return createErrorResponse('Only dosen can update courses', 403);
+      return createErrorResponse("Only dosen can update courses", 403);
     }
 
     const { id } = await params;
@@ -115,14 +106,13 @@ export const PATCH = withAuth<{ id: string }>(
     try {
       payload = await request.json();
     } catch (_error) {
-      return createErrorResponse('Invalid JSON payload', 400);
+      return createErrorResponse("Invalid JSON payload", 400);
     }
 
     const parsed = courseUpdateSchema.safeParse(payload);
     if (!parsed.success) {
       const message =
-        parsed.error.issues.map(issue => issue.message).join(', ') ||
-        'Invalid course data';
+        parsed.error.issues.map((issue) => issue.message).join(", ") || "Invalid course data";
       return createErrorResponse(message, 400);
     }
 
@@ -146,7 +136,7 @@ export const PATCH = withAuth<{ id: string }>(
     }
 
     if (Object.keys(updateData).length === 0) {
-      return createErrorResponse('No changes provided', 400);
+      return createErrorResponse("No changes provided", 400);
     }
 
     const course = await prisma.course.findUnique({
@@ -163,25 +153,21 @@ export const PATCH = withAuth<{ id: string }>(
     });
 
     if (!course) {
-      return createErrorResponse('Course not found', 404);
+      return createErrorResponse("Course not found", 404);
     }
 
     if (course.dosenId !== user.id) {
-      return createErrorResponse('Access denied', 403);
+      return createErrorResponse("Access denied", 403);
     }
 
     const finalNamaMataKuliah =
-      (updateData.namaMataKuliah as string | undefined) ??
-      course.namaMataKuliah;
+      (updateData.namaMataKuliah as string | undefined) ?? course.namaMataKuliah;
     const finalKelas = (updateData.kelas as string | undefined) ?? course.kelas;
-    const finalPeriode =
-      (updateData.periode as string | undefined) ?? course.periode;
+    const finalPeriode = (updateData.periode as string | undefined) ?? course.periode;
     const finalTahunAwalPeriode =
-      (updateData.tahunAwalPeriode as number | undefined) ??
-      course.tahunAwalPeriode;
+      (updateData.tahunAwalPeriode as number | undefined) ?? course.tahunAwalPeriode;
     const finalTahunAkhirPeriode =
-      (updateData.tahunAkhirPeriode as number | undefined) ??
-      course.tahunAkhirPeriode;
+      (updateData.tahunAkhirPeriode as number | undefined) ?? course.tahunAkhirPeriode;
 
     const existingCourse = await prisma.course.findFirst({
       where: {
@@ -200,7 +186,7 @@ export const PATCH = withAuth<{ id: string }>(
       const locale = getRequestLocale(request);
       const errorMessage = getLocalizedApiMessage(
         locale,
-        'dashboard.modals.createClass.duplicateError'
+        "dashboard.modals.createClass.duplicateError",
       );
       return createErrorResponse(errorMessage, 409);
     }
@@ -222,18 +208,19 @@ export const PATCH = withAuth<{ id: string }>(
     revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
     return createApiResponse(updatedCourse);
-  }
+  },
+  { allowDemoSandbox: true },
 );
 
 export const DELETE = withAuth<{ id: string }>(
   async (_request: NextRequest, { user, params }) => {
     if (!canAccessDosenFeatures(user)) {
-      return createErrorResponse('Only dosen can delete courses', 403);
+      return createErrorResponse("Only dosen can delete courses", 403);
     }
 
     const { id } = await params;
     if (!id) {
-      return createErrorResponse('Course ID is required', 400);
+      return createErrorResponse("Course ID is required", 400);
     }
 
     const course = await prisma.course.findUnique({
@@ -242,11 +229,11 @@ export const DELETE = withAuth<{ id: string }>(
     });
 
     if (!course) {
-      return createErrorResponse('Course not found', 404);
+      return createErrorResponse("Course not found", 404);
     }
 
     if (course.dosenId !== user.id) {
-      return createErrorResponse('Access denied', 403);
+      return createErrorResponse("Access denied", 403);
     }
 
     const enrollments = await prisma.courseEnrollment.findMany({
@@ -273,12 +260,13 @@ export const DELETE = withAuth<{ id: string }>(
     revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
     const studentIds = new Set(
-      enrollments.map(({ studentId }: { studentId: string }) => studentId)
+      enrollments.map(({ studentId }: { studentId: string }) => studentId),
     );
     for (const studentId of studentIds as Set<string>) {
       revalidateTag(CACHE_TAGS.studentClasses(studentId));
     }
 
-    return createApiResponse({ removed: true }, 'Course deleted');
-  }
+    return createApiResponse({ removed: true }, "Course deleted");
+  },
+  { allowDemoSandbox: true },
 );

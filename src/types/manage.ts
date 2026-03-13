@@ -5,7 +5,7 @@ export interface ManageCourseRow {
   periodLabel: string;
   startYear: number;
   endYear: number;
-  semester: 'ganjil' | 'genap' | 'pendek';
+  semester: "ganjil" | "genap" | "pendek";
   assignmentsCount: number;
   studentsCount: number;
   isArchived: boolean;
@@ -17,15 +17,17 @@ export interface ManageAssignmentRow {
   id: string;
   title: string;
   description: string | null;
-  status: 'BELUM_ISI' | 'MENUNGGU' | 'BERHASIL_PEMBAGIAN_GRUP';
+  status: "BELUM_ISI" | "MENUNGGU" | "BERHASIL_PEMBAGIAN_GRUP";
   startAt: string;
   createdAt: string;
   isArchived: boolean;
   submissionsCount: number;
   totalStudents: number;
+  skills?: string[];
+  topics?: string[];
 }
 
-export type SortKey = 'name' | 'year';
+export type SortKey = "name" | "year";
 
 export interface TeamMemberUser {
   id: string;
@@ -44,7 +46,9 @@ export interface GroupListItem {
   taskTitle: string;
   className: string;
   academicYear: string;
-  status: 'my-group' | 'waiting' | 'not-started';
+  status: "my-group" | "waiting" | "not-started";
+  href?: string;
+  quizHref?: string;
   dueAt?: Date | string;
   teamMembers?: TeamMemberItem[];
   teamName?: string;

@@ -1,57 +1,42 @@
-import type { NextRequest } from 'next/server';
-import { z } from 'zod';
-import { Prisma } from '@/generated/prisma/client';
-import { getLocalizedApiMessage, getRequestLocale } from '@/lib/api-i18n';
-import {
-  createApiResponse,
-  createErrorResponse,
-  withAuth,
-  withValidation,
-} from '@/lib/api-utils';
-import {
-  createClassCatalogEntry,
-  getClassCatalog,
-} from '@/lib/data/class-catalog';
-import { isActiveDemoAccountEmail } from '@/lib/demo/auth';
-import { DEMO_CLASS_CATALOG } from '@/lib/demo/config';
+import type { NextRequest } from "next/server";
+import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
+import { getLocalizedApiMessage, getRequestLocale } from "@/lib/api-i18n";
+import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
+import { createClassCatalogEntry, getClassCatalog } from "@/lib/data/class-catalog";
+import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
+import { DEMO_CLASS_CATALOG } from "@/lib/demo/config";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const classCatalogQuerySchema = z.object({
-  search: z.string().trim().max(120, 'Search query is too long').optional(),
+  search: z.string().trim().max(120, "Search query is too long").optional(),
 });
 
 const classCatalogCreateSchema = z.object({
   code: z
     .string()
     .trim()
-    .min(1, 'Class code is required')
-    .max(32, 'Class code must be at most 32 characters long')
-    .regex(
-      /^[A-Za-z0-9-]+$/,
-      'Class code can only contain letters, numbers, and dashes'
-    ),
+    .min(1, "Class code is required")
+    .max(32, "Class code must be at most 32 characters long")
+    .regex(/^[A-Za-z0-9-]+$/, "Class code can only contain letters, numbers, and dashes"),
 });
 
 type ClassCatalogCreateInput = z.infer<typeof classCatalogCreateSchema>;
 
-
 export const GET = withAuth(async (request: NextRequest, { user }) => {
-  if (user.role !== 'TEACHER') {
-    return createErrorResponse('Only dosen can view class catalog', 403);
+  if (user.role !== "TEACHER") {
+    return createErrorResponse("Only dosen can view class catalog", 403);
   }
 
   const url = new URL(request.url);
   const parseResult = classCatalogQuerySchema.safeParse({
-    search: url.searchParams.get('search') ?? undefined,
+    search: url.searchParams.get("search") ?? undefined,
   });
 
   if (!parseResult.success) {
     const firstError = parseResult.error.issues[0];
-    return createErrorResponse(
-      firstError?.message || 'Invalid search query',
-      400
-    );
+    return createErrorResponse(firstError?.message || "Invalid search query", 400);
   }
 
   if (isActiveDemoAccountEmail(user.email)) {
@@ -68,18 +53,15 @@ export const POST = withAuth(
   withValidation(
     (data: unknown) => classCatalogCreateSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
-      if (user?.role !== 'TEACHER') {
-        return createErrorResponse('Only dosen can create classes', 403);
+      if (user?.role !== "TEACHER") {
+        return createErrorResponse("Only dosen can create classes", 403);
       }
 
       if (isActiveDemoAccountEmail(user.email)) {
         const locale = getRequestLocale(_request);
         return createErrorResponse(
-          getLocalizedApiMessage(
-            locale,
-            'dashboard.modals.createClass.catalog.demoLocked'
-          ),
-          403
+          getLocalizedApiMessage(locale, "dashboard.modals.createClass.catalog.demoLocked"),
+          403,
         );
       }
 
@@ -91,16 +73,14 @@ export const POST = withAuth(
           code: normalizedCode,
         });
 
-        return createApiResponse(entry, 'Class catalog entry created');
+        return createApiResponse(entry, "Class catalog entry created");
       } catch (error) {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2002'
-        ) {
-          return createErrorResponse('Class code already exists', 409);
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          return createErrorResponse("Class code already exists", 409);
         }
         throw error;
       }
-    }
-  )
+    },
+  ),
+  { allowDemoSandbox: true },
 );

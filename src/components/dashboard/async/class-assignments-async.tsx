@@ -1,7 +1,7 @@
-import { ClassPageLayout } from '@/components/dashboard/class-page-layout';
-import { getInitialAssignments, getStudentsData } from '@/lib/data/course-data';
-import type { Course, ExtendedUser } from '@/lib/types';
-import type { StudentData } from '@/types/course';
+import { ClassPageLayout } from "@/components/dashboard/class-page-layout";
+import { getInitialAssignments, getStudentsData } from "@/lib/data/course-data";
+import type { Course, ExtendedUser } from "@/lib/types";
+import type { StudentData } from "@/types/course";
 
 interface ClassAssignmentsAsyncProps {
   courseId: string;

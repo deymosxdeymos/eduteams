@@ -1,4 +1,4 @@
-import prisma, { type TransactionClient } from '@/lib/prisma';
+import prisma, { type TransactionClient } from "@/lib/prisma";
 
 export interface CreateSnapshotOptions {
   assignmentId: string;
@@ -11,16 +11,14 @@ export interface CreateSnapshotOptions {
 /**
  * Create a snapshot of the assignment before making destructive changes
  */
-export async function createAssignmentSnapshot(
-  options: CreateSnapshotOptions
-): Promise<void> {
+export async function createAssignmentSnapshot(options: CreateSnapshotOptions): Promise<void> {
   await prisma.assignmentSnapshot.create({
     data: {
       assignmentId: options.assignmentId,
       version: options.version,
       title: options.title,
       description: options.description,
-      snapshotReason: options.reason || 'structural_edit',
+      snapshotReason: options.reason || "structural_edit",
     },
   });
 }
@@ -29,13 +27,11 @@ export async function createAssignmentSnapshot(
  * Get the latest snapshot version for an assignment
  * @public
  */
-export async function getLatestSnapshotVersion(
-  assignmentId: string
-): Promise<number> {
+export async function getLatestSnapshotVersion(assignmentId: string): Promise<number> {
   const latest = await prisma.assignmentSnapshot.findFirst({
     where: { assignmentId },
     select: { version: true },
-    orderBy: { version: 'desc' },
+    orderBy: { version: "desc" },
   });
 
   return latest?.version || 0;
@@ -45,9 +41,7 @@ export async function getLatestSnapshotVersion(
  * Invalidate submissions for an assignment (Tier 3: Destructive changes)
  * This deletes all submissions and related data
  */
-export async function invalidateAssignmentSubmissions(
-  assignmentId: string
-): Promise<number> {
+export async function invalidateAssignmentSubmissions(assignmentId: string): Promise<number> {
   // Get all student IDs who submitted
   const submissions = await prisma.assignmentSubmission.findMany({
     where: { assignmentId },
@@ -95,7 +89,7 @@ export async function invalidateAssignmentSubmissions(
  */
 export async function markSubmissionsNeedUpdate(
   assignmentId: string,
-  currentVersion: number
+  currentVersion: number,
 ): Promise<number> {
   const result = await prisma.assignmentSubmission.updateMany({
     where: {

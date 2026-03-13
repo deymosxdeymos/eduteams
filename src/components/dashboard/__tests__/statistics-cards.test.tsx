@@ -1,29 +1,20 @@
-import { describe, expect, it } from 'bun:test';
-import { render, screen } from '@testing-library/react';
-import {
-  type DashboardStatistics,
-  EMPTY_DASHBOARD_STATISTICS,
-} from '@/lib/dashboard/statistics';
-import { StatisticsCards } from '../statistics-cards';
+import { describe, expect, it } from "bun:test";
+import { render, screen } from "@testing-library/react";
+import { type DashboardStatistics, EMPTY_DASHBOARD_STATISTICS } from "@/lib/dashboard/statistics";
+import { StatisticsCards } from "../statistics-cards";
 
-describe('StatisticsCards', () => {
-  it('displays loading state with zeros and placeholders when no data', () => {
+describe("StatisticsCards", () => {
+  it("displays loading state with zeros and placeholders when no data", () => {
     render(<StatisticsCards />);
 
-    const headings = screen.getAllByRole('heading', { level: 1 });
-    expect(headings.map(h => h.textContent)).toEqual([
-      '0',
-      '0',
-      'N/A',
-      'N/A',
-      'N/A',
-    ]);
-    expect(screen.getByText('Total assignments created')).toBeTruthy();
-    expect(screen.getByText('Total teams successfully formed')).toBeTruthy();
-    expect(screen.getByText('Team Quality')).toBeTruthy();
+    const headings = screen.getAllByRole("heading", { level: 1 });
+    expect(headings.map((h) => h.textContent)).toEqual(["0", "0", "N/A", "N/A", "N/A"]);
+    expect(screen.getByText("Total assignments created")).toBeTruthy();
+    expect(screen.getByText("Total teams successfully formed")).toBeTruthy();
+    expect(screen.getByText("Team Quality")).toBeTruthy();
   });
 
-  it('displays statistics data when loaded', () => {
+  it("displays statistics data when loaded", () => {
     const mockData: DashboardStatistics = {
       totalAssignments: 5,
       totalTeams: 12,
@@ -33,14 +24,14 @@ describe('StatisticsCards', () => {
 
     render(<StatisticsCards statistics={mockData} />);
 
-    expect(screen.getByText('5')).toBeTruthy();
-    expect(screen.getByText('12')).toBeTruthy();
-    expect(screen.getByText('10%')).toBeTruthy();
-    expect(screen.getByText('90%')).toBeTruthy();
-    expect(screen.getByText('50%')).toBeTruthy();
+    expect(screen.getByText("5")).toBeTruthy();
+    expect(screen.getByText("12")).toBeTruthy();
+    expect(screen.getByText("10%")).toBeTruthy();
+    expect(screen.getByText("90%")).toBeTruthy();
+    expect(screen.getByText("50%")).toBeTruthy();
   });
 
-  it('rounds percent values correctly', () => {
+  it("rounds percent values correctly", () => {
     const mockData: DashboardStatistics = {
       totalAssignments: 3,
       totalTeams: 8,
@@ -49,12 +40,12 @@ describe('StatisticsCards', () => {
     };
 
     render(<StatisticsCards statistics={mockData} />);
-    expect(screen.getByText('0%')).toBeTruthy();
-    expect(screen.getByText('100%')).toBeTruthy();
-    expect(screen.getByText('41%')).toBeTruthy();
+    expect(screen.getByText("0%")).toBeTruthy();
+    expect(screen.getByText("100%")).toBeTruthy();
+    expect(screen.getByText("41%")).toBeTruthy();
   });
 
-  it('falls back to placeholders when no quality records exist', () => {
+  it("falls back to placeholders when no quality records exist", () => {
     const mockData: DashboardStatistics = {
       ...EMPTY_DASHBOARD_STATISTICS,
       totalAssignments: 7,
@@ -63,8 +54,8 @@ describe('StatisticsCards', () => {
 
     render(<StatisticsCards statistics={mockData} />);
 
-    expect(screen.getByText('7')).toBeTruthy();
-    expect(screen.getByText('4')).toBeTruthy();
-    expect(screen.getAllByText('N/A')).toHaveLength(3);
+    expect(screen.getByText("7")).toBeTruthy();
+    expect(screen.getByText("4")).toBeTruthy();
+    expect(screen.getAllByText("N/A")).toHaveLength(3);
   });
 });

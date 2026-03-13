@@ -1,18 +1,14 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
-import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
+import { callEdu2comTeamFormation } from "@/lib/edu2com/api";
 import {
   EDU2COM_BASE_SKILLS as BASE_SKILLS,
   createBasePayload,
   createPerson,
-} from '@/lib/edu2com/fixtures';
-import {
-  normalizeTeamsByMembers,
-  normalizeTeamsForComparison,
-} from './test-helpers';
+} from "@/lib/edu2com/fixtures";
+import { normalizeTeamsByMembers, normalizeTeamsForComparison } from "./test-helpers";
 
-const describeIntegration =
-  process.env.EDU2COM_INTEGRATION === '1' ? describe : describe.skip;
+const describeIntegration = process.env.EDU2COM_INTEGRATION === "1" ? describe : describe.skip;
 
 /**
  * Comprehensive testing of alpha, beta, gamma, delta weight parameters.
@@ -23,7 +19,7 @@ const describeIntegration =
  * - gamma: Weight for student preferences (0.0-1.0)
  * - delta: Weight for task preferences (0.0-1.0)
  */
-describeIntegration('Weight Parameters - Exhaustive Testing', () => {
+describeIntegration("Weight Parameters - Exhaustive Testing", () => {
   const originalFetch = globalThis.fetch;
 
   beforeAll(() => {
@@ -34,10 +30,10 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
     globalThis.fetch = originalFetch;
   });
 
-  describe('Individual Parameter Variations', () => {
+  describe("Individual Parameter Variations", () => {
     const testValues = [0.0, 0.25, 0.5, 0.75, 1.0];
 
-    describe('Alpha (Skill Weighting)', () => {
+    describe("Alpha (Skill Weighting)", () => {
       for (const alpha of testValues) {
         it(`alpha=${alpha} produces valid teams`, async () => {
           expect.hasAssertions();
@@ -62,7 +58,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
         });
       }
 
-      it('alpha=1.0 (skill-only) produces different teams than alpha=0.0', async () => {
+      it("alpha=1.0 (skill-only) produces different teams than alpha=0.0", async () => {
         expect.hasAssertions();
         const payload = createBasePayload();
 
@@ -91,7 +87,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       });
     });
 
-    describe('Beta (Personality/MBTI Weighting)', () => {
+    describe("Beta (Personality/MBTI Weighting)", () => {
       for (const beta of testValues) {
         it(`beta=${beta} produces valid teams`, async () => {
           expect.hasAssertions();
@@ -116,7 +112,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       }
     });
 
-    describe('Gamma (Student Preference Weighting)', () => {
+    describe("Gamma (Student Preference Weighting)", () => {
       for (const gamma of testValues) {
         it(`gamma=${gamma} produces valid teams`, async () => {
           expect.hasAssertions();
@@ -131,9 +127,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
             const nextPerson = array[(index + 1) % array.length];
             return {
               ...person,
-              preferences: nextPerson
-                ? [{ personId: nextPerson.id, preference: 0.8 }]
-                : [],
+              preferences: nextPerson ? [{ personId: nextPerson.id, preference: 0.8 }] : [],
             };
           });
 
@@ -147,7 +141,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       }
     });
 
-    describe('Delta (Task Preference Weighting)', () => {
+    describe("Delta (Task Preference Weighting)", () => {
       for (const delta of testValues) {
         it(`delta=${delta} produces valid teams`, async () => {
           expect.hasAssertions();
@@ -158,13 +152,11 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
           payload.delta = delta;
 
           // Add task preferences for delta to be meaningful
-          payload.tasks = payload.tasks.map(task => {
+          payload.tasks = payload.tasks.map((task) => {
             const [firstPerson] = payload.people;
             return {
               ...task,
-              preferences: firstPerson
-                ? [{ personId: firstPerson.id, preference: 0.9 }]
-                : [],
+              preferences: firstPerson ? [{ personId: firstPerson.id, preference: 0.9 }] : [],
             };
           });
 
@@ -179,8 +171,8 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
     });
   });
 
-  describe('Key Scenario Combinations', () => {
-    it('balanced weighting (all equal)', async () => {
+  describe("Key Scenario Combinations", () => {
+    it("balanced weighting (all equal)", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.25;
@@ -193,19 +185,15 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
         const nextPerson = array[(index + 1) % array.length];
         return {
           ...person,
-          preferences: nextPerson
-            ? [{ personId: nextPerson.id, preference: 0.7 }]
-            : [],
+          preferences: nextPerson ? [{ personId: nextPerson.id, preference: 0.7 }] : [],
         };
       });
 
-      payload.tasks = payload.tasks.map(task => {
+      payload.tasks = payload.tasks.map((task) => {
         const [firstPerson] = payload.people;
         return {
           ...task,
-          preferences: firstPerson
-            ? [{ personId: firstPerson.id, preference: 0.8 }]
-            : [],
+          preferences: firstPerson ? [{ personId: firstPerson.id, preference: 0.8 }] : [],
         };
       });
 
@@ -220,7 +208,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       }
     });
 
-    it('skill-heavy scenario (alpha=0.7, others low)', async () => {
+    it("skill-heavy scenario (alpha=0.7, others low)", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.7;
@@ -237,7 +225,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       // We're documenting this behavior exists
     });
 
-    it('personality-heavy scenario (beta=0.7, others low)', async () => {
+    it("personality-heavy scenario (beta=0.7, others low)", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.1;
@@ -253,7 +241,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       // In personality-heavy mode, teams should prioritize MBTI compatibility
     });
 
-    it('preference-heavy scenario (gamma=0.6, delta=0.3)', async () => {
+    it("preference-heavy scenario (gamma=0.6, delta=0.3)", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.05;
@@ -266,23 +254,17 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
         const nextPerson = array[(index + 1) % array.length];
         return {
           ...person,
-          preferences: nextPerson
-            ? [{ personId: nextPerson.id, preference: 0.9 }]
-            : [],
+          preferences: nextPerson ? [{ personId: nextPerson.id, preference: 0.9 }] : [],
         };
       });
 
-      payload.tasks = payload.tasks.map(task => {
+      payload.tasks = payload.tasks.map((task) => {
         const [firstPerson, secondPerson] = payload.people;
         return {
           ...task,
           preferences: [
-            ...(firstPerson
-              ? [{ personId: firstPerson.id, preference: 0.8 }]
-              : []),
-            ...(secondPerson
-              ? [{ personId: secondPerson.id, preference: 0.6 }]
-              : []),
+            ...(firstPerson ? [{ personId: firstPerson.id, preference: 0.8 }] : []),
+            ...(secondPerson ? [{ personId: secondPerson.id, preference: 0.6 }] : []),
           ],
         };
       });
@@ -295,8 +277,8 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
     });
   });
 
-  describe('Boundary Conditions', () => {
-    it('all weights at 0.0', async () => {
+  describe("Boundary Conditions", () => {
+    it("all weights at 0.0", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.0;
@@ -312,7 +294,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       expect(response.teams.length).toBeGreaterThan(0);
     });
 
-    it('all weights at 1.0 (sum > 1)', async () => {
+    it("all weights at 1.0 (sum > 1)", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 1.0;
@@ -325,9 +307,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
         const nextPerson = array[(index + 1) % array.length];
         return {
           ...person,
-          preferences: nextPerson
-            ? [{ personId: nextPerson.id, preference: 0.5 }]
-            : [],
+          preferences: nextPerson ? [{ personId: nextPerson.id, preference: 0.5 }] : [],
         };
       });
 
@@ -339,7 +319,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       expect(response.teams.length).toBeGreaterThan(0);
     });
 
-    it('negative values are rejected by schema', async () => {
+    it("negative values are rejected by schema", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = -0.5; // Invalid
@@ -350,7 +330,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       await expect(run).rejects.toThrow();
     });
 
-    it('values above 1.0 are rejected by schema', async () => {
+    it("values above 1.0 are rejected by schema", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.beta = 1.5; // Invalid
@@ -361,8 +341,8 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
     });
   });
 
-  describe('Reproducibility Tests', () => {
-    it('same inputs with initRandom=false produce consistent results', async () => {
+  describe("Reproducibility Tests", () => {
+    it("same inputs with initRandom=false produce consistent results", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.5;
@@ -389,7 +369,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
       expect(normalizedByMembers1).toEqual(normalizedByMembers2);
     });
 
-    it('initRandom=true may produce different results', async () => {
+    it("initRandom=true may produce different results", async () => {
       expect.hasAssertions();
       const payload = createBasePayload();
       payload.alpha = 0.4;
@@ -414,43 +394,43 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
     });
   });
 
-  describe('Combined Parameter Matrix (Sample)', () => {
+  describe("Combined Parameter Matrix (Sample)", () => {
     const combinations = [
-      { alpha: 1.0, beta: 0.0, gamma: 0.0, delta: 0.0, name: 'pure skill' },
+      { alpha: 1.0, beta: 0.0, gamma: 0.0, delta: 0.0, name: "pure skill" },
       {
         alpha: 0.0,
         beta: 1.0,
         gamma: 0.0,
         delta: 0.0,
-        name: 'pure personality',
+        name: "pure personality",
       },
       {
         alpha: 0.5,
         beta: 0.5,
         gamma: 0.0,
         delta: 0.0,
-        name: 'skill+personality',
+        name: "skill+personality",
       },
       {
         alpha: 0.4,
         beta: 0.3,
         gamma: 0.2,
         delta: 0.1,
-        name: 'default balanced',
+        name: "default balanced",
       },
       {
         alpha: 0.7,
         beta: 0.2,
         gamma: 0.05,
         delta: 0.05,
-        name: 'skill-dominant',
+        name: "skill-dominant",
       },
       {
         alpha: 0.2,
         beta: 0.7,
         gamma: 0.05,
         delta: 0.05,
-        name: 'personality-dominant',
+        name: "personality-dominant",
       },
     ];
 
@@ -470,10 +450,8 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
         expect(response.teams.length).toBeGreaterThan(0);
 
         // Verify all students are assigned
-        const _allPeopleIds = new Set(payload.people.map(p => p.id));
-        const assignedIds = new Set(
-          response.teams.flatMap(team => team.people.map(p => p.id))
-        );
+        const _allPeopleIds = new Set(payload.people.map((p) => p.id));
+        const assignedIds = new Set(response.teams.flatMap((team) => team.people.map((p) => p.id)));
 
         // All or most students should be assigned
         // (API may leave some unassigned if teams can't accommodate all)
@@ -482,9 +460,9 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
     }
   });
 
-  describe('Large-Scale Cohort with Weight Variations', () => {
+  describe("Large-Scale Cohort with Weight Variations", () => {
     it(
-      'handles 20+ students with balanced weights',
+      "handles 20+ students with balanced weights",
       async () => {
         expect.hasAssertions();
         const payload = createBasePayload();
@@ -498,7 +476,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
           payload.people.push(
             createPerson({
               id: `student-${i}`,
-              gender: i % 2 === 0 ? 'MALE' : 'FEMALE',
+              gender: i % 2 === 0 ? "MALE" : "FEMALE",
               ei: Math.random() * 2 - 1,
               sn: Math.random() * 2 - 1,
               tf: Math.random() * 2 - 1,
@@ -507,7 +485,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
                 { id: BASE_SKILLS.frontend, level: Math.random() * 0.5 + 0.3 },
                 { id: BASE_SKILLS.backend, level: Math.random() * 0.5 + 0.3 },
               ],
-            })
+            }),
           );
         }
 
@@ -528,7 +506,7 @@ describeIntegration('Weight Parameters - Exhaustive Testing', () => {
         expect(response.teams.length).toBeGreaterThan(0);
         expect(response.teams.length).toBeLessThanOrEqual(5);
       },
-      { timeout: 35_000 }
+      { timeout: 35_000 },
     );
   });
 });

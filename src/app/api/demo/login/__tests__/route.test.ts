@@ -1,18 +1,18 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { DASHBOARD_STATISTICS_TAG } from "@/lib/dashboard/statistics";
 
-const actualApiI18n = await import('@/lib/api-i18n');
-const actualAuth = await import('@/lib/auth');
-const actualCsrf = await import('@/lib/csrf');
-const actualDemoConfig = await import('@/lib/demo/config');
-const actualNextCache = await import('next/cache');
-const actualNextHeaders = await import('next/headers');
-const actualPrisma = await import('@/lib/prisma');
-const actualRateLimit = await import('@/lib/rate-limit');
+const actualApiI18n = await import("@/lib/api-i18n");
+const actualAuth = await import("@/lib/auth");
+const actualCsrf = await import("@/lib/csrf");
+const actualDemoConfig = await import("@/lib/demo/config");
+const actualNextCache = await import("next/cache");
+const actualNextHeaders = await import("next/headers");
+const actualPrisma = await import("@/lib/prisma");
+const actualRateLimit = await import("@/lib/rate-limit");
 
 const signInEmailMock = mock(async () => undefined);
-const signUpEmailMock = mock(async () => ({ user: { id: 'demo-user' } }));
+const signUpEmailMock = mock(async () => ({ user: { id: "demo-user" } }));
 const cookieStoreDeleteMock = mock(() => undefined);
 const nextCookiesMock = mock(async () => ({
   delete: cookieStoreDeleteMock,
@@ -20,13 +20,13 @@ const nextCookiesMock = mock(async () => ({
 const nextHeadersMock = mock(async () => new Headers());
 const revalidateTagMock = mock(() => undefined);
 const isSameOriginMock = mock((request: { headers: Headers }) =>
-  Boolean(request.headers.get('origin') || request.headers.get('referer'))
+  Boolean(request.headers.get("origin") || request.headers.get("referer")),
 );
 const checkRateLimitMock = mock(async () => ({
   allowed: true,
   retryAfterSeconds: 60,
 }));
-const getClientIdentifierMock = mock(() => '198.51.100.9');
+const getClientIdentifierMock = mock(() => "198.51.100.9");
 
 const prismaMock = {
   user: {
@@ -70,7 +70,7 @@ const prismaMock = {
     deleteMany: mock(async () => ({ count: 0 })),
   },
   $transaction: mock(async (input: unknown) => {
-    if (typeof input === 'function') {
+    if (typeof input === "function") {
       return input(prismaMock as any);
     }
 
@@ -79,21 +79,21 @@ const prismaMock = {
 };
 
 function applyModuleMocks() {
-  mock.module('next/cache', () => ({
+  mock.module("next/cache", () => ({
     ...actualNextCache,
     revalidateTag: revalidateTagMock,
   }));
 
-  mock.module('next/headers', () => ({
+  mock.module("next/headers", () => ({
     cookies: nextCookiesMock,
     headers: nextHeadersMock,
   }));
 
-  mock.module('@/lib/api-i18n', () => ({
-    getRequestLocale: () => 'id',
+  mock.module("@/lib/api-i18n", () => ({
+    getRequestLocale: () => "id",
   }));
 
-  mock.module('@/lib/auth', () => ({
+  mock.module("@/lib/auth", () => ({
     auth: {
       api: {
         signInEmail: signInEmailMock,
@@ -102,48 +102,46 @@ function applyModuleMocks() {
     },
   }));
 
-  mock.module('@/lib/prisma', () => ({
+  mock.module("@/lib/prisma", () => ({
     default: prismaMock,
   }));
 
-  mock.module('@/lib/demo/config', () => actualDemoConfig);
+  mock.module("@/lib/demo/config", () => actualDemoConfig);
 
-  mock.module('@/lib/csrf', () => ({
+  mock.module("@/lib/csrf", () => ({
     isSameOrigin: isSameOriginMock,
   }));
 
-  mock.module('@/lib/rate-limit', () => ({
+  mock.module("@/lib/rate-limit", () => ({
     checkRateLimit: checkRateLimitMock,
     getClientIdentifier: getClientIdentifierMock,
   }));
 }
 
 function restoreModuleMocks() {
-  mock.module('next/cache', () => actualNextCache);
-  mock.module('next/headers', () => actualNextHeaders);
-  mock.module('@/lib/api-i18n', () => actualApiI18n);
-  mock.module('@/lib/auth', () => ({ ...actualAuth }));
-  mock.module('@/lib/csrf', () => actualCsrf);
-  mock.module('@/lib/demo/config', () => actualDemoConfig);
-  mock.module('@/lib/prisma', () => ({ default: actualPrisma.default }));
-  mock.module('@/lib/rate-limit', () => actualRateLimit);
+  mock.module("next/cache", () => actualNextCache);
+  mock.module("next/headers", () => actualNextHeaders);
+  mock.module("@/lib/api-i18n", () => actualApiI18n);
+  mock.module("@/lib/auth", () => ({ ...actualAuth }));
+  mock.module("@/lib/csrf", () => actualCsrf);
+  mock.module("@/lib/demo/config", () => actualDemoConfig);
+  mock.module("@/lib/prisma", () => ({ default: actualPrisma.default }));
+  mock.module("@/lib/rate-limit", () => actualRateLimit);
 }
 
 function createRequest(
   cookieValue?: string,
   includeOrigin = true,
-  role: 'TEACHER' | 'STUDENT' = 'TEACHER'
+  role: "TEACHER" | "STUDENT" = "TEACHER",
 ) {
   return {
     headers: new Headers({
-      'content-type': 'application/json',
-      ...(includeOrigin ? { origin: 'http://localhost:3000' } : {}),
+      "content-type": "application/json",
+      ...(includeOrigin ? { origin: "http://localhost:3000" } : {}),
     }),
     cookies: {
       get: (_name: string) =>
-        cookieValue
-          ? { name: 'eduteams-demo-visitor', value: cookieValue }
-          : undefined,
+        cookieValue ? { name: "eduteams-demo-visitor", value: cookieValue } : undefined,
     },
     text: async () => JSON.stringify({ role }),
   } as any;
@@ -154,11 +152,11 @@ const originalDemoMode = process.env.DEMO_MODE;
 const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 const originalDevAllowedOrigins = process.env.DEV_ALLOWED_ORIGINS;
 
-describe('POST /api/demo/login', () => {
+describe("POST /api/demo/login", () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'test';
-    process.env.DEMO_MODE = '1';
-    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
+    process.env.NODE_ENV = "test";
+    process.env.DEMO_MODE = "1";
+    process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";
     delete process.env.DEV_ALLOWED_ORIGINS;
 
     signInEmailMock.mockReset();
@@ -191,18 +189,18 @@ describe('POST /api/demo/login', () => {
     prismaMock.$transaction.mockReset();
 
     signInEmailMock.mockResolvedValue(undefined);
-    signUpEmailMock.mockResolvedValue({ user: { id: 'demo-user' } });
+    signUpEmailMock.mockResolvedValue({ user: { id: "demo-user" } });
     cookieStoreDeleteMock.mockImplementation(() => undefined);
     nextCookiesMock.mockResolvedValue({ delete: cookieStoreDeleteMock });
     nextHeadersMock.mockResolvedValue(new Headers());
     isSameOriginMock.mockImplementation((request: { headers: Headers }) =>
-      Boolean(request.headers.get('origin') || request.headers.get('referer'))
+      Boolean(request.headers.get("origin") || request.headers.get("referer")),
     );
     checkRateLimitMock.mockResolvedValue({
       allowed: true,
       retryAfterSeconds: 60,
     });
-    getClientIdentifierMock.mockReturnValue('198.51.100.9');
+    getClientIdentifierMock.mockReturnValue("198.51.100.9");
     prismaMock.user.findUnique.mockResolvedValue(null);
     prismaMock.user.delete.mockResolvedValue({});
     prismaMock.user.deleteMany.mockResolvedValue({ count: 0 });
@@ -222,7 +220,7 @@ describe('POST /api/demo/login', () => {
     prismaMock.teamMember.deleteMany.mockResolvedValue({ count: 0 });
     prismaMock.teamFormationRequest.deleteMany.mockResolvedValue({ count: 0 });
     prismaMock.$transaction.mockImplementation(async (input: unknown) => {
-      if (typeof input === 'function') {
+      if (typeof input === "function") {
         return input(prismaMock as any);
       }
 
@@ -257,101 +255,136 @@ describe('POST /api/demo/login', () => {
     process.env.DEV_ALLOWED_ORIGINS = originalDevAllowedOrigins;
   });
 
-  it('returns 404 when demo mode is disabled', async () => {
+  it("returns 404 when demo mode is disabled", async () => {
     delete process.env.DEMO_MODE;
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest('visitor1234'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest("visitor1234"));
 
     expect(res.status).toBe(404);
     expect(checkRateLimitMock).not.toHaveBeenCalled();
     expect(signInEmailMock).not.toHaveBeenCalled();
   });
 
-  it('fails closed in production when no trusted client identifier is available', async () => {
-    process.env.NODE_ENV = 'production';
+  it("sets the demo sandbox cookie on successful login", async () => {
+    const { POST } = await import("../route");
+    const { parseDemoSandboxCookieValue } = await import("@/lib/demo/sandbox");
+    const res = await POST(createRequest("visitor1234"));
+    const setCookieHeader = res.headers.get("set-cookie");
+    const sandboxCookieValue = setCookieHeader?.match(/eduteams-demo-sandbox=([^;]+)/)?.[1];
+
+    expect(res.status).toBe(200);
+    expect(setCookieHeader).toContain("eduteams-demo-sandbox=");
+    await expect(parseDemoSandboxCookieValue(sandboxCookieValue)).resolves.toEqual({
+      version: 1,
+      role: "TEACHER",
+      onboarded: false,
+      userId: "demo-user",
+      email: "demo.teacher.visitor1234@eduteams.local",
+    });
+  });
+
+  it("clears the roster overlay cookie on successful login", async () => {
+    const visitorId = "visitor1234";
+    const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
+
+    prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
+      if (where.email === teacherEmail) {
+        return { id: "demo-teacher" };
+      }
+
+      return null;
+    });
+
+    const { POST } = await import("../route");
+    const res = await POST(createRequest(visitorId));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toContain("eduteams-demo-sandbox-roster=;");
+  });
+
+  it("fails closed in production when no trusted client identifier is available", async () => {
+    process.env.NODE_ENV = "production";
     getClientIdentifierMock.mockReturnValue(null);
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest('visitor1234'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest("visitor1234"));
 
     expect(res.status).toBe(503);
     expect(checkRateLimitMock).not.toHaveBeenCalled();
     expect(signInEmailMock).not.toHaveBeenCalled();
   });
 
-  it('falls back to the demo visitor key outside production', async () => {
+  it("falls back to the demo visitor key outside production", async () => {
     getClientIdentifierMock.mockReturnValue(null);
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest('visitor1234'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest("visitor1234"));
 
     expect(res.status).toBe(200);
     expect(checkRateLimitMock).toHaveBeenCalledWith({
-      key: 'demo-login:visitor:visitor1234',
+      key: "demo-login:visitor:visitor1234",
       limit: 10,
       windowMs: 60_000,
     });
     expect(signUpEmailMock).toHaveBeenCalled();
   });
 
-  it('recreates stale demo accounts when Better Auth returns stable credential codes', async () => {
-    const visitorId = 'visitor1234';
+  it("recreates stale demo accounts when Better Auth returns stable credential codes", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
 
     signInEmailMock.mockRejectedValue({
-      body: { code: 'INVALID_EMAIL_OR_PASSWORD' },
+      body: { code: "INVALID_EMAIL_OR_PASSWORD" },
     });
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === teacherEmail) {
         return {
-          id: 'stale-user',
-          accounts: [{ id: 'account-1', password: 'hashed-password' }],
+          id: "stale-user",
+          accounts: [{ id: "account-1", password: "hashed-password" }],
         };
       }
 
       return null;
     });
 
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
     const res = await POST(createRequest(visitorId));
 
     expect(res.status).toBe(200);
     expect(prismaMock.user.delete).toHaveBeenCalledWith({
-      where: { id: 'stale-user' },
+      where: { id: "stale-user" },
     });
     expect(signUpEmailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({ email: teacherEmail }),
-      })
+      }),
     );
   });
 
-  it('cleans up demo teacher courses and seeded students before resetting the account', async () => {
-    const visitorId = 'visitor1234';
+  it("cleans up demo teacher courses and seeded students before resetting the account", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
 
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === teacherEmail) {
-        return { id: 'demo-teacher' };
+        return { id: "demo-teacher" };
       }
 
       return null;
     });
 
-    const { getDemoStudentVisitorEmailPrefix } = await import(
-      '@/lib/demo/seed-students'
-    );
-    const { POST } = await import('../route');
+    const { getDemoStudentVisitorEmailPrefix } = await import("@/lib/demo/seed-students");
+    const { POST } = await import("../route");
     const res = await POST(createRequest(visitorId));
 
     expect(res.status).toBe(200);
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
     expect(prismaMock.course.deleteMany).toHaveBeenCalledWith({
-      where: { dosenId: 'demo-teacher' },
+      where: { dosenId: "demo-teacher" },
     });
     expect(prismaMock.teamFormationRequest.deleteMany).toHaveBeenCalledWith({
-      where: { ownerId: 'demo-teacher' },
+      where: { ownerId: "demo-teacher" },
     });
     expect(prismaMock.user.deleteMany).toHaveBeenCalledWith({
       where: {
@@ -361,51 +394,51 @@ describe('POST /api/demo/login', () => {
       },
     });
     expect(prismaMock.courseEnrollment.deleteMany).not.toHaveBeenCalled();
-    expect(revalidateTagMock.mock.calls.map(call => call[0])).toEqual([
-      CACHE_TAGS.coursesByDosen('demo-teacher'),
+    expect(revalidateTagMock.mock.calls.map((call) => call[0])).toEqual([
+      CACHE_TAGS.coursesByDosen("demo-teacher"),
       DASHBOARD_STATISTICS_TAG,
     ]);
   });
 
-  it('resets the paired primary demo student when restarting a teacher demo', async () => {
-    const visitorId = 'visitor1234';
+  it("resets the paired primary demo student when restarting a teacher demo", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
     const studentEmail = `demo.student.${visitorId}@eduteams.local`;
 
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === teacherEmail) {
-        return { id: 'demo-teacher' };
+        return { id: "demo-teacher" };
       }
 
       if (where.email === studentEmail) {
-        return { id: 'demo-student' };
+        return { id: "demo-student" };
       }
 
       return null;
     });
 
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
     const res = await POST(createRequest(visitorId));
 
     expect(res.status).toBe(200);
     expect(prismaMock.courseEnrollment.deleteMany).toHaveBeenCalledWith({
       where: {
-        studentId: 'demo-student',
+        studentId: "demo-student",
         course: {
-          dosenId: 'demo-teacher',
+          dosenId: "demo-teacher",
         },
       },
     });
     expect(prismaMock.personalitySession.deleteMany).toHaveBeenCalledWith({
-      where: { userId: 'demo-student' },
+      where: { userId: "demo-student" },
     });
     expect(prismaMock.personalityProfile.deleteMany).toHaveBeenCalledWith({
-      where: { userId: 'demo-student' },
+      where: { userId: "demo-student" },
     });
     expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: 'demo-student' },
+      where: { id: "demo-student" },
       data: {
-        name: 'Bagas Pratama',
+        name: "Bagas Pratama",
         role: null,
         isOnboarded: false,
         hasSeenWelcomeSplash: false,
@@ -414,41 +447,41 @@ describe('POST /api/demo/login', () => {
         gender: null,
       },
     });
-    expect(revalidateTagMock.mock.calls.map(call => call[0])).toEqual([
-      CACHE_TAGS.coursesByDosen('demo-teacher'),
+    expect(revalidateTagMock.mock.calls.map((call) => call[0])).toEqual([
+      CACHE_TAGS.coursesByDosen("demo-teacher"),
       DASHBOARD_STATISTICS_TAG,
-      CACHE_TAGS.studentClasses('demo-student'),
+      CACHE_TAGS.studentClasses("demo-student"),
     ]);
   });
 
-  it('clears derived demo-owned student state before starting a fresh demo student session', async () => {
-    const visitorId = 'visitor1234';
+  it("clears derived demo-owned student state before starting a fresh demo student session", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
     const studentEmail = `demo.student.${visitorId}@eduteams.local`;
 
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === teacherEmail) {
-        return { id: 'demo-teacher' };
+        return { id: "demo-teacher" };
       }
 
       if (where.email === studentEmail) {
-        return { id: 'demo-student' };
+        return { id: "demo-student" };
       }
 
       return null;
     });
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest(visitorId, true, 'STUDENT'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest(visitorId, true, "STUDENT"));
 
     expect(res.status).toBe(200);
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
     expect(prismaMock.assignmentSubmission.findMany).toHaveBeenCalledWith({
       where: {
-        studentId: 'demo-student',
+        studentId: "demo-student",
         assignment: {
           course: {
-            dosenId: 'demo-teacher',
+            dosenId: "demo-teacher",
           },
         },
       },
@@ -456,35 +489,35 @@ describe('POST /api/demo/login', () => {
     });
     expect(prismaMock.courseEnrollment.deleteMany).toHaveBeenCalledWith({
       where: {
-        studentId: 'demo-student',
+        studentId: "demo-student",
         course: {
-          dosenId: 'demo-teacher',
+          dosenId: "demo-teacher",
         },
       },
     });
     expect(prismaMock.personSkill.deleteMany).toHaveBeenCalledWith({
-      where: { personId: 'demo-student' },
+      where: { personId: "demo-student" },
     });
     expect(prismaMock.studentCompetencyProfile.deleteMany).toHaveBeenCalledWith({
-      where: { studentId: 'demo-student' },
+      where: { studentId: "demo-student" },
     });
     expect(prismaMock.assignmentSubmission.deleteMany).toHaveBeenCalledWith({
       where: {
-        studentId: 'demo-student',
+        studentId: "demo-student",
         assignment: {
           course: {
-            dosenId: 'demo-teacher',
+            dosenId: "demo-teacher",
           },
         },
       },
     });
     expect(prismaMock.assignmentTopicPreference.deleteMany).toHaveBeenCalledWith({
       where: {
-        personId: 'demo-student',
+        personId: "demo-student",
         topic: {
           assignment: {
             course: {
-              dosenId: 'demo-teacher',
+              dosenId: "demo-teacher",
             },
           },
         },
@@ -492,54 +525,52 @@ describe('POST /api/demo/login', () => {
     });
     expect(prismaMock.teamMember.deleteMany).toHaveBeenCalledWith({
       where: {
-        userId: 'demo-student',
+        userId: "demo-student",
         team: {
           teamFormationRequest: {
-            ownerId: 'demo-teacher',
+            ownerId: "demo-teacher",
           },
         },
       },
     });
-    expect(revalidateTagMock).toHaveBeenCalledWith(
-      CACHE_TAGS.studentClasses('demo-student')
-    );
+    expect(revalidateTagMock).toHaveBeenCalledWith(CACHE_TAGS.studentClasses("demo-student"));
   });
 
-  it('does not delete team-formation data for non-demo courses when restarting a demo student', async () => {
-    const visitorId = 'visitor1234';
+  it("does not delete team-formation data for non-demo courses when restarting a demo student", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
     const studentEmail = `demo.student.${visitorId}@eduteams.local`;
 
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === teacherEmail) {
-        return { id: 'demo-teacher' };
+        return { id: "demo-teacher" };
       }
 
       if (where.email === studentEmail) {
-        return { id: 'demo-student' };
+        return { id: "demo-student" };
       }
 
       return null;
     });
     prismaMock.assignmentSubmission.findMany.mockResolvedValue([
-      { assignmentId: 'demo-assignment-2' },
-      { assignmentId: 'demo-assignment-1' },
-      { assignmentId: 'demo-assignment-2' },
+      { assignmentId: "demo-assignment-2" },
+      { assignmentId: "demo-assignment-1" },
+      { assignmentId: "demo-assignment-2" },
     ]);
     prismaMock.teamFormationRequest.deleteMany.mockResolvedValueOnce({
       count: 2,
     });
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest(visitorId, true, 'STUDENT'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest(visitorId, true, "STUDENT"));
 
     expect(res.status).toBe(200);
     expect(prismaMock.assignmentSubmission.findMany).toHaveBeenCalledWith({
       where: {
-        studentId: 'demo-student',
+        studentId: "demo-student",
         assignment: {
           course: {
-            dosenId: 'demo-teacher',
+            dosenId: "demo-teacher",
           },
         },
       },
@@ -547,137 +578,133 @@ describe('POST /api/demo/login', () => {
     });
     expect(prismaMock.teamFormationRequest.deleteMany).toHaveBeenCalledWith({
       where: {
-        ownerId: 'demo-teacher',
+        ownerId: "demo-teacher",
         assignmentId: {
-          in: ['demo-assignment-2', 'demo-assignment-1'],
+          in: ["demo-assignment-2", "demo-assignment-1"],
         },
       },
     });
-    expect(revalidateTagMock.mock.calls.map(call => call[0])).toEqual([
+    expect(revalidateTagMock.mock.calls.map((call) => call[0])).toEqual([
       DASHBOARD_STATISTICS_TAG,
-      CACHE_TAGS.studentClasses('demo-student'),
-      CACHE_TAGS.coursesByDosen('demo-teacher'),
+      CACHE_TAGS.studentClasses("demo-student"),
+      CACHE_TAGS.coursesByDosen("demo-teacher"),
     ]);
   });
 
-  it('bootstraps demo student enrollment during onboarding login', async () => {
-    const visitorId = 'visitor1234';
+  it("bootstraps demo student enrollment during onboarding login", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
     const studentEmail = `demo.student.${visitorId}@eduteams.local`;
 
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === studentEmail) {
-        return { id: 'demo-student' };
+        return { id: "demo-student" };
       }
 
       if (where.email === teacherEmail) {
-        return { id: 'demo-teacher' };
+        return { id: "demo-teacher" };
       }
 
       return null;
     });
-    prismaMock.course.findMany.mockResolvedValue([{ id: 'course-1' }]);
+    prismaMock.course.findMany.mockResolvedValue([{ id: "course-1" }]);
     prismaMock.courseEnrollment.createMany.mockResolvedValue({ count: 1 });
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest(visitorId, true, 'STUDENT'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest(visitorId, true, "STUDENT"));
 
     expect(res.status).toBe(200);
     expect(prismaMock.personalityProfile.upsert).toHaveBeenCalledWith({
-      where: { userId: 'demo-student' },
+      where: { userId: "demo-student" },
       create: {
-        userId: 'demo-student',
+        userId: "demo-student",
         ei: -0.7,
         sn: -0.6,
         tf: 0.5,
         pj: 0.7,
-        mbtiType: 'INFJ',
+        mbtiType: "INFJ",
       },
       update: {},
     });
     expect(prismaMock.courseEnrollment.createMany).toHaveBeenCalledWith({
       data: [
         {
-          courseId: 'course-1',
-          studentId: 'demo-student',
+          courseId: "course-1",
+          studentId: "demo-student",
           enrolledAt: expect.any(Date),
         },
       ],
       skipDuplicates: true,
     });
-    expect(revalidateTagMock.mock.calls.map(call => call[0])).toEqual([
-      CACHE_TAGS.studentClasses('demo-student'),
-      CACHE_TAGS.coursesByDosen('demo-teacher'),
+    expect(revalidateTagMock.mock.calls.map((call) => call[0])).toEqual([
+      CACHE_TAGS.studentClasses("demo-student"),
+      CACHE_TAGS.coursesByDosen("demo-teacher"),
     ]);
   });
 
-  it('does not create a session before resetting an existing demo account', async () => {
-    const visitorId = 'visitor1234';
+  it("does not create a session before resetting an existing demo account", async () => {
+    const visitorId = "visitor1234";
     const teacherEmail = `demo.teacher.${visitorId}@eduteams.local`;
 
     prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
       if (where.email === teacherEmail) {
-        return { id: 'demo-teacher' };
+        return { id: "demo-teacher" };
       }
 
       return null;
     });
-    prismaMock.course.deleteMany.mockRejectedValue(new Error('reset failed'));
+    prismaMock.course.deleteMany.mockRejectedValue(new Error("reset failed"));
 
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
     const res = await POST(createRequest(visitorId));
 
     expect(res.status).toBe(500);
     expect(signInEmailMock).not.toHaveBeenCalled();
   });
 
-  it('clears auth state when student bootstrap fails after sign-up', async () => {
-    const visitorId = 'visitor1234';
+  it("clears auth state when student bootstrap fails after sign-up", async () => {
+    const visitorId = "visitor1234";
 
     signInEmailMock.mockRejectedValue({
-      body: { code: 'USER_NOT_FOUND' },
+      body: { code: "USER_NOT_FOUND" },
     });
-    prismaMock.personalityProfile.upsert.mockRejectedValue(
-      new Error('bootstrap failed')
-    );
+    prismaMock.personalityProfile.upsert.mockRejectedValue(new Error("bootstrap failed"));
 
-    const { POST } = await import('../route');
-    const res = await POST(createRequest(visitorId, true, 'STUDENT'));
+    const { POST } = await import("../route");
+    const res = await POST(createRequest(visitorId, true, "STUDENT"));
 
     expect(res.status).toBe(500);
     expect(prismaMock.user.delete).toHaveBeenCalledWith({
-      where: { id: 'demo-user' },
+      where: { id: "demo-user" },
     });
-    expect(cookieStoreDeleteMock.mock.calls.map(call => call[0])).toContain(
-      'better-auth.session_token'
-    );
+    expect(res.headers.get("set-cookie")).toContain("better-auth.session_token=");
   });
 
-  it('accepts the configured LAN dev origin', async () => {
-    process.env.DEV_ALLOWED_ORIGINS = 'http://100.119.116.81:3000';
+  it("accepts the configured LAN dev origin", async () => {
+    process.env.DEV_ALLOWED_ORIGINS = "http://100.119.116.81:3000";
 
-    const { POST } = await import('../route');
+    const { POST } = await import("../route");
     const res = await POST({
       headers: new Headers({
-        'content-type': 'application/json',
-        origin: 'http://100.119.116.81:3000',
+        "content-type": "application/json",
+        origin: "http://100.119.116.81:3000",
       }),
       cookies: {
         get: () => ({
-          name: 'eduteams-demo-visitor',
-          value: 'visitor1234',
+          name: "eduteams-demo-visitor",
+          value: "visitor1234",
         }),
       },
-      text: async () => JSON.stringify({ role: 'TEACHER' }),
+      text: async () => JSON.stringify({ role: "TEACHER" }),
     } as any);
 
     expect(res.status).toBe(200);
     expect(signUpEmailMock).toHaveBeenCalled();
   });
 
-  it('rejects requests that fail same-origin validation', async () => {
-    const { POST } = await import('../route');
-    const res = await POST(createRequest('visitor1234', false));
+  it("rejects requests that fail same-origin validation", async () => {
+    const { POST } = await import("../route");
+    const res = await POST(createRequest("visitor1234", false));
 
     expect(res.status).toBe(403);
     expect(checkRateLimitMock).not.toHaveBeenCalled();

@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useDebounce } from './use-debounce';
+import { useMemo } from "react";
+import { useDebounce } from "./use-debounce";
 
 type KeyOf<T> = Extract<keyof T, string>;
 
@@ -13,9 +13,9 @@ interface UseFuzzySearchProps<T> {
 function normalize(input: string): string {
   return input
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/[\u0300-\u036f]/g, '')
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .trim();
 }
 
@@ -83,13 +83,13 @@ export function useFuzzySearch<T>({
   const filtered = useMemo(() => {
     const term = normalize(debounced);
     if (!term) return data;
-    return data.filter(item =>
-      keys.some(key => {
+    return data.filter((item) =>
+      keys.some((key) => {
         const value = (item as Record<string, unknown>)[key];
         if (value == null) return false;
         const str = String(value);
         return fuzzyMatch(str, term);
-      })
+      }),
     );
   }, [data, debounced, keys]);
 

@@ -9,6 +9,7 @@ import { usePathname, useRouter } from "@/i18n/routing";
 import { authClient } from "@/lib/auth-client";
 
 const SUPPORTED_LOCALES = ["id", "en"];
+const CLEAR_SESSION_REDIRECT = "/api/auth/clear-session?redirect=/";
 const ICON_BUTTON_CLASSES =
   "rounded-full w-12 h-12 cursor-pointer transition-transform duration-150 active:scale-[0.96]";
 
@@ -57,8 +58,21 @@ export default function Sidebar({ user, notStartedCount }: SidebarProps) {
   };
 
   const handleLogout = async () => {
-    await authClient.signOut();
-    router.push("/");
+    try {
+      await authClient.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+
+    try {
+      const response = await fetch(CLEAR_SESSION_REDIRECT, { method: "POST" });
+      window.location.assign(response.redirected ? response.url : "/");
+      return;
+    } catch (error) {
+      console.error("Error clearing session:", error);
+    }
+
+    window.location.assign(CLEAR_SESSION_REDIRECT);
   };
 
   // Helper function to determine if a route is active

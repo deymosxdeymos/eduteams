@@ -1,39 +1,39 @@
-import 'server-only';
-import { createHash } from 'node:crypto';
-import { createId } from '@paralleldrive/cuid2';
-import type { Gender, MBTIType } from '@/generated/prisma/client';
-import type { PrismaClientInstance } from '@/lib/prisma';
-import { getMBTIType } from '@/lib/personality';
+import "server-only";
+import { createHash } from "node:crypto";
+import { createId } from "@paralleldrive/cuid2";
+import type { Gender, MBTIType } from "@/generated/prisma/client";
+import type { PrismaClientInstance } from "@/lib/prisma";
+import { getMBTIType } from "@/lib/personality";
 
 const DEMO_STUDENT_COUNT = 24;
-const DEMO_STUDENT_EMAIL_DOMAIN = 'eduteams.local';
-const DEMO_STUDENT_EMAIL_PREFIX = 'dcs';
+const DEMO_STUDENT_EMAIL_DOMAIN = "eduteams.local";
+const DEMO_STUDENT_EMAIL_PREFIX = "dcs";
 
 const FIRST_NAMES = [
-  'Alya',
-  'Bagas',
-  'Citra',
-  'Danu',
-  'Eka',
-  'Farah',
-  'Gilang',
-  'Hana',
-  'Intan',
-  'Jovan',
-  'Kayla',
-  'Lutfi',
-  'Mira',
-  'Nabil',
-  'Oki',
-  'Putri',
-  'Qori',
-  'Rafi',
-  'Salsa',
-  'Teguh',
-  'Ulfa',
-  'Vino',
-  'Wulan',
-  'Yusuf',
+  "Alya",
+  "Bagas",
+  "Citra",
+  "Danu",
+  "Eka",
+  "Farah",
+  "Gilang",
+  "Hana",
+  "Intan",
+  "Jovan",
+  "Kayla",
+  "Lutfi",
+  "Mira",
+  "Nabil",
+  "Oki",
+  "Putri",
+  "Qori",
+  "Rafi",
+  "Salsa",
+  "Teguh",
+  "Ulfa",
+  "Vino",
+  "Wulan",
+  "Yusuf",
 ] as const;
 
 const SCORE_POOL = [
@@ -47,30 +47,18 @@ const DEMO_SKILL_LEVEL_POOL = [0.35, 0.5, 0.65, 0.8] as const;
 const DEMO_TOPIC_PREFERENCE_POOL = [0.2, 0.4, 0.6, 0.8] as const;
 
 type DemoSeedClient = {
-  user: Pick<PrismaClientInstance['user'], 'createMany'>;
-  personalityProfile: Pick<
-    PrismaClientInstance['personalityProfile'],
-    'createMany'
-  >;
-  courseEnrollment: Pick<
-    PrismaClientInstance['courseEnrollment'],
-    'createMany'
-  >;
+  user: Pick<PrismaClientInstance["user"], "createMany">;
+  personalityProfile: Pick<PrismaClientInstance["personalityProfile"], "createMany">;
+  courseEnrollment: Pick<PrismaClientInstance["courseEnrollment"], "createMany">;
 };
 
 type DemoAssignmentSubmissionSeedClient = {
-  courseEnrollment: Pick<PrismaClientInstance['courseEnrollment'], 'findMany'>;
-  assignmentSubmission: Pick<
-    PrismaClientInstance['assignmentSubmission'],
-    'createMany'
-  >;
-  courseSkill: Pick<PrismaClientInstance['courseSkill'], 'findMany'>;
-  assignmentTopic: Pick<PrismaClientInstance['assignmentTopic'], 'findMany'>;
-  personSkill: Pick<PrismaClientInstance['personSkill'], 'createMany'>;
-  assignmentTopicPreference: Pick<
-    PrismaClientInstance['assignmentTopicPreference'],
-    'createMany'
-  >;
+  courseEnrollment: Pick<PrismaClientInstance["courseEnrollment"], "findMany">;
+  assignmentSubmission: Pick<PrismaClientInstance["assignmentSubmission"], "createMany">;
+  courseSkill: Pick<PrismaClientInstance["courseSkill"], "findMany">;
+  assignmentTopic: Pick<PrismaClientInstance["assignmentTopic"], "findMany">;
+  personSkill: Pick<PrismaClientInstance["personSkill"], "createMany">;
+  assignmentTopicPreference: Pick<PrismaClientInstance["assignmentTopicPreference"], "createMany">;
 };
 
 function clampSeedValue(value: number) {
@@ -79,33 +67,26 @@ function clampSeedValue(value: number) {
 
 function getDemoSkillLevel(studentIndex: number, skillIndex: number) {
   return clampSeedValue(
-    DEMO_SKILL_LEVEL_POOL[
-      (studentIndex + skillIndex) % DEMO_SKILL_LEVEL_POOL.length
-    ]
+    DEMO_SKILL_LEVEL_POOL[(studentIndex + skillIndex) % DEMO_SKILL_LEVEL_POOL.length],
   );
 }
 
 function getDemoTopicPreference(studentIndex: number, topicIndex: number) {
   return clampSeedValue(
-    DEMO_TOPIC_PREFERENCE_POOL[
-      (studentIndex * 2 + topicIndex) % DEMO_TOPIC_PREFERENCE_POOL.length
-    ]
+    DEMO_TOPIC_PREFERENCE_POOL[(studentIndex * 2 + topicIndex) % DEMO_TOPIC_PREFERENCE_POOL.length],
   );
 }
 
-function getStableSeedKey(scope: 'visitor' | 'course', value: string) {
-  return createHash('sha256')
+function getStableSeedKey(scope: "visitor" | "course", value: string) {
+  return createHash("sha256")
     .update(`${scope}:${value}`)
-    .digest('base64url')
+    .digest("base64url")
     .slice(0, 12)
     .toLowerCase();
 }
 
 function getSeededDemoStudentIndex(emailPrefix: string, email: string) {
-  const suffix = email
-    .slice(emailPrefix.length)
-    .split('@')[0]
-    ?.trim();
+  const suffix = email.slice(emailPrefix.length).split("@")[0]?.trim();
 
   if (!suffix) {
     return Number.POSITIVE_INFINITY;
@@ -117,24 +98,21 @@ function getSeededDemoStudentIndex(emailPrefix: string, email: string) {
 }
 
 function getDemoStudentEmailPrefix(visitorId: string, courseId: string) {
-  return `${DEMO_STUDENT_EMAIL_PREFIX}.${getStableSeedKey('visitor', visitorId)}.${getStableSeedKey('course', courseId)}.`;
+  return `${DEMO_STUDENT_EMAIL_PREFIX}.${getStableSeedKey("visitor", visitorId)}.${getStableSeedKey("course", courseId)}.`;
 }
 
 export function getDemoStudentVisitorEmailPrefix(visitorId: string) {
-  return `${DEMO_STUDENT_EMAIL_PREFIX}.${getStableSeedKey('visitor', visitorId)}.`;
+  return `${DEMO_STUDENT_EMAIL_PREFIX}.${getStableSeedKey("visitor", visitorId)}.`;
 }
 
-export function getDemoStudentCourseEmailPrefix(
-  visitorId: string,
-  courseId: string
-) {
+export function getDemoStudentCourseEmailPrefix(visitorId: string, courseId: string) {
   return getDemoStudentEmailPrefix(visitorId, courseId);
 }
 
 export async function seedDemoStudentsForCourse(
   courseId: string,
   visitorId: string,
-  client: DemoSeedClient
+  client: DemoSeedClient,
 ) {
   const emailPrefix = getDemoStudentEmailPrefix(visitorId, courseId);
   const now = new Date();
@@ -146,20 +124,20 @@ export async function seedDemoStudentsForCourse(
       index: i,
       name: `${FIRST_NAMES[i % FIRST_NAMES.length]} Demo`,
       email: `${emailPrefix}${i + 1}@${DEMO_STUDENT_EMAIL_DOMAIN}`,
-      nim: `${now.getFullYear()}${String(i + 1).padStart(4, '0')}`,
-      gender: (i % 2 === 0 ? 'FEMALE' : 'MALE') as Gender,
+      nim: `${now.getFullYear()}${String(i + 1).padStart(4, "0")}`,
+      gender: (i % 2 === 0 ? "FEMALE" : "MALE") as Gender,
       scores,
       mbtiType: getMBTIType(scores) as MBTIType,
     };
   });
 
   await client.user.createMany({
-    data: students.map(s => ({
+    data: students.map((s) => ({
       id: s.id,
       name: s.name,
       email: s.email,
       emailVerified: true,
-      role: 'STUDENT',
+      role: "STUDENT",
       nim: s.nim,
       gender: s.gender,
       isOnboarded: true,
@@ -169,7 +147,7 @@ export async function seedDemoStudentsForCourse(
   });
 
   await client.personalityProfile.createMany({
-    data: students.map(s => ({
+    data: students.map((s) => ({
       userId: s.id,
       ei: s.scores.ei,
       sn: s.scores.sn,
@@ -181,7 +159,7 @@ export async function seedDemoStudentsForCourse(
   });
 
   await client.courseEnrollment.createMany({
-    data: students.map(s => ({
+    data: students.map((s) => ({
       courseId,
       studentId: s.id,
       enrolledAt: now,
@@ -195,7 +173,7 @@ export async function seedDemoAssignmentSubmissions(
   courseId: string,
   visitorId: string,
   client: DemoAssignmentSubmissionSeedClient,
-  options: { structureVersion?: number } = {}
+  options: { structureVersion?: number } = {},
 ) {
   const emailPrefix = getDemoStudentEmailPrefix(visitorId, courseId);
   const enrollments = await client.courseEnrollment.findMany({
@@ -223,10 +201,7 @@ export async function seedDemoAssignmentSubmissions(
 
   const orderedEnrollments = [...enrollments].sort((left, right) => {
     const leftIndex = getSeededDemoStudentIndex(emailPrefix, left.student.email);
-    const rightIndex = getSeededDemoStudentIndex(
-      emailPrefix,
-      right.student.email
-    );
+    const rightIndex = getSeededDemoStudentIndex(emailPrefix, right.student.email);
 
     if (leftIndex !== rightIndex) {
       return leftIndex - rightIndex;
@@ -241,12 +216,12 @@ export async function seedDemoAssignmentSubmissions(
   const [courseSkills, assignmentTopics] = await Promise.all([
     client.courseSkill.findMany({
       where: { courseId },
-      orderBy: { skillId: 'asc' },
+      orderBy: { skillId: "asc" },
       select: { skillId: true },
     }),
     client.assignmentTopic.findMany({
       where: { assignmentId },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
       select: { id: true },
     }),
   ]);
@@ -257,15 +232,13 @@ export async function seedDemoAssignmentSubmissions(
         studentId: string;
         student: { email: string };
       },
-      studentIndex: number
+      studentIndex: number,
     ) =>
-      courseSkills.map(
-        (courseSkill: { skillId: string }, skillIndex: number) => ({
-          personId: enrollment.studentId,
-          skillId: courseSkill.skillId,
-          level: getDemoSkillLevel(studentIndex, skillIndex),
-        })
-      )
+      courseSkills.map((courseSkill: { skillId: string }, skillIndex: number) => ({
+        personId: enrollment.studentId,
+        skillId: courseSkill.skillId,
+        level: getDemoSkillLevel(studentIndex, skillIndex),
+      })),
   );
 
   const topicPreferences = orderedEnrollments.flatMap(
@@ -274,15 +247,13 @@ export async function seedDemoAssignmentSubmissions(
         studentId: string;
         student: { email: string };
       },
-      studentIndex: number
+      studentIndex: number,
     ) =>
-      assignmentTopics.map(
-        (topic: { id: string }, topicIndex: number) => ({
-          assignmentTopicId: topic.id,
-          personId: enrollment.studentId,
-          preference: getDemoTopicPreference(studentIndex, topicIndex),
-        })
-      )
+      assignmentTopics.map((topic: { id: string }, topicIndex: number) => ({
+        assignmentTopicId: topic.id,
+        personId: enrollment.studentId,
+        preference: getDemoTopicPreference(studentIndex, topicIndex),
+      })),
   );
 
   const [result] = await Promise.all([

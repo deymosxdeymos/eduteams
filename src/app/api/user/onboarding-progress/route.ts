@@ -1,26 +1,22 @@
-import type { NextRequest } from 'next/server';
-import {
-  createApiResponse,
-  getCurrentUser,
-  handleApiError,
-} from '@/lib/api-utils';
-import prisma from '@/lib/prisma';
-import { HttpError } from '@/lib/types';
+import type { NextRequest } from "next/server";
+import { createApiResponse, getCurrentUser, handleApiError } from "@/lib/api-utils";
+import prisma from "@/lib/prisma";
+import { HttpError } from "@/lib/types";
 // Prisma requires Node.js runtime
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      throw new HttpError(401, 'Unauthorized');
+      throw new HttpError(401, "Unauthorized");
     }
 
     let body: { step?: string };
     try {
       body = await request.json();
     } catch {
-      return handleApiError(new HttpError(500, 'Failed to update progress'));
+      return handleApiError(new HttpError(500, "Failed to update progress"));
     }
 
     // Extract step from body, allowing any value including undefined/null
@@ -39,6 +35,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform any database or other errors to "Failed to update progress"
-    return handleApiError(new HttpError(500, 'Failed to update progress'));
+    return handleApiError(new HttpError(500, "Failed to update progress"));
   }
 }

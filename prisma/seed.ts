@@ -1,32 +1,32 @@
-import { randomUUID } from 'node:crypto';
-import type { PersonalityAxis, Prisma } from '@/generated/prisma/client';
-import { createPrismaClient } from '@/lib/create-prisma-client';
+import { randomUUID } from "node:crypto";
+import type { PersonalityAxis, Prisma } from "@/generated/prisma/client";
+import { createPrismaClient } from "@/lib/create-prisma-client";
 
 const prisma = createPrismaClient();
 
 type PersonalityQuestionSeed = {
   text: string;
   dimension:
-    | 'ei'
-    | 'sn'
-    | 'tf'
-    | 'pj'
-    | 'i'
-    | 'e'
-    | 's'
-    | 'n'
-    | 'f'
-    | 't'
-    | 'j'
-    | 'p'
-    | 'nj'
-    | 'np'
-    | 'sj'
-    | 'sp'
-    | 'ef'
-    | 'et'
-    | 'if'
-    | 'it';
+    | "ei"
+    | "sn"
+    | "tf"
+    | "pj"
+    | "i"
+    | "e"
+    | "s"
+    | "n"
+    | "f"
+    | "t"
+    | "j"
+    | "p"
+    | "nj"
+    | "np"
+    | "sj"
+    | "sp"
+    | "ef"
+    | "et"
+    | "if"
+    | "it";
   orderHint: number;
   reversed?: boolean;
   isAttentionCheck?: boolean;
@@ -39,177 +39,170 @@ const withTimestamps = <T extends object>(data: T) => ({
   updatedAt: new Date(),
 });
 
-const SUPPORTED_LOCALES = ['id-ID', 'en-US'] as const;
+const SUPPORTED_LOCALES = ["id-ID", "en-US"] as const;
 
-type OJTSPersonalityQuestion = Omit<PersonalityQuestionSeed, 'text' | 'locale'>;
+type OJTSPersonalityQuestion = Omit<PersonalityQuestionSeed, "text" | "locale">;
 
 const OJTS_V21_ITEMS: ReadonlyArray<OJTSPersonalityQuestion> = [
-  { dimension: 'i', orderHint: 1 },
-  { dimension: 'i', orderHint: 2 },
-  { dimension: 'i', orderHint: 3 },
-  { dimension: 'i', orderHint: 4, reversed: true },
-  { dimension: 'i', orderHint: 5, reversed: true },
-  { dimension: 'i', orderHint: 6, reversed: true },
-  { dimension: 's', orderHint: 7 },
-  { dimension: 's', orderHint: 8 },
-  { dimension: 's', orderHint: 9 },
-  { dimension: 's', orderHint: 10, reversed: true },
-  { dimension: 's', orderHint: 11, reversed: true },
-  { dimension: 's', orderHint: 12, reversed: true },
-  { dimension: 'f', orderHint: 13 },
-  { dimension: 'f', orderHint: 14 },
-  { dimension: 'f', orderHint: 15 },
-  { dimension: 'f', orderHint: 16, reversed: true },
-  { dimension: 'f', orderHint: 17, reversed: true },
-  { dimension: 'f', orderHint: 18, reversed: true },
-  { dimension: 'j', orderHint: 19 },
-  { dimension: 'j', orderHint: 20 },
-  { dimension: 'j', orderHint: 21 },
-  { dimension: 'j', orderHint: 22, reversed: true },
-  { dimension: 'j', orderHint: 23, reversed: true },
-  { dimension: 'j', orderHint: 24, reversed: true },
-  { dimension: 'nj', orderHint: 25 },
-  { dimension: 'nj', orderHint: 26 },
-  { dimension: 'np', orderHint: 27 },
-  { dimension: 'np', orderHint: 28 },
-  { dimension: 'sj', orderHint: 29 },
-  { dimension: 'sj', orderHint: 30 },
-  { dimension: 'sp', orderHint: 31 },
-  { dimension: 'sp', orderHint: 32 },
-  { dimension: 'ef', orderHint: 33 },
-  { dimension: 'ef', orderHint: 34 },
-  { dimension: 'et', orderHint: 35 },
-  { dimension: 'et', orderHint: 36 },
-  { dimension: 'if', orderHint: 37 },
-  { dimension: 'if', orderHint: 38 },
-  { dimension: 'it', orderHint: 39 },
-  { dimension: 'it', orderHint: 40 },
-  { dimension: 'ei', orderHint: 41, isAttentionCheck: true },
+  { dimension: "i", orderHint: 1 },
+  { dimension: "i", orderHint: 2 },
+  { dimension: "i", orderHint: 3 },
+  { dimension: "i", orderHint: 4, reversed: true },
+  { dimension: "i", orderHint: 5, reversed: true },
+  { dimension: "i", orderHint: 6, reversed: true },
+  { dimension: "s", orderHint: 7 },
+  { dimension: "s", orderHint: 8 },
+  { dimension: "s", orderHint: 9 },
+  { dimension: "s", orderHint: 10, reversed: true },
+  { dimension: "s", orderHint: 11, reversed: true },
+  { dimension: "s", orderHint: 12, reversed: true },
+  { dimension: "f", orderHint: 13 },
+  { dimension: "f", orderHint: 14 },
+  { dimension: "f", orderHint: 15 },
+  { dimension: "f", orderHint: 16, reversed: true },
+  { dimension: "f", orderHint: 17, reversed: true },
+  { dimension: "f", orderHint: 18, reversed: true },
+  { dimension: "j", orderHint: 19 },
+  { dimension: "j", orderHint: 20 },
+  { dimension: "j", orderHint: 21 },
+  { dimension: "j", orderHint: 22, reversed: true },
+  { dimension: "j", orderHint: 23, reversed: true },
+  { dimension: "j", orderHint: 24, reversed: true },
+  { dimension: "nj", orderHint: 25 },
+  { dimension: "nj", orderHint: 26 },
+  { dimension: "np", orderHint: 27 },
+  { dimension: "np", orderHint: 28 },
+  { dimension: "sj", orderHint: 29 },
+  { dimension: "sj", orderHint: 30 },
+  { dimension: "sp", orderHint: 31 },
+  { dimension: "sp", orderHint: 32 },
+  { dimension: "ef", orderHint: 33 },
+  { dimension: "ef", orderHint: 34 },
+  { dimension: "et", orderHint: 35 },
+  { dimension: "et", orderHint: 36 },
+  { dimension: "if", orderHint: 37 },
+  { dimension: "if", orderHint: 38 },
+  { dimension: "it", orderHint: 39 },
+  { dimension: "it", orderHint: 40 },
+  { dimension: "ei", orderHint: 41, isAttentionCheck: true },
 ];
 
 const OJTS_V21_TRANSLATIONS: Record<string, readonly string[]> = {
-  'en-US': [
+  "en-US": [
     "I don't like to draw attention to myself",
-    'I hate situations where people expect me to be funny',
-    'I hold back my opinions',
-    'I want a huge social circle',
-    'I am the life of the party',
-    'I make lots of noise',
-    'I avoid philosophical discussions',
+    "I hate situations where people expect me to be funny",
+    "I hold back my opinions",
+    "I want a huge social circle",
+    "I am the life of the party",
+    "I make lots of noise",
+    "I avoid philosophical discussions",
     "I don't like to analyze literature",
-    'I am attached to conventional ways',
-    'I love to read challenging material',
-    'I look for hidden meanings in things',
-    'I am curious about everything',
-    'I want to experience passion and romance',
+    "I am attached to conventional ways",
+    "I love to read challenging material",
+    "I look for hidden meanings in things",
+    "I am curious about everything",
+    "I want to experience passion and romance",
     "I am deeply moved by others' misfortunes",
-    'I listen to my feelings when making important decisions',
-    'I prize logic above all else',
+    "I listen to my feelings when making important decisions",
+    "I prize logic above all else",
     "I don't understand people who get emotional",
     "I'd rather be feared than loved",
-    'I like order',
-    'I do things according to a plan',
-    'I am always prepared',
-    'I often make last-minute plans',
-    'I do things for no apparent reason',
-    'It takes me days to do things that should take hours because I keep getting distracted',
-    'I work on improving myself',
-    'I always feel like I need to be doing something important',
-    'I have unusual beliefs about the world',
-    'I dislike routine',
-    'I try my best to follow the rules',
-    'I respect authority',
-    'I like to take it easy',
-    'I choose the easy way',
-    'I tell other people my secrets',
-    'I make big gestures of friendship to people',
-    'I enjoy challenges and competition',
-    'I have very high self-esteem',
-    'I get embarrassed easily',
-    'I become overwhelmed by events',
-    'I have difficulty expressing my feelings',
+    "I like order",
+    "I do things according to a plan",
+    "I am always prepared",
+    "I often make last-minute plans",
+    "I do things for no apparent reason",
+    "It takes me days to do things that should take hours because I keep getting distracted",
+    "I work on improving myself",
+    "I always feel like I need to be doing something important",
+    "I have unusual beliefs about the world",
+    "I dislike routine",
+    "I try my best to follow the rules",
+    "I respect authority",
+    "I like to take it easy",
+    "I choose the easy way",
+    "I tell other people my secrets",
+    "I make big gestures of friendship to people",
+    "I enjoy challenges and competition",
+    "I have very high self-esteem",
+    "I get embarrassed easily",
+    "I become overwhelmed by events",
+    "I have difficulty expressing my feelings",
     "I don't trust others easily",
     'For quality control, please choose "Agree" for this statement.',
   ],
-  'id-ID': [
-    'Saya tidak suka menjadi pusat perhatian',
-    'Saya benci situasi di mana orang berharap saya menjadi lucu atau menghibur',
-    'Saya menahan diri untuk mengutarakan pendapat',
-    'Saya ingin memiliki pergaulan sosial yang luas',
-    'Saya yang menghidupkan suasana pesta',
-    'Saya banyak membuat banyak kebisingan',
-    'Saya menghindari diskusi filosofis',
-    'Saya tidak suka menganalisis cerita atau bacaan',
-    'Saya lebih nyaman dengan cara-cara konvensional',
-    'Saya suka membaca materi yang menantang',
-    'Saya selalu mencari makna tersembunyi di balik sesuatu',
-    'Saya penasaran dengan segala hal',
-    'Saya ingin memiliki passion dan cinta',
-    'Saya sangat tergerak melihat penderitaan orang lain',
-    'Saya mendengarkan perasaan saat mengambil keputusan penting',
-    'Saya mengutamakan logika di atas segalanya',
-    'Saya tidak mengerti orang yang mudah emosional',
-    'Saya lebih memilih ditakuti daripada dicintai',
-    'Saya suka keadaan yang teratur',
-    'Saya melakukan sesuatu sesuai rencana',
-    'Saya selalu siaga',
-    'Saya sering membuat rencana mendadak',
-    'Saya sering melakukan sesuatu tanpa alasan yang jelas',
-    'Saya butuh berhari-hari untuk mengerjakan sesuatu yang seharusnya selesai dalam jam karena mudah terganggu',
-    'Saya selalu berusaha untuk menjadi lebih baik',
-    'Saya selalu merasa harus melakukan sesuatu yang penting',
-    'Saya memiliki keyakinan yang tidak biasa tentang dunia',
-    'Saya tidak suka rutinitas',
-    'Saya berusaha sebaik mungkin untuk taat pada aturan',
-    'Saya menghormati otoritas',
-    'Saya suka bersantai-santai',
-    'Saya memilih jalan termudah',
-    'Saya menceritakan rahasia saya pada orang lain',
-    'Saya sering menunjukkan persahabatan secara berlebihan',
-    'Saya menikmati tantangan dan persaingan',
-    'Saya memiliki harga diri yang sangat tinggi',
-    'Saya mudah merasa malu',
-    'Saya mudah kewalahan menghadapi situasi',
-    'Saya kesulitan mengungkapkan perasaan',
-    'Saya tidak mudah percaya pada orang lain',
+  "id-ID": [
+    "Saya tidak suka menjadi pusat perhatian",
+    "Saya benci situasi di mana orang berharap saya menjadi lucu atau menghibur",
+    "Saya menahan diri untuk mengutarakan pendapat",
+    "Saya ingin memiliki pergaulan sosial yang luas",
+    "Saya yang menghidupkan suasana pesta",
+    "Saya banyak membuat banyak kebisingan",
+    "Saya menghindari diskusi filosofis",
+    "Saya tidak suka menganalisis cerita atau bacaan",
+    "Saya lebih nyaman dengan cara-cara konvensional",
+    "Saya suka membaca materi yang menantang",
+    "Saya selalu mencari makna tersembunyi di balik sesuatu",
+    "Saya penasaran dengan segala hal",
+    "Saya ingin memiliki passion dan cinta",
+    "Saya sangat tergerak melihat penderitaan orang lain",
+    "Saya mendengarkan perasaan saat mengambil keputusan penting",
+    "Saya mengutamakan logika di atas segalanya",
+    "Saya tidak mengerti orang yang mudah emosional",
+    "Saya lebih memilih ditakuti daripada dicintai",
+    "Saya suka keadaan yang teratur",
+    "Saya melakukan sesuatu sesuai rencana",
+    "Saya selalu siaga",
+    "Saya sering membuat rencana mendadak",
+    "Saya sering melakukan sesuatu tanpa alasan yang jelas",
+    "Saya butuh berhari-hari untuk mengerjakan sesuatu yang seharusnya selesai dalam jam karena mudah terganggu",
+    "Saya selalu berusaha untuk menjadi lebih baik",
+    "Saya selalu merasa harus melakukan sesuatu yang penting",
+    "Saya memiliki keyakinan yang tidak biasa tentang dunia",
+    "Saya tidak suka rutinitas",
+    "Saya berusaha sebaik mungkin untuk taat pada aturan",
+    "Saya menghormati otoritas",
+    "Saya suka bersantai-santai",
+    "Saya memilih jalan termudah",
+    "Saya menceritakan rahasia saya pada orang lain",
+    "Saya sering menunjukkan persahabatan secara berlebihan",
+    "Saya menikmati tantangan dan persaingan",
+    "Saya memiliki harga diri yang sangat tinggi",
+    "Saya mudah merasa malu",
+    "Saya mudah kewalahan menghadapi situasi",
+    "Saya kesulitan mengungkapkan perasaan",
+    "Saya tidak mudah percaya pada orang lain",
     'Untuk kontrol kualitas, pilih "Setuju" untuk pernyataan ini.',
   ],
 };
 
-const OJTS_REQUIRED_REVERSED_ORDER_HINTS = new Set([
-  4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23, 24,
-]);
+const OJTS_REQUIRED_REVERSED_ORDER_HINTS = new Set([4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23, 24]);
 // Prisma v7 with @map() expects enum KEY names ('I'), not VALUES ('i')
 // The PersonalityAxis enum object returns values, so we use literal key strings
 // Cast to PersonalityAxis to satisfy TypeScript (runtime accepts uppercase keys)
-const DIMENSION_MAP: Record<
-  PersonalityQuestionSeed['dimension'],
-  PersonalityAxis
-> = {
-  ei: 'EI' as PersonalityAxis,
-  sn: 'SN' as PersonalityAxis,
-  tf: 'TF' as PersonalityAxis,
-  pj: 'PJ' as PersonalityAxis,
-  i: 'I' as PersonalityAxis,
-  e: 'E' as PersonalityAxis,
-  s: 'S' as PersonalityAxis,
-  n: 'N' as PersonalityAxis,
-  f: 'F' as PersonalityAxis,
-  t: 'T' as PersonalityAxis,
-  j: 'J' as PersonalityAxis,
-  p: 'P' as PersonalityAxis,
-  nj: 'NJ' as PersonalityAxis,
-  np: 'NP' as PersonalityAxis,
-  sj: 'SJ' as PersonalityAxis,
-  sp: 'SP' as PersonalityAxis,
-  ef: 'EF' as PersonalityAxis,
-  et: 'ET' as PersonalityAxis,
-  if: 'IF' as PersonalityAxis,
-  it: 'IT' as PersonalityAxis,
+const DIMENSION_MAP: Record<PersonalityQuestionSeed["dimension"], PersonalityAxis> = {
+  ei: "EI" as PersonalityAxis,
+  sn: "SN" as PersonalityAxis,
+  tf: "TF" as PersonalityAxis,
+  pj: "PJ" as PersonalityAxis,
+  i: "I" as PersonalityAxis,
+  e: "E" as PersonalityAxis,
+  s: "S" as PersonalityAxis,
+  n: "N" as PersonalityAxis,
+  f: "F" as PersonalityAxis,
+  t: "T" as PersonalityAxis,
+  j: "J" as PersonalityAxis,
+  p: "P" as PersonalityAxis,
+  nj: "NJ" as PersonalityAxis,
+  np: "NP" as PersonalityAxis,
+  sj: "SJ" as PersonalityAxis,
+  sp: "SP" as PersonalityAxis,
+  ef: "EF" as PersonalityAxis,
+  et: "ET" as PersonalityAxis,
+  if: "IF" as PersonalityAxis,
+  it: "IT" as PersonalityAxis,
 };
-function validateOJTSStructure(
-  items: ReadonlyArray<OJTSPersonalityQuestion>
-): void {
+function validateOJTSStructure(items: ReadonlyArray<OJTSPersonalityQuestion>): void {
   const perAxis: Partial<Record<string, number>> = {};
   let attentionChecks = 0;
 
@@ -218,21 +211,14 @@ function validateOJTSStructure(
       attentionChecks += 1;
       continue;
     }
-    if (
-      OJTS_REQUIRED_REVERSED_ORDER_HINTS.has(item.orderHint) &&
-      !item.reversed
-    ) {
-      throw new Error(
-        `OJTS item with orderHint ${item.orderHint} must be marked reversed`
-      );
+    if (OJTS_REQUIRED_REVERSED_ORDER_HINTS.has(item.orderHint) && !item.reversed) {
+      throw new Error(`OJTS item with orderHint ${item.orderHint} must be marked reversed`);
     }
     perAxis[item.dimension] = (perAxis[item.dimension] || 0) + 1;
   }
 
   if (attentionChecks !== 1) {
-    throw new Error(
-      `Expected exactly 1 attention check item, found ${attentionChecks}`
-    );
+    throw new Error(`Expected exactly 1 attention check item, found ${attentionChecks}`);
   }
 }
 
@@ -244,7 +230,7 @@ function buildOJTSBank(locale: string): PersonalityQuestionSeed[] {
 
   if (texts.length !== OJTS_V21_ITEMS.length) {
     throw new Error(
-      `Locale "${locale}" must provide ${OJTS_V21_ITEMS.length} translations, found ${texts.length}`
+      `Locale "${locale}" must provide ${OJTS_V21_ITEMS.length} translations, found ${texts.length}`,
     );
   }
 
@@ -255,16 +241,16 @@ function buildOJTSBank(locale: string): PersonalityQuestionSeed[] {
   }));
 }
 async function seedMBTIQuestions() {
-  console.log('🌱 Starting MBTI questions seeding...');
+  console.log("🌱 Starting MBTI questions seeding...");
 
   try {
     // Verify the new model exists on the client (ensure you ran prisma generate after schema change)
     const hasPQ = Boolean(prisma.personalityQuestion);
     if (!hasPQ) {
       console.error(
-        '❌ prisma.personalityQuestion is undefined. Run `bun prisma generate` (and migrate) to update the client.'
+        "❌ prisma.personalityQuestion is undefined. Run `bun prisma generate` (and migrate) to update the client.",
       );
-      throw new Error('Prisma client not generated for PersonalityQuestion');
+      throw new Error("Prisma client not generated for PersonalityQuestion");
     }
 
     validateOJTSStructure(OJTS_V21_ITEMS);
@@ -281,7 +267,7 @@ async function seedMBTIQuestions() {
         });
         if (deletedResponses.count > 0) {
           console.log(
-            `i Removed ${deletedResponses.count} personality responses referencing bank v4 questions`
+            `i Removed ${deletedResponses.count} personality responses referencing bank v4 questions`,
           );
         }
 
@@ -291,13 +277,12 @@ async function seedMBTIQuestions() {
         });
         if (deleted.count > 0) {
           console.log(
-            `i Removed ${deleted.count} existing OJTS questions (bank v4) before reseeding`
+            `i Removed ${deleted.count} existing OJTS questions (bank v4) before reseeding`,
           );
         }
 
         // Build all questions at once for batch insert
-        const allQuestions: Array<Prisma.PersonalityQuestionUncheckedCreateInput> =
-          [];
+        const allQuestions: Array<Prisma.PersonalityQuestionUncheckedCreateInput> = [];
 
         for (const locale of SUPPORTED_LOCALES) {
           const ojtsBank = buildOJTSBank(locale);
@@ -306,14 +291,14 @@ async function seedMBTIQuestions() {
               withTimestamps({
                 id: randomUUID(),
                 bankVersion: 4,
-                status: 'ACTIVE',
+                status: "ACTIVE",
                 text: q.text,
                 dimension: DIMENSION_MAP[q.dimension],
                 orderHint: q.orderHint,
                 reversed: q.reversed ?? false,
                 isAttentionCheck: q.isAttentionCheck ?? false,
                 locale: q.locale,
-              })
+              }),
             );
           }
         }
@@ -323,35 +308,33 @@ async function seedMBTIQuestions() {
           data: allQuestions,
         });
 
-        console.log('✅ Seeded OJTS personality bank (v4)');
+        console.log("✅ Seeded OJTS personality bank (v4)");
         console.log(
-          `✅ Created ${result.count} MBTI questions across ${SUPPORTED_LOCALES.length} locales (v4)`
+          `✅ Created ${result.count} MBTI questions across ${SUPPORTED_LOCALES.length} locales (v4)`,
         );
       },
       {
         timeout: 15000, // Increase timeout to 15 seconds
-      }
+      },
     );
 
-    console.log('🎉 MBTI questions seeding completed successfully!');
-    console.log('\n📊 Seeding Summary:');
+    console.log("🎉 MBTI questions seeding completed successfully!");
+    console.log("\n📊 Seeding Summary:");
     for (const locale of SUPPORTED_LOCALES) {
       console.log(`   • ${locale}: ${OJTS_V21_ITEMS.length} items (bank v4)`);
     }
-    console.log(
-      '\n💡 Questions are now stored in personality_questions, not skills.'
-    );
+    console.log("\n💡 Questions are now stored in personality_questions, not skills.");
   } catch (error) {
-    console.error('❌ Error seeding MBTI questions:', error);
+    console.error("❌ Error seeding MBTI questions:", error);
     throw error;
   }
 }
 
 async function seedClassCatalog() {
-  console.log('🌱 Starting class catalog seeding...');
+  console.log("🌱 Starting class catalog seeding...");
 
   try {
-    const predefinedClasses = ['RA', 'RB', 'RC', 'RD', 'RE'];
+    const predefinedClasses = ["RA", "RB", "RC", "RD", "RE"];
 
     await prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
@@ -368,59 +351,57 @@ async function seedClassCatalog() {
       },
       {
         timeout: 10000,
-      }
+      },
     );
 
-    console.log('✅ Seeded class catalog');
-    console.log(
-      `✅ Created/updated ${predefinedClasses.length} predefined classes`
-    );
+    console.log("✅ Seeded class catalog");
+    console.log(`✅ Created/updated ${predefinedClasses.length} predefined classes`);
   } catch (error) {
-    console.error('❌ Error seeding class catalog:', error);
+    console.error("❌ Error seeding class catalog:", error);
     throw error;
   }
 }
 
 async function seedCourseCatalog() {
-  console.log('🌱 Starting course catalog seeding...');
+  console.log("🌱 Starting course catalog seeding...");
 
   try {
     const courses = [
-      { code: 'IF25-11001', name: 'Algoritma dan Pemrograman' },
-      { code: 'IF25-12003', name: 'Algoritma dan Struktur Data' },
-      { code: 'IF25-12004', name: 'Matematika Diskrit' },
-      { code: 'IF25-12005', name: 'Organisasi dan Arsitektur Komputer' },
-      { code: 'IF25-12006', name: 'Matriks dan Ruang Vektor' },
-      { code: 'IF25-21008', name: 'Jaringan Komputer' },
-      { code: 'IF25-22014', name: 'Pengembangan Aplikasi Web' },
-      { code: 'IF25-22015', name: 'Sistem Informasi' },
-      { code: 'IF25-22016', name: 'Inteligensi Buatan' },
-      { code: 'IF25-22018', name: 'Teori Bahasa Formal dan Otomata' },
-      { code: 'IF25-31020', name: 'Pembelajaran Mesin' },
-      { code: 'IF25-31022', name: 'Desain Interaksi' },
-      { code: 'IF25-31023', name: 'Manajemen Proyek Teknologi Informasi' },
-      { code: 'IF25-31024', name: 'Studium Generale' },
-      { code: 'IF25-32025', name: 'Penambangan Data' },
-      { code: 'IF25-32026', name: 'Socio Informatika dan Profesionalisme' },
-      { code: 'IF25-32028', name: 'Proyek Teknologi Informasi' },
-      { code: 'IF25-40032', name: 'Proposal Tugas Akhir' },
-      { code: 'IF25-40033', name: 'Tugas Akhir' },
-      { code: 'IF25-40201', name: 'Komputasi Awan' },
-      { code: 'IF25-40204', name: 'Sistem Informasi Kesehatan' },
-      { code: 'IF25-40301', name: 'Ethical Hacking' },
-      { code: 'IF25-40304', name: 'Pembelajaran Mesin Multimodal' },
-      { code: 'IF25-40305', name: 'Sistem Teknologi Multimedia' },
-      { code: 'IF25-40401', name: 'Pembelajaran Mendalam' },
-      { code: 'IF25-40409', name: 'Pemrosesan Bahasa Alami' },
-      { code: 'IF25-40410', name: 'Pengolahan Citra Digital' },
-      { code: 'IF25-40412', name: 'Teknologi Game' },
-      { code: 'IF25-40413', name: 'Visualisasi Data dan Informasi' },
-      { code: 'IF25-41029', name: 'Metodologi Penelitian' },
-      { code: 'IF25-41031', name: 'Kapita Selekta' },
-      { code: 'WI25-00002', name: 'Dasar Teknologi Digital' },
-      { code: 'WI25-00005', name: 'Pola Hidup Sehat dan Kebugaran Fisik' },
-      { code: 'WI25-00006', name: 'Karier, Etika, dan Kewirausahaan' },
-      { code: 'WU25-00003', name: 'Kewarganegaraan' },
+      { code: "IF25-11001", name: "Algoritma dan Pemrograman" },
+      { code: "IF25-12003", name: "Algoritma dan Struktur Data" },
+      { code: "IF25-12004", name: "Matematika Diskrit" },
+      { code: "IF25-12005", name: "Organisasi dan Arsitektur Komputer" },
+      { code: "IF25-12006", name: "Matriks dan Ruang Vektor" },
+      { code: "IF25-21008", name: "Jaringan Komputer" },
+      { code: "IF25-22014", name: "Pengembangan Aplikasi Web" },
+      { code: "IF25-22015", name: "Sistem Informasi" },
+      { code: "IF25-22016", name: "Inteligensi Buatan" },
+      { code: "IF25-22018", name: "Teori Bahasa Formal dan Otomata" },
+      { code: "IF25-31020", name: "Pembelajaran Mesin" },
+      { code: "IF25-31022", name: "Desain Interaksi" },
+      { code: "IF25-31023", name: "Manajemen Proyek Teknologi Informasi" },
+      { code: "IF25-31024", name: "Studium Generale" },
+      { code: "IF25-32025", name: "Penambangan Data" },
+      { code: "IF25-32026", name: "Socio Informatika dan Profesionalisme" },
+      { code: "IF25-32028", name: "Proyek Teknologi Informasi" },
+      { code: "IF25-40032", name: "Proposal Tugas Akhir" },
+      { code: "IF25-40033", name: "Tugas Akhir" },
+      { code: "IF25-40201", name: "Komputasi Awan" },
+      { code: "IF25-40204", name: "Sistem Informasi Kesehatan" },
+      { code: "IF25-40301", name: "Ethical Hacking" },
+      { code: "IF25-40304", name: "Pembelajaran Mesin Multimodal" },
+      { code: "IF25-40305", name: "Sistem Teknologi Multimedia" },
+      { code: "IF25-40401", name: "Pembelajaran Mendalam" },
+      { code: "IF25-40409", name: "Pemrosesan Bahasa Alami" },
+      { code: "IF25-40410", name: "Pengolahan Citra Digital" },
+      { code: "IF25-40412", name: "Teknologi Game" },
+      { code: "IF25-40413", name: "Visualisasi Data dan Informasi" },
+      { code: "IF25-41029", name: "Metodologi Penelitian" },
+      { code: "IF25-41031", name: "Kapita Selekta" },
+      { code: "WI25-00002", name: "Dasar Teknologi Digital" },
+      { code: "WI25-00005", name: "Pola Hidup Sehat dan Kebugaran Fisik" },
+      { code: "WI25-00006", name: "Karier, Etika, dan Kewirausahaan" },
+      { code: "WU25-00003", name: "Kewarganegaraan" },
     ];
 
     await prisma.$transaction(
@@ -430,7 +411,7 @@ async function seedCourseCatalog() {
             where: { code: course.code },
             update: { name: course.name },
             create: withTimestamps({
-              id: `course_${course.code.replace(/-/g, '_')}`,
+              id: `course_${course.code.replace(/-/g, "_")}`,
               code: course.code,
               name: course.name,
             }),
@@ -439,13 +420,13 @@ async function seedCourseCatalog() {
       },
       {
         timeout: 15000,
-      }
+      },
     );
 
-    console.log('✅ Seeded course catalog');
+    console.log("✅ Seeded course catalog");
     console.log(`✅ Created/updated ${courses.length} courses`);
   } catch (error) {
-    console.error('❌ Error seeding course catalog:', error);
+    console.error("❌ Error seeding course catalog:", error);
     throw error;
   }
 }
@@ -458,7 +439,7 @@ async function main() {
     // Dosen token seeding deprecated: replaced by institutional email domain verification
     // await seedDosenTokens();
   } catch (error) {
-    console.error('Seeding failed:', error);
+    console.error("Seeding failed:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
@@ -466,10 +447,8 @@ async function main() {
 }
 
 const isDirectExecution =
-  (typeof require !== 'undefined' &&
-    typeof module !== 'undefined' &&
-    require.main === module) ||
-  (typeof import.meta !== 'undefined' && import.meta.main);
+  (typeof require !== "undefined" && typeof module !== "undefined" && require.main === module) ||
+  (typeof import.meta !== "undefined" && import.meta.main);
 
 if (isDirectExecution) {
   void main();

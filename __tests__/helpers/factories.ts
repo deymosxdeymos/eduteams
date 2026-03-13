@@ -1,7 +1,7 @@
-import { createId } from '@paralleldrive/cuid2';
-import type { User, Course, Assignment, AssignmentSubmission } from '@/generated/prisma/client';
-import type { PrismaClientInstance } from '@/lib/prisma';
-import { createPrismaClient } from '@/lib/create-prisma-client';
+import { createId } from "@paralleldrive/cuid2";
+import type { User, Course, Assignment, AssignmentSubmission } from "@/generated/prisma/client";
+import type { PrismaClientInstance } from "@/lib/prisma";
+import { createPrismaClient } from "@/lib/create-prisma-client";
 
 const prisma: PrismaClientInstance = createPrismaClient();
 
@@ -25,7 +25,7 @@ export async function createTestUser(overrides: Partial<User> = {}): Promise<Use
 }
 
 export async function createTestCourse(
-  overrides: Partial<Course> & { dosenId?: string } = {}
+  overrides: Partial<Course> & { dosenId?: string } = {},
 ): Promise<Course> {
   const timestamp = new Date();
   const uniqueSuffix = createId();
@@ -42,10 +42,10 @@ export async function createTestCourse(
     data: {
       id: createId(),
       namaMataKuliah: `Test Course ${uniqueSuffix}`,
-      kelas: 'A',
+      kelas: "A",
       tahunAwalPeriode: 2024,
       tahunAkhirPeriode: 2025,
-      periode: 'GENAP',
+      periode: "GENAP",
       dosenId,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -58,7 +58,7 @@ export async function createTestAssignment(
   overrides: Partial<Assignment> & {
     courseId?: string;
     createdById?: string;
-  } = {}
+  } = {},
 ): Promise<Assignment> {
   const timestamp = new Date();
   const uniqueSuffix = createId();
@@ -84,7 +84,7 @@ export async function createTestAssignment(
       courseId,
       createdById,
       title: `Test Assignment ${uniqueSuffix}`,
-      description: 'Test assignment description',
+      description: "Test assignment description",
       startAt: timestamp,
       structureVersion: 1,
       createdAt: timestamp,
@@ -98,7 +98,7 @@ export async function createTestSubmission(
   overrides: Partial<AssignmentSubmission> & {
     assignmentId?: string;
     studentId?: string;
-  } = {}
+  } = {},
 ): Promise<AssignmentSubmission> {
   const timestamp = new Date();
   const uniqueSuffix = createId();
@@ -134,7 +134,7 @@ export async function createTestSubmission(
 export async function createTestSubmissions(
   assignmentId: string,
   count: number,
-  overrides: Partial<AssignmentSubmission> = {}
+  overrides: Partial<AssignmentSubmission> = {},
 ): Promise<AssignmentSubmission[]> {
   const submissions: AssignmentSubmission[] = [];
 

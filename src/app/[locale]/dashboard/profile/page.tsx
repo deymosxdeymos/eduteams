@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import { DashboardClient } from '@/components/dashboard/dashboard-client';
-import { ProfileLayout } from '@/components/dashboard/profile-layout';
-import { protectDashboard } from '@/lib/server-auth';
+import type { Metadata } from "next";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { ProfileLayout } from "@/components/dashboard/profile-layout";
+import { protectDashboard } from "@/lib/server-auth";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Profil - EduTeams',
-    description: 'Kelola profil dan pengaturan akun Anda',
+    title: "Profil - EduTeams",
+    description: "Kelola profil dan pengaturan akun Anda",
   };
 }
 

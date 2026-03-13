@@ -1,7 +1,7 @@
-import crypto from 'node:crypto';
+import crypto from "node:crypto";
 
 function computeSignature(requestId: string, secret: string): string {
-  return crypto.createHmac('sha256', secret).update(requestId).digest('hex');
+  return crypto.createHmac("sha256", secret).update(requestId).digest("hex");
 }
 
 export function buildEdu2comReplyPostUrl(args: {
@@ -9,9 +9,9 @@ export function buildEdu2comReplyPostUrl(args: {
   baseUrl: string;
   secret: string;
 }): string {
-  const url = new URL('/api/edu2com/webhook', args.baseUrl);
-  url.searchParams.set('requestId', args.requestId);
-  url.searchParams.set('token', computeSignature(args.requestId, args.secret));
+  const url = new URL("/api/edu2com/webhook", args.baseUrl);
+  url.searchParams.set("requestId", args.requestId);
+  url.searchParams.set("token", computeSignature(args.requestId, args.secret));
   return url.toString();
 }
 
@@ -23,10 +23,7 @@ export function verifyEdu2comWebhookToken(args: {
   if (!args.token) return false;
   try {
     const expected = computeSignature(args.requestId, args.secret);
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(args.token.trim())
-    );
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(args.token.trim()));
   } catch {
     return false;
   }

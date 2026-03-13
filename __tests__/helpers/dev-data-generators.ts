@@ -1,4 +1,4 @@
-import type { MBTIType, Gender } from '@/generated/prisma/client';
+import type { MBTIType, Gender } from "@/generated/prisma/client";
 
 export interface PersonalityScores {
   ei: number;
@@ -18,85 +18,85 @@ export interface SkillAssignment {
 
 const indonesianNames = {
   male: [
-    'Ahmad Rizki',
-    'Budi Santoso',
-    'Cahyo Prabowo',
-    'Dimas Setiawan',
-    'Eko Prasetyo',
-    'Fajar Nugroho',
-    'Gani Wijaya',
-    'Hendra Gunawan',
-    'Irfan Hakim',
-    'Joko Widodo',
-    'Kusuma Wardana',
-    'Lukman Hakim',
-    'Muhammad Fadli',
-    'Nanda Pratama',
-    'Omar Hakim',
-    'Prasetyo Wibowo',
-    'Rizky Hidayat',
-    'Surya Putra',
-    'Teguh Prasetya',
-    'Umar Bakri',
-    'Viktor Santoso',
-    'Wahyu Hidayat',
-    'Yudi Pratama',
-    'Zainal Abidin',
+    "Ahmad Rizki",
+    "Budi Santoso",
+    "Cahyo Prabowo",
+    "Dimas Setiawan",
+    "Eko Prasetyo",
+    "Fajar Nugroho",
+    "Gani Wijaya",
+    "Hendra Gunawan",
+    "Irfan Hakim",
+    "Joko Widodo",
+    "Kusuma Wardana",
+    "Lukman Hakim",
+    "Muhammad Fadli",
+    "Nanda Pratama",
+    "Omar Hakim",
+    "Prasetyo Wibowo",
+    "Rizky Hidayat",
+    "Surya Putra",
+    "Teguh Prasetya",
+    "Umar Bakri",
+    "Viktor Santoso",
+    "Wahyu Hidayat",
+    "Yudi Pratama",
+    "Zainal Abidin",
   ],
   female: [
-    'Siti Nurhaliza',
-    'Dewi Lestari',
-    'Ratna Sari',
-    'Maya Anggraini',
-    'Fitri Handayani',
-    'Indah Permata',
-    'Citra Kirana',
-    'Sarah Amelia',
-    'Nadia Putri',
-    'Rina Susanti',
-    'Diana Kartika',
-    'Lisa Permata',
-    'Maya Sari',
-    'Fitria Dewi',
-    'Citra Sari',
-    'Ratna Dewi',
-    'Siti Aminah',
-    'Nurul Hidayah',
-    'Diana Putri',
-    'Sarah Wijaya',
-    'Maya Permata',
-    'Indah Sari',
-    'Rina Permata',
+    "Siti Nurhaliza",
+    "Dewi Lestari",
+    "Ratna Sari",
+    "Maya Anggraini",
+    "Fitri Handayani",
+    "Indah Permata",
+    "Citra Kirana",
+    "Sarah Amelia",
+    "Nadia Putri",
+    "Rina Susanti",
+    "Diana Kartika",
+    "Lisa Permata",
+    "Maya Sari",
+    "Fitria Dewi",
+    "Citra Sari",
+    "Ratna Dewi",
+    "Siti Aminah",
+    "Nurul Hidayah",
+    "Diana Putri",
+    "Sarah Wijaya",
+    "Maya Permata",
+    "Indah Sari",
+    "Rina Permata",
   ],
 };
 
 const mbtiTypes: MBTIType[] = [
-  'INTJ',
-  'INTP',
-  'ENTJ',
-  'ENTP',
-  'INFJ',
-  'INFP',
-  'ENFJ',
-  'ENFP',
-  'ISTJ',
-  'ISTP',
-  'ESTJ',
-  'ESTP',
-  'ISFJ',
-  'ISFP',
-  'ESFJ',
-  'ESFP',
+  "INTJ",
+  "INTP",
+  "ENTJ",
+  "ENTP",
+  "INFJ",
+  "INFP",
+  "ENFJ",
+  "ENFP",
+  "ISTJ",
+  "ISTP",
+  "ESTJ",
+  "ESTP",
+  "ISFJ",
+  "ISFP",
+  "ESFJ",
+  "ESFP",
 ];
 
 export function generateIndonesianName(gender: Gender): string {
-  const names = gender === 'MALE' ? indonesianNames.male : indonesianNames.female;
+  const names = gender === "MALE" ? indonesianNames.male : indonesianNames.female;
   return names[Math.floor(Math.random() * names.length)];
 }
 
 export function generateNIM(sequence: number): string {
   const year = new Date().getFullYear();
-  const paddedSequence = sequence.toString().padStart(4, '0');
+  const paddedSequence = sequence.toString().padStart(4, "0");
   return `${year}${paddedSequence}`;
 }
 
@@ -116,13 +116,13 @@ export function generateBalancedMBTI(index: number, total: number): MBTIType {
 }
 
 export function getMBTIType(scores: PersonalityScores): MBTIType {
-  const ei = scores.ei >= 0 ? 'E' : 'I';
-  const sn = scores.sn >= 0 ? 'N' : 'S';
-  const tf = scores.tf >= 0 ? 'F' : 'T';
-  const pj = scores.pj >= 0 ? 'P' : 'J';
-  
+  const ei = scores.ei >= 0 ? "E" : "I";
+  const sn = scores.sn >= 0 ? "N" : "S";
+  const tf = scores.tf >= 0 ? "F" : "T";
+  const pj = scores.pj >= 0 ? "P" : "J";
+
   const mbtiString = `${ei}${sn}${tf}${pj}` as MBTIType;
-  return mbtiTypes.includes(mbtiString) ? mbtiString : 'INTJ';
+  return mbtiTypes.includes(mbtiString) ? mbtiString : "INTJ";
 }
 
 /**
@@ -131,22 +131,22 @@ export function getMBTIType(scores: PersonalityScores): MBTIType {
  */
 export function generateScoresForMBTI(mbtiType: MBTIType): PersonalityScores {
   // Parse MBTI string
-  const [e_i, s_n, t_f, j_p] = mbtiType.split('');
-  
+  const [e_i, s_n, t_f, j_p] = mbtiType.split("");
+
   // Generate scores that match the type with some variance (0.3 to 1.0)
   const variance = () => Math.random() * 0.7 + 0.3;
-  
+
   return {
-    ei: e_i === 'E' ? variance() : -variance(),
-    sn: s_n === 'N' ? variance() : -variance(),
-    tf: t_f === 'F' ? variance() : -variance(),
-    pj: j_p === 'P' ? variance() : -variance(),
+    ei: e_i === "E" ? variance() : -variance(),
+    sn: s_n === "N" ? variance() : -variance(),
+    tf: t_f === "F" ? variance() : -variance(),
+    pj: j_p === "P" ? variance() : -variance(),
   };
 }
 
 export function generateMBTIResponses(
   scores: PersonalityScores,
-  questionIds: string[]
+  questionIds: string[],
 ): AnswerRecord {
   const responses: AnswerRecord = {};
 
@@ -203,7 +203,7 @@ const SKILL_IDS = [
 export function generateRandomSkills(count: number): SkillAssignment[] {
   const skills: SkillAssignment[] = [];
   const availableIds = [...SKILL_IDS];
-  
+
   for (let i = 0; i < count && availableIds.length > 0; i++) {
     const randomIndex = Math.floor(Math.random() * availableIds.length);
     const skillId = availableIds.splice(randomIndex, 1)[0];
@@ -212,15 +212,15 @@ export function generateRandomSkills(count: number): SkillAssignment[] {
       level: Math.random() * 0.6 + 0.3, // 0.3 to 0.9
     });
   }
-  
+
   return skills;
 }
 
 export function generateRandomGender(): Gender {
-  return Math.random() > 0.5 ? 'MALE' : 'FEMALE';
+  return Math.random() > 0.5 ? "MALE" : "FEMALE";
 }
 
 export function generateEmail(baseName: string, index: number): string {
   const timestamp = Date.now();
-  return `dev-student-${timestamp}-${index}-${baseName.toLowerCase().replace(/\s+/g, '-')}@eduteams.local`;
+  return `dev-student-${timestamp}-${index}-${baseName.toLowerCase().replace(/\s+/g, "-")}@eduteams.local`;
 }

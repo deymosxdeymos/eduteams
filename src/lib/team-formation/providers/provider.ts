@@ -3,12 +3,12 @@ import type {
   PersistedTeamFormationRequest,
   TeamFormationLaunchResult,
   TeamFormationProviderName,
-} from '../types';
+} from "../types";
 
 export interface TeamFormationProvider {
   readonly name: TeamFormationProviderName;
   launch(
     request: PersistedTeamFormationRequest,
-    builtPayload: BuiltTeamFormationPayload
+    builtPayload: BuiltTeamFormationPayload,
   ): Promise<TeamFormationLaunchResult>;
 }

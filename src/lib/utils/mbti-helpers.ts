@@ -1,5 +1,5 @@
-import type { MBTIType } from '@/generated/prisma/client';
-import { getMBTIType as getMBTITypeFromScores } from '@/lib/personality';
+import type { MBTIType } from "@/generated/prisma/client";
+import { getMBTIType as getMBTITypeFromScores } from "@/lib/personality";
 
 /**
  * Derive MBTI type from user's personality scores
@@ -11,12 +11,7 @@ export function deriveMBTIType(user: {
   tf: number | null;
   pj: number | null;
 }): MBTIType | null {
-  if (
-    user.ei === null ||
-    user.sn === null ||
-    user.tf === null ||
-    user.pj === null
-  ) {
+  if (user.ei === null || user.sn === null || user.tf === null || user.pj === null) {
     return null;
   }
 

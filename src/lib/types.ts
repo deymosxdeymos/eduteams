@@ -6,11 +6,11 @@ import type {
   CourseCatalog as PrismaCourseCatalog,
   CourseEnrollment as PrismaCourseEnrollment,
   User as PrismaUser,
-} from '@/generated/prisma/client';
+} from "@/generated/prisma/client";
 
-export type UserRole = 'TEACHER' | 'STUDENT' | 'ADMIN';
+export type UserRole = "TEACHER" | "STUDENT" | "ADMIN";
 
-type PrismaUserBase = Omit<PrismaUser, 'role'>;
+type PrismaUserBase = Omit<PrismaUser, "role">;
 
 export interface ExtendedUser extends PrismaUserBase {
   role: UserRole | null;
@@ -86,18 +86,13 @@ export type ClassCatalog = PrismaClassCatalog;
 type _CourseEnrollment = PrismaCourseEnrollment;
 
 interface _CourseWithDosen extends Course {
-  dosen: Pick<ExtendedUser, 'id' | 'name' | 'email'>;
+  dosen: Pick<ExtendedUser, "id" | "name" | "email">;
 }
 
 interface _CourseWithEnrollments extends Course {
-  dosen: Pick<ExtendedUser, 'id' | 'name' | 'email'>;
+  dosen: Pick<ExtendedUser, "id" | "name" | "email">;
   enrollments: _CourseEnrollment[];
 }
 
 // Error classes moved to lib/utils/errors.ts
-export {
-  AuthError,
-  AuthorizationError,
-  HttpError,
-  ValidationError,
-} from './utils/errors';
+export { AuthError, AuthorizationError, HttpError, ValidationError } from "./utils/errors";

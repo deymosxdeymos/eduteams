@@ -1,29 +1,27 @@
-import { betterAuth } from 'better-auth';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { nextCookies } from 'better-auth/next-js';
-import { assertDeploymentConfiguration } from '@/lib/deployment-config';
-import prisma from '@/lib/prisma';
-import { isDemoModeEnabled } from '@/lib/demo/config';
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
+import { assertDeploymentConfiguration } from "@/lib/deployment-config";
+import prisma from "@/lib/prisma";
+import { isDemoModeEnabled } from "@/lib/demo/config";
 
 const PUBLIC_DEMO_BLOCKED_AUTH_PATHS = new Set([
-  '/sign-in/social',
-  '/sign-in/email',
-  '/sign-up/email',
+  "/sign-in/social",
+  "/sign-in/email",
+  "/sign-up/email",
 ]);
 
-export function shouldBlockPublicDemoCredentialAuth(
-  request: Pick<Request, 'url'>
-) {
+export function shouldBlockPublicDemoCredentialAuth(request: Pick<Request, "url">) {
   if (!isDemoModeEnabled()) {
     return false;
   }
 
   const pathname = new URL(request.url).pathname;
-  if (!pathname.startsWith('/api/auth/')) {
+  if (!pathname.startsWith("/api/auth/")) {
     return false;
   }
 
-  const authPath = pathname.slice('/api/auth'.length);
+  const authPath = pathname.slice("/api/auth".length);
   return PUBLIC_DEMO_BLOCKED_AUTH_PATHS.has(authPath);
 }
 
@@ -38,7 +36,7 @@ function createAuth(): Auth {
 
   return betterAuth({
     database: prismaAdapter(prisma, {
-      provider: 'postgresql',
+      provider: "postgresql",
     }),
     baseURL: process.env.BETTER_AUTH_URL,
     socialProviders: demoMode
@@ -57,15 +55,15 @@ function createAuth(): Auth {
     user: {
       additionalFields: {
         role: {
-          type: 'string',
+          type: "string",
           input: false,
         },
         nim: {
-          type: 'string',
+          type: "string",
           input: false,
         },
         isOnboarded: {
-          type: 'boolean',
+          type: "boolean",
           defaultValue: false,
           input: false,
         },
@@ -86,6 +84,6 @@ export const auth: Auth = new Proxy({} as Auth, {
   get(_target, prop, receiver) {
     const instance = getAuth();
     const value = Reflect.get(instance, prop, receiver);
-    return typeof value === 'function' ? value.bind(instance) : value;
+    return typeof value === "function" ? value.bind(instance) : value;
   },
 });

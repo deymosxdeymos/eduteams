@@ -1,34 +1,35 @@
-import { headers as nextHeaders } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getCurrentUser } from '@/lib/api-utils';
-import { auth } from '@/lib/auth';
-import { isSameOrigin } from '@/lib/csrf';
+import { headers as nextHeaders } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getCurrentUser } from "@/lib/api-utils";
+import { auth } from "@/lib/auth";
+import { isSameOrigin } from "@/lib/csrf";
 import {
   clearAuthSessionCookies,
+  deleteAuthSessionCookies,
   getDemoAccount,
   getDemoAuthRecoveryState,
   getDemoVisitorIdFromRequest,
   parseDemoVisitorIdFromEmail,
   repairDemoAuthCredential,
   setDemoVisitorCookie,
-} from '@/lib/demo/auth';
-import { isDemoModeEnabled } from '@/lib/demo/config';
-import { syncDemoAccount } from '@/lib/demo/sync-account';
-import prisma from '@/lib/prisma';
-import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
+} from "@/lib/demo/auth";
+import { isDemoModeEnabled } from "@/lib/demo/config";
+import { buildDemoSandboxSession } from "@/lib/demo/sandbox";
+import { setDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
+import { syncDemoAccount } from "@/lib/demo/sync-account";
+import prisma from "@/lib/prisma";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const switchRoleSchema = z.object({
-  role: z.enum(['TEACHER', 'STUDENT']),
+  role: z.enum(["TEACHER", "STUDENT"]),
 });
 
 async function getDemoSessionVisitor(request: NextRequest) {
   const currentUser = await getCurrentUser();
-  const visitorId = currentUser?.email
-    ? parseDemoVisitorIdFromEmail(currentUser.email)
-    : null;
+  const visitorId = currentUser?.email ? parseDemoVisitorIdFromEmail(currentUser.email) : null;
 
   if (!visitorId) {
     return null;
@@ -84,39 +85,27 @@ async function rollbackCreatedDemoAuthState(userId: string) {
 
 export async function POST(request: NextRequest) {
   if (!isDemoModeEnabled()) {
-    return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
   }
 
   if (!isSameOrigin(request)) {
-    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
   }
 
   const demoVisitor = await getDemoSessionVisitor(request);
   if (!demoVisitor) {
-    return NextResponse.json(
-      { success: false, error: 'Demo session required' },
-      { status: 403 }
-    );
+    return NextResponse.json({ success: false, error: "Demo session required" }, { status: 403 });
   }
 
-  const createResponse = (
-    body: Record<string, unknown>,
-    init?: ResponseInit
-  ) => {
+  const createResponse = (body: Record<string, unknown>, init?: ResponseInit) => {
     const response = NextResponse.json(body, init);
-
-    if (demoVisitor.shouldSetCookie) {
-      setDemoVisitorCookie(response, demoVisitor.visitorId);
-    }
-
+    setDemoVisitorCookie(response, demoVisitor.visitorId);
     return response;
   };
 
   const clientId = getClientIdentifier(request);
   const rateLimit = await checkRateLimit({
-    key: clientId
-      ? `demo-switch:ip:${clientId}`
-      : `demo-switch:visitor:${demoVisitor.visitorId}`,
+    key: clientId ? `demo-switch:ip:${clientId}` : `demo-switch:visitor:${demoVisitor.visitorId}`,
     limit: 20,
     windowMs: 60 * 1000,
   });
@@ -127,20 +116,18 @@ export async function POST(request: NextRequest) {
         success: false,
         error: `Too many requests. Try again in ${rateLimit.retryAfterSeconds}s.`,
       },
-      { status: 429 }
+      { status: 429 },
     );
   }
 
   const requestedRole = await getRequestedRole(request);
   if (!requestedRole.success) {
-    return createResponse(
-      { success: false, error: 'Invalid request body' },
-      { status: 400 }
-    );
+    return createResponse({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
   const account = getDemoAccount(requestedRole.role, demoVisitor.visitorId);
   const reqHeaders = await nextHeaders();
+  let shouldDeleteAuthCookies = false;
   const signInToDemoAccount = () =>
     auth.api.signInEmail({
       body: { email: account.email, password: account.password },
@@ -154,26 +141,40 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      await syncDemoAccount(
-        existingUser.id,
-        requestedRole.role,
-        demoVisitor.visitorId
-      );
+      await syncDemoAccount(existingUser.id, requestedRole.role, demoVisitor.visitorId);
 
       try {
         await signInToDemoAccount();
 
-        return createResponse({ success: true });
+        const response = createResponse({ success: true });
+        await setDemoSandboxSessionCookie(
+          response,
+          buildDemoSandboxSession(requestedRole.role, {
+            userId: existingUser.id,
+            email: account.email,
+            onboarded: true,
+          }),
+        );
+        return response;
       } catch (error) {
         const recoveryState = await getDemoAuthRecoveryState(account.email, error);
         if (!recoveryState) {
           throw error;
         }
 
-        if (recoveryState.type !== 'missing-user') {
+        if (recoveryState.type !== "missing-user") {
           await repairDemoAuthCredential(recoveryState, account.password);
           await signInToDemoAccount();
-          return createResponse({ success: true });
+          const response = createResponse({ success: true });
+          await setDemoSandboxSessionCookie(
+            response,
+            buildDemoSandboxSession(requestedRole.role, {
+              userId: recoveryState.userId,
+              email: account.email,
+              onboarded: true,
+            }),
+          );
+          return response;
         }
       }
     }
@@ -188,29 +189,38 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result?.user) {
-      return createResponse(
-        { success: false, error: 'Failed to create user' },
-        { status: 500 }
-      );
+      return createResponse({ success: false, error: "Failed to create user" }, { status: 500 });
     }
 
     try {
-      await syncDemoAccount(
-        result.user.id,
-        requestedRole.role,
-        demoVisitor.visitorId
-      );
+      await syncDemoAccount(result.user.id, requestedRole.role, demoVisitor.visitorId);
     } catch (error) {
+      shouldDeleteAuthCookies = true;
       await rollbackCreatedDemoAuthState(result.user.id);
       throw error;
     }
 
-    return createResponse({ success: true });
-  } catch (error) {
-    console.error('Demo switch-role error:', error);
-    return createResponse(
-      { success: false, error: 'Failed to switch role' },
-      { status: 500 }
+    const response = createResponse({ success: true });
+    await setDemoSandboxSessionCookie(
+      response,
+      buildDemoSandboxSession(requestedRole.role, {
+        userId: result.user.id,
+        email: account.email,
+        onboarded: true,
+      }),
     );
+    return response;
+  } catch (error) {
+    console.error("Demo switch-role error:", error);
+    const response = createResponse(
+      { success: false, error: "Failed to switch role" },
+      { status: 500 },
+    );
+
+    if (shouldDeleteAuthCookies) {
+      deleteAuthSessionCookies(response);
+    }
+
+    return response;
   }
 }

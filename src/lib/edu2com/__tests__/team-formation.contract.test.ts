@@ -1,17 +1,17 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
-import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
+import { callEdu2comTeamFormation } from "@/lib/edu2com/api";
 import {
   type Edu2comParameters,
   edu2comParametersSchema,
   edu2comTeamsResponseSchema,
-} from '@/lib/edu2com/contract';
+} from "@/lib/edu2com/contract";
 import {
   EDU2COM_BASE_SIMILARITIES as BASE_SIMILARITIES,
   EDU2COM_BASE_SKILLS as BASE_SKILLS,
   createBasePayload,
   createPerson,
-} from '@/lib/edu2com/fixtures';
+} from "@/lib/edu2com/fixtures";
 
 const basePayload = () => createBasePayload();
 
@@ -21,18 +21,18 @@ const validPayloads: Array<{
   includeInIntegration?: boolean;
 }> = [
   {
-    name: 'balanced teams 2x2',
+    name: "balanced teams 2x2",
     payload: basePayload(),
     includeInIntegration: true,
   },
   {
-    name: 'odd number of students distributing 3+2',
+    name: "odd number of students distributing 3+2",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.people.push(
         createPerson({
-          id: 'student-5',
-          gender: 'FEMALE',
+          id: "student-5",
+          gender: "FEMALE",
           ei: 0.2,
           sn: 0.1,
           tf: 0.4,
@@ -41,11 +41,11 @@ const validPayloads: Array<{
             { id: BASE_SKILLS.frontend, level: 0.55 },
             { id: BASE_SKILLS.devops, level: 0.6 },
           ],
-        })
+        }),
       );
       payload.tasks = [
         {
-          id: 'task-complex',
+          id: "task-complex",
           teamSize: 3,
           skills: [
             { id: BASE_SKILLS.frontend, level: 0.6, importance: 1 },
@@ -54,7 +54,7 @@ const validPayloads: Array<{
           ],
         },
         {
-          id: 'task-support',
+          id: "task-support",
           teamSize: 2,
           skills: [
             { id: BASE_SKILLS.frontend, level: 0.5, importance: 1 },
@@ -67,7 +67,7 @@ const validPayloads: Array<{
     includeInIntegration: true,
   },
   {
-    name: 'random initialization enabled',
+    name: "random initialization enabled",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.initRandom = true;
@@ -75,7 +75,7 @@ const validPayloads: Array<{
     })(),
   },
   {
-    name: 'increased alpha weighting',
+    name: "increased alpha weighting",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.alpha = 1;
@@ -86,14 +86,12 @@ const validPayloads: Array<{
     })(),
   },
   {
-    name: 'preferences and extended skills',
+    name: "preferences and extended skills",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.people = payload.people.map((person, index, array) => {
         const enhancedSkills =
-          index < 2
-            ? [...person.skills, { id: BASE_SKILLS.devops, level: 0.45 }]
-            : person.skills;
+          index < 2 ? [...person.skills, { id: BASE_SKILLS.devops, level: 0.45 }] : person.skills;
         const nextPerson = array[(index + 1) % array.length];
         return {
           ...person,
@@ -108,23 +106,16 @@ const validPayloads: Array<{
             : [],
         };
       });
-      payload.tasks = payload.tasks.map(task => {
+      payload.tasks = payload.tasks.map((task) => {
         const [firstPerson, secondPerson] = payload.people;
         const preferences = [
-          ...(firstPerson
-            ? [{ personId: firstPerson.id, preference: 0.9 }]
-            : []),
-          ...(secondPerson
-            ? [{ personId: secondPerson.id, preference: 0.6 }]
-            : []),
+          ...(firstPerson ? [{ personId: firstPerson.id, preference: 0.9 }] : []),
+          ...(secondPerson ? [{ personId: secondPerson.id, preference: 0.6 }] : []),
         ];
         return {
           ...task,
           preferences,
-          skills: [
-            ...task.skills,
-            { id: BASE_SKILLS.devops, level: 0.3, importance: 1 },
-          ],
+          skills: [...task.skills, { id: BASE_SKILLS.devops, level: 0.3, importance: 1 }],
         };
       });
       payload.similarities = [
@@ -139,13 +130,13 @@ const validPayloads: Array<{
     })(),
   },
   {
-    name: 'larger cohort 6 students 3 per team',
+    name: "larger cohort 6 students 3 per team",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.people.push(
         createPerson({
-          id: 'student-5',
-          gender: 'MALE',
+          id: "student-5",
+          gender: "MALE",
           ei: 0.1,
           sn: -0.5,
           tf: 0.2,
@@ -156,8 +147,8 @@ const validPayloads: Array<{
           ],
         }),
         createPerson({
-          id: 'student-6',
-          gender: 'FEMALE',
+          id: "student-6",
+          gender: "FEMALE",
           ei: -0.4,
           sn: 0.3,
           tf: 0.6,
@@ -166,11 +157,11 @@ const validPayloads: Array<{
             { id: BASE_SKILLS.frontend, level: 0.6 },
             { id: BASE_SKILLS.devops, level: 0.5 },
           ],
-        })
+        }),
       );
       payload.tasks = [
         {
-          id: 'task-frontline',
+          id: "task-frontline",
           teamSize: 3,
           skills: [
             { id: BASE_SKILLS.frontend, level: 0.6, importance: 1 },
@@ -179,7 +170,7 @@ const validPayloads: Array<{
           ],
         },
         {
-          id: 'task-backoffice',
+          id: "task-backoffice",
           teamSize: 3,
           skills: [
             { id: BASE_SKILLS.backend, level: 0.6, importance: 1 },
@@ -199,7 +190,7 @@ const invalidPayloads: Array<{
   payload: Partial<Edu2comParameters>;
 }> = [
   {
-    name: 'less than two people',
+    name: "less than two people",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.people = [payload.people[0]];
@@ -207,7 +198,7 @@ const invalidPayloads: Array<{
     })(),
   },
   {
-    name: 'team size smaller than two',
+    name: "team size smaller than two",
     payload: (() => {
       const payload = structuredClone(basePayload());
       const [firstTask] = payload.tasks;
@@ -218,7 +209,7 @@ const invalidPayloads: Array<{
     })(),
   },
   {
-    name: 'alpha out of range',
+    name: "alpha out of range",
     payload: (() => {
       const payload = structuredClone(basePayload());
       payload.alpha = 1.2;
@@ -226,7 +217,7 @@ const invalidPayloads: Array<{
     })(),
   },
   {
-    name: 'person without skills',
+    name: "person without skills",
     payload: (() => {
       const payload = structuredClone(basePayload());
       if (payload.people[0]) {
@@ -236,7 +227,7 @@ const invalidPayloads: Array<{
     })(),
   },
   {
-    name: 'tasks missing skills',
+    name: "tasks missing skills",
     payload: (() => {
       const payload = structuredClone(basePayload());
       const [firstTask] = payload.tasks;
@@ -248,20 +239,19 @@ const invalidPayloads: Array<{
   },
 ];
 
-describe('Edu2Com payload contract', () => {
-  it.each(validPayloads)('accepts valid payload: %s', ({ payload }) => {
+describe("Edu2Com payload contract", () => {
+  it.each(validPayloads)("accepts valid payload: %s", ({ payload }) => {
     expect(edu2comParametersSchema.safeParse(payload).success).toBe(true);
   });
 
-  it.each(invalidPayloads)('rejects invalid payload: %s', ({ payload }) => {
+  it.each(invalidPayloads)("rejects invalid payload: %s", ({ payload }) => {
     expect(edu2comParametersSchema.safeParse(payload).success).toBe(false);
   });
 });
 
-const describeIntegration =
-  process.env.EDU2COM_INTEGRATION === '1' ? describe : describe.skip;
+const describeIntegration = process.env.EDU2COM_INTEGRATION === "1" ? describe : describe.skip;
 
-describeIntegration('Edu2Com live integration', () => {
+describeIntegration("Edu2Com live integration", () => {
   const originalFetch = globalThis.fetch;
 
   beforeAll(() => {
@@ -272,9 +262,7 @@ describeIntegration('Edu2Com live integration', () => {
     globalThis.fetch = originalFetch;
   });
 
-  const successScenarios = validPayloads.filter(
-    item => item.includeInIntegration
-  );
+  const successScenarios = validPayloads.filter((item) => item.includeInIntegration);
 
   for (const scenario of successScenarios) {
     it(
@@ -290,7 +278,7 @@ describeIntegration('Edu2Com live integration', () => {
         expect(parsed.success).toBe(true);
         expect(elapsedMs).toBeLessThan(7_000);
       },
-      { timeout: 15_000 }
+      { timeout: 15_000 },
     );
   }
 
@@ -300,13 +288,13 @@ describeIntegration('Edu2Com live integration', () => {
     expectedMessageFragment: RegExp;
   }> = [
     {
-      name: 'insufficient headcount for requested team size',
+      name: "insufficient headcount for requested team size",
       payload: (() => {
         const payload = structuredClone(basePayload());
         payload.people = payload.people.slice(0, 3);
         payload.tasks = [
           {
-            id: 'task-large',
+            id: "task-large",
             teamSize: 4,
             skills: [
               { id: BASE_SKILLS.frontend, level: 0.6, importance: 1 },
@@ -329,13 +317,13 @@ describeIntegration('Edu2Com live integration', () => {
     });
   }
 
-  it('returns fewer teams than requested tasks when seats exceed capacity (observed behaviour)', async () => {
+  it("returns fewer teams than requested tasks when seats exceed capacity (observed behaviour)", async () => {
     const payload = (() => {
       const base = structuredClone(basePayload());
       base.tasks = [
         ...base.tasks,
         {
-          id: 'task-extra',
+          id: "task-extra",
           teamSize: 2,
           skills: [
             { id: BASE_SKILLS.frontend, level: 0.5, importance: 1 },

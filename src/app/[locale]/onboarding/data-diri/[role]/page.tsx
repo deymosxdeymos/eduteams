@@ -1,25 +1,22 @@
-import { ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
-import Logo from '@/components/logo';
-import DataDiriFormClient from '@/components/onboarding/data-diri/data-diri-form-client';
-import { Button } from '@/components/ui/button';
-import { redirect } from '@/i18n/routing';
-import { getDataDiri } from '@/lib/actions/data-diri';
-import {
-  isActiveDemoAccountEmail,
-  parseDemoRoleFromEmail,
-} from '@/lib/demo/auth';
-import { getDemoDataDiriDefaults } from '@/lib/demo/config';
-import { isInstitutionalEmail } from '@/lib/email';
-import { getUserPersonalitySessionStatus } from '@/lib/personality-session';
-import { protectOnboardingPage } from '@/lib/server-auth';
+import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import Logo from "@/components/logo";
+import DataDiriFormClient from "@/components/onboarding/data-diri/data-diri-form-client";
+import { Button } from "@/components/ui/button";
+import { redirect } from "@/i18n/routing";
+import { getDataDiri } from "@/lib/actions/data-diri";
+import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from "@/lib/demo/auth";
+import { getDemoDataDiriDefaults } from "@/lib/demo/config";
+import { isInstitutionalEmail } from "@/lib/email";
+import { getUserPersonalitySessionStatus } from "@/lib/personality-session";
+import { protectOnboardingPage } from "@/lib/server-auth";
 
 interface DataDiriPageProps {
   params: Promise<{
     locale: string;
-    role: 'dosen' | 'mahasiswa';
+    role: "dosen" | "mahasiswa";
   }>;
 }
 
@@ -29,63 +26,56 @@ export default async function DataDiriPage({
 }: DataDiriPageProps & { searchParams: Promise<{ edit?: string }> }) {
   const { locale, role } = await params;
   const { edit } = await searchParams;
-  const tDataDiri = await getTranslations('onboarding.dataDiri');
+  const tDataDiri = await getTranslations("onboarding.dataDiri");
 
   // Validate role parameter
-  if (!['dosen', 'mahasiswa'].includes(role)) {
-    redirect({ href: '/onboarding/role', locale });
+  if (!["dosen", "mahasiswa"].includes(role)) {
+    redirect({ href: "/onboarding/role", locale });
   }
 
   // Protect the onboarding page
   const user = await protectOnboardingPage();
 
   // Check if auto-role is disabled (show back button) or enabled (hide back button)
-  const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === 'true';
+  const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === "true";
 
   // Convert URL slug to database role for comparison
-  const expectedDbRole = role === 'dosen' ? 'TEACHER' : 'STUDENT';
+  const expectedDbRole = role === "dosen" ? "TEACHER" : "STUDENT";
   if (user.role && user.role !== expectedDbRole) {
-    const userRoleSlug = user.role === 'TEACHER' ? 'dosen' : 'mahasiswa';
+    const userRoleSlug = user.role === "TEACHER" ? "dosen" : "mahasiswa";
     redirect({ href: `/onboarding/data-diri/${userRoleSlug}`, locale });
   }
 
-  const demoRole = isActiveDemoAccountEmail(user.email)
-    ? parseDemoRoleFromEmail(user.email)
-    : null;
+  const demoRole = isActiveDemoAccountEmail(user.email) ? parseDemoRoleFromEmail(user.email) : null;
   const isDemoUser = demoRole !== null;
 
   if (demoRole && demoRole !== expectedDbRole) {
-    const demoRoleSlug = demoRole === 'TEACHER' ? 'dosen' : 'mahasiswa';
+    const demoRoleSlug = demoRole === "TEACHER" ? "dosen" : "mahasiswa";
     redirect({ href: `/onboarding/data-diri/${demoRoleSlug}`, locale });
   }
 
   // For dosen, ensure institutional email domain unless this is a teacher-scoped demo account.
-  if (role === 'dosen' && !isDemoUser && !isInstitutionalEmail(user.email)) {
-    redirect({ href: '/onboarding/role?err=dosen_email', locale });
+  if (role === "dosen" && !isDemoUser && !isInstitutionalEmail(user.email)) {
+    redirect({ href: "/onboarding/role?err=dosen_email", locale });
   }
 
-  if (role === 'mahasiswa' && user.nim && edit !== 'true') {
-    const sessionStatus = await getUserPersonalitySessionStatus(
-      user.id,
-      locale
-    );
+  if (role === "mahasiswa" && user.nim && edit !== "true") {
+    const sessionStatus = await getUserPersonalitySessionStatus(user.id, locale);
 
-    if (!sessionStatus || sessionStatus.status === 'completed_valid') {
-      redirect({ href: '/dashboard?firstVisit=true', locale });
+    if (!sessionStatus || sessionStatus.status === "completed_valid") {
+      redirect({ href: "/dashboard?firstVisit=true", locale });
     }
 
-    redirect({ href: '/onboarding/kepribadian', locale });
+    redirect({ href: "/onboarding/kepribadian", locale });
   }
 
   const emptyInitialData = {
-    namaLengkap: '',
-    nim: '',
-    jenisKelamin: '',
-    role: '',
+    namaLengkap: "",
+    nim: "",
+    jenisKelamin: "",
+    role: "",
   };
-  const demoInitialData = isDemoUser
-    ? getDemoDataDiriDefaults(role)
-    : emptyInitialData;
+  const demoInitialData = isDemoUser ? getDemoDataDiriDefaults(role) : emptyInitialData;
 
   let initialData: {
     namaLengkap: string;
@@ -109,34 +99,23 @@ export default async function DataDiriPage({
   }
 
   return (
-    <main className='bg-white min-h-screen p-12'>
-      <Logo color='black' className='justify-center' />
+    <main className="bg-white min-h-screen p-12">
+      <Logo color="black" className="justify-center" />
 
-      <div className='flex items-center justify-center space-x-2 pt-20'>
-        <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          {tDataDiri('title')}
-        </h1>
-        <Image
-          src='/emoji/pencil.svg'
-          width={80}
-          height={80}
-          alt='question icon'
-          priority
-        />
+      <div className="flex items-center justify-center space-x-2 pt-20">
+        <h1 className="font-bold text-black text-6xl tracking-tighter">{tDataDiri("title")}</h1>
+        <Image src="/emoji/pencil.svg" width={80} height={80} alt="question icon" priority />
       </div>
-      <div className='flex flex-col items-center justify-center py-14 px-8'>
+      <div className="flex flex-col items-center justify-center py-14 px-8">
         {devDisableAutoRole && (
-          <div className='mb-4'>
-            <Link href={user.role ? '/onboarding/role' : '/onboarding/resume'}>
+          <div className="mb-4">
+            <Link href={user.role ? "/onboarding/role" : "/onboarding/resume"}>
               <Button
-                variant='ghost'
-                size='icon'
-                className='rounded-full w-14 h-14 border border-black'
+                variant="ghost"
+                size="icon"
+                className="rounded-full w-14 h-14 border border-black"
               >
-                <ArrowLeft
-                  strokeWidth={3}
-                  className='font-bold text-black text-lg'
-                />
+                <ArrowLeft strokeWidth={3} className="font-bold text-black text-lg" />
               </Button>
             </Link>
           </div>

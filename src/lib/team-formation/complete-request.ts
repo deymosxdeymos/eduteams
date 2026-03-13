@@ -1,10 +1,10 @@
-import { revalidateTag } from 'next/cache';
-import type { Prisma } from '@/generated/prisma/client';
-import { DASHBOARD_STATISTICS_TAG } from '@/lib/dashboard/statistics';
-import { edu2comTeamsResponseSchema } from '@/lib/edu2com/contract';
-import prisma from '@/lib/prisma';
-import { ValidationError } from '@/lib/utils/errors';
-import { markTeamFormationRequestFailed } from './request-store';
+import { revalidateTag } from "next/cache";
+import type { Prisma } from "@/generated/prisma/client";
+import { DASHBOARD_STATISTICS_TAG } from "@/lib/dashboard/statistics";
+import { edu2comTeamsResponseSchema } from "@/lib/edu2com/contract";
+import prisma from "@/lib/prisma";
+import { ValidationError } from "@/lib/utils/errors";
+import { markTeamFormationRequestFailed } from "./request-store";
 
 const clampQualityValue = (value: number | null | undefined) => {
   if (value === null || value === undefined) return null;
@@ -21,7 +21,7 @@ function normalizeTeamsPayload(data: unknown): {
   clamped: boolean;
   originalQualities: number[];
 } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof data !== "object" || data === null) {
     return { normalized: data, clamped: false, originalQualities: [] };
   }
 
@@ -32,15 +32,15 @@ function normalizeTeamsPayload(data: unknown): {
 
   let clamped = false;
   const originalQualities: number[] = [];
-  const normalizedTeams = record.teams.map(team => {
-    if (typeof team !== 'object' || team === null) {
+  const normalizedTeams = record.teams.map((team) => {
+    if (typeof team !== "object" || team === null) {
       return team;
     }
 
     const teamRecord = { ...(team as UnknownRecord) };
     const currentQuality = teamRecord.quality;
 
-    if (typeof currentQuality === 'number' && Number.isFinite(currentQuality)) {
+    if (typeof currentQuality === "number" && Number.isFinite(currentQuality)) {
       originalQualities.push(currentQuality);
       const normalizedQuality = clampQualityValue(currentQuality);
       if (normalizedQuality !== currentQuality) {
@@ -62,54 +62,55 @@ function normalizeTeamsPayload(data: unknown): {
 function getInputPeopleIds(requestData: unknown): string[] {
   if (
     !requestData ||
-    typeof requestData !== 'object' ||
-    !('people' in requestData) ||
+    typeof requestData !== "object" ||
+    !("people" in requestData) ||
     !Array.isArray((requestData as { people?: unknown }).people)
   ) {
-    throw new Error('Invalid request data structure');
+    throw new Error("Invalid request data structure");
   }
 
   const people = (requestData as { people: unknown[] }).people;
   if (
     !people.every(
-      person =>
-        person &&
-        typeof person === 'object' &&
-        'id' in person &&
-        typeof person.id === 'string'
+      (person) =>
+        person && typeof person === "object" && "id" in person && typeof person.id === "string",
     )
   ) {
-    throw new Error('Invalid people data structure');
+    throw new Error("Invalid people data structure");
   }
 
-  return people.map(person => (person as { id: string }).id);
+  return people.map((person) => (person as { id: string }).id);
 }
 
 function appendUnassignedStudents(
-  teamsPayload: { teams: Array<{ taskId: string; quality: number | null; people: Array<{ id: string; skillIds: string[] }> }> },
-  inputPeopleIds: string[]
+  teamsPayload: {
+    teams: Array<{
+      taskId: string;
+      quality: number | null;
+      people: Array<{ id: string; skillIds: string[] }>;
+    }>;
+  },
+  inputPeopleIds: string[],
 ) {
-  const nextTeams = teamsPayload.teams.map(team => ({
+  const nextTeams = teamsPayload.teams.map((team) => ({
     ...team,
-    people: team.people.map(person => ({
+    people: team.people.map((person) => ({
       ...person,
       skillIds: [...person.skillIds],
     })),
   }));
 
   const assignedPeopleIds = new Set(
-    nextTeams.flatMap(team => team.people.map(member => member.id))
+    nextTeams.flatMap((team) => team.people.map((member) => member.id)),
   );
-  const unassignedIds = inputPeopleIds.filter(id => !assignedPeopleIds.has(id));
+  const unassignedIds = inputPeopleIds.filter((id) => !assignedPeopleIds.has(id));
 
   if (unassignedIds.length === 0) {
     return { teams: nextTeams };
   }
 
   if (nextTeams.length === 0) {
-    throw new ValidationError(
-      `Cannot assign ${unassignedIds.length} students to zero teams`
-    );
+    throw new ValidationError(`Cannot assign ${unassignedIds.length} students to zero teams`);
   }
 
   const sortedTeams = [...nextTeams].sort((a, b) => {
@@ -127,10 +128,7 @@ function appendUnassignedStudents(
   return { teams: nextTeams };
 }
 
-export async function completeTeamFormationRequest(
-  requestId: string,
-  teamsPayload: unknown
-) {
+export async function completeTeamFormationRequest(requestId: string, teamsPayload: unknown) {
   const requestRecord = await prisma.teamFormationRequest.findUnique({
     where: { id: requestId },
     select: {
@@ -142,10 +140,10 @@ export async function completeTeamFormationRequest(
   });
 
   if (!requestRecord) {
-    throw new ValidationError('Team formation request not found');
+    throw new ValidationError("Team formation request not found");
   }
 
-  if (requestRecord.status === 'COMPLETED') {
+  if (requestRecord.status === "COMPLETED") {
     return { didComplete: false as const };
   }
 
@@ -161,7 +159,7 @@ export async function completeTeamFormationRequest(
     await tx.teamFormationRequest.update({
       where: { id: requestId },
       data: {
-        status: 'COMPLETED',
+        status: "COMPLETED",
         completedAt: new Date(),
         responseData: finalPayload as unknown as Prisma.InputJsonValue,
         errorMessage: null,
@@ -171,7 +169,7 @@ export async function completeTeamFormationRequest(
             name: `Kelompok ${index + 1} (${team.taskId})`,
             quality: clampQualityValue(team.quality),
             members: {
-              create: team.people.map(member => ({
+              create: team.people.map((member) => ({
                 userId: member.id,
                 assignedSkillIds: member.skillIds ?? [],
               })),
@@ -184,7 +182,7 @@ export async function completeTeamFormationRequest(
     if (requestRecord.assignmentId) {
       await tx.assignment.update({
         where: { id: requestRecord.assignmentId },
-        data: { status: 'BERHASIL_PEMBAGIAN_GRUP' },
+        data: { status: "BERHASIL_PEMBAGIAN_GRUP" },
       });
     }
   });
@@ -197,16 +195,11 @@ export async function completeTeamFormationRequest(
   };
 }
 
-export async function failTeamFormationRequest(
-  requestId: string,
-  errorMessage: string
-) {
+export async function failTeamFormationRequest(requestId: string, errorMessage: string) {
   await markTeamFormationRequestFailed(requestId, errorMessage);
 }
 
-export function normalizeAndValidateTeamFormationCompletionPayload(
-  teamsPayload: unknown
-) {
+export function normalizeAndValidateTeamFormationCompletionPayload(teamsPayload: unknown) {
   const { normalized } = normalizeTeamsPayload(teamsPayload);
   const parsed = edu2comTeamsResponseSchema.safeParse(normalized);
   if (!parsed.success) {

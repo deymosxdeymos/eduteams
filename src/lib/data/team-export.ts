@@ -1,6 +1,6 @@
-import type { Gender, MBTIType } from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
-import type { AssignmentExportData, TeamExportData } from '@/types/export';
+import type { Gender, MBTIType } from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
+import type { AssignmentExportData, TeamExportData } from "@/types/export";
 
 // Type definitions for Prisma query results
 interface PersonSkillResult {
@@ -53,7 +53,7 @@ interface TeamResult {
  */
 export async function getAssignmentExportData(
   assignmentId: string,
-  userId: string
+  userId: string,
 ): Promise<AssignmentExportData | null> {
   // Fetch assignment with course and verify ownership
   const assignment = await prisma.assignment.findFirst({
@@ -88,7 +88,7 @@ export async function getAssignmentExportData(
       },
       teamFormationRequests: {
         where: {
-          status: 'COMPLETED',
+          status: "COMPLETED",
         },
         select: {
           id: true,
@@ -139,20 +139,16 @@ export async function getAssignmentExportData(
                   },
                 },
                 orderBy: {
-                  createdAt: 'asc',
+                  createdAt: "asc",
                 },
               },
             },
             orderBy: {
-              createdAt: 'asc',
+              createdAt: "asc",
             },
           },
         },
-        orderBy: [
-          { completedAt: 'desc' },
-          { updatedAt: 'desc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ completedAt: "desc" }, { updatedAt: "desc" }, { createdAt: "desc" }],
         take: 1,
       },
     },
@@ -177,10 +173,7 @@ export async function getAssignmentExportData(
 
   // Create a map of topic IDs to topic names for quick lookup
   const topicMap = new Map<string, string>(
-    assignment.AssignmentTopic.map((topic: { id: string; name: string }) => [
-      topic.id,
-      topic.name,
-    ])
+    assignment.AssignmentTopic.map((topic: { id: string; name: string }) => [topic.id, topic.name]),
   );
 
   // Derive topic names using taskId information persisted in responseData
@@ -205,8 +198,7 @@ export async function getAssignmentExportData(
   const teams: TeamExportData[] = teamFormationRequest.teams.map(
     (team: TeamResult, index: number) => {
       const topicName =
-        topicNamesByIndex[index] ??
-        (team.taskId ? topicMap.get(team.taskId) || null : null);
+        topicNamesByIndex[index] ?? (team.taskId ? topicMap.get(team.taskId) || null : null);
 
       return {
         teamNumber: index + 1,
@@ -237,21 +229,16 @@ export async function getAssignmentExportData(
           };
         }),
       };
-    }
+    },
   );
 
   // Calculate metadata
-  const totalStudents = teams.reduce(
-    (sum, team) => sum + team.members.length,
-    0
-  );
+  const totalStudents = teams.reduce((sum, team) => sum + team.members.length, 0);
   const totalTeams = teams.length;
   const averageTeamSize = totalStudents / totalTeams;
 
   // Calculate average quality (excluding null values)
-  const qualityScores = teams
-    .map(team => team.quality)
-    .filter((q): q is number => q !== null);
+  const qualityScores = teams.map((team) => team.quality).filter((q): q is number => q !== null);
   const averageQuality =
     qualityScores.length > 0
       ? qualityScores.reduce((sum, q) => sum + q, 0) / qualityScores.length

@@ -1,16 +1,16 @@
-import type { NextRequest } from 'next/server';
-import { z } from 'zod';
-import type { MBTIType, Prisma as PrismaNS } from '@/generated/prisma/client';
-import { createApiResponse, withAuth, withValidation } from '@/lib/api-utils';
-import {
-  type ActivePersonalityBank,
-  getActivePersonalityBank,
-} from '@/lib/mbti-questions-simple';
-import { calculatePersonalityScores, getMBTIType } from '@/lib/personality';
-import prisma, { type TransactionClient } from '@/lib/prisma';
-import { AuthError } from '@/lib/types';
+import type { NextRequest } from "next/server";
+import { z } from "zod";
+import type { MBTIType, Prisma as PrismaNS } from "@/generated/prisma/client";
+import { createApiResponse, withAuth, withValidation } from "@/lib/api-utils";
+import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
+import { buildDemoSandboxSession } from "@/lib/demo/sandbox";
+import { setDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
+import { type ActivePersonalityBank, getActivePersonalityBank } from "@/lib/mbti-questions-simple";
+import { calculatePersonalityScores, getMBTIType } from "@/lib/personality";
+import prisma, { type TransactionClient } from "@/lib/prisma";
+import { AuthError } from "@/lib/types";
 // Prisma requires Node.js runtime
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 type PersonalityProfileUpdate = {
   ei: number;
@@ -26,11 +26,11 @@ const completeOnboardingSchema = z.object({
 });
 
 function hasNonNumericAnswerKeys(answers: Record<string, number>): boolean {
-  return Object.keys(answers).some(key => !/^\d+$/.test(key));
+  return Object.keys(answers).some((key) => !/^\d+$/.test(key));
 }
 
 async function resolveBankForAnswers(
-  answers: Record<string, number>
+  answers: Record<string, number>,
 ): Promise<ActivePersonalityBank | null> {
   if (Object.keys(answers).length === 0) {
     return getActivePersonalityBank();
@@ -39,10 +39,10 @@ async function resolveBankForAnswers(
   const needsIdMatch = hasNonNumericAnswerKeys(answers);
   const localesToTry: Array<string | undefined> = [undefined];
   if (needsIdMatch) {
-    localesToTry.push('en-US');
+    localesToTry.push("en-US");
   }
-  if (!localesToTry.includes('id-ID')) {
-    localesToTry.push('id-ID');
+  if (!localesToTry.includes("id-ID")) {
+    localesToTry.push("id-ID");
   }
 
   const seen = new Set<string | undefined>();
@@ -60,9 +60,7 @@ async function resolveBankForAnswers(
       return bank;
     }
 
-    const matches = bank.questions.some(question =>
-      Object.hasOwn(answers, question.id)
-    );
+    const matches = bank.questions.some((question) => Object.hasOwn(answers, question.id));
 
     if (matches) {
       return bank;
@@ -89,21 +87,21 @@ export const POST = withAuth(
       });
 
       if (!currentUser) {
-        return createApiResponse(null, 'User not found', 404);
+        return createApiResponse(null, "User not found", 404);
       }
 
       const updateData: Record<string, unknown> = { isOnboarded: true };
       let personalityUpdate: PersonalityProfileUpdate | null = null;
 
       // If user is mahasiswa and provided answers, calculate personality scores
-      if (currentUser.role === 'STUDENT' && answers) {
+      if (currentUser.role === "STUDENT" && answers) {
         const bank = await resolveBankForAnswers(answers);
         if (!bank) {
-          return createApiResponse(null, 'Personality bank unavailable', 400);
+          return createApiResponse(null, "Personality bank unavailable", 400);
         }
         const normalizedAnswers: Record<string, number> = {};
         for (const [key, value] of Object.entries(answers)) {
-          if (typeof value === 'number') {
+          if (typeof value === "number") {
             normalizedAnswers[key] = value;
           }
         }
@@ -127,14 +125,10 @@ export const POST = withAuth(
         });
 
         if (!hasAnyMatch) {
-          return createApiResponse(
-            null,
-            'No answers matched the current question bank',
-            400
-          );
+          return createApiResponse(null, "No answers matched the current question bank", 400);
         }
 
-        const questions = bank.questions.filter(q => !q.isAttentionCheck);
+        const questions = bank.questions.filter((q) => !q.isAttentionCheck);
         const scores = calculatePersonalityScores(normalizedAnswers, questions);
         const mbtiType = getMBTIType(scores) as MBTIType;
         const payload = {
@@ -171,7 +165,25 @@ export const POST = withAuth(
         }
       });
 
-      return createApiResponse({ success: true });
-    }
-  )
+      const response = createApiResponse({ success: true });
+
+      if (
+        typeof user.email === "string" &&
+        isActiveDemoAccountEmail(user.email) &&
+        (user.role === "TEACHER" || user.role === "STUDENT")
+      ) {
+        await setDemoSandboxSessionCookie(
+          response,
+          buildDemoSandboxSession(user.role, {
+            userId: user.id,
+            email: user.email,
+            onboarded: true,
+          }),
+        );
+      }
+
+      return response;
+    },
+  ),
+  { allowDemoSandbox: true },
 );

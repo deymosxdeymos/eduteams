@@ -1,6 +1,10 @@
-import { describe, expect, it, mock } from "bun:test";
+import { afterAll, describe, expect, it, mock } from "bun:test";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ClassCard } from "@/components/dashboard/class-card";
+
+afterAll(() => {
+  mock.restore();
+});
 
 describe("ClassCard", () => {
   it("renders props and navigates on click", async () => {

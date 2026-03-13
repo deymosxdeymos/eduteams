@@ -1,12 +1,11 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
-import { callEdu2comTeamFormation } from '@/lib/edu2com/api';
-import type { Edu2comParameters } from '@/lib/edu2com/contract';
-import { EDU2COM_BASE_SKILLS as BASE_SKILLS } from '@/lib/edu2com/fixtures';
-import { normalizeTeamsByMembers, runEdu2comCall } from './test-helpers';
+import { callEdu2comTeamFormation } from "@/lib/edu2com/api";
+import type { Edu2comParameters } from "@/lib/edu2com/contract";
+import { EDU2COM_BASE_SKILLS as BASE_SKILLS } from "@/lib/edu2com/fixtures";
+import { normalizeTeamsByMembers, runEdu2comCall } from "./test-helpers";
 
-const describeIntegration =
-  process.env.EDU2COM_INTEGRATION === '1' ? describe : describe.skip;
+const describeIntegration = process.env.EDU2COM_INTEGRATION === "1" ? describe : describe.skip;
 
 /**
  * Property-Based Testing for Edu2com API
@@ -35,22 +34,18 @@ function randomPersonality() {
 }
 
 function randomSkills() {
-  const skills = [
-    BASE_SKILLS.frontend,
-    BASE_SKILLS.backend,
-    BASE_SKILLS.devops,
-  ];
+  const skills = [BASE_SKILLS.frontend, BASE_SKILLS.backend, BASE_SKILLS.devops];
   const numSkills = randomInt(1, 3);
   const selectedSkills = skills.slice(0, numSkills);
 
-  return selectedSkills.map(id => ({
+  return selectedSkills.map((id) => ({
     id,
     level: randomBetween(0.1, 1.0),
   }));
 }
 
 function generateRandomPeople(count: number) {
-  const genders: Array<'MALE' | 'FEMALE'> = ['MALE', 'FEMALE'];
+  const genders: Array<"MALE" | "FEMALE"> = ["MALE", "FEMALE"];
 
   return Array.from({ length: count }, (_, i) => ({
     id: `person-${i + 1}`,
@@ -68,10 +63,8 @@ function generateRandomTasks(numTasks: number, totalPeople: number) {
     const isLastTask = i === numTasks - 1;
     const minTeamSize = 2;
     const maxTeamSize = Math.min(
-      isLastTask
-        ? remainingPeople
-        : Math.floor(remainingPeople / (numTasks - i)),
-      8
+      isLastTask ? remainingPeople : Math.floor(remainingPeople / (numTasks - i)),
+      8,
     );
 
     const teamSize = randomInt(minTeamSize, Math.max(minTeamSize, maxTeamSize));
@@ -100,10 +93,7 @@ function generateRandomTasks(numTasks: number, totalPeople: number) {
   return tasks;
 }
 
-function generateRandomPayload(
-  numPeople: number,
-  numTasks: number
-): Edu2comParameters {
+function generateRandomPayload(numPeople: number, numTasks: number): Edu2comParameters {
   return {
     people: generateRandomPeople(numPeople),
     tasks: generateRandomTasks(numTasks, numPeople),
@@ -115,7 +105,7 @@ function generateRandomPayload(
   };
 }
 
-describeIntegration('Property-Based Testing - Invariant Verification', () => {
+describeIntegration("Property-Based Testing - Invariant Verification", () => {
   const originalFetch = globalThis.fetch;
 
   beforeAll(() => {
@@ -126,7 +116,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
     globalThis.fetch = originalFetch;
   });
 
-  describe('Core Invariants', () => {
+  describe("Core Invariants", () => {
     const NUM_TRIALS = 10;
 
     it(
@@ -142,12 +132,12 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const result = await runEdu2comCall(() =>
             callEdu2comTeamFormation(payload, {
               timeoutMs: 15_000,
-            })
+            }),
           );
 
           if (!result.ok) {
             console.warn(
-              `[Property-Based] Quality invariant trial ${trial} skipped: ${result.error.code}`
+              `[Property-Based] Quality invariant trial ${trial} skipped: ${result.error.code}`,
             );
             continue;
           }
@@ -163,7 +153,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
 
         expect(completedTrials).toBeGreaterThan(0);
       },
-      { timeout: NUM_TRIALS * 20_000 }
+      { timeout: NUM_TRIALS * 20_000 },
     );
 
     it(
@@ -177,10 +167,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const payload = generateRandomPayload(numPeople, numTasks);
 
           // Ensure tasks can accommodate all people
-          const totalSeats = payload.tasks.reduce(
-            (sum, task) => sum + task.teamSize,
-            0
-          );
+          const totalSeats = payload.tasks.reduce((sum, task) => sum + task.teamSize, 0);
           if (totalSeats < numPeople) {
             // Adjust last task to fit everyone
             const shortfall = numPeople - totalSeats;
@@ -193,12 +180,12 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const result = await runEdu2comCall(() =>
             callEdu2comTeamFormation(payload, {
               timeoutMs: 15_000,
-            })
+            }),
           );
 
           if (!result.ok) {
             console.warn(
-              `[Property-Based] Assignment invariant trial ${trial} skipped: ${result.error.code}`
+              `[Property-Based] Assignment invariant trial ${trial} skipped: ${result.error.code}`,
             );
             continue;
           }
@@ -207,24 +194,20 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const response = result.value;
 
           // Collect all assigned person IDs
-          const assignedIds = response.teams.flatMap(team =>
-            team.people.map(p => p.id)
-          );
+          const assignedIds = response.teams.flatMap((team) => team.people.map((p) => p.id));
 
           // Check for duplicates
           const uniqueIds = new Set(assignedIds);
           expect(assignedIds.length).toBe(uniqueIds.size); // No duplicates
 
           // Verify all people are assigned
-          const allPeopleIds = new Set(payload.people.map(p => p.id));
-          expect(assignedIds.length).toBeGreaterThanOrEqual(
-            allPeopleIds.size - 2
-          ); // Allow max 2 unassigned
+          const allPeopleIds = new Set(payload.people.map((p) => p.id));
+          expect(assignedIds.length).toBeGreaterThanOrEqual(allPeopleIds.size - 2); // Allow max 2 unassigned
         }
 
         expect(completedTrials).toBeGreaterThan(0);
       },
-      { timeout: NUM_TRIALS * 20_000 }
+      { timeout: NUM_TRIALS * 20_000 },
     );
 
     it(
@@ -240,12 +223,12 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const result = await runEdu2comCall(() =>
             callEdu2comTeamFormation(payload, {
               timeoutMs: 20_000,
-            })
+            }),
           );
 
           if (!result.ok) {
             console.warn(
-              `[Property-Based] Team size invariant trial ${trial} skipped: ${result.error.code}`
+              `[Property-Based] Team size invariant trial ${trial} skipped: ${result.error.code}`,
             );
             continue;
           }
@@ -254,7 +237,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const response = result.value;
 
           for (const team of response.teams) {
-            const task = payload.tasks.find(t => t.id === team.taskId);
+            const task = payload.tasks.find((t) => t.id === team.taskId);
             expect(task).toBeDefined();
 
             if (task) {
@@ -266,7 +249,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
 
         expect(completedTrials).toBeGreaterThan(0);
       },
-      { timeout: NUM_TRIALS * 20_000 }
+      { timeout: NUM_TRIALS * 20_000 },
     );
 
     it(
@@ -282,12 +265,12 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           const result = await runEdu2comCall(() =>
             callEdu2comTeamFormation(payload, {
               timeoutMs: 20_000,
-            })
+            }),
           );
 
           if (!result.ok) {
             console.warn(
-              `[Property-Based] Min team size invariant trial ${trial} skipped: ${result.error.code}`
+              `[Property-Based] Min team size invariant trial ${trial} skipped: ${result.error.code}`,
             );
             continue;
           }
@@ -302,7 +285,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
 
         expect(completedTrials).toBeGreaterThan(0);
       },
-      { timeout: NUM_TRIALS * 20_000 }
+      { timeout: NUM_TRIALS * 20_000 },
     );
 
     it(
@@ -319,33 +302,31 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           });
 
           // Collect all skill IDs used in payload
-          const _validSkillIds = new Set(
-            payload.people.flatMap(p => p.skills.map(s => s.id))
-          );
+          const _validSkillIds = new Set(payload.people.flatMap((p) => p.skills.map((s) => s.id)));
 
           for (const team of response.teams) {
             for (const person of team.people) {
               for (const skillId of person.skillIds) {
                 // Skill ID should be valid (either from person's skills or task skills)
-                expect(typeof skillId).toBe('string');
+                expect(typeof skillId).toBe("string");
                 expect(skillId.length).toBeGreaterThan(0);
               }
             }
           }
         }
       },
-      { timeout: NUM_TRIALS * 20_000 }
+      { timeout: NUM_TRIALS * 20_000 },
     );
   });
 
-  describe('Edge Case Properties', () => {
-    it('PROPERTY: Minimum viable input (2 people, 1 task) always succeeds', async () => {
+  describe("Edge Case Properties", () => {
+    it("PROPERTY: Minimum viable input (2 people, 1 task) always succeeds", async () => {
       expect.hasAssertions();
       const payload: Edu2comParameters = {
         people: generateRandomPeople(2),
         tasks: [
           {
-            id: 'task-1',
+            id: "task-1",
             teamSize: 2,
             skills: [{ id: BASE_SKILLS.frontend, level: 0.5, importance: 1 }],
           },
@@ -364,7 +345,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
       expect(response.teams[0]?.people.length).toBe(2);
     });
 
-    it('PROPERTY: Maximum diversity (all different personalities) succeeds', async () => {
+    it("PROPERTY: Maximum diversity (all different personalities) succeeds", async () => {
       expect.hasAssertions();
       const extremePersonalities = [
         { ei: 1, sn: 1, tf: 1, pj: 1 },
@@ -376,18 +357,18 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
       const payload: Edu2comParameters = {
         people: extremePersonalities.map((personality, i) => ({
           id: `person-${i + 1}`,
-          gender: i % 2 === 0 ? 'MALE' : 'FEMALE',
+          gender: i % 2 === 0 ? "MALE" : "FEMALE",
           personality,
           skills: randomSkills(),
         })),
         tasks: [
           {
-            id: 'task-1',
+            id: "task-1",
             teamSize: 2,
             skills: [{ id: BASE_SKILLS.frontend, level: 0.5, importance: 1 }],
           },
           {
-            id: 'task-2',
+            id: "task-2",
             teamSize: 2,
             skills: [{ id: BASE_SKILLS.backend, level: 0.5, importance: 1 }],
           },
@@ -405,7 +386,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
       expect(response.teams.length).toBe(2);
     });
 
-    it('PROPERTY: All identical students (same skills, same personality) succeeds', async () => {
+    it("PROPERTY: All identical students (same skills, same personality) succeeds", async () => {
       expect.hasAssertions();
       const identicalPersonality = { ei: 0.5, sn: 0.3, tf: -0.2, pj: 0.1 };
       const identicalSkills = [
@@ -416,18 +397,18 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
       const payload: Edu2comParameters = {
         people: Array.from({ length: 6 }, (_, i) => ({
           id: `person-${i + 1}`,
-          gender: 'MALE',
+          gender: "MALE",
           personality: { ...identicalPersonality },
-          skills: identicalSkills.map(s => ({ ...s })),
+          skills: identicalSkills.map((s) => ({ ...s })),
         })),
         tasks: [
           {
-            id: 'task-1',
+            id: "task-1",
             teamSize: 3,
             skills: [{ id: BASE_SKILLS.frontend, level: 0.5, importance: 1 }],
           },
           {
-            id: 'task-2',
+            id: "task-2",
             teamSize: 3,
             skills: [{ id: BASE_SKILLS.backend, level: 0.5, importance: 1 }],
           },
@@ -448,7 +429,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
     });
 
     it(
-      'PROPERTY: Large cohort (30 people, 10 tasks) completes in reasonable time',
+      "PROPERTY: Large cohort (30 people, 10 tasks) completes in reasonable time",
       async () => {
         expect.hasAssertions();
         const payload = generateRandomPayload(30, 10);
@@ -462,13 +443,13 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
         expect(response.teams.length).toBeGreaterThan(0);
         expect(elapsed).toBeLessThan(45_000); // Should complete within 45 seconds
       },
-      { timeout: 70_000 }
+      { timeout: 70_000 },
     );
   });
 
-  describe('Randomness Properties', () => {
+  describe("Randomness Properties", () => {
     it(
-      'PROPERTY: initRandom=false produces deterministic results (3 trials)',
+      "PROPERTY: initRandom=false produces deterministic results (3 trials)",
       async () => {
         expect.hasAssertions();
         const payload = generateRandomPayload(6, 2);
@@ -485,10 +466,10 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
         expect(normalizedResults[0]).toEqual(normalizedResults[1]);
         expect(normalizedResults[1]).toEqual(normalizedResults[2]);
       },
-      { timeout: 40_000 }
+      { timeout: 40_000 },
     );
 
-    it('PROPERTY: Different random seeds may produce different quality scores', async () => {
+    it("PROPERTY: Different random seeds may produce different quality scores", async () => {
       expect.hasAssertions();
       const basePayload = generateRandomPayload(8, 3);
 
@@ -511,9 +492,9 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
     });
   });
 
-  describe('Stress Tests', () => {
+  describe("Stress Tests", () => {
     it(
-      'STRESS: Handles 50 people across 15 tasks',
+      "STRESS: Handles 50 people across 15 tasks",
       async () => {
         expect.hasAssertions();
         const payload = generateRandomPayload(50, 15);
@@ -521,16 +502,14 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
         const result = await runEdu2comCall(() =>
           callEdu2comTeamFormation(payload, {
             timeoutMs: 90_000,
-          })
+          }),
         );
 
         if (!result.ok) {
           console.warn(
-            `[Property-Based] 50-person stress test failed due to ${result.error.code}. Use backgroundTeamFormation for this scale.`
+            `[Property-Based] 50-person stress test failed due to ${result.error.code}. Use backgroundTeamFormation for this scale.`,
           );
-          expect(['EDU2COM_TIMEOUT', 'EDU2COM_INVALID_RESPONSE']).toContain(
-            result.error.code
-          );
+          expect(["EDU2COM_TIMEOUT", "EDU2COM_INVALID_RESPONSE"]).toContain(result.error.code);
           return;
         }
 
@@ -544,11 +523,11 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
           expect(team.people.length).toBeGreaterThanOrEqual(2);
         }
       },
-      { timeout: 120_000 }
+      { timeout: 120_000 },
     );
 
     it(
-      'STRESS: Many small teams (20 tasks of size 2, 40 people)',
+      "STRESS: Many small teams (20 tasks of size 2, 40 people)",
       async () => {
         expect.hasAssertions();
         const people = generateRandomPeople(40);
@@ -580,7 +559,7 @@ describeIntegration('Property-Based Testing - Invariant Verification', () => {
         expect(response.teams.length).toBeGreaterThan(0);
         expect(response.teams.length).toBeLessThanOrEqual(20);
       },
-      { timeout: 70_000 }
+      { timeout: 70_000 },
     );
   });
 });

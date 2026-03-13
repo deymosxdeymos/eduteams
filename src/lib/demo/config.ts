@@ -1,6 +1,6 @@
-import type { Gender } from '@/generated/prisma/client';
+import type { Gender } from "@/generated/prisma/client";
 
-export type DemoRole = 'TEACHER' | 'STUDENT';
+export type DemoRole = "TEACHER" | "STUDENT";
 
 interface DemoAccountProfile {
   name: string;
@@ -10,49 +10,49 @@ interface DemoAccountProfile {
 }
 
 export const DEMO_COURSE_CATALOG = [
-  { id: 'demo-1', code: 'IF3270', name: 'Machine Learning' },
-  { id: 'demo-2', code: 'IF3250', name: 'Software Engineering' },
-  { id: 'demo-3', code: 'IF3210', name: 'Mobile Development' },
+  { id: "demo-1", code: "IF3270", name: "Machine Learning" },
+  { id: "demo-2", code: "IF3250", name: "Software Engineering" },
+  { id: "demo-3", code: "IF3210", name: "Mobile Development" },
 ] as const;
 
 export const DEMO_CLASS_CATALOG = [
-  { id: 'demo-a', code: 'K01' },
-  { id: 'demo-b', code: 'K02' },
+  { id: "demo-a", code: "K01" },
+  { id: "demo-b", code: "K02" },
 ] as const;
 
 export const DEMO_ACCOUNT_PROFILES: Record<DemoRole, DemoAccountProfile> = {
   TEACHER: {
-    name: 'Dr. Rina Wijaya',
-    role: 'TEACHER',
-    gender: 'FEMALE',
+    name: "Dr. Rina Wijaya",
+    role: "TEACHER",
+    gender: "FEMALE",
     nim: null,
   },
   STUDENT: {
-    name: 'Bagas Pratama',
-    role: 'STUDENT',
-    gender: 'MALE',
-    nim: '20260001',
+    name: "Bagas Pratama",
+    role: "STUDENT",
+    gender: "MALE",
+    nim: "20260001",
   },
 };
 
 export function isDemoModeEnabled(): boolean {
-  return process.env.DEMO_MODE === '1';
+  return process.env.DEMO_MODE === "1";
 }
 
-export function getDemoDataDiriDefaults(role: 'dosen' | 'mahasiswa') {
-  if (role === 'dosen') {
+export function getDemoDataDiriDefaults(role: "dosen" | "mahasiswa") {
+  if (role === "dosen") {
     return {
       namaLengkap: DEMO_ACCOUNT_PROFILES.TEACHER.name,
-      nim: '',
-      jenisKelamin: 'perempuan',
+      nim: "",
+      jenisKelamin: "perempuan",
       role,
     };
   }
 
   return {
     namaLengkap: DEMO_ACCOUNT_PROFILES.STUDENT.name,
-    nim: DEMO_ACCOUNT_PROFILES.STUDENT.nim ?? '',
-    jenisKelamin: 'laki-laki',
+    nim: DEMO_ACCOUNT_PROFILES.STUDENT.nim ?? "",
+    jenisKelamin: "laki-laki",
     role,
   };
 }

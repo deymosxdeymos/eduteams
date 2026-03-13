@@ -1,4 +1,4 @@
-import type { MBTIType } from '@/generated/prisma/client';
+import type { MBTIType } from "@/generated/prisma/client";
 
 /**
  * Student data with enrollment and personality information

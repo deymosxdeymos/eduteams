@@ -21,7 +21,8 @@ interface StudentClass {
   kelas: string;
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
-  studentCount: number; // Add student count
+  studentCount: number;
+  canLeave?: boolean;
   dosen?: {
     name: string;
   };
@@ -65,7 +66,7 @@ export function StudentClassGrid({ classes, showNoResults, onClassLeft }: Studen
   const [error, setError] = useState<string | null>(null);
 
   const handleLeaveClass = async () => {
-    if (!selectedClass) return;
+    if (!selectedClass || selectedClass.canLeave === false) return;
 
     setIsLeaving(true);
     setError(null);
@@ -105,9 +106,13 @@ export function StudentClassGrid({ classes, showNoResults, onClassLeft }: Studen
 
   const handleOptionsClick = (e: React.MouseEvent, classItem: StudentClass) => {
     e.stopPropagation();
+    if (classItem.canLeave === false) {
+      return;
+    }
+
     setSelectedClass(classItem);
     setShowLeaveModal(true);
-    setError(null); // Reset error when opening modal
+    setError(null);
   };
 
   if (showNoResults) {
@@ -187,13 +192,15 @@ export function StudentClassGrid({ classes, showNoResults, onClassLeft }: Studen
                         {t("studentCount", { count: classItem.studentCount })}
                       </Badge>
                     </div>
-                    <button
-                      type="button"
-                      className="rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-100"
-                      onClick={(e) => handleOptionsClick(e, classItem)}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
+                    {classItem.canLeave !== false ? (
+                      <button
+                        type="button"
+                        className="rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-100"
+                        onClick={(e) => handleOptionsClick(e, classItem)}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                    ) : null}
                   </div>
                   <h3 className="min-h-[3.6rem] text-[1.35rem] font-semibold leading-tight text-gray-800 line-clamp-2 md:min-h-[3.75rem] md:text-[1.65rem]">
                     {classItem.namaMataKuliah}

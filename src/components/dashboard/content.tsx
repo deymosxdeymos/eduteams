@@ -2,9 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DosenCourseSummary } from "@/lib/dashboard/courses";
 import type { DashboardStatistics } from "@/lib/dashboard/statistics-types";
+import { calculateDemoDashboardStatistics } from "@/lib/demo/dashboard-statistics";
+import { getDemoSandboxClientState } from "@/lib/demo/sandbox-client";
+import {
+  DEMO_COURSE_ID,
+  DEMO_SANDBOX_STORAGE_KEY,
+  DEMO_TEAM_FORMATION_STORAGE_EVENT,
+} from "@/lib/demo/sandbox-shared";
 import { ClassGrid, type ClassSummary } from "./class-grid";
 import { EmptyClassState } from "./empty-class-state";
 import { SearchInput } from "./search-input";
@@ -69,6 +76,7 @@ function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
 export default function Content({ statistics, courses }: ContentProps) {
   const router = useRouter();
   const t = useTranslations("dashboard.classCard");
+  const [demoStatisticsState, setDemoStatisticsState] = useState(() => getDemoSandboxClientState());
   const [optimisticCourses, setOptimisticCourses] = useState<DosenCourseSummary[]>([]);
   const [searchValue, setSearchValue] = useState("");
 
@@ -84,6 +92,61 @@ export default function Content({ statistics, courses }: ContentProps) {
 
     return [...pendingOptimisticCourses, ...courses];
   }, [courses, optimisticCourses]);
+
+  const hasDemoSandboxCourse = useMemo(
+    () => courseList.some((course) => course.id === DEMO_COURSE_ID),
+    [courseList],
+  );
+
+  useEffect(() => {
+    if (!hasDemoSandboxCourse) {
+      return;
+    }
+
+    const syncDemoStatisticsState = () => {
+      setDemoStatisticsState(getDemoSandboxClientState());
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.storageArea !== window.localStorage) {
+        return;
+      }
+
+      if (
+        event.key !== null &&
+        event.key !== DEMO_SANDBOX_STORAGE_KEY &&
+        !event.key.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)
+      ) {
+        return;
+      }
+
+      syncDemoStatisticsState();
+    };
+
+    syncDemoStatisticsState();
+    window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncDemoStatisticsState);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncDemoStatisticsState);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [hasDemoSandboxCourse]);
+
+  const resolvedStatistics = useMemo(() => {
+    if (!hasDemoSandboxCourse) {
+      return statistics;
+    }
+
+    return calculateDemoDashboardStatistics({
+      createdAssignments: demoStatisticsState.createdAssignments,
+      formedTeams: demoStatisticsState.formedTeams,
+    });
+  }, [
+    demoStatisticsState.createdAssignments,
+    demoStatisticsState.formedTeams,
+    hasDemoSandboxCourse,
+    statistics,
+  ]);
 
   const classes: ClassSummary[] = useMemo(
     () =>
@@ -134,7 +197,7 @@ export default function Content({ statistics, courses }: ContentProps) {
 
   return (
     <div className="h-full flex flex-col gap-4">
-      <StatisticsCards statistics={statistics} />
+      <StatisticsCards statistics={resolvedStatistics} />
       <div className="bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden">
         {hasClasses ? (
           <div className="p-6 pb-0">

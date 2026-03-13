@@ -1,10 +1,10 @@
-import { isIP } from 'node:net';
-import type { NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
+import { isIP } from "node:net";
+import type { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
 
 const CLIENT_IP_HEADER_NAME_PATTERN = /^[a-z0-9-]+$/;
 const EXPIRED_BUCKET_PRUNE_INTERVAL_MS = 60_000;
-const FORWARDED_CHAIN_HEADER_NAMES = new Set(['x-forwarded-for']);
+const FORWARDED_CHAIN_HEADER_NAMES = new Set(["x-forwarded-for"]);
 const TRUSTED_PROXY_HOPS_PATTERN = /^(0|[1-9][0-9]{0,2})$/;
 
 let lastExpiredBucketPruneAt = 0;
@@ -16,9 +16,9 @@ function getConfiguredTrustedClientIpHeaders() {
   }
 
   return rawHeaders
-    .split(',')
-    .map(headerName => headerName.trim().toLowerCase())
-    .filter(headerName => CLIENT_IP_HEADER_NAME_PATTERN.test(headerName));
+    .split(",")
+    .map((headerName) => headerName.trim().toLowerCase())
+    .filter((headerName) => CLIENT_IP_HEADER_NAME_PATTERN.test(headerName));
 }
 
 function getTrustedProxyHops() {
@@ -49,8 +49,8 @@ function normalizeIpEntry(value: string) {
     return normalizedValue;
   }
 
-  if (normalizedValue.startsWith('[')) {
-    const closingBracketIndex = normalizedValue.indexOf(']');
+  if (normalizedValue.startsWith("[")) {
+    const closingBracketIndex = normalizedValue.indexOf("]");
     if (closingBracketIndex === -1) {
       return null;
     }
@@ -59,11 +59,8 @@ function normalizeIpEntry(value: string) {
     return isIP(bracketedIp) ? bracketedIp : null;
   }
 
-  const lastColonIndex = normalizedValue.lastIndexOf(':');
-  if (
-    lastColonIndex === -1 ||
-    normalizedValue.indexOf(':') !== lastColonIndex
-  ) {
+  const lastColonIndex = normalizedValue.lastIndexOf(":");
+  if (lastColonIndex === -1 || normalizedValue.indexOf(":") !== lastColonIndex) {
     return null;
   }
 
@@ -73,8 +70,8 @@ function normalizeIpEntry(value: string) {
 
 function parseIpChain(value: string) {
   const entries = value
-    .split(',')
-    .map(entry => entry.trim())
+    .split(",")
+    .map((entry) => entry.trim())
     .filter(Boolean);
 
   if (entries.length === 0) {
@@ -95,10 +92,7 @@ function parseIpChain(value: string) {
   return ipEntries;
 }
 
-function getClientIpFromHeader(
-  request: Pick<NextRequest, 'headers'>,
-  headerName: string
-) {
+function getClientIpFromHeader(request: Pick<NextRequest, "headers">, headerName: string) {
   const value = request.headers.get(headerName);
   if (!value) {
     return null;
@@ -122,7 +116,7 @@ function getClientIpFromHeader(
     return ipEntries[ipEntries.length - trustedProxyHops - 1] ?? null;
   }
 
-  if (value.includes(',')) {
+  if (value.includes(",")) {
     return null;
   }
 
@@ -132,20 +126,20 @@ function getClientIpFromHeader(
 export function getTrustedClientIpHeaders(): string[] {
   const trustedHeaders: string[] = [];
 
-  if (process.env.VERCEL === '1' || process.env.VERCEL === 'true') {
-    trustedHeaders.push('x-vercel-forwarded-for');
+  if (process.env.VERCEL === "1" || process.env.VERCEL === "true") {
+    trustedHeaders.push("x-vercel-forwarded-for");
   }
 
   if (
-    process.env.CF_PAGES === '1' ||
-    process.env.CF_PAGES === 'true' ||
+    process.env.CF_PAGES === "1" ||
+    process.env.CF_PAGES === "true" ||
     Boolean(process.env.CLOUDFLARE_ACCOUNT_ID)
   ) {
-    trustedHeaders.push('cf-connecting-ip');
+    trustedHeaders.push("cf-connecting-ip");
   }
 
   if (Boolean(process.env.FLY_APP_NAME)) {
-    trustedHeaders.push('fly-client-ip');
+    trustedHeaders.push("fly-client-ip");
   }
 
   for (const headerName of getConfiguredTrustedClientIpHeaders()) {
@@ -157,7 +151,7 @@ export function getTrustedClientIpHeaders(): string[] {
   return trustedHeaders;
 }
 
-export function getClientIdentifier(request: Pick<NextRequest, 'headers'>) {
+export function getClientIdentifier(request: Pick<NextRequest, "headers">) {
   for (const headerName of getTrustedClientIpHeaders()) {
     const clientIp = getClientIpFromHeader(request, headerName);
     if (clientIp) {
@@ -188,11 +182,7 @@ async function pruneExpiredRateLimitBuckets(nowDate: Date) {
   }
 }
 
-export async function checkRateLimit(options: {
-  key: string;
-  limit: number;
-  windowMs: number;
-}) {
+export async function checkRateLimit(options: { key: string; limit: number; windowMs: number }) {
   const now = Date.now();
   const nowDate = new Date(now);
   const windowStartMs = Math.floor(now / options.windowMs) * options.windowMs;
@@ -200,9 +190,7 @@ export async function checkRateLimit(options: {
   const expiresAt = new Date(windowStartMs + options.windowMs);
   const saturatedCount = options.limit + 1;
 
-  const [bucket] = await prisma.$queryRaw<
-    Array<{ count: number | bigint; expiresAt: Date }>
-  >`
+  const [bucket] = await prisma.$queryRaw<Array<{ count: number | bigint; expiresAt: Date }>>`
     INSERT INTO "rate_limit_buckets" (
       "key",
       "window_start",
@@ -225,12 +213,12 @@ export async function checkRateLimit(options: {
   `;
 
   if (!bucket) {
-    throw new Error('Failed to persist rate limit bucket');
+    throw new Error("Failed to persist rate limit bucket");
   }
 
   const currentCount = Number(bucket.count);
   if (!Number.isFinite(currentCount)) {
-    throw new Error('Invalid rate limit bucket count');
+    throw new Error("Invalid rate limit bucket count");
   }
 
   if (currentCount === 1) {
@@ -241,10 +229,7 @@ export async function checkRateLimit(options: {
     return {
       allowed: false,
       remaining: 0,
-      retryAfterSeconds: Math.max(
-        1,
-        Math.ceil((bucket.expiresAt.getTime() - now) / 1000)
-      ),
+      retryAfterSeconds: Math.max(1, Math.ceil((bucket.expiresAt.getTime() - now) / 1000)),
     };
   }
 

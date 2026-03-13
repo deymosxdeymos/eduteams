@@ -1,7 +1,13 @@
-import { unstable_cache } from 'next/cache';
-import { getCurrentUser } from '@/lib/api-utils';
-import { canAccessMahasiswaFeatures } from '@/lib/authorization';
-import prisma from '@/lib/prisma';
+import { unstable_cache } from "next/cache";
+import { getCurrentUser } from "@/lib/api-utils";
+import { canAccessMahasiswaFeatures } from "@/lib/authorization";
+import {
+  DEMO_STUDENT_ID,
+  getDemoSandboxPrincipalId,
+  getDemoStudentClasses,
+} from "@/lib/demo/sandbox";
+import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import prisma from "@/lib/prisma";
 
 async function fetchStudentClasses(studentId: string) {
   const enrollments = await prisma.courseEnrollment.findMany({
@@ -28,9 +34,9 @@ async function fetchStudentClasses(studentId: string) {
       },
     },
     orderBy: [
-      { course: { tahunAwalPeriode: 'desc' } },
-      { course: { periode: 'desc' } },
-      { course: { namaMataKuliah: 'asc' } },
+      { course: { tahunAwalPeriode: "desc" } },
+      { course: { periode: "desc" } },
+      { course: { namaMataKuliah: "asc" } },
     ],
   });
 
@@ -44,16 +50,39 @@ async function fetchStudentClasses(studentId: string) {
     dosen: enrollment.course.dosen,
     enrolledAt: enrollment.enrolledAt,
     studentCount: enrollment.course._count.enrollments,
+    canLeave: true,
   }));
+}
+
+type StudentClassSummary = Awaited<ReturnType<typeof fetchStudentClasses>>[number];
+
+function mergeDemoStudentClasses(
+  persistedClasses: StudentClassSummary[],
+  excludedStudentIds?: Iterable<string>,
+) {
+  const demoClasses = getDemoStudentClasses({ excludedStudentIds });
+  const demoCourseIds = new Set(demoClasses.map((course) => course.id));
+  const mergedClasses = [
+    ...persistedClasses.filter((course) => !demoCourseIds.has(course.id)),
+    ...demoClasses,
+  ];
+
+  return mergedClasses.toSorted((left, right) => {
+    const enrolledAtDelta = right.enrolledAt.getTime() - left.enrolledAt.getTime();
+    if (enrolledAtDelta !== 0) {
+      return enrolledAtDelta;
+    }
+
+    return left.namaMataKuliah.localeCompare(right.namaMataKuliah, "id");
+  });
 }
 
 // Cache per user - userId is included in the key array
 function getCachedStudentClasses(userId: string) {
-  return unstable_cache(
-    () => fetchStudentClasses(userId),
-    ['student-classes', userId],
-    { revalidate: 60, tags: [`student-classes-${userId}`] }
-  )();
+  return unstable_cache(() => fetchStudentClasses(userId), ["student-classes", userId], {
+    revalidate: 60,
+    tags: [`student-classes-${userId}`],
+  })();
 }
 
 export async function getStudentClasses() {
@@ -64,7 +93,14 @@ export async function getStudentClasses() {
   }
 
   try {
-    return await getCachedStudentClasses(user.id);
+    const persistedClasses = await getCachedStudentClasses(user.id);
+
+    if (getDemoSandboxPrincipalId(user) === DEMO_STUDENT_ID) {
+      const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
+      return mergeDemoStudentClasses(persistedClasses, removedStudentIds);
+    }
+
+    return persistedClasses;
   } catch {
     return [];
   }

@@ -166,7 +166,7 @@ Still not tested (time constraints):
 ## Summary
 
 | Severity | Count |
-|----------|-------|
+| -------- | ----- |
 | Critical | 2     |
 | High     | 5     |
 | Medium   | 6     |

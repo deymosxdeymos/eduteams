@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
-import { getSidebarDataForUser } from '@/lib/dashboard/sidebar-data';
-import type { ExtendedUser } from '@/lib/types';
-import Nav from './nav';
-import Sidebar from './sidebar';
+import type { ReactNode } from "react";
+import { getSidebarDataForUser } from "@/lib/dashboard/sidebar-data";
+import type { ExtendedUser } from "@/lib/types";
+import Nav from "./nav";
+import Sidebar from "./sidebar";
 
 interface ManageAssignmentsLayoutProps {
   user: ExtendedUser;
@@ -33,16 +33,13 @@ export async function ManageAssignmentsLayout({
   };
 
   return (
-    <main className='bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden'>
-      <div className='mb-8'>
+    <main className="bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden">
+      <div className="mb-8">
         <Nav user={user} className={courseForNav} />
       </div>
-      <div className='grid grid-cols-[auto_1fr] flex-1 min-h-0'>
-        <Sidebar
-          user={sidebarData.user}
-          notStartedCount={sidebarData.notStartedCount}
-        />
-        <div className='px-8 pb-0 pr-0 min-h-0'>{children}</div>
+      <div className="grid grid-cols-[auto_1fr] flex-1 min-h-0">
+        <Sidebar user={sidebarData.user} notStartedCount={sidebarData.notStartedCount} />
+        <div className="px-8 pb-0 pr-0 min-h-0">{children}</div>
       </div>
     </main>
   );

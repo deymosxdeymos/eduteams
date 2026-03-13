@@ -1,5 +1,5 @@
-import type { PrismaClientInstance } from '@/lib/prisma';
-import { createPrismaClient } from '@/lib/create-prisma-client';
+import type { PrismaClientInstance } from "@/lib/prisma";
+import { createPrismaClient } from "@/lib/create-prisma-client";
 
 const prisma: PrismaClientInstance = createPrismaClient();
 
@@ -13,17 +13,19 @@ export async function resetDatabase(): Promise<void> {
 
   if (tables.length === 0) return;
 
-  const tableNames = tables.map((t: { table_name: string }) => t.table_name).join(', ');
+  const tableNames = tables.map((t: { table_name: string }) => t.table_name).join(", ");
   await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tableNames} CASCADE`);
 }
 
 export async function recreateSchema(): Promise<void> {
   const schema = globalThis.__TEST_SCHEMA__;
-  if (!schema) throw new Error('Test schema not found');
+  if (!schema) throw new Error("Test schema not found");
 
   await prisma.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
   await prisma.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
 
-  const { $ } = await import('bun');
-  await $`bunx prisma migrate deploy`.env({ ...process.env, DATABASE_URL: process.env.DATABASE_URL! }).quiet();
+  const { $ } = await import("bun");
+  await $`bunx prisma migrate deploy`
+    .env({ ...process.env, DATABASE_URL: process.env.DATABASE_URL! })
+    .quiet();
 }

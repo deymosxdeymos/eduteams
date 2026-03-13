@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useReducer, useRef, useState } from 'react';
-import SkillTestInstructionModal from '@/components/dashboard/skill-test-instruction-modal';
-import { Button } from '@/components/ui/button';
-import SkillsQuiz from './skills-quiz';
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useReducer, useRef, useState } from "react";
+import SkillTestInstructionModal from "@/components/dashboard/skill-test-instruction-modal";
+import { Button } from "@/components/ui/button";
+import SkillsQuiz from "./skills-quiz";
 
 const PreferenceTestInstructionModal = dynamic(
-  () => import('@/components/dashboard/preference-test-instruction-modal'),
+  () => import("@/components/dashboard/preference-test-instruction-modal"),
   {
     loading: () => null,
     ssr: false,
-  }
+  },
 );
 
-const TopicsQuiz = dynamic(() => import('./topics-quiz'), {
-  loading: () => <div className='min-h-[24rem]' />,
+const TopicsQuiz = dynamic(() => import("./topics-quiz"), {
+  loading: () => <div className="min-h-[24rem]" />,
 });
 
 interface Assignment {
@@ -50,7 +50,7 @@ interface AssignmentQuizClientProps {
 }
 
 type QuizState = {
-  currentStep: 'skills' | 'topics';
+  currentStep: "skills" | "topics";
   skillsAnswers: Record<number, number>;
   topicsAnswers: Record<number, number>;
   validationErrors: Set<string>;
@@ -59,21 +59,19 @@ type QuizState = {
 
 type QuizAction =
   | {
-      type: 'SET_SKILLS_ANSWER';
+      type: "SET_SKILLS_ANSWER";
       payload: { skillIndex: number; value: number };
     }
   | {
-      type: 'SET_TOPICS_ANSWER';
+      type: "SET_TOPICS_ANSWER";
       payload: { topicIndex: number; value: number };
     }
-  | { type: 'NEXT_STEP' }
-  | { type: 'PREV_STEP' }
-  | { type: 'SET_VALIDATION_ERRORS'; payload: Set<string> }
-  | { type: 'SET_SUBMITTING'; payload: boolean };
+  | { type: "NEXT_STEP" }
+  | { type: "PREV_STEP" }
+  | { type: "SET_VALIDATION_ERRORS"; payload: Set<string> }
+  | { type: "SET_SUBMITTING"; payload: boolean };
 
-const toLikertValue = (
-  value: number | null | undefined
-): number | undefined => {
+const toLikertValue = (value: number | null | undefined): number | undefined => {
   if (value == null) return undefined;
   const denorm = Math.round(value * 4) + 1;
   if (Number.isNaN(denorm)) return undefined;
@@ -82,7 +80,7 @@ const toLikertValue = (
 
 function createInitialQuizState(assignment: Assignment): QuizState {
   const state: QuizState = {
-    currentStep: 'skills',
+    currentStep: "skills",
     skillsAnswers: {},
     topicsAnswers: {},
     validationErrors: new Set(),
@@ -103,7 +101,7 @@ function createInitialQuizState(assignment: Assignment): QuizState {
 
 function quizReducer(state: QuizState, action: QuizAction): QuizState {
   switch (action.type) {
-    case 'SET_SKILLS_ANSWER':
+    case "SET_SKILLS_ANSWER":
       return {
         ...state,
         skillsAnswers: {
@@ -111,7 +109,7 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
           [action.payload.skillIndex]: action.payload.value,
         },
       };
-    case 'SET_TOPICS_ANSWER':
+    case "SET_TOPICS_ANSWER":
       return {
         ...state,
         topicsAnswers: {
@@ -119,22 +117,22 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
           [action.payload.topicIndex]: action.payload.value,
         },
       };
-    case 'NEXT_STEP':
+    case "NEXT_STEP":
       return {
         ...state,
-        currentStep: 'topics',
+        currentStep: "topics",
       };
-    case 'PREV_STEP':
+    case "PREV_STEP":
       return {
         ...state,
-        currentStep: 'skills',
+        currentStep: "skills",
       };
-    case 'SET_VALIDATION_ERRORS':
+    case "SET_VALIDATION_ERRORS":
       return {
         ...state,
         validationErrors: action.payload,
       };
-    case 'SET_SUBMITTING':
+    case "SET_SUBMITTING":
       return {
         ...state,
         isSubmitting: action.payload,
@@ -149,13 +147,9 @@ export function AssignmentQuizClient({
   assignmentId,
   assignment,
 }: AssignmentQuizClientProps) {
-  const t = useTranslations('dashboard.assignments.quiz');
+  const t = useTranslations("dashboard.assignments.quiz");
   const router = useRouter();
-  const [state, dispatch] = useReducer(
-    quizReducer,
-    assignment,
-    createInitialQuizState
-  );
+  const [state, dispatch] = useReducer(quizReducer, assignment, createInitialQuizState);
   const formRef = useRef<HTMLFormElement>(null);
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(true);
   const [isPreferenceModalOpen, setIsPreferenceModalOpen] = useState(false);
@@ -165,7 +159,7 @@ export function AssignmentQuizClient({
   const validateCurrentStep = () => {
     const errors = new Set<string>();
 
-    if (state.currentStep === 'skills') {
+    if (state.currentStep === "skills") {
       assignment.skills.forEach((_, index) => {
         if (!state.skillsAnswers[index]) {
           errors.add(`skill-${index}`);
@@ -180,17 +174,17 @@ export function AssignmentQuizClient({
     }
 
     if (errors.size > 0) {
-      dispatch({ type: 'SET_VALIDATION_ERRORS', payload: errors });
+      dispatch({ type: "SET_VALIDATION_ERRORS", payload: errors });
       // Scroll to first error
       const firstError = Array.from(errors)[0];
       const element = document.getElementById(firstError);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
       return false;
     }
     if (state.validationErrors.size > 0) {
-      dispatch({ type: 'SET_VALIDATION_ERRORS', payload: new Set() });
+      dispatch({ type: "SET_VALIDATION_ERRORS", payload: new Set() });
     }
     return true;
   };
@@ -198,23 +192,23 @@ export function AssignmentQuizClient({
   const handleNext = async () => {
     if (!validateCurrentStep()) return;
 
-    if (state.currentStep === 'skills') {
+    if (state.currentStep === "skills") {
       if (!assignment.hasTopics || assignment.topics.length === 0) {
         await handleComplete();
         return;
       }
-      dispatch({ type: 'NEXT_STEP' });
+      dispatch({ type: "NEXT_STEP" });
       setIsPreferenceModalOpen(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       await handleComplete();
     }
   };
 
   const handlePrevious = () => {
-    if (state.currentStep === 'topics') {
-      dispatch({ type: 'PREV_STEP' });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (state.currentStep === "topics") {
+      dispatch({ type: "PREV_STEP" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       router.push(`/dashboard/class/${classId}`);
     }
@@ -223,7 +217,7 @@ export function AssignmentQuizClient({
   const handleComplete = async () => {
     if (!validateCurrentStep()) return;
 
-    dispatch({ type: 'SET_SUBMITTING', payload: true });
+    dispatch({ type: "SET_SUBMITTING", payload: true });
 
     try {
       // Normalize to 0..1 like summerschool but better shape
@@ -237,20 +231,18 @@ export function AssignmentQuizClient({
             name,
             level: normalized,
             ...(prefill?.profileId ? { profileId: prefill.profileId } : {}),
-            ...(prefill?.profileUpdatedAt
-              ? { profileUpdatedAt: prefill.profileUpdatedAt }
-              : {}),
+            ...(prefill?.profileUpdatedAt ? { profileUpdatedAt: prefill.profileUpdatedAt } : {}),
           };
         })
         .filter(
           (
-            value
+            value,
           ): value is {
             name: string;
             level: number;
             profileId?: string;
             profileUpdatedAt?: string;
-          } => value !== null
+          } => value !== null,
         );
       const topics = assignment.topics
         .map((name, idx) => {
@@ -261,82 +253,75 @@ export function AssignmentQuizClient({
             name,
             preference: normalized,
             ...(prefill?.profileId ? { profileId: prefill.profileId } : {}),
-            ...(prefill?.profileUpdatedAt
-              ? { profileUpdatedAt: prefill.profileUpdatedAt }
-              : {}),
+            ...(prefill?.profileUpdatedAt ? { profileUpdatedAt: prefill.profileUpdatedAt } : {}),
           };
         })
         .filter(
           (
-            value
+            value,
           ): value is {
             name: string;
             preference: number;
             profileId?: string;
             profileUpdatedAt?: string;
-          } => value !== null
+          } => value !== null,
         );
 
-      const response = await fetch(
-        `/api/courses/${classId}/assignments/${assignmentId}/submit`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ skills, topics }),
-        }
-      );
+      const response = await fetch(`/api/courses/${classId}/assignments/${assignmentId}/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ skills, topics }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to submit quiz');
+        throw new Error("Failed to submit quiz");
       }
 
       // Redirect to assignment page (CTA will guide to task)
       router.push(`/dashboard/class/${classId}/assignments/${assignmentId}`);
     } catch (error) {
-      console.error('Error submitting quiz:', error);
-      alert(t('error'));
+      console.error("Error submitting quiz:", error);
+      alert(t("error"));
     } finally {
-      dispatch({ type: 'SET_SUBMITTING', payload: false });
+      dispatch({ type: "SET_SUBMITTING", payload: false });
     }
   };
 
   const handleSkillsAnswer = (skillIndex: number, value: number) => {
-    dispatch({ type: 'SET_SKILLS_ANSWER', payload: { skillIndex, value } });
+    dispatch({ type: "SET_SKILLS_ANSWER", payload: { skillIndex, value } });
   };
 
   const handleTopicsAnswer = (topicIndex: number, value: number) => {
-    dispatch({ type: 'SET_TOPICS_ANSWER', payload: { topicIndex, value } });
+    dispatch({ type: "SET_TOPICS_ANSWER", payload: { topicIndex, value } });
   };
 
   return (
-    <main className='bg-white min-h-screen px-12 py-14'>
+    <main className="bg-white min-h-screen px-12 py-14">
       <SkillTestInstructionModal
-        isOpen={isSkillModalOpen && state.currentStep === 'skills'}
+        isOpen={isSkillModalOpen && state.currentStep === "skills"}
         onCloseAction={() => setIsSkillModalOpen(false)}
       />
       {assignment.hasTopics ? (
         <PreferenceTestInstructionModal
-          isOpen={isPreferenceModalOpen && state.currentStep === 'topics'}
+          isOpen={isPreferenceModalOpen && state.currentStep === "topics"}
           onCloseAction={() => setIsPreferenceModalOpen(false)}
         />
       ) : null}
-      <div className='flex items-center justify-center space-x-2 pt-20'>
-        <h1 className='font-bold text-black text-6xl tracking-tighter'>
-          {state.currentStep === 'skills' ? t('skillsTitle') : t('topicsTitle')}
+      <div className="flex items-center justify-center space-x-2 pt-20">
+        <h1 className="font-bold text-black text-6xl tracking-tighter">
+          {state.currentStep === "skills" ? t("skillsTitle") : t("topicsTitle")}
         </h1>
       </div>
 
-      <div className='flex items-center justify-center p-6'>
-        <p className='font-normal text-black text-xl tracking-tight'>
-          {t('description')}
-        </p>
+      <div className="flex items-center justify-center p-6">
+        <p className="font-normal text-black text-xl tracking-tight">{t("description")}</p>
       </div>
 
-      <form ref={formRef} className='px-8 max-w-4xl mx-auto pt-8'>
-        <div className='space-y-8'>
-          {state.currentStep === 'skills' ? (
+      <form ref={formRef} className="px-8 max-w-4xl mx-auto pt-8">
+        <div className="space-y-8">
+          {state.currentStep === "skills" ? (
             <SkillsQuiz
               skills={assignment.skills}
               onAnswerAction={handleSkillsAnswer}
@@ -356,33 +341,25 @@ export function AssignmentQuizClient({
         </div>
       </form>
 
-      <div className='flex items-center justify-center gap-x-6 pt-10'>
+      <div className="flex items-center justify-center gap-x-6 pt-10">
         <Button
-          variant='ghost'
-          size='icon'
-          className='rounded-full w-14 h-14 border border-black'
+          variant="ghost"
+          size="icon"
+          className="rounded-full w-14 h-14 border border-black"
           onClick={handlePrevious}
           disabled={state.isSubmitting}
         >
-          <ArrowLeft strokeWidth={3} className='font-bold text-black text-lg' />
+          <ArrowLeft strokeWidth={3} className="font-bold text-black text-lg" />
         </Button>
-        <Button
-          variant='onboarding'
-          size='long'
-          onClick={handleNext}
-          disabled={state.isSubmitting}
-        >
+        <Button variant="onboarding" size="long" onClick={handleNext} disabled={state.isSubmitting}>
           {state.isSubmitting
-            ? t('sending')
-            : state.currentStep === 'skills'
+            ? t("sending")
+            : state.currentStep === "skills"
               ? assignment.hasTopics
-                ? t('nextToTopics')
-                : t('finish')
-              : t('finish')}
-          <ArrowRight
-            strokeWidth={3}
-            className='font-bold text-white text-lg'
-          />
+                ? t("nextToTopics")
+                : t("finish")
+              : t("finish")}
+          <ArrowRight strokeWidth={3} className="font-bold text-white text-lg" />
         </Button>
       </div>
     </main>

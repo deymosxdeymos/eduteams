@@ -1,33 +1,25 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  useReducedMotion,
-} from 'framer-motion';
-import { useMemo, useState } from 'react';
-import type { ExtendedUser } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { CHART_DIMENSIONS, getMBTIColorScheme } from '@/lib/utils/mbti-colors';
-import {
-  buildRadarData,
-  computeAllDimensionMetrics,
-} from '@/lib/utils/mbti-dimension';
-import { getMBTIType } from '@/lib/utils/mbti-helpers';
-import { ChartTypeTabs } from './chart-type-tabs';
-import { MetricBar } from './metric-bar';
+import dynamic from "next/dynamic";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
+import { useMemo, useState } from "react";
+import type { ExtendedUser } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { CHART_DIMENSIONS, getMBTIColorScheme } from "@/lib/utils/mbti-colors";
+import { buildRadarData, computeAllDimensionMetrics } from "@/lib/utils/mbti-dimension";
+import { getMBTIType } from "@/lib/utils/mbti-helpers";
+import { ChartTypeTabs } from "./chart-type-tabs";
+import { MetricBar } from "./metric-bar";
 
 const PersonalityRadarChart = dynamic(
   () =>
-    import('./personality-radar-chart').then(mod => ({
+    import("./personality-radar-chart").then((mod) => ({
       default: mod.PersonalityRadarChart,
     })),
-  { ssr: false }
+  { ssr: false },
 );
 
-type ChartType = 'bar' | 'radar';
+type ChartType = "bar" | "radar";
 
 interface PersonalityMetricsProps {
   user: ExtendedUser;
@@ -41,22 +33,19 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
     chartType: ChartType;
     direction: number;
   }>({
-    chartType: 'bar',
+    chartType: "bar",
     direction: 1,
   });
 
   const handleChartTypeChange = (nextChartType: ChartType) => {
-    setChartState(currentState => {
+    setChartState((currentState) => {
       if (currentState.chartType === nextChartType) {
         return currentState;
       }
 
       return {
         chartType: nextChartType,
-        direction:
-          currentState.chartType === 'bar' && nextChartType === 'radar'
-            ? 1
-            : -1,
+        direction: currentState.chartType === "bar" && nextChartType === "radar" ? 1 : -1,
       };
     });
   };
@@ -91,26 +80,26 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
   };
 
   return (
-    <div className='flex flex-1 flex-col gap-4'>
+    <div className="flex flex-1 flex-col gap-4">
       <ChartTypeTabs
         value={chartType}
         onChange={handleChartTypeChange}
         colorScheme={colorScheme}
         options={[
-          { value: 'bar', label: 'Bar Chart' },
-          { value: 'radar', label: 'Radar Chart' },
+          { value: "bar", label: "Bar Chart" },
+          { value: "radar", label: "Radar Chart" },
         ]}
       />
 
       <div
         className={cn(
-          'rounded-xl p-4 bg-white border shadow-glow relative',
+          "rounded-xl p-4 bg-white border shadow-glow relative",
           colorScheme.lightBorder,
-          colorScheme.lightShadow
+          colorScheme.lightShadow,
         )}
         style={{
           minHeight: `${CHART_DIMENSIONS.minContentHeight}px`,
-          overflow: 'clip',
+          overflow: "clip",
         }}
       >
         <MotionConfig
@@ -119,22 +108,18 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
             ease: [0.77, 0, 0.175, 1],
           }}
         >
-          <AnimatePresence
-            mode='wait'
-            initial={false}
-            custom={direction}
-          >
-            {chartType === 'bar' && (
+          <AnimatePresence mode="wait" initial={false} custom={direction}>
+            {chartType === "bar" && (
               <motion.div
-                key='bar-chart'
+                key="bar-chart"
                 variants={chartVariants}
-                initial='initial'
-                animate='animate'
-                exit='exit'
+                initial="initial"
+                animate="animate"
+                exit="exit"
                 custom={direction}
               >
-                <div className='space-y-6'>
-                  {dimensionMetrics.map(dimension => (
+                <div className="space-y-6">
+                  {dimensionMetrics.map((dimension) => (
                     <MetricBar
                       key={dimension.key}
                       leftLabel={dimension.leftLabel}
@@ -148,15 +133,15 @@ export function PersonalityMetrics({ user }: PersonalityMetricsProps) {
               </motion.div>
             )}
 
-            {chartType === 'radar' && (
+            {chartType === "radar" && (
               <motion.div
-                key='radar-chart'
+                key="radar-chart"
                 variants={chartVariants}
-                initial='initial'
-                animate='animate'
-                exit='exit'
+                initial="initial"
+                animate="animate"
+                exit="exit"
                 custom={direction}
-                className='flex items-center justify-center'
+                className="flex items-center justify-center"
               >
                 <PersonalityRadarChart
                   data={radarData}
