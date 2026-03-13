@@ -1,6 +1,6 @@
 const DEFAULT_DATABASE_URL = "postgresql://user:password@localhost:5432/eduteams";
 
-function collectRequestedTargets() {
+function collectForwardedArgs() {
   return Bun.argv.slice(2).filter((value) => value.length > 0);
 }
 
@@ -28,10 +28,12 @@ async function discoverTestFiles() {
     .sort((left, right) => left.localeCompare(right));
 }
 
-async function runTestTarget(target: string) {
-  console.log(`\n==> ${target}`);
+async function runBunTest(args: string[], label?: string) {
+  if (label) {
+    console.log(`\n==> ${label}`);
+  }
 
-  const proc = Bun.spawn(["bun", "test", target], {
+  const proc = Bun.spawn(["bun", "test", ...args], {
     cwd: process.cwd(),
     stdout: "inherit",
     stderr: "inherit",
@@ -45,8 +47,14 @@ async function runTestTarget(target: string) {
 async function main() {
   process.env.DATABASE_URL ??= DEFAULT_DATABASE_URL;
 
-  const requestedTargets = collectRequestedTargets();
-  const testTargets = requestedTargets.length > 0 ? requestedTargets : await discoverTestFiles();
+  const forwardedArgs = collectForwardedArgs();
+  if (forwardedArgs.length > 0) {
+    const exitCode = await runBunTest(forwardedArgs);
+    process.exitCode = exitCode;
+    return;
+  }
+
+  const testTargets = await discoverTestFiles();
 
   if (testTargets.length === 0) {
     console.log("No test files found.");
@@ -56,7 +64,7 @@ async function main() {
   const failures: string[] = [];
 
   for (const target of testTargets) {
-    const exitCode = await runTestTarget(target);
+    const exitCode = await runBunTest([target], target);
     if (exitCode !== 0) {
       failures.push(target);
     }
