@@ -1,17 +1,21 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { DEMO_ASSIGNMENT_ID, DEMO_COURSE_ID, getDemoStudentsForCourse } from "@/lib/demo/sandbox";
 
-const actualApiUtils = await import("@/lib/api-utils");
 const actualNextCache = await import("next/cache");
+const actualSandboxRoster = await import("@/lib/demo/sandbox-roster");
+const actualSandboxSubmissions = await import("@/lib/demo/sandbox-submissions");
 const originalDemoMode = process.env.DEMO_MODE;
+
+let useMockedRemovedDemoStudentIds = false;
+let useMockedSubmittedAssignmentIds = false;
 
 const unstableCacheMock = mock(
   (fn: (...args: any[]) => Promise<unknown> | unknown) =>
     (...args: any[]) =>
       fn(...args),
 );
-const getCurrentUserMock = mock(async () => null);
 const getRemovedDemoStudentIdsFromCookieStoreMock = mock(async () => []);
+const getDemoSubmittedAssignmentIdsFromCookieStoreMock = mock(async () => []);
 
 const prismaMock: any = {
   course: {
@@ -42,24 +46,41 @@ mock.module("next/cache", () => ({
 mock.module("@/lib/prisma", () => ({
   default: prismaMock,
 }));
-mock.module("@/lib/api-utils", () => ({
-  ...actualApiUtils,
-  getCurrentUser: getCurrentUserMock,
-}));
 mock.module("@/lib/demo/sandbox-roster", () => ({
-  getRemovedDemoStudentIdsFromCookieStore: getRemovedDemoStudentIdsFromCookieStoreMock,
+  ...actualSandboxRoster,
+  getRemovedDemoStudentIdsFromRequest: (
+    ...args: Parameters<typeof actualSandboxRoster.getRemovedDemoStudentIdsFromRequest>
+  ) => actualSandboxRoster.getRemovedDemoStudentIdsFromRequest(...args),
+  getRemovedDemoStudentIdsFromCookieStore: (
+    ...args: Parameters<typeof actualSandboxRoster.getRemovedDemoStudentIdsFromCookieStore>
+  ) =>
+    useMockedRemovedDemoStudentIds
+      ? getRemovedDemoStudentIdsFromCookieStoreMock(...args)
+      : actualSandboxRoster.getRemovedDemoStudentIdsFromCookieStore(...args),
 }));
-
-afterAll(() => {
-  mock.restore();
-});
+mock.module("@/lib/demo/sandbox-submissions", () => ({
+  ...actualSandboxSubmissions,
+  getDemoSubmittedAssignmentIdsFromRequest: (
+    ...args: Parameters<typeof actualSandboxSubmissions.getDemoSubmittedAssignmentIdsFromRequest>
+  ) => actualSandboxSubmissions.getDemoSubmittedAssignmentIdsFromRequest(...args),
+  getDemoSubmittedAssignmentIdsFromCookieStore: (
+    ...args: Parameters<
+      typeof actualSandboxSubmissions.getDemoSubmittedAssignmentIdsFromCookieStore
+    >
+  ) =>
+    useMockedSubmittedAssignmentIds
+      ? getDemoSubmittedAssignmentIdsFromCookieStoreMock(...args)
+      : actualSandboxSubmissions.getDemoSubmittedAssignmentIdsFromCookieStore(...args),
+}));
 
 describe("demo sandbox data loaders", () => {
   beforeEach(() => {
     process.env.DEMO_MODE = "1";
+    useMockedRemovedDemoStudentIds = true;
+    useMockedSubmittedAssignmentIds = true;
     unstableCacheMock.mockClear();
-    getCurrentUserMock.mockReset();
     getRemovedDemoStudentIdsFromCookieStoreMock.mockReset();
+    getDemoSubmittedAssignmentIdsFromCookieStoreMock.mockReset();
     prismaMock.course.findMany.mockReset();
     prismaMock.courseEnrollment.findMany.mockReset();
     prismaMock.assignment.count.mockReset();
@@ -67,8 +88,8 @@ describe("demo sandbox data loaders", () => {
     prismaMock.team.count.mockReset();
     prismaMock.team.aggregate.mockReset();
 
-    getCurrentUserMock.mockResolvedValue(null);
     getRemovedDemoStudentIdsFromCookieStoreMock.mockResolvedValue([]);
+    getDemoSubmittedAssignmentIdsFromCookieStoreMock.mockResolvedValue([]);
     prismaMock.course.findMany.mockResolvedValue([]);
     prismaMock.courseEnrollment.findMany.mockResolvedValue([]);
     prismaMock.assignment.count.mockResolvedValue(0);
@@ -83,6 +104,9 @@ describe("demo sandbox data loaders", () => {
   });
 
   afterEach(() => {
+    useMockedRemovedDemoStudentIds = false;
+    useMockedSubmittedAssignmentIds = false;
+
     if (originalDemoMode === undefined) {
       delete process.env.DEMO_MODE;
       return;
@@ -152,12 +176,6 @@ describe("demo sandbox data loaders", () => {
   });
 
   it("merges persisted classes with the synthetic sandbox class for demo-account students", async () => {
-    getCurrentUserMock.mockResolvedValue({
-      id: "demo-student-user",
-      email: "demo.student.visitor1234@eduteams.local",
-      role: "STUDENT",
-      isOnboarded: true,
-    });
     prismaMock.courseEnrollment.findMany.mockResolvedValue([
       {
         enrolledAt: new Date("2026-03-10T00:00:00Z"),
@@ -174,8 +192,13 @@ describe("demo sandbox data loaders", () => {
       },
     ]);
 
-    const { getStudentClasses } = await import("../student-classes");
-    const classes = await getStudentClasses();
+    const { getStudentClassesForUser } = await import("../student-classes");
+    const classes = await getStudentClassesForUser({
+      id: "demo-student-user",
+      email: "demo.student.visitor1234@eduteams.local",
+      role: "STUDENT",
+      isOnboarded: true,
+    } as any);
 
     expect(prismaMock.courseEnrollment.findMany).toHaveBeenCalledTimes(1);
     expect(classes).toHaveLength(2);
@@ -223,19 +246,38 @@ describe("demo sandbox data loaders", () => {
       excludedStudentIds: ["demo-sandbox-student-2"],
     }).length;
     getRemovedDemoStudentIdsFromCookieStoreMock.mockResolvedValue(["demo-sandbox-student-2"]);
-    getCurrentUserMock.mockResolvedValue({
+
+    const { getStudentClassesForUser } = await import("../student-classes");
+    const classes = await getStudentClassesForUser({
       id: "demo-student-user",
       email: "demo.student.visitor1234@eduteams.local",
       role: "STUDENT",
       isOnboarded: true,
-    });
-
-    const { getStudentClasses } = await import("../student-classes");
-    const classes = await getStudentClasses();
+    } as any);
 
     expect(classes.find((course) => course.id === DEMO_COURSE_ID)?.studentCount).toBe(
       expectedStudentCount,
     );
+  });
+
+  it("hydrates sandbox initial assignments from persisted submission cookies", async () => {
+    getDemoSubmittedAssignmentIdsFromCookieStoreMock.mockResolvedValue([DEMO_ASSIGNMENT_ID]);
+
+    const { getInitialAssignments } = await import("../../data/course-data");
+    const assignments = await getInitialAssignments(DEMO_COURSE_ID, {
+      id: "demo-student-user",
+      email: "demo.student.visitor1234@eduteams.local",
+      role: "STUDENT",
+      isOnboarded: true,
+    } as any);
+
+    expect(assignments).toEqual([
+      expect.objectContaining({
+        id: DEMO_ASSIGNMENT_ID,
+        submittedByMe: true,
+        submissionsCount: getDemoStudentsForCourse().length,
+      }),
+    ]);
   });
 
   it("uses synthetic dashboard statistics for authenticated demo-account teachers", async () => {

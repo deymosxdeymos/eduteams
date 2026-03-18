@@ -8,17 +8,17 @@ import { DemoLocalAssignmentBody } from "@/components/demo/demo-local-assignment
 import { AssignmentSkeleton } from "@/components/ui/skeletons/assignment-skeleton";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import {
-  DEMO_ASSIGNMENT_ID,
   DEMO_COURSE_ID,
   getDemoAssignmentDefinitionFromSearchParams,
+  getDemoAssignmentSubmissionSnapshot,
   getDemoCourse,
   getDemoSandboxPrincipalId,
-  getDemoSeededAssignment,
   getDemoStudentsForCourse,
   isDemoSandboxAssignmentId,
   isDemoSandboxUser,
 } from "@/lib/demo/sandbox";
 import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import prisma from "@/lib/prisma";
 import { protectDashboard } from "@/lib/server-auth";
 import type { Course, ExtendedUser } from "@/lib/types";
@@ -51,13 +51,8 @@ export async function generateMetadata({
   const user = await protectDashboard();
   const { id } = await params;
   const { course } = await getCourseAndStudents(id, user);
-  const title = course
-    ? `${course.namaMataKuliah} - ${course.kelas} | Tugas | EduTeams`
-    : "Tugas - EduTeams";
-  const description = course
-    ? `Detail tugas untuk ${course.namaMataKuliah} - ${course.kelas}`
-    : "Halaman detail tugas";
-  return { title, description };
+  const title = course ? `${course.namaMataKuliah} - ${course.kelas} | EduTeams` : "EduTeams";
+  return { title };
 }
 
 const mapEnrollmentStudents = (enrollments: EnrollmentWithStudent[]) =>
@@ -199,8 +194,10 @@ export default async function AssignmentPage({ params, searchParams }: Assignmen
     const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
     const assignmentDefinition = getDemoAssignmentDefinitionFromSearchParams(await searchParams);
     const course = getDemoCourse();
-    const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
-    const seededAssignment = assignmentId === DEMO_ASSIGNMENT_ID ? getDemoSeededAssignment() : null;
+    const [removedStudentIds, submittedAssignmentIds] = await Promise.all([
+      getRemovedDemoStudentIdsFromCookieStore(),
+      getDemoSubmittedAssignmentIdsFromCookieStore(),
+    ]);
     const students = getDemoStudentsForCourse({
       excludedStudentIds: removedStudentIds,
     }).map((student) => ({
@@ -216,6 +213,12 @@ export default async function AssignmentPage({ params, searchParams }: Assignmen
       pj: student.pj,
       enrolledAt: student.enrolledAt,
     }));
+    const submissionSnapshot = getDemoAssignmentSubmissionSnapshot({
+      assignmentId,
+      currentUserId,
+      enrolledStudentIds: students.map((student) => student.id),
+      submittedAssignmentIds,
+    });
 
     return (
       <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
@@ -227,7 +230,7 @@ export default async function AssignmentPage({ params, searchParams }: Assignmen
           students={students}
           canManage={isDosen}
           assignmentTitle={assignmentDefinition.title}
-          submittedStudentIds={students.map((student) => student.id)}
+          submittedStudentIds={submissionSnapshot.submittedStudentIds}
         >
           <DemoLocalAssignmentBody
             classId={id}
@@ -240,11 +243,7 @@ export default async function AssignmentPage({ params, searchParams }: Assignmen
             initialTitle={assignmentDefinition.title}
             initialSkills={assignmentDefinition.skills}
             initialTopics={assignmentDefinition.topics}
-            initialSubmissionsCount={
-              seededAssignment
-                ? Math.min(seededAssignment.submissionsCount, students.length)
-                : undefined
-            }
+            initialSubmittedAssignmentIds={submittedAssignmentIds}
             enrolledStudents={students}
           />
         </AssignmentLayout>

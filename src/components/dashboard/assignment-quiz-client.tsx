@@ -7,6 +7,9 @@ import { useTranslations } from "next-intl";
 import { useReducer, useRef, useState } from "react";
 import SkillTestInstructionModal from "@/components/dashboard/skill-test-instruction-modal";
 import { Button } from "@/components/ui/button";
+import { DEMO_COURSE_ID } from "@/lib/demo/sandbox-shared";
+import { markDemoAssignmentSubmitted } from "@/lib/demo/sandbox-client";
+import { toFivePointLikertValue } from "@/lib/utils/five-point-scale";
 import SkillsQuiz from "./skills-quiz";
 
 const PreferenceTestInstructionModal = dynamic(
@@ -71,13 +74,6 @@ type QuizAction =
   | { type: "SET_VALIDATION_ERRORS"; payload: Set<string> }
   | { type: "SET_SUBMITTING"; payload: boolean };
 
-const toLikertValue = (value: number | null | undefined): number | undefined => {
-  if (value == null) return undefined;
-  const denorm = Math.round(value * 4) + 1;
-  if (Number.isNaN(denorm)) return undefined;
-  return Math.min(5, Math.max(1, denorm));
-};
-
 function createInitialQuizState(assignment: Assignment): QuizState {
   const state: QuizState = {
     currentStep: "skills",
@@ -88,11 +84,11 @@ function createInitialQuizState(assignment: Assignment): QuizState {
   };
 
   assignment.skillPrefills.forEach((prefill, index) => {
-    const likert = toLikertValue(prefill.level);
+    const likert = toFivePointLikertValue(prefill.level);
     if (likert) state.skillsAnswers[index] = likert;
   });
   assignment.topicPrefills.forEach((prefill, index) => {
-    const likert = toLikertValue(prefill.preference);
+    const likert = toFivePointLikertValue(prefill.preference);
     if (likert) state.topicsAnswers[index] = likert;
   });
 
@@ -277,6 +273,11 @@ export function AssignmentQuizClient({
 
       if (!response.ok) {
         throw new Error("Failed to submit quiz");
+      }
+
+      // Track submission for demo assignments
+      if (classId === DEMO_COURSE_ID) {
+        markDemoAssignmentSubmitted(assignmentId);
       }
 
       // Redirect to assignment page (CTA will guide to task)

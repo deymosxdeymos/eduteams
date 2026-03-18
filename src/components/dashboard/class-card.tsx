@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "@/i18n/routing";
 
 interface ClassCardProps {
   id: string;
@@ -43,28 +43,13 @@ export const ClassCard = memo(function ClassCard({
   studentCount,
   classCode,
 }: ClassCardProps) {
-  const router = useRouter();
   const t = useTranslations("dashboard.classCard");
   const badgeColors = getClassBadgeColor(classCode);
 
-  const handleClick = () => {
-    router.push(`/dashboard/class/${id}`);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleClick();
-    }
-  };
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <Link
+      href={`/dashboard/class/${id}`}
       className="group flex h-full w-full cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70 active:opacity-95 md:px-5 md:py-4"
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
     >
       <div className="flex h-full flex-col gap-2">
         <div className="flex items-start justify-between">
@@ -94,6 +79,6 @@ export const ClassCard = memo(function ClassCard({
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 });

@@ -190,7 +190,7 @@ export function AssignmentContent({
 
   const adjustedIncompleteCount = visibleMissingStudents.length;
 
-  const shouldFetchStatus = !isStudent;
+  const shouldFetchStatus = !isStudent && allowPersistedTeamActions;
   const shouldPollStatus = shouldFetchStatus && isTeamFormationProcessing;
 
   // Poll for team formation status for teachers; only keep interval while processing

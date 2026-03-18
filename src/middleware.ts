@@ -9,21 +9,68 @@ import {
 } from "@/lib/demo/sandbox";
 import { routing } from "./i18n/routing";
 
-function applySecurityHeaders(response: NextResponse) {
-  const csp = [
+const isDev = process.env.NODE_ENV === "development";
+
+export function buildCsp(nonce: string, options?: { isDevelopment?: boolean }) {
+  const isDevelopment = options?.isDevelopment ?? isDev;
+  const scriptSrc = isDevelopment
+    ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
+    : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`;
+  const connectSrc = isDevelopment
+    ? "connect-src 'self' https: http: ws:"
+    : "connect-src 'self' https:";
+
+  return [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
     "img-src 'self' data: blob:",
-    "connect-src 'self' https:",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    connectSrc,
+    scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
     "object-src 'none'",
   ].join("; ");
+}
 
-  response.headers.set("Content-Security-Policy-Report-Only", csp);
+function applyRequestHeaderOverrides(response: NextResponse, requestHeaderOverrides: Headers) {
+  const forwardedResponse = NextResponse.next({
+    request: {
+      headers: requestHeaderOverrides,
+    },
+  });
+
+  const overrideHeaders = new Set(
+    response.headers
+      .get("x-middleware-override-headers")
+      ?.split(",")
+      .map((header) => header.trim())
+      .filter(Boolean) ?? [],
+  );
+
+  for (const [key, value] of forwardedResponse.headers) {
+    if (key === "x-middleware-override-headers") {
+      for (const header of value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)) {
+        overrideHeaders.add(header);
+      }
+      continue;
+    }
+
+    if (key.startsWith("x-middleware-request-")) {
+      response.headers.set(key, value);
+    }
+  }
+
+  if (overrideHeaders.size > 0) {
+    response.headers.set("x-middleware-override-headers", Array.from(overrideHeaders).join(","));
+  }
+}
+
+function applyBaseSecurityHeaders(response: NextResponse) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -37,6 +84,28 @@ function applySecurityHeaders(response: NextResponse) {
       "fullscreen=(self)",
     ].join(", "),
   );
+}
+
+function applySecurityHeaders(response: NextResponse) {
+  applyBaseSecurityHeaders(response);
+
+  if (response.headers.has("location")) {
+    return response;
+  }
+
+  const nonce = crypto.randomUUID().replace(/-/g, "");
+  const csp = buildCsp(nonce);
+  const requestHeaderOverrides = new Headers();
+
+  requestHeaderOverrides.set("x-nonce", nonce);
+
+  // Next.js only forwards request header changes into the render pipeline
+  // when they are attached as middleware request overrides.
+  applyRequestHeaderOverrides(response, requestHeaderOverrides);
+
+  // Browser enforces the CSP from response headers
+  response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("x-nonce", nonce);
   return response;
 }
 
@@ -61,9 +130,12 @@ async function hasDemoSandboxSession(request: NextRequest) {
     return false;
   }
 
-  const demoSession = await parseDemoSandboxCookieValue(
-    request.cookies.get(DEMO_SANDBOX_COOKIE_NAME)?.value,
-  );
+  const demoCookieValue = request.cookies.get(DEMO_SANDBOX_COOKIE_NAME)?.value;
+  if (!demoCookieValue) {
+    return false;
+  }
+
+  const demoSession = await parseDemoSandboxCookieValue(demoCookieValue);
 
   return hasDemoSandboxAuthenticatedSession(demoSession);
 }

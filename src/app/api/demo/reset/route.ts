@@ -4,6 +4,7 @@ import { deleteAuthSessionCookies, deleteDemoVisitorCookies } from "@/lib/demo/a
 import { deleteDemoVisitorData } from "@/lib/demo/cleanup";
 import { DEMO_SANDBOX_COOKIE_NAME, isDemoModeEnabled } from "@/lib/demo/sandbox";
 import { clearDemoSandboxRosterCookie } from "@/lib/demo/sandbox-roster";
+import { clearDemoSandboxSubmissionsCookie } from "@/lib/demo/sandbox-submissions";
 
 export const runtime = "nodejs";
 
@@ -23,5 +24,6 @@ export async function POST(request: NextRequest) {
   deleteDemoVisitorCookies(response);
   response.cookies.delete(DEMO_SANDBOX_COOKIE_NAME);
   clearDemoSandboxRosterCookie(response);
+  clearDemoSandboxSubmissionsCookie(response);
   return response;
 }

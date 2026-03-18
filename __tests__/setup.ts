@@ -88,7 +88,7 @@ mock.module("next-intl", () => {
 
   return {
     useTranslations: (namespace?: string) => {
-      return (key: string, params?: Record<string, unknown>) => {
+      const t = (key: string, params?: Record<string, unknown>) => {
         const fullKey = namespace ? `${namespace}.${key}` : key;
         let value = getNestedValue(messages, fullKey);
         if (params) {
@@ -98,6 +98,26 @@ mock.module("next-intl", () => {
         }
         return value;
       };
+      t.rich = (key: string, params?: Record<string, unknown>) => {
+        const fullKey = namespace ? `${namespace}.${key}` : key;
+        let value = getNestedValue(messages, fullKey);
+        if (params) {
+          for (const [k, v] of Object.entries(params)) {
+            if (typeof v === "function") {
+              // Rich text tag handler: replace <tag>content</tag> with the handler result
+              const tagRegex = new RegExp(`<${k}>(.*?)</${k}>`, "g");
+              value = value.replace(tagRegex, (_match: string, content: string) =>
+                String(v(content)),
+              );
+              // If no XML tags matched, skip placeholder replacement
+              continue;
+            }
+            value = value.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return value;
+      };
+      return t;
     },
     useLocale: () => "en",
     useFormatter: () => ({
@@ -243,7 +263,7 @@ function installSharedModuleMocks() {
 
     return {
       useTranslations: (namespace?: string) => {
-        return (key: string, params?: Record<string, unknown>) => {
+        const t = (key: string, params?: Record<string, unknown>) => {
           const fullKey = namespace ? `${namespace}.${key}` : key;
           let value = getNestedValue(messages, fullKey);
           if (params) {
@@ -253,6 +273,24 @@ function installSharedModuleMocks() {
           }
           return value;
         };
+        t.rich = (key: string, params?: Record<string, unknown>) => {
+          const fullKey = namespace ? `${namespace}.${key}` : key;
+          let value = getNestedValue(messages, fullKey);
+          if (params) {
+            for (const [k, v] of Object.entries(params)) {
+              if (typeof v === "function") {
+                const tagRegex = new RegExp(`<${k}>(.*?)</${k}>`, "g");
+                value = value.replace(tagRegex, (_match: string, content: string) =>
+                  String(v(content)),
+                );
+                continue;
+              }
+              value = value.replaceAll(`{${k}}`, String(v));
+            }
+          }
+          return value;
+        };
+        return t;
       },
       useLocale: () => "en",
       useFormatter: () => ({

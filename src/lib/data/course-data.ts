@@ -9,6 +9,7 @@ import {
   isDemoSandboxUser,
 } from "@/lib/demo/sandbox";
 import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import prisma from "@/lib/prisma";
 import type { ExtendedUser } from "@/lib/types";
 import type { AssignmentClient } from "@/lib/validation/assignments";
@@ -89,7 +90,11 @@ export async function getInitialAssignments(
   if (!isDosen && !isMahasiswa) return [];
 
   if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-    return getDemoAssignmentsForUser(user);
+    const [submittedAssignmentIds, removedStudentIds] = await Promise.all([
+      getDemoSubmittedAssignmentIdsFromCookieStore(),
+      getRemovedDemoStudentIdsFromCookieStore(),
+    ]);
+    return getDemoAssignmentsForUser(user, { submittedAssignmentIds, removedStudentIds });
   }
 
   const rows = await prisma.assignment.findMany({

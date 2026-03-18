@@ -14,6 +14,8 @@ import {
   isDemoSandboxUser,
 } from "@/lib/demo/sandbox";
 import { seedDemoAssignmentSubmissions } from "@/lib/demo/seed-students";
+import { getRemovedDemoStudentIdsFromRequest } from "@/lib/demo/sandbox-roster";
+import { getDemoSubmittedAssignmentIdsFromRequest } from "@/lib/demo/sandbox-submissions";
 import prisma, { type TransactionClient } from "@/lib/prisma";
 import {
   ensureSkillsForCourse,
@@ -25,7 +27,7 @@ import { AssignmentCreateSchema } from "@/lib/validation/assignments";
 export const runtime = "nodejs";
 
 // GET /api/courses/[id]/assignments
-export const GET = withAuth<{ id: string }>(async (_request: NextRequest, { user, params }) => {
+export const GET = withAuth<{ id: string }>(async (request: NextRequest, { user, params }) => {
   try {
     const { id: courseId } = await params;
 
@@ -35,7 +37,11 @@ export const GET = withAuth<{ id: string }>(async (_request: NextRequest, { user
     if (!isDosen && !isMahasiswa) return createErrorResponse("Access denied", 403);
 
     if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-      return createApiResponse(getDemoAssignmentsForUser(user));
+      const submittedAssignmentIds = getDemoSubmittedAssignmentIdsFromRequest(request);
+      const removedStudentIds = getRemovedDemoStudentIdsFromRequest(request);
+      return createApiResponse(
+        getDemoAssignmentsForUser(user, { submittedAssignmentIds, removedStudentIds }),
+      );
     }
 
     // Authorization: dosen must own the course; students must be enrolled

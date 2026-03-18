@@ -1,4 +1,5 @@
 import type { AssignmentStatus } from "@/generated/prisma/client";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 
 /**
  * Tier system for assignment edits:
@@ -34,23 +35,8 @@ export function parseAssignmentStructure(description: string | null): {
   skills: string[];
   topics: string[];
 } {
-  if (!description) {
-    return { skills: [], topics: [] };
-  }
-
-  try {
-    const parsed = JSON.parse(description);
-    if (parsed && typeof parsed === "object") {
-      return {
-        skills: Array.isArray(parsed.skills) ? parsed.skills : [],
-        topics: Array.isArray(parsed.topics) ? parsed.topics : [],
-      };
-    }
-  } catch {
-    // Invalid JSON, return empty arrays
-  }
-
-  return { skills: [], topics: [] };
+  const { skills, topics } = parseAssignmentDescription(description, { defaultSkills: [] });
+  return { skills, topics };
 }
 
 /**
@@ -71,11 +57,9 @@ export function detectArrayChanges(oldArr: string[], newArr: string[]): Structur
   const oldSet = new Set(oldArr.map((s) => s.toLowerCase().trim()));
   const newSet = new Set(newArr.map((s) => s.toLowerCase().trim()));
 
-  // Create maps for original casing
   const oldMap = new Map(oldArr.map((s) => [s.toLowerCase().trim(), s]));
   const newMap = new Map(newArr.map((s) => [s.toLowerCase().trim(), s]));
 
-  // Find initially added and removed items
   const initiallyAdded: string[] = [];
   const initiallyRemoved: string[] = [];
 
@@ -93,12 +77,10 @@ export function detectArrayChanges(oldArr: string[], newArr: string[]): Structur
     }
   }
 
-  // Detect renames by matching removed items to added items
   const renamed: Array<{ old: string; new: string }> = [];
   const matchedRemoved = new Set<string>();
   const matchedAdded = new Set<string>();
 
-  // For each removed item, find the best matching added item
   for (const oldItem of initiallyRemoved) {
     let bestMatch: string | null = null;
     let bestScore = 0;
@@ -107,7 +89,6 @@ export function detectArrayChanges(oldArr: string[], newArr: string[]): Structur
       if (matchedAdded.has(newItem)) continue;
 
       if (isSimilar(oldItem, newItem)) {
-        // Score by length of common substring (prefer longer matches)
         const score = Math.min(oldItem.length, newItem.length);
         if (score > bestScore) {
           bestScore = score;
@@ -123,7 +104,6 @@ export function detectArrayChanges(oldArr: string[], newArr: string[]): Structur
     }
   }
 
-  // Filter out matched items from added/removed
   const added = initiallyAdded.filter((item) => !matchedAdded.has(item));
   const removed = initiallyRemoved.filter((item) => !matchedRemoved.has(item));
 
@@ -139,7 +119,6 @@ export function determineEditTier(
   status: AssignmentStatus,
   submissionCount: number,
 ): { tier: EditTier; reason?: string } {
-  // Tier 4: Teams already formed - block all structural edits
   if (status === "BERHASIL_PEMBAGIAN_GRUP") {
     const hasStructuralChanges =
       skillChanges.added.length > 0 ||
@@ -158,12 +137,10 @@ export function determineEditTier(
     }
   }
 
-  // No submissions yet - all changes are safe
   if (submissionCount === 0) {
     return { tier: 1 };
   }
 
-  // Check for destructive changes (removals or renames)
   const hasDestructiveChanges =
     skillChanges.removed.length > 0 ||
     skillChanges.renamed.length > 0 ||
@@ -177,7 +154,6 @@ export function determineEditTier(
     };
   }
 
-  // Check for additive changes only
   const hasAdditiveChanges = skillChanges.added.length > 0 || topicChanges.added.length > 0;
 
   if (hasAdditiveChanges) {
@@ -187,7 +163,6 @@ export function determineEditTier(
     };
   }
 
-  // Only metadata changes (title, description text, dates)
   return { tier: 1 };
 }
 
@@ -201,14 +176,9 @@ export function analyzeAssignmentEditImpact(
   status: AssignmentStatus,
   submissionCount: number,
 ): EditImpact {
-  // Parse current structure
   const current = parseAssignmentStructure(currentDescription);
-
-  // Detect changes
   const skillChanges = detectArrayChanges(current.skills, newSkills);
   const topicChanges = detectArrayChanges(current.topics, newTopics);
-
-  // Determine tier
   const { tier, reason } = determineEditTier(skillChanges, topicChanges, status, submissionCount);
 
   return {

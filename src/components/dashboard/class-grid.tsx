@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { ClassCard } from "./class-card";
 
 export interface ClassSummary {
@@ -14,13 +17,15 @@ interface ClassGridProps {
 }
 
 export function ClassGrid({ classes = [], showNoResults = false }: ClassGridProps) {
+  const t = useTranslations("dashboard.classGrid");
+
   // Show "no results" message if search returned empty and we're in search mode
   if (showNoResults) {
     return (
       <div className="h-full flex items-center justify-center pt-4 pb-6">
         <div className="text-center">
-          <p className="text-gray-500 text-lg font-medium">Tidak ada kelas yang ditemukan</p>
-          <p className="text-gray-400 text-sm mt-2">Coba gunakan kata kunci yang berbeda</p>
+          <p className="text-gray-500 text-lg font-medium">{t("noResults")}</p>
+          <p className="text-gray-400 text-sm mt-2">{t("tryOtherKeyword")}</p>
         </div>
       </div>
     );

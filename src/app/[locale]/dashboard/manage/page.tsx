@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
@@ -10,9 +11,10 @@ import { protectDashboard } from "@/lib/server-auth";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("dashboard.sidebar");
   return {
-    title: "Kelola - EduTeams",
-    description: "Kelola fitur dashboard untuk peran dosen dan mahasiswa.",
+    title: `${t("manage")} - EduTeams`,
+    description: "Manage dashboard features for lecturers and students.",
   };
 }
 

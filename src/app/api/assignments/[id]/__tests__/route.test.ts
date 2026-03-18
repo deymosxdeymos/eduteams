@@ -50,6 +50,15 @@ function registerMocks() {
     },
   }));
   mock.module("@/lib/prisma", () => ({ default: prismaMock }));
+  mock.module("@/lib/utils/assignment-skills-topics", () => ({
+    ensureSkillsForCourse: mock(async () => undefined),
+    ensureTopicsForAssignment: mock(async () => undefined),
+  }));
+  mock.module("@/lib/utils/assignment-snapshot", () => ({
+    createAssignmentSnapshot: mock(async () => undefined),
+    invalidateAssignmentSubmissions: mock(async () => undefined),
+    markSubmissionsNeedUpdate: mock(async () => undefined),
+  }));
 }
 
 describe("PATCH /api/assignments/[id]", () => {
@@ -128,6 +137,39 @@ describe("PATCH /api/assignments/[id]", () => {
     });
     const res = await PATCH(req as any, { params: Promise.resolve({ id: "a1" }) } as any);
     expect(res.status).toBe(403);
+  });
+
+  it("preserves legacy plain-text descriptions when updating structure", async () => {
+    prismaMock.assignment.findUnique.mockImplementationOnce(async () => ({
+      id: "a1",
+      courseId: "c1",
+      title: "T",
+      description: "Legacy description",
+      status: "MENUNGGU",
+      structureVersion: 1,
+      course: { dosenId: "u1" },
+      _count: { submissions: 0 },
+    }));
+
+    const { PATCH } = await import("../route");
+    const req = new Request("http://localhost/api/assignments/a1", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ skills: ["Frontend"] }),
+    });
+    const res = await PATCH(req as any, { params: Promise.resolve({ id: "a1" }) } as any);
+
+    expect(res.status).toBe(200);
+    expect(prismaMock.assignment.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          description: JSON.stringify({
+            text: "Legacy description",
+            skills: ["Frontend"],
+          }),
+        }),
+      }),
+    );
   });
 
   it("allows demo-account teachers to edit persisted assignments", async () => {

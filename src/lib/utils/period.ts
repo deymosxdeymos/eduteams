@@ -8,11 +8,18 @@ interface AcademicYear {
   label: string;
 }
 
+export type AcademicSemester = "ganjil" | "genap" | "pendek";
+
 interface AcademicPeriod {
   tahunAwalPeriode: number;
   tahunAkhirPeriode: number;
-  periode: "ganjil" | "genap" | "pendek";
+  periode: AcademicSemester;
   label: string;
+}
+
+interface AcademicPeriodInput {
+  tahunAkhirPeriode: number;
+  periode: string | AcademicSemester;
 }
 
 export function getCurrentAcademicYear(date: Date = new Date()): AcademicYear {
@@ -70,7 +77,34 @@ export function getCurrentAcademicPeriod(date: Date = new Date()): AcademicPerio
 export function formatAcademicPeriodLabel(
   tahunAwal: number,
   tahunAkhir: number,
-  periode: "ganjil" | "genap" | "pendek",
+  periode: AcademicSemester,
 ): string {
   return `${tahunAwal}/${tahunAkhir} ${periode.charAt(0).toUpperCase() + periode.slice(1)}`;
+}
+
+export function resolveAcademicSemester(value: string | AcademicSemester | null | undefined) {
+  const lower = value?.toLowerCase();
+  if (lower === "genap") return "genap";
+  if (lower === "pendek") return "pendek";
+  return "ganjil";
+}
+
+export function isArchivedAcademicPeriod(
+  course: AcademicPeriodInput,
+  currentPeriod: AcademicPeriod = getCurrentAcademicPeriod(),
+) {
+  if (course.tahunAkhirPeriode < currentPeriod.tahunAkhirPeriode) {
+    return true;
+  }
+
+  if (course.tahunAkhirPeriode > currentPeriod.tahunAkhirPeriode) {
+    return false;
+  }
+
+  const semester = resolveAcademicSemester(course.periode);
+  if (semester === currentPeriod.periode) {
+    return false;
+  }
+
+  return currentPeriod.periode === "genap" && semester === "ganjil";
 }

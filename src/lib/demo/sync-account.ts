@@ -4,12 +4,13 @@ import { CACHE_TAGS } from "@/lib/cache-tags";
 import { getDemoAccount } from "@/lib/demo/auth";
 import type { DemoRole } from "@/lib/demo/config";
 import prisma, { type PrismaClientInstance, type TransactionClient } from "@/lib/prisma";
+import { buildVisibleCourseFilter } from "@/lib/utils/course-archive";
 
 const DEMO_STUDENT_PERSONALITY_PROFILE = {
   ei: -0.7,
-  sn: -0.6,
+  sn: 0.6,
   tf: 0.5,
-  pj: 0.7,
+  pj: -0.7,
   mbtiType: "INFJ",
 } as const;
 
@@ -99,7 +100,7 @@ export async function bootstrapDemoStudentAccount(
   }
 
   const courses = await db.course.findMany({
-    where: { dosenId: demoTeacher.id, archivedAt: null },
+    where: { dosenId: demoTeacher.id, ...buildVisibleCourseFilter() },
     select: { id: true },
   });
 

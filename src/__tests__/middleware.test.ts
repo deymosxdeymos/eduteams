@@ -132,6 +132,22 @@ describe("middleware auth handling", () => {
     expect(response.headers.get("location")).toBe("http://localhost/dashboard");
   });
 
+  it("skips nonce forwarding for redirect responses", async () => {
+    const sandboxCookie = await demoCookieValue("TEACHER");
+    const { middleware } = await import("@/middleware");
+    const request = createRequest(
+      "/login",
+      `eduteams-demo-sandbox=${encodeURIComponent(sandboxCookie)}`,
+    );
+
+    const response = await middleware(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("x-nonce")).toBeNull();
+    expect(response.headers.get("Content-Security-Policy")).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-nonce")).toBeNull();
+  });
+
   it("rejects unsigned sandbox cookies on protected routes", async () => {
     const { middleware } = await import("@/middleware");
     const request = createRequest(
@@ -162,5 +178,40 @@ describe("middleware auth handling", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("http://localhost/");
+  });
+
+  it("forwards only the CSP nonce into Next.js request header overrides", async () => {
+    const { middleware } = await import("@/middleware");
+    const request = createRequest("/", "foo=bar; theme=dark");
+
+    const response = await middleware(request);
+    const nonce = response.headers.get("x-nonce");
+    const csp = response.headers.get("Content-Security-Policy");
+
+    expect(typeof nonce).toBe("string");
+    expect(nonce).not.toHaveLength(0);
+    expect(csp).toContain(`'nonce-${nonce}'`);
+
+    const overrideHeaders =
+      response.headers
+        .get("x-middleware-override-headers")
+        ?.split(",")
+        .map((header) => header.trim().toLowerCase())
+        .toSorted() ?? [];
+
+    expect(overrideHeaders).toEqual(["x-nonce"]);
+    expect(response.headers.get("x-middleware-request-content-security-policy")).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-nonce")).toBe(nonce);
+    expect(response.headers.get("x-middleware-request-cookie")).toBeNull();
+  });
+
+  it("allows local development connections only in the development CSP", async () => {
+    const { buildCsp } = await import("@/middleware");
+
+    expect(buildCsp("nonce-dev", { isDevelopment: true })).toContain(
+      "connect-src 'self' https: http: ws:",
+    );
+    expect(buildCsp("nonce-prod", { isDevelopment: false })).toContain("connect-src 'self' https:");
+    expect(buildCsp("nonce-prod", { isDevelopment: false })).not.toContain(" ws:");
   });
 });

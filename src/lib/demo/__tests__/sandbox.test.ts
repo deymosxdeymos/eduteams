@@ -3,10 +3,15 @@ import {
   buildDemoTeamFormation,
   buildDemoAssignmentAnswersHref,
   buildDemoAssignmentHref,
+  DEMO_ASSIGNMENT_ID,
+  DEMO_STUDENT_ID,
+  DEMO_TEACHER_ID,
   getDemoAssignmentAnswersView,
   getDemoAssignmentDefinitionFromSearchParams,
   getDemoAssignmentStats,
   getDemoAssignmentStatsForDefinition,
+  getDemoAssignmentSubmissionSnapshot,
+  getDemoAssignmentsForUser,
   getDemoDashboardStatistics,
   getDemoManageAssignments,
   getDemoSubmittedStudents,
@@ -100,6 +105,97 @@ describe("demo sandbox assignment helpers", () => {
     });
   });
 
+  it("reflects persisted seeded-assignment submissions in demo student assignment rows", () => {
+    const pendingAssignments = getDemoAssignmentsForUser(
+      { id: DEMO_STUDENT_ID, role: "STUDENT" },
+      { submittedAssignmentIds: [] },
+    );
+    const submittedAssignments = getDemoAssignmentsForUser(
+      { id: DEMO_STUDENT_ID, role: "STUDENT" },
+      { submittedAssignmentIds: [DEMO_ASSIGNMENT_ID] },
+    );
+
+    expect(pendingAssignments[0]).toEqual(
+      expect.objectContaining({
+        id: DEMO_ASSIGNMENT_ID,
+        submittedByMe: false,
+      }),
+    );
+    expect(submittedAssignments[0]).toEqual(
+      expect.objectContaining({
+        id: DEMO_ASSIGNMENT_ID,
+        submittedByMe: true,
+      }),
+    );
+    expect(submittedAssignments[0]?.submissionsCount).toBeGreaterThan(
+      pendingAssignments[0]?.submissionsCount ?? 0,
+    );
+  });
+
+  it("keeps the paired demo student pending for teacher views until the local submission is recorded", () => {
+    const snapshot = getDemoAssignmentSubmissionSnapshot({
+      assignmentId: DEMO_ASSIGNMENT_ID,
+      currentUserId: DEMO_TEACHER_ID,
+      enrolledStudentIds: [DEMO_STUDENT_ID, "demo-sandbox-student-2", "demo-sandbox-student-3"],
+      submittedAssignmentIds: [],
+    });
+
+    expect(snapshot.hasSubmissionStudentSubmitted).toBe(false);
+    expect(snapshot.submittedStudentIds).toEqual([
+      "demo-sandbox-student-2",
+      "demo-sandbox-student-3",
+    ]);
+  });
+
+  it("counts the paired demo student after the local submission is recorded", () => {
+    const snapshot = getDemoAssignmentSubmissionSnapshot({
+      assignmentId: DEMO_ASSIGNMENT_ID,
+      currentUserId: DEMO_TEACHER_ID,
+      enrolledStudentIds: [DEMO_STUDENT_ID, "demo-sandbox-student-2"],
+      submittedAssignmentIds: [DEMO_ASSIGNMENT_ID],
+    });
+
+    expect(snapshot.hasSubmissionStudentSubmitted).toBe(true);
+    expect(snapshot.submittedStudentIds).toEqual([DEMO_STUDENT_ID, "demo-sandbox-student-2"]);
+  });
+
+  it("keeps teacher assignment list counts aligned with the persisted submission snapshot", () => {
+    const enrolledStudentIds = getDemoStudentsForCourse().map((student) => student.id);
+    const pendingSnapshot = getDemoAssignmentSubmissionSnapshot({
+      assignmentId: DEMO_ASSIGNMENT_ID,
+      currentUserId: DEMO_TEACHER_ID,
+      enrolledStudentIds,
+      submittedAssignmentIds: [],
+    });
+    const submittedSnapshot = getDemoAssignmentSubmissionSnapshot({
+      assignmentId: DEMO_ASSIGNMENT_ID,
+      currentUserId: DEMO_TEACHER_ID,
+      enrolledStudentIds,
+      submittedAssignmentIds: [DEMO_ASSIGNMENT_ID],
+    });
+    const pendingAssignments = getDemoAssignmentsForUser(
+      { id: DEMO_TEACHER_ID, role: "TEACHER" },
+      { submittedAssignmentIds: [] },
+    );
+    const submittedAssignments = getDemoAssignmentsForUser(
+      { id: DEMO_TEACHER_ID, role: "TEACHER" },
+      { submittedAssignmentIds: [DEMO_ASSIGNMENT_ID] },
+    );
+
+    expect(pendingAssignments[0]).toEqual(
+      expect.objectContaining({
+        submissionsCount: pendingSnapshot.submittedStudentIds.length,
+        submittedByMe: false,
+      }),
+    );
+    expect(submittedAssignments[0]).toEqual(
+      expect.objectContaining({
+        submissionsCount: submittedSnapshot.submittedStudentIds.length,
+        submittedByMe: false,
+      }),
+    );
+  });
+
   it("omits removed students when building demo teams", () => {
     const totalStudents = getDemoStudentsForCourse().length;
     const result = buildDemoTeamFormation({
@@ -121,6 +217,26 @@ describe("demo sandbox assignment helpers", () => {
     });
 
     expect(submittedStudents.map((student) => student.id)).not.toContain("demo-sandbox-student-2");
+  });
+
+  it("omits the paired pending demo student from submitted answer rosters", () => {
+    const submittedStudents = getDemoSubmittedStudents({
+      assignmentId: DEMO_ASSIGNMENT_ID,
+      currentUserId: DEMO_TEACHER_ID,
+      submittedAssignmentIds: [],
+    });
+
+    expect(submittedStudents.map((student) => student.id)).not.toContain(DEMO_STUDENT_ID);
+  });
+
+  it("restores the paired demo student to submitted answer rosters after submission", () => {
+    const submittedStudents = getDemoSubmittedStudents({
+      assignmentId: DEMO_ASSIGNMENT_ID,
+      currentUserId: DEMO_TEACHER_ID,
+      submittedAssignmentIds: [DEMO_ASSIGNMENT_ID],
+    });
+
+    expect(submittedStudents.map((student) => student.id)).toContain(DEMO_STUDENT_ID);
   });
 
   it("uses the filtered roster for manage assignment counts", () => {

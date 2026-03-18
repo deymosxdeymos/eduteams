@@ -14,22 +14,22 @@ import { AuthError } from "@/lib/types";
 
 // Map MBTI types to approximate axis scores
 const MBTI_SCORES: Record<string, { ei: number; sn: number; tf: number; pj: number }> = {
-  INTJ: { ei: -0.7, sn: -0.6, tf: -0.5, pj: 0.7 },
-  INTP: { ei: -0.7, sn: -0.6, tf: -0.5, pj: -0.7 },
-  ENTJ: { ei: 0.7, sn: -0.6, tf: -0.5, pj: 0.7 },
-  ENTP: { ei: 0.7, sn: -0.6, tf: -0.5, pj: -0.7 },
-  INFJ: { ei: -0.7, sn: -0.6, tf: 0.5, pj: 0.7 },
-  INFP: { ei: -0.7, sn: -0.6, tf: 0.5, pj: -0.7 },
-  ENFJ: { ei: 0.7, sn: -0.6, tf: 0.5, pj: 0.7 },
-  ENFP: { ei: 0.7, sn: -0.6, tf: 0.5, pj: -0.7 },
-  ISTJ: { ei: -0.7, sn: 0.6, tf: -0.5, pj: 0.7 },
-  ISFJ: { ei: -0.7, sn: 0.6, tf: 0.5, pj: 0.7 },
-  ESTJ: { ei: 0.7, sn: 0.6, tf: -0.5, pj: 0.7 },
-  ESFJ: { ei: 0.7, sn: 0.6, tf: 0.5, pj: 0.7 },
-  ISTP: { ei: -0.7, sn: 0.6, tf: -0.5, pj: -0.7 },
-  ISFP: { ei: -0.7, sn: 0.6, tf: 0.5, pj: -0.7 },
-  ESTP: { ei: 0.7, sn: 0.6, tf: -0.5, pj: -0.7 },
-  ESFP: { ei: 0.7, sn: 0.6, tf: 0.5, pj: -0.7 },
+  INTJ: { ei: -0.7, sn: 0.6, tf: -0.5, pj: -0.7 },
+  INTP: { ei: -0.7, sn: 0.6, tf: -0.5, pj: 0.7 },
+  ENTJ: { ei: 0.7, sn: 0.6, tf: -0.5, pj: -0.7 },
+  ENTP: { ei: 0.7, sn: 0.6, tf: -0.5, pj: 0.7 },
+  INFJ: { ei: -0.7, sn: 0.6, tf: 0.5, pj: -0.7 },
+  INFP: { ei: -0.7, sn: 0.6, tf: 0.5, pj: 0.7 },
+  ENFJ: { ei: 0.7, sn: 0.6, tf: 0.5, pj: -0.7 },
+  ENFP: { ei: 0.7, sn: 0.6, tf: 0.5, pj: 0.7 },
+  ISTJ: { ei: -0.7, sn: -0.6, tf: -0.5, pj: -0.7 },
+  ISFJ: { ei: -0.7, sn: -0.6, tf: 0.5, pj: -0.7 },
+  ESTJ: { ei: 0.7, sn: -0.6, tf: -0.5, pj: -0.7 },
+  ESFJ: { ei: 0.7, sn: -0.6, tf: 0.5, pj: -0.7 },
+  ISTP: { ei: -0.7, sn: -0.6, tf: -0.5, pj: 0.7 },
+  ISFP: { ei: -0.7, sn: -0.6, tf: 0.5, pj: 0.7 },
+  ESTP: { ei: 0.7, sn: -0.6, tf: -0.5, pj: 0.7 },
+  ESFP: { ei: 0.7, sn: -0.6, tf: 0.5, pj: 0.7 },
 };
 
 export async function submitDemoPersonality(mbtiType: string, locale: RequestLocale) {

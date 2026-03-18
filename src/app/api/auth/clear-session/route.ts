@@ -4,6 +4,7 @@ import { deleteAuthSessionCookies, deleteDemoVisitorCookies } from "@/lib/demo/a
 import { deleteDemoVisitorData } from "@/lib/demo/cleanup";
 import { DEMO_SANDBOX_COOKIE_NAME } from "@/lib/demo/sandbox";
 import { clearDemoSandboxRosterCookie } from "@/lib/demo/sandbox-roster";
+import { clearDemoSandboxSubmissionsCookie } from "@/lib/demo/sandbox-submissions";
 
 function getRedirectTarget(request: NextRequest) {
   const redirectTo = request.nextUrl.searchParams.get("redirect");
@@ -27,6 +28,7 @@ async function clearSessionAndRedirect(
   deleteAuthSessionCookies(response);
   response.cookies.delete(DEMO_SANDBOX_COOKIE_NAME);
   clearDemoSandboxRosterCookie(response);
+  clearDemoSandboxSubmissionsCookie(response);
   if (options?.deleteDemoData ?? true) {
     deleteDemoVisitorCookies(response);
   }

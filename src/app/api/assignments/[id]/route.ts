@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createErrorResponse, withAuth } from "@/lib/api-utils";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import prisma from "@/lib/prisma";
 import { analyzeAssignmentEditImpact } from "@/lib/utils/assignment-change-detection";
 import {
@@ -90,14 +91,14 @@ export const PATCH = withAuth<{ id: string }>(
     if (input.status !== undefined) updateData.status = input.status;
     if (input.startAt !== undefined) updateData.startAt = input.startAt;
 
-    // Merge with existing description JSON if present
-    let descJson: Record<string, unknown> = {};
-    try {
-      if (assignment.description) {
-        const parsed = JSON.parse(assignment.description);
-        if (parsed && typeof parsed === "object") descJson = parsed as Record<string, unknown>;
-      }
-    } catch {}
+    // Preserve legacy plain-text descriptions while normalizing stored assignment metadata.
+    const existingDescription = parseAssignmentDescription(assignment.description, {
+      defaultSkills: [],
+    });
+    const descJson: Record<string, unknown> = {};
+    if (existingDescription.text) descJson.text = existingDescription.text;
+    if (existingDescription.skills.length > 0) descJson.skills = existingDescription.skills;
+    if (existingDescription.topics.length > 0) descJson.topics = existingDescription.topics;
     if (input.description !== undefined) descJson.text = input.description;
     if (input.skills !== undefined) descJson.skills = cleanedSkills;
     if (input.topics !== undefined) descJson.topics = cleanedTopics;
@@ -160,6 +161,10 @@ export const PATCH = withAuth<{ id: string }>(
       ]);
     }
 
+    const { skills, topics } = parseAssignmentDescription(updated.description, {
+      defaultSkills: [],
+    });
+
     return NextResponse.json({
       success: true,
       data: {
@@ -171,18 +176,8 @@ export const PATCH = withAuth<{ id: string }>(
         createdAt: updated.createdAt,
         status: updated.status,
         structureVersion: updated.structureVersion,
-        // surface skills/topics from description JSON if present
-        ...((): { skills: string[]; topics: string[] } => {
-          try {
-            if (!updated.description) return { skills: [], topics: [] };
-            const parsed = JSON.parse(updated.description);
-            const skills = Array.isArray(parsed?.skills) ? (parsed.skills as string[]) : [];
-            const topics = Array.isArray(parsed?.topics) ? (parsed.topics as string[]) : [];
-            return { skills, topics };
-          } catch {
-            return { skills: [], topics: [] };
-          }
-        })(),
+        skills,
+        topics,
         submissionsCount: updated._count.submissions,
       },
     });

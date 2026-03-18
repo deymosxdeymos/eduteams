@@ -2,25 +2,22 @@
 
 import { ArrowLeft, Calendar, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
 import { dateFormatterUTC, timeFormatterUTC } from "@/lib/constants";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import {
   buildDemoAssignmentHref,
   buildDemoAssignmentQuizHref,
   DEMO_COURSE_ID,
-  DEMO_SANDBOX_STORAGE_KEY,
-  DEMO_TEAM_FORMATION_STORAGE_EVENT,
+  isDemoSandboxAssignmentId,
 } from "@/lib/demo/sandbox";
-import {
-  getDemoAssignmentStatus,
-  getDemoCreatedAssignments,
-  mergeDemoAssignments,
-} from "@/lib/demo/sandbox-client";
+import { useDemoCourseSandboxSync } from "@/lib/hooks/use-demo-course-sandbox-sync";
+import { getDemoAssignmentStatus, mergeDemoAssignments } from "@/lib/demo/sandbox-client";
 import { useFuzzySearch } from "@/lib/hooks/use-fuzzy-search";
 import type { AssignmentClient } from "@/lib/validation/assignments";
 import { EmptyStudentAssignmentState } from "./empty-student-assignment-state";
@@ -42,7 +39,6 @@ export function StudentClassAssignments({
   const [searchTerm, setSearchTerm] = useState("");
   const hasInitialAssignments = initialAssignments !== undefined;
   const isDemoCourse = classId === DEMO_COURSE_ID;
-  const [localAssignments, setLocalAssignments] = useState<AssignmentClient[]>([]);
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
     fetcher<{ data: AssignmentClient[] }>,
@@ -54,59 +50,47 @@ export function StudentClassAssignments({
       revalidateOnReconnect: false,
     },
   );
-
-  useEffect(() => {
+  const seededSubmittedAssignmentIds = useMemo(() => {
     if (!isDemoCourse) {
-      return;
+      return [];
     }
 
-    const syncLocalAssignments = () => {
-      setLocalAssignments(
-        getDemoCreatedAssignments(classId).map((assignment) => {
-          const status = getDemoAssignmentStatus(assignment.id);
+    const serverAssignments = assignmentsData?.data ?? initialAssignments ?? [];
+    return serverAssignments
+      .filter((assignment) => isDemoSandboxAssignmentId(assignment.id) && assignment.submittedByMe)
+      .map((assignment) => assignment.id);
+  }, [assignmentsData?.data, initialAssignments, isDemoCourse]);
 
-          return {
-            id: assignment.id,
-            courseId: assignment.courseId,
-            title: assignment.title,
-            description: assignment.description ?? undefined,
-            startAt: new Date(assignment.startAt),
-            createdAt: new Date(assignment.createdAt),
-            status,
-            skills: assignment.skills,
-            topics: assignment.topics,
-            submissionsCount: assignment.submissionsCount,
-            submittedByMe: true,
-            needsUpdate: false,
-          };
-        }),
-      );
-    };
+  const { createdAssignments, submittedAssignmentIds, isReady } = useDemoCourseSandboxSync({
+    courseId: classId,
+    enabled: isDemoCourse,
+    seededSubmittedAssignmentIds,
+  });
 
-    const handleStorage = (event: StorageEvent) => {
-      if (event.storageArea !== window.localStorage) {
-        return;
-      }
+  const localAssignments = useMemo(
+    () =>
+      createdAssignments.map((assignment) => {
+        const hasSubmitted = submittedAssignmentIds.has(assignment.id);
 
-      if (
-        event.key !== null &&
-        event.key !== DEMO_SANDBOX_STORAGE_KEY &&
-        !event.key.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)
-      ) {
-        return;
-      }
-
-      syncLocalAssignments();
-    };
-
-    syncLocalAssignments();
-    window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, [classId, isDemoCourse]);
+        return {
+          id: assignment.id,
+          courseId: assignment.courseId,
+          title: assignment.title,
+          description: assignment.description ?? undefined,
+          startAt: new Date(assignment.startAt),
+          createdAt: new Date(assignment.createdAt),
+          status: getDemoAssignmentStatus(assignment.id),
+          skills: assignment.skills,
+          topics: assignment.topics,
+          submissionsCount: hasSubmitted
+            ? assignment.submissionsCount
+            : Math.max(0, assignment.submissionsCount - 1),
+          submittedByMe: hasSubmitted,
+          needsUpdate: false,
+        } satisfies AssignmentClient;
+      }),
+    [createdAssignments, submittedAssignmentIds],
+  );
 
   const assignments: AssignmentClient[] = useMemo(() => {
     const serverAssignments = assignmentsData?.data ?? [];
@@ -114,8 +98,27 @@ export function StudentClassAssignments({
       return serverAssignments;
     }
 
-    return mergeDemoAssignments(serverAssignments, localAssignments);
-  }, [assignmentsData?.data, isDemoCourse, localAssignments]);
+    if (!isReady) {
+      return serverAssignments;
+    }
+
+    return mergeDemoAssignments(serverAssignments, localAssignments).map((assignment) => {
+      if (!isDemoSandboxAssignmentId(assignment.id)) {
+        return assignment;
+      }
+
+      const hasSubmittedLocally = submittedAssignmentIds.has(assignment.id);
+      const hadSubmittedOnServer = Boolean(assignment.submittedByMe);
+      const submissionsCountDelta =
+        hasSubmittedLocally === hadSubmittedOnServer ? 0 : hasSubmittedLocally ? 1 : -1;
+
+      return {
+        ...assignment,
+        submissionsCount: Math.max(0, assignment.submissionsCount + submissionsCountDelta),
+        submittedByMe: hasSubmittedLocally,
+      };
+    });
+  }, [assignmentsData?.data, isReady, isDemoCourse, localAssignments, submittedAssignmentIds]);
   const hasAssignments = assignments.length > 0;
 
   const filteredAssignments = useFuzzySearch<AssignmentClient>({
@@ -128,16 +131,6 @@ export function StudentClassAssignments({
   const formatIdTimeDate = (input: Date | string) => {
     const d = new Date(input);
     return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
-  };
-
-  const extractDescriptionText = (description: string | null | undefined) => {
-    if (!description) return null;
-    try {
-      const parsed = JSON.parse(description);
-      return parsed.text || null;
-    } catch {
-      return description;
-    }
   };
 
   return (
@@ -178,7 +171,7 @@ export function StudentClassAssignments({
                   </div>
                 ) : null}
                 {filteredAssignments.map((a) => {
-                  const descriptionText = extractDescriptionText(a.description);
+                  const descriptionText = parseAssignmentDescription(a.description).text;
                   const hasAssignmentDetails =
                     a.submittedByMe || a.status === "BERHASIL_PEMBAGIAN_GRUP";
                   const assignmentHref = hasAssignmentDetails
@@ -228,7 +221,7 @@ export function StudentClassAssignments({
                               text = t("statusFormed");
                               color = "bg-emerald-50 text-emerald-900";
                             } else if (!a.submittedByMe) {
-                              text = "Anda belum mengisi";
+                              text = t("notFilledBadge");
                               color = "bg-red-50 text-red-900";
                             } else if (a.status === "MENUNGGU" || allStudentsSubmitted) {
                               text = t("statusWaiting");

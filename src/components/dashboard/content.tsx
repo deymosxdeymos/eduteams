@@ -3,19 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ClassGrid, type ClassSummary } from "@/components/dashboard/class-grid";
+import { EmptyClassState } from "@/components/dashboard/empty-class-state";
+import { SearchInput } from "@/components/dashboard/search-input";
+import { StatisticsCards } from "@/components/dashboard/statistics-cards";
 import type { DosenCourseSummary } from "@/lib/dashboard/courses";
 import type { DashboardStatistics } from "@/lib/dashboard/statistics-types";
 import { calculateDemoDashboardStatistics } from "@/lib/demo/dashboard-statistics";
 import { getDemoSandboxClientState } from "@/lib/demo/sandbox-client";
-import {
-  DEMO_COURSE_ID,
-  DEMO_SANDBOX_STORAGE_KEY,
-  DEMO_TEAM_FORMATION_STORAGE_EVENT,
-} from "@/lib/demo/sandbox-shared";
-import { ClassGrid, type ClassSummary } from "./class-grid";
-import { EmptyClassState } from "./empty-class-state";
-import { SearchInput } from "./search-input";
-import { StatisticsCards } from "./statistics-cards";
+import { DEMO_COURSE_ID } from "@/lib/demo/sandbox-shared";
+import { useDemoSandboxStorageListener } from "@/lib/hooks/use-demo-sandbox-storage-listener";
 
 interface ContentProps {
   statistics: DashboardStatistics;
@@ -61,7 +58,6 @@ function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
     tahunAkhirPeriode: data.tahunAkhirPeriode ?? 0,
     periode: data.periode ?? null,
     dosenId: data.dosenId ?? data.dosen?.id ?? "",
-    shareToken: data.shareToken ?? null,
     createdAt,
     updatedAt,
     studentCount,
@@ -103,34 +99,12 @@ export default function Content({ statistics, courses }: ContentProps) {
       return;
     }
 
-    const syncDemoStatisticsState = () => {
-      setDemoStatisticsState(getDemoSandboxClientState());
-    };
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.storageArea !== window.localStorage) {
-        return;
-      }
-
-      if (
-        event.key !== null &&
-        event.key !== DEMO_SANDBOX_STORAGE_KEY &&
-        !event.key.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)
-      ) {
-        return;
-      }
-
-      syncDemoStatisticsState();
-    };
-
-    syncDemoStatisticsState();
-    window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncDemoStatisticsState);
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncDemoStatisticsState);
-      window.removeEventListener("storage", handleStorage);
-    };
+    setDemoStatisticsState(getDemoSandboxClientState());
   }, [hasDemoSandboxCourse]);
+
+  useDemoSandboxStorageListener(hasDemoSandboxCourse, () => {
+    setDemoStatisticsState(getDemoSandboxClientState());
+  });
 
   const resolvedStatistics = useMemo(() => {
     if (!hasDemoSandboxCourse) {

@@ -6,6 +6,7 @@ import type { Gender } from "@/generated/prisma/client";
 import {
   getDemoAssignmentDefinition,
   getDemoAssignmentStatsForDefinition,
+  getDemoAssignmentSubmissionSnapshot,
 } from "@/lib/demo/sandbox";
 import { useDemoSandboxClientState } from "@/lib/demo/sandbox-client";
 
@@ -20,7 +21,7 @@ interface DemoLocalAssignmentBodyProps {
   initialTitle?: string;
   initialSkills?: readonly string[];
   initialTopics?: readonly string[];
-  initialSubmissionsCount?: number;
+  initialSubmittedAssignmentIds?: readonly string[];
   enrolledStudents: Array<{
     id: string;
     name: string;
@@ -42,7 +43,7 @@ export function DemoLocalAssignmentBody({
   initialTitle,
   initialSkills,
   initialTopics,
-  initialSubmissionsCount,
+  initialSubmittedAssignmentIds = [],
   enrolledStudents,
 }: DemoLocalAssignmentBodyProps) {
   const sandboxState = useDemoSandboxClientState();
@@ -51,6 +52,11 @@ export function DemoLocalAssignmentBody({
     [assignmentId, sandboxState.createdAssignments],
   );
   const formedTeams = sandboxState.formedTeams[assignmentId] ?? null;
+  const submittedAssignmentIds = useMemo(
+    () =>
+      Array.from(new Set([...initialSubmittedAssignmentIds, ...sandboxState.submittedAssignments])),
+    [initialSubmittedAssignmentIds, sandboxState.submittedAssignments],
+  );
   const fallbackDefinition = useMemo(
     () =>
       getDemoAssignmentDefinition({
@@ -58,7 +64,7 @@ export function DemoLocalAssignmentBody({
         skills: initialSkills,
         topics: initialTopics,
       }),
-    [initialSkills, initialTitle, initialTopics],
+    [initialTitle, initialSkills, initialTopics],
   );
 
   const normalizedEnrolledStudents = useMemo(
@@ -118,12 +124,30 @@ export function DemoLocalAssignmentBody({
     };
   }, [formedTeams, enrolledStudentIds]);
   const teams = visibleTeamFormation?.teams ?? [];
+  const submissionSnapshot = useMemo(
+    () =>
+      getDemoAssignmentSubmissionSnapshot({
+        assignmentId,
+        currentUserId,
+        enrolledStudentIds: normalizedEnrolledStudents.map((student) => student.id),
+        submittedAssignmentIds,
+      }),
+    [assignmentId, currentUserId, normalizedEnrolledStudents, submittedAssignmentIds],
+  );
+  const submittedStudentIds = submissionSnapshot.submittedStudentIds;
+  const hasCurrentUserSubmitted = submissionSnapshot.hasSubmissionStudentSubmitted;
+
+  const quizSubmissionsCount = submittedStudentIds.length;
+  const quizCompletionPercent =
+    normalizedEnrolledStudents.length > 0
+      ? Math.round((quizSubmissionsCount / normalizedEnrolledStudents.length) * 100)
+      : 0;
+
   const assignmentStats = getDemoAssignmentStatsForDefinition({
     skills: assignmentSkills,
     topics: assignmentTopics,
     includedStudentIds: normalizedEnrolledStudents.map((student) => student.id),
-    quizSubmissions:
-      assignment?.submissionsCount ?? initialSubmissionsCount ?? normalizedEnrolledStudents.length,
+    quizSubmissions: quizSubmissionsCount,
     teamsFormed: teams.length > 0,
   });
 
@@ -139,21 +163,21 @@ export function DemoLocalAssignmentBody({
       courseClassLabel={courseClass}
       canManage={canManage}
       isStudent={isStudent}
-      hasSubmitted={true}
+      hasSubmitted={hasCurrentUserSubmitted}
       stats={assignmentStats}
       hasTeams={teams.length > 0}
       allowPersistedTeamActions={false}
       topicCount={assignmentTopics.length}
       enrollmentCount={normalizedEnrolledStudents.length}
-      quizCompletionPercent={100}
+      quizCompletionPercent={quizCompletionPercent}
       teams={teams}
       topicNames={visibleTeamFormation?.topicNames ?? {}}
       taskIdByIndex={visibleTeamFormation?.taskIdByIndex ?? []}
       isTeamFormationProcessing={false}
-      incompleteStudentCount={0}
+      incompleteStudentCount={normalizedEnrolledStudents.length - quizSubmissionsCount}
       currentUserId={currentUserId}
       enrolledStudents={normalizedEnrolledStudents}
-      submittedStudentIds={normalizedEnrolledStudents.map((student) => student.id)}
+      submittedStudentIds={submittedStudentIds}
     />
   );
 }

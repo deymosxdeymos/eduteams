@@ -85,9 +85,7 @@ function getCachedStudentClasses(userId: string) {
   })();
 }
 
-export async function getStudentClasses() {
-  const user = await getCurrentUser();
-
+export async function getStudentClassesForUser(user: Awaited<ReturnType<typeof getCurrentUser>>) {
   if (!user || !canAccessMahasiswaFeatures(user)) {
     return [];
   }
@@ -104,4 +102,8 @@ export async function getStudentClasses() {
   } catch {
     return [];
   }
+}
+
+export async function getStudentClasses() {
+  return getStudentClassesForUser(await getCurrentUser());
 }

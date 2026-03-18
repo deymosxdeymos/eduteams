@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
+import { getLanguageSwitcherTarget } from "@/components/dashboard/language-switcher-shared";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { usePathname, useRouter } from "@/i18n/routing";
@@ -18,7 +19,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const current = useLocale() as "id" | "en";
   const [isPending, startTransition] = useTransition();
   const t = useTranslations("dashboard.languageSwitcher");
-  const nextLocale: "id" | "en" = current === "id" ? "en" : "id";
+  const { nextLocale, switchLabel, flagSrc } = getLanguageSwitcherTarget(current, t);
 
   return (
     <Button
@@ -34,6 +35,8 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
           router.replace(pathname, { locale: nextLocale });
         });
       }}
+      aria-label={switchLabel}
+      title={switchLabel}
     >
       <span className="text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold">
         {nextLocale.toUpperCase()}
@@ -46,10 +49,10 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         />
       ) : (
         <Image
-          src={nextLocale === "id" ? "/indo.svg" : "/english.svg"}
+          src={flagSrc}
           width={40}
           height={40}
-          alt={current === "id" ? t("indonesiaAlt") : t("englishAlt")}
+          alt={switchLabel}
           className="w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 shrink-0"
         />
       )}

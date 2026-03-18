@@ -147,7 +147,7 @@ export function withRole<
   options?: WithAuthOptions,
 ) {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-  return withAuth<TContext>(async (request, context) => {
+  return withAuth<TParams, TContext>(async (request, context) => {
     if (!context.user.role || !roles.includes(context.user.role)) {
       throw new AuthorizationError("Insufficient permissions");
     }
@@ -155,13 +155,16 @@ export function withRole<
   }, options);
 }
 
-export function withOnboarded<TContext extends DefaultRouteContext = DefaultRouteContext>(
+export function withOnboarded<
+  TParams = unknown,
+  TContext extends DefaultRouteContext<TParams> = DefaultRouteContext<TParams>,
+>(
   handler: (
     request: NextRequest,
     context: TContext & { user: ExtendedUser },
   ) => Promise<NextResponse>,
 ) {
-  return withAuth<TContext>(async (request, context) => {
+  return withAuth<TParams, TContext>(async (request, context) => {
     if (!context.user.isOnboarded) {
       throw new AuthorizationError("User must complete onboarding first");
     }
@@ -171,7 +174,7 @@ export function withOnboarded<TContext extends DefaultRouteContext = DefaultRout
 }
 
 export function withValidation<T>(
-  schema: (data: unknown) => T,
+  schema: ((data: unknown) => T) | ((data: unknown, request: NextRequest) => T),
   handler: (
     request: NextRequest,
     context: { user?: ExtendedUser; validatedData: T },
@@ -189,7 +192,7 @@ export function withValidation<T>(
     let validatedData: T;
 
     try {
-      validatedData = schema(body);
+      validatedData = schema(body, request);
     } catch (error) {
       if (error instanceof ValidationError) {
         throw error;

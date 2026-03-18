@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/api-utils";
 import { canAccessDosenFeatures } from "@/lib/authorization";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import prisma from "@/lib/prisma";
+import { getNextCourseArchivedAt } from "@/lib/utils/course-archive";
 import { AuthError, AuthorizationError, NotFoundError, ValidationError } from "@/lib/utils/errors";
 
 const toggleCourseArchiveInputSchema = z.object({
@@ -38,7 +39,12 @@ export async function toggleCourseArchive(
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    select: { id: true, dosenId: true },
+    select: {
+      id: true,
+      dosenId: true,
+      tahunAkhirPeriode: true,
+      periode: true,
+    },
   });
 
   if (!course) {
@@ -51,7 +57,13 @@ export async function toggleCourseArchive(
 
   await prisma.course.update({
     where: { id: courseId },
-    data: { archivedAt: archive ? new Date() : null },
+    data: {
+      archivedAt: getNextCourseArchivedAt({
+        archive,
+        tahunAkhirPeriode: course.tahunAkhirPeriode,
+        periode: course.periode,
+      }),
+    },
   });
 
   revalidateTag(CACHE_TAGS.coursesByDosen(user.id));

@@ -3,7 +3,7 @@
 import { ArrowRightLeft } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
-import { routing } from "@/i18n/routing";
+import { getLocalizedHref } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { DemoRole } from "@/lib/demo/config";
@@ -20,7 +20,7 @@ export function DemoRoleSwitcher({ currentRole }: DemoRoleSwitcherProps) {
   const targetRole: DemoRole = currentRole === "TEACHER" ? "STUDENT" : "TEACHER";
   const label = targetRole === "TEACHER" ? t("switchToTeacher") : t("switchToStudent");
   function handleSwitch() {
-    const href = locale === routing.defaultLocale ? "/dashboard" : `/${locale}/dashboard`;
+    const href = getLocalizedHref(locale, "/dashboard");
 
     startTransition(async () => {
       const response = await fetch("/api/demo/switch-role", {

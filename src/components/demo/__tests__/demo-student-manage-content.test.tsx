@@ -47,11 +47,27 @@ mock.module("@/components/dashboard/student-manage-shell", () => ({
 
 mock.module("next-intl", () => ({
   useLocale: () => "en",
+  useTranslations: () => (key: string) => key,
 }));
 
 mock.module("@/i18n/routing", () => ({
+  routing: {
+    locales: ["id", "en"],
+    defaultLocale: "id",
+    localePrefix: "as-needed",
+  },
+  Link: ({ children, href }: any) => <a href={href}>{children}</a>,
+  redirect: (href: string) => {
+    throw new Error(`Redirecting to ${href}`);
+  },
   getLocalizedHref: (locale: string, href: string) =>
     locale === "id" ? href : `/${locale}${href}`,
+  usePathname: () => "/dashboard/class/demo-sandbox-course",
+  useRouter: () => ({
+    push: () => undefined,
+    replace: () => undefined,
+    refresh: () => undefined,
+  }),
 }));
 
 mock.module("@/lib/demo/sandbox-client", () => ({

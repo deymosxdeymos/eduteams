@@ -131,7 +131,8 @@
       "mahasiswa": "Mahasiswa",
       "institutionalEmailRequired": "Email institusi diperlukan",
       "continue": "Lanjut",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "demoLoginError": "Gagal memulai sesi demo. Silakan coba lagi."
     },
     "dataDiri": {
       "title": "Isi data diri",
@@ -230,6 +231,10 @@
     "classCard": {
       "studentCount": "{count} mahasiswa",
       "academicYear": "T.A {start}/{end}"
+    },
+    "classGrid": {
+      "noResults": "Tidak ada kelas yang ditemukan",
+      "tryOtherKeyword": "Coba gunakan kata kunci yang berbeda"
     },
     "emptyStates": {
       "dosen": {
@@ -352,8 +357,10 @@
       "unavailable": "Dashboard tidak tersedia untuk role Anda."
     },
     "languageSwitcher": {
-      "indonesiaAlt": "Beralih ke Bahasa Inggris",
-      "englishAlt": "Beralih ke Bahasa Indonesia"
+      "currentIndonesia": "Bahasa saat ini: Indonesia",
+      "currentEnglish": "Bahasa saat ini: Inggris",
+      "switchToIndonesia": "Beralih ke Bahasa Indonesia",
+      "switchToEnglish": "Beralih ke Bahasa Inggris"
     },
     "classAssignments": {
       "createAssignment": "Buat Tugas Baru",
@@ -370,6 +377,7 @@
       "back": "Kembali"
     },
     "assignment": {
+      "defaultTitle": "Tugas",
       "actions": {
         "createTeamsButton": "Buat Kelompok",
         "recreateTeamsButton": "Buat Ulang Kelompok",
@@ -446,6 +454,41 @@
         "successDownload": "{format} berhasil diunduh",
         "errorFailed": "Gagal mengekspor {format}",
         "networkError": "Kesalahan jaringan. Silakan coba lagi."
+      },
+      "answersTabs": {
+        "personality": "Kepribadian",
+        "skills": "Skills",
+        "preferences": "Preferences",
+        "headerNo": "No",
+        "headerQuestion": "Pertanyaan",
+        "headerAnswer": "Jawaban",
+        "skillQuestion": "Seberapa mahir kamu dengan keahlian <strong>{name}</strong>?",
+        "topicQuestion": "Seberapa Tertarik Anda dengan topik <strong>#{index}: {name}</strong>?",
+        "emptySkills": "Tidak ada data keahlian.",
+        "emptyTopics": "Tidak ada data preferensi topik.",
+        "emptyAnswers": "Belum ada jawaban mahasiswa untuk tugas ini.",
+        "likert": {
+          "stronglyDisagree": "Sangat tidak setuju",
+          "disagree": "Tidak setuju",
+          "neutral": "Netral",
+          "agree": "Setuju",
+          "stronglyAgree": "Sangat setuju",
+          "unanswered": "—"
+        },
+        "skillLevels": {
+          "beginner": "Pemula",
+          "beginnerAdvanced": "Pemula Lanjut",
+          "competent": "Kompeten",
+          "proficient": "Mahir",
+          "expert": "Jago Banget"
+        },
+        "preferenceLevels": {
+          "veryUninterested": "Sangat tidak tertarik",
+          "uninterested": "Tidak tertarik",
+          "neutral": "Netral",
+          "interested": "Tertarik",
+          "veryInterested": "Sangat tertarik"
+        }
       }
     },
     "profile": {
@@ -466,6 +509,75 @@
       "studentProfileTitle": "Profil {name}",
       "viewMbtiDistribution": "Lihat Persebaran MBTI",
       "removeStudent": "Keluarkan Mahasiswa"
+    },
+    "personality": {
+      "overviewTitle": "Persebaran MBTI",
+      "completeTestTitle": "Selesaikan Tes Anda",
+      "completeTestDescription": "Selesaikan tes kepribadian untuk melihat deskripsi kepribadian yang lebih detail dan wawasan kolaborasi tim.",
+      "INFJ": {
+        "title": "The Advocate",
+        "description": "INFJ dikenal bijaksana dan punya empati tinggi. Mereka sering memikirkan kesejahteraan jangka panjang, baik untuk diri sendiri maupun orang lain. Punya nilai yang kuat, INFJ suka mendukung hal-hal yang bermakna.\n\nDi kelompok, mereka sering jadi penghubung emosional antar anggota. INFJ mungkin terlihat pendiam, tapi sekali bicara — penuh makna. Mereka lebih suka mendukung dari balik layar, tapi kontribusinya terasa dalam."
+      },
+      "INTJ": {
+        "title": "The Architect",
+        "description": "INTJ dikenal sebagai pemikir strategis yang selalu punya rencana matang. Mereka suka tantangan kompleks dan cenderung bekerja lebih baik secara independen. Fokus, logis, dan punya visi jangka panjang, mereka sering menjadi sumber solusi dalam tim.\n\nDalam kerja kelompok, INTJ biasanya berperan sebagai perencana atau analis. Meskipun kadang terlihat serius atau terlalu idealis, mereka sebenarnya sangat peduli dengan hasil dan efisiensi. Butuh ruang untuk berpikir? Mereka ahlinya."
+      },
+      "INTP": {
+        "title": "The Thinker",
+        "description": "INTP adalah si pemikir bebas dan penuh rasa ingin tahu. Mereka suka mengeksplorasi ide-ide unik dan bisa menghabiskan waktu berjam-jam untuk memahami suatu konsep. Logis, kritis, dan suka membongkar cara kerja sesuatu.\n\nDalam tim, INTP sering muncul dengan sudut pandang baru yang nggak terpikirkan orang lain. Walau kadang terlihat di \"dunia sendiri\", mereka tetap berkontribusi besar lewat ide-ide cerdas dan pendekatan yang kreatif."
+      },
+      "ENTJ": {
+        "title": "The Commander",
+        "description": "ENTJ adalah pemimpin alami yang tegas, visioner, dan suka mengambil inisiatif. Mereka percaya diri dalam mengatur rencana, menyusun strategi, dan mengarahkan tim menuju tujuan bersama.\n\nSaat kerja kelompok, ENTJ biasanya cepat membaca situasi dan langsung ambil peran sebagai pengarah. Mereka bisa terdengar dominan, tapi tujuan utamanya adalah memastikan semua berjalan efisien dan produktif."
+      },
+      "ENTP": {
+        "title": "The Debater",
+        "description": "ENTP penuh semangat, cepat berpikir, dan selalu punya ide seru. Mereka suka berdiskusi, menantang argumen, dan nggak takut mengutarakan pendapat. Bagi mereka, debat bukan konflik — tapi ajang eksplorasi pemikiran.\n\nDalam tim, ENTP membawa energi dinamis dan sering jadi pendorong inovasi. Walau kadang sulit fokus pada satu hal terlalu lama, ide-ide mereka bisa jadi pemicu kemajuan kalau dikombinasikan dengan eksekutor yang tepat."
+      },
+      "INFP": {
+        "title": "The Mediator",
+        "description": "INFP itu idealis, sensitif, dan penuh imajinasi. Mereka punya dunia batin yang kaya dan sangat peduli dengan hal-hal yang menurut mereka benar. Kadang mereka lebih fokus pada perasaan daripada logika — tapi itu kekuatan mereka.\n\nSaat bekerja dalam kelompok, INFP cenderung menjadi pendengar yang baik dan mendorong keharmonisan. Mereka mungkin nggak suka konflik, tapi akan bersuara saat ada hal yang bertentangan dengan nilai mereka."
+      },
+      "ENFJ": {
+        "title": "The Protagonist",
+        "description": "ENFJ adalah sosok yang hangat, karismatik, dan suka mendukung orang lain berkembang. Mereka percaya bahwa kerja sama dan empati adalah kunci kesuksesan tim. Bisa dibilang, mereka punya aura pemimpin yang bersahabat.\n\nDalam kerja kelompok, ENFJ cenderung aktif mengambil peran sebagai pengarah yang membangun. Mereka pintar membaca suasana hati tim dan tahu kapan harus mendorong atau mendengarkan."
+      },
+      "ENFP": {
+        "title": "The Campaigner",
+        "description": "ENFP adalah pribadi yang penuh semangat, kreatif, dan ekspresif. Mereka suka mengeksplorasi ide baru, berinteraksi dengan orang lain, dan membangun hubungan yang positif di sekitarnya. \n\n Dalam kerja kelompok, ENFP biasanya jadi penyemangat dan penghubung antar anggota. Mereka pandai memahami emosi orang lain dan terbuka untuk berdiskusi. Kehadirannya bikin tim terasa lebih hidup dan semangat."
+      },
+      "ISTJ": {
+        "title": "The Logistician",
+        "description": "ISTJ itu teliti, disiplin, dan sangat bertanggung jawab. Mereka suka hal-hal yang jelas, terstruktur, dan nggak neko-neko. Kalau ada yang bisa diandalkan untuk memastikan semuanya berjalan sesuai rencana — itu ISTJ.\n\nDi kelompok, ISTJ biasanya jadi penegak sistem dan pengingat deadline. Walaupun pendiam, mereka sangat serius soal tanggung jawab. Mereka mungkin nggak banyak bicara, tapi selalu tepat waktu dan efisien."
+      },
+      "ISFJ": {
+        "title": "The Protector",
+        "description": "ISFJ adalah orang yang perhatian, setia, dan sangat peduli pada kesejahteraan orang lain. Mereka cenderung pendiam namun sangat bertanggung jawab, pekerja keras, dan menghargai tradisi.\n\nDalam kelompok, mereka sering membantu secara diam-diam tanpa mengharapkan pujian. Mereka akan memastikan semua berjalan baik, bahkan jika harus mengorbankan kenyamanannya sendiri demi kebaikan bersama."
+      },
+      "ESTJ": {
+        "title": "The Executive",
+        "description": "ESTJ adalah tipe yang tegas, suka keteraturan, dan cenderung jadi pemimpin secara alami. Mereka punya kemampuan mengatur strategi dan eksekusi dengan efektif, serta nggak ragu ambil keputusan.\n\nDalam kelompok, ESTJ sering jadi koordinator atau ketua yang memastikan semua berjalan lancar. Mereka mungkin terkesan kaku, tapi itu karena mereka ingin hasil terbaik dan nggak mau buang waktu."
+      },
+      "ESFJ": {
+        "title": "The Consul",
+        "description": "ESFJ adalah pribadi yang supportive, organized, dan peduli dengan kesejahteraan orang lain. Mereka memiliki kemampuan untuk menciptakan lingkungan kerja yang harmonis.\n\nDalam kerja kelompok, ESFJ menjadi team coordinator yang memastikan semua anggota merasa didukung. Mereka pandai dalam komunikasi dan relationship management."
+      },
+      "ISTP": {
+        "title": "The Virtuoso",
+        "description": "ISTP adalah pribadi yang tenang, logis, dan jago praktik. Mereka suka mengutak-atik, bereksperimen, dan belajar lewat pengalaman langsung. Jarang banyak teori, tapi langsung bisa paham begitu nyoba.\n\nDalam kelompok, ISTP sering ambil peran sebagai eksekutor diam-diam. Mereka nggak banyak bicara, tapi hasil kerjanya nyata. Butuh orang yang cepat dan praktis? ISTP solusinya."
+      },
+      "ISFP": {
+        "title": "The Adventurer",
+        "description": "ISFP itu artistik, sensitif, dan menghargai kebebasan. Mereka suka eksplorasi hal baru, tapi cenderung melakukannya secara pribadi tanpa banyak bicara. Gaya mereka tenang, tapi penuh warna.\n\nDalam kerja kelompok, ISFP biasanya jadi pencetus ide-ide unik yang nggak biasa. Mereka mungkin nggak suka spotlight, tapi hasil kerja mereka sering mencerminkan keindahan dan kepekaan tinggi."
+      },
+      "ESTP": {
+        "title": "The Entrepreneur",
+        "description": "ESTP itu energik, spontan, dan suka aksi. Mereka cenderung \"terjun duluan, mikir belakangan\" tapi sering berhasil karena instingnya tajam. Mereka senang jadi pusat perhatian dan nggak takut ambil risiko.\n\nDalam tim, ESTP bikin suasana jadi hidup. Mereka jago improvisasi dan bisa mengambil keputusan cepat dalam tekanan. Cocok jadi eksekutor yang fleksibel dan tahan banting."
+      },
+      "ESFP": {
+        "title": "The Entertainer",
+        "description": "ESFP adalah si pembawa keceriaan. Mereka suka berinteraksi, tampil, dan membuat orang lain tersenyum. Hidup bagi mereka adalah panggung — dan mereka ingin semua orang menikmati pertunjukannya.\n\nDalam kelompok, ESFP sering jadi pencair suasana. Mereka penuh semangat dan perhatian, walau kadang bisa kurang fokus pada hal teknis. Tapi kalau kamu butuh semangat, mereka selalu siap nyalain mood."
+      }
     },
     "students": {
       "title": "Daftar Mahasiswa",
@@ -492,12 +604,13 @@
       "mbtiDistribution": "Persebaran MBTI",
       "noName": "Tanpa Nama",
       "options": "Opsi",
+      "optionsFor": "Opsi untuk {name}",
       "removeStudent": "Keluarkan Mahasiswa",
       "status": {
         "noStudentsInClass": "Belum ada mahasiswa di kelas",
-        "readyToForm": "Grup siap untuk dibagi",
-        "submittedCount": "{submitted} dari {total} mahasiswa telah mengisi kuesioner",
-        "noSubmissions": "Belum ada yang mengisi kuesioner"
+        "noSubmissions": "Belum ada yang mengisi kuesioner",
+        "submissionProgress": "{count} dari {total} mahasiswa telah mengisi kuesioner",
+        "groupReady": "Grup siap untuk dibagi"
       },
       "errors": {
         "removeFailed": "Gagal mengeluarkan mahasiswa",
@@ -641,6 +754,7 @@
         "statusNoSubmissions": "Belum ada yang mengisi kuesioner",
         "statusProgress": "{filled} dari {total} mahasiswa telah mengisi kuisioner",
         "submittedBadge": "Sudah mengisi kuisioner",
+        "notFilledBadge": "Anda belum mengisi kuesioner",
         "resetConfirm": "Reset status kuisioner untuk tugas ini?",
         "resetFailed": "Gagal reset kuisioner.",
         "resetError": "Terjadi kesalahan saat reset.",
@@ -713,6 +827,72 @@
       "pendingTasks": "Tugas Pending",
       "completedTasks": "Tugas Selesai"
     },
+    "dosenManage": {
+      "sort": {
+        "recent": "Terbaru",
+        "byYear": "Tahun akademik",
+        "byNameAZ": "Nama A-Z"
+      },
+      "search": {
+        "placeholder": "Cari kelas atau kode"
+      },
+      "headers": {
+        "className": "Nama Kelas",
+        "period": "Periode",
+        "totalAssignments": "Total Tugas",
+        "totalStudents": "Total Mahasiswa",
+        "manageControl": "Manage Control"
+      },
+      "row": {
+        "assignments": "{count} Tugas",
+        "students": "{count} Mahasiswa",
+        "openClass": "Buka kelas"
+      },
+      "archive": {
+        "archivedClasses": "Kelas yang diarsipkan",
+        "archivedAssignments": "Tugas yang diarsipkan",
+        "showClass": "Munculkan Kelas?",
+        "hideClass": "Sembunyikan Kelas?",
+        "showClassDesc": "Tampilkan kelas ini agar mahasiswa dapat melihatnya",
+        "hideClassDesc": "Kelas yang disembunyikan tidak akan bisa diakses oleh mahasiswa",
+        "showAssignment": "Munculkan Tugas?",
+        "hideAssignment": "Sembunyikan Tugas?",
+        "showAssignmentDesc": "Tampilkan tugas untuk kelas ini agar mahasiswa dapat melihatnya",
+        "hideAssignmentDesc": "Tugas yang disembunyikan tidak akan bisa diakses oleh mahasiswa",
+        "confirm": "Konfirmasi",
+        "cancel": "Batal",
+        "genericError": "Gagal memperbarui status. Silakan coba lagi."
+      },
+      "assignments": {
+        "headers": {
+          "assignmentName": "Nama Tugas",
+          "status": "Status",
+          "manageControl": "Manage Control"
+        },
+        "row": {
+          "openAssignment": "Buka tugas"
+        },
+        "editTrigger": "Edit tugas",
+        "deleteTrigger": "Hapus tugas",
+        "archived": "Tugas yang Diarsipkan",
+        "deleteTitle": "Hapus Tugas?",
+        "deleteDesc": "Tindakan ini bersifat permanen dan tidak dapat dibatalkan.",
+        "deleteConfirm": "Hapus",
+        "deleteCancel": "Batal",
+        "search": {
+          "placeholder": "Cari tugas"
+        },
+        "empty": {
+          "noActive": "Belum ada tugas aktif.",
+          "noArchived": "Belum ada tugas yang diarsipkan."
+        }
+      },
+      "unavailable": "Manage dashboard belum tersedia untuk peran kamu.",
+      "empty": {
+        "noActiveClasses": "Belum ada kelas aktif.",
+        "noArchivedClasses": "Belum ada kelas yang diarsipkan."
+      }
+    },
     "studentManage": {
       "title": "Kelola Kelas",
       "subtitle": "Halo {name}, kelola kelompok dan tugasmu di sini.",
@@ -734,6 +914,7 @@
       },
       "card": {
         "yourTeam": "Tim Anda",
+        "teamName": "Kelompok {label}",
         "topic": "Topik: {name}",
         "noName": "Tanpa Nama",
         "waitingBadge": "Menunggu Pembagian",

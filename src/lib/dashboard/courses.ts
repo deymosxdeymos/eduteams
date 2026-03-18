@@ -17,7 +17,6 @@ export interface DosenCourseSummary {
   tahunAkhirPeriode: number;
   periode: string | null;
   dosenId: string;
-  shareToken: string | null;
   createdAt: Date;
   updatedAt: Date;
   studentCount: number;
@@ -64,7 +63,6 @@ async function fetchCoursesForDosen(userId: string): Promise<DosenCourseSummary[
       tahunAkhirPeriode: true,
       periode: true,
       dosenId: true,
-      shareToken: true,
       createdAt: true,
       updatedAt: true,
       dosen: {
@@ -87,7 +85,6 @@ async function fetchCoursesForDosen(userId: string): Promise<DosenCourseSummary[
     tahunAkhirPeriode: row.tahunAkhirPeriode,
     periode: row.periode,
     dosenId: row.dosenId,
-    shareToken: row.shareToken,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     studentCount: row._count.enrollments,

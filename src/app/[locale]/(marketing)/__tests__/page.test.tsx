@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { render, screen } from "@testing-library/react";
 
 const getTranslationsMock = mock(async () => {
@@ -70,6 +70,10 @@ mock.module("@/components/ui/social-row", () => ({
 mock.module("next/image", () => ({
   default: ({ alt }: { alt: string }) => <div aria-label={alt} />,
 }));
+
+afterAll(() => {
+  mock.restore();
+});
 
 describe("marketing Home page", () => {
   beforeEach(() => {

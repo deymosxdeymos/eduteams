@@ -131,7 +131,8 @@
       "mahasiswa": "Student",
       "institutionalEmailRequired": "Institutional email required",
       "continue": "Continue",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "demoLoginError": "Failed to start the demo session. Please try again."
     },
     "dataDiri": {
       "title": "Fill in your personal data",
@@ -230,6 +231,10 @@
     "classCard": {
       "studentCount": "{count} students",
       "academicYear": "A.Y {start}/{end}"
+    },
+    "classGrid": {
+      "noResults": "No classes found",
+      "tryOtherKeyword": "Try a different keyword"
     },
     "emptyStates": {
       "dosen": {
@@ -352,8 +357,10 @@
       "unavailable": "Dashboard is not available for your role."
     },
     "languageSwitcher": {
-      "indonesiaAlt": "Switch to English",
-      "englishAlt": "Switch to Indonesian"
+      "currentIndonesia": "Current language: Indonesian",
+      "currentEnglish": "Current language: English",
+      "switchToIndonesia": "Switch to Indonesian",
+      "switchToEnglish": "Switch to English"
     },
     "classAssignments": {
       "createAssignment": "Create New Assignment",
@@ -370,6 +377,7 @@
       "back": "Back"
     },
     "assignment": {
+      "defaultTitle": "Assignment",
       "actions": {
         "createTeamsButton": "Create Teams",
         "recreateTeamsButton": "Recreate Teams",
@@ -446,6 +454,41 @@
         "successDownload": "{format} downloaded successfully",
         "errorFailed": "Failed to export {format}",
         "networkError": "Network error. Please try again."
+      },
+      "answersTabs": {
+        "personality": "Personality",
+        "skills": "Skills",
+        "preferences": "Preferences",
+        "headerNo": "No",
+        "headerQuestion": "Question",
+        "headerAnswer": "Answer",
+        "skillQuestion": "How proficient are you with the skill <strong>{name}</strong>?",
+        "topicQuestion": "How interested are you in topic <strong>#{index}: {name}</strong>?",
+        "emptySkills": "No skill data available.",
+        "emptyTopics": "No topic preference data available.",
+        "emptyAnswers": "No student answers for this assignment yet.",
+        "likert": {
+          "stronglyDisagree": "Strongly disagree",
+          "disagree": "Disagree",
+          "neutral": "Neutral",
+          "agree": "Agree",
+          "stronglyAgree": "Strongly agree",
+          "unanswered": "—"
+        },
+        "skillLevels": {
+          "beginner": "Beginner",
+          "beginnerAdvanced": "Advanced beginner",
+          "competent": "Competent",
+          "proficient": "Proficient",
+          "expert": "Expert"
+        },
+        "preferenceLevels": {
+          "veryUninterested": "Very uninterested",
+          "uninterested": "Uninterested",
+          "neutral": "Neutral",
+          "interested": "Interested",
+          "veryInterested": "Very interested"
+        }
       }
     },
     "profile": {
@@ -466,6 +509,75 @@
       "studentProfileTitle": "Profile {name}",
       "viewMbtiDistribution": "View MBTI Distribution",
       "removeStudent": "Remove Student"
+    },
+    "personality": {
+      "overviewTitle": "MBTI Distribution",
+      "completeTestTitle": "Complete Your Test",
+      "completeTestDescription": "Complete your personality test to see your detailed personality description and team collaboration insights.",
+      "INFJ": {
+        "title": "The Advocate",
+        "description": "INFJ is known for being wise and having high empathy. They often think about long-term well-being, both for themselves and others. With strong values, INFJ likes to support meaningful things.\n\nIn groups, they often become the emotional connector between members. INFJ may seem quiet, but when they speak — it's full of meaning. They prefer to support from behind the scenes, but their contributions are deeply felt."
+      },
+      "INTJ": {
+        "title": "The Architect",
+        "description": "INTJ is known as a strategic thinker who always has a solid plan. They enjoy complex challenges and tend to work better independently. Focused, logical, and with a long-term vision, they often become a source of solutions in teams.\n\nIn group work, INTJ usually serves as the planner or analyst. Although sometimes appearing serious or overly idealistic, they actually care deeply about results and efficiency. Need space to think? They're the experts."
+      },
+      "INTP": {
+        "title": "The Logician",
+        "description": "INTP is the team's analytical thinker. They love dissecting complex ideas and finding creative solutions. Independent and reflective, INTP brings depth to team discussions.\n\nIn groups, they contribute unique perspectives and logical frameworks. They may need time to process, but their insights are often breakthrough moments for the team."
+      },
+      "ENTJ": {
+        "title": "The Commander",
+        "description": "ENTJ is a natural leader who excels at organizing and directing teams. They set clear goals and drive others to achieve them efficiently. Strategic and decisive, they keep teams focused.\n\nIn group work, ENTJ takes charge of planning and delegation. They ensure everyone's strengths are utilized and deadlines are met."
+      },
+      "ENTP": {
+        "title": "The Debater",
+        "description": "ENTP is the team's innovator and idea generator. They love brainstorming and challenging assumptions. Quick-witted and adaptable, they bring energy and creativity to discussions.\n\nIn groups, ENTP keeps things dynamic by exploring multiple angles. They're great at finding unconventional solutions and motivating others to think outside the box."
+      },
+      "INFP": {
+        "title": "The Mediator",
+        "description": "INFP is guided by deep values and empathy. They care about authenticity and creating harmonious team dynamics. Creative and idealistic, they bring a human touch to projects.\n\nIn groups, INFP helps maintain team morale and ensures everyone's voice is heard. They contribute thoughtful, meaningful ideas and promote collaboration."
+      },
+      "ENFJ": {
+        "title": "The Protagonist",
+        "description": "ENFJ is a natural motivator who inspires others through charisma and genuine care. They excel at understanding team dynamics and bringing people together.\n\nIn group work, ENFJ ensures everyone feels valued and motivated. They're great at mediating conflicts and keeping the team aligned towards shared goals."
+      },
+      "ENFP": {
+        "title": "The Campaigner",
+        "description": "ENFP brings enthusiasm and creativity to every team. They're excellent at generating ideas and connecting with others on a personal level. Optimistic and energetic, they inspire action.\n\nIn groups, ENFP creates a positive atmosphere and encourages open communication. They help the team see possibilities and stay motivated through challenges."
+      },
+      "ISTJ": {
+        "title": "The Logistician",
+        "description": "ISTJ is the team's reliable backbone. They value structure, accuracy, and follow-through. Detail-oriented and responsible, they ensure tasks are completed properly.\n\nIn group work, ISTJ keeps things organized and on track. They're the ones who create timelines, check details, and make sure nothing falls through the cracks."
+      },
+      "ISFJ": {
+        "title": "The Defender",
+        "description": "ISFJ is a dedicated and caring team member who ensures harmony and practical support. They pay attention to others' needs and work tirelessly behind the scenes.\n\nIn groups, ISFJ provides stability and reliability. They remember important details and make sure the team's practical needs are met."
+      },
+      "ESTJ": {
+        "title": "The Executive",
+        "description": "ESTJ is an organized and efficient leader who values structure and clear processes. They excel at managing tasks and keeping teams accountable.\n\nIn group work, ESTJ sets clear expectations and ensures everyone follows through. They're great at creating systems and maintaining productivity."
+      },
+      "ESFJ": {
+        "title": "The Consul",
+        "description": "ESFJ is the team's social glue who creates a supportive and harmonious environment. They care deeply about others and work to maintain positive relationships.\n\nIn groups, ESFJ ensures everyone feels included and valued. They're great at organizing social aspects and keeping team morale high."
+      },
+      "ISTP": {
+        "title": "The Virtuoso",
+        "description": "ISTP is a practical problem-solver who excels at hands-on tasks. They're analytical and adaptable, bringing a calm, efficient approach to challenges.\n\nIn group work, ISTP contributes practical solutions and troubleshooting skills. They work best with autonomy and bring a grounded perspective to abstract discussions."
+      },
+      "ISFP": {
+        "title": "The Adventurer",
+        "description": "ISFP is a creative and empathetic team member who values authenticity and personal expression. They bring artistic sensibility and emotional intelligence to projects.\n\nIn groups, ISFP contributes unique creative perspectives and helps maintain a supportive atmosphere. They're great at design tasks and bringing warmth to the team."
+      },
+      "ESTP": {
+        "title": "The Entrepreneur",
+        "description": "ESTP is an action-oriented team member who thrives in dynamic environments. They're quick to adapt and excel at practical, hands-on problem-solving.\n\nIn group work, ESTP brings energy and momentum. They're great at taking initiative, making quick decisions, and keeping the team moving forward."
+      },
+      "ESFP": {
+        "title": "The Entertainer",
+        "description": "ESFP brings positivity and spontaneity to every team. They're great at connecting with others and creating an enjoyable work atmosphere.\n\nIn groups, ESFP keeps spirits high and encourages collaboration through their natural enthusiasm. They help the team stay flexible and enjoy the process."
+      }
     },
     "students": {
       "title": "Student List",
@@ -493,11 +605,12 @@
       "mbtiDistribution": "MBTI Distribution",
       "noName": "No Name",
       "options": "Options",
+      "optionsFor": "Options for {name}",
       "status": {
         "noStudentsInClass": "No students in class yet",
-        "readyToForm": "Groups ready to be formed",
-        "submittedCount": "{submitted} of {total} students have filled the questionnaire",
-        "noSubmissions": "No one has filled the questionnaire yet"
+        "noSubmissions": "No one has filled the questionnaire yet",
+        "submissionProgress": "{count} of {total} students have completed the questionnaire",
+        "groupReady": "Groups are ready to be formed"
       },
       "errors": {
         "removeFailed": "Failed to remove student",
@@ -641,6 +754,7 @@
         "statusNoSubmissions": "No one has filled the questionnaire yet",
         "statusProgress": "{filled} of {total} students have filled the questionnaire",
         "submittedBadge": "Already filled questionnaire",
+        "notFilledBadge": "You haven't filled the questionnaire",
         "needsUpdate": "Needs Update",
         "resetConfirm": "Reset questionnaire status for this assignment?",
         "resetFailed": "Failed to reset questionnaire.",
@@ -714,6 +828,72 @@
       "pendingTasks": "Pending Tasks",
       "completedTasks": "Completed Tasks"
     },
+    "dosenManage": {
+      "sort": {
+        "recent": "Recent",
+        "byYear": "Academic Year",
+        "byNameAZ": "Name A-Z"
+      },
+      "search": {
+        "placeholder": "Search class or code"
+      },
+      "headers": {
+        "className": "Class Name",
+        "period": "Period",
+        "totalAssignments": "Total Assignments",
+        "totalStudents": "Total Students",
+        "manageControl": "Manage Control"
+      },
+      "row": {
+        "assignments": "{count} Assignment",
+        "students": "{count} Students",
+        "openClass": "Open class"
+      },
+      "archive": {
+        "archivedClasses": "Archived Classes",
+        "archivedAssignments": "Archived Assignments",
+        "showClass": "Show Class?",
+        "hideClass": "Hide Class?",
+        "showClassDesc": "Show this class so students can access it",
+        "hideClassDesc": "Hidden classes will not be accessible by students",
+        "showAssignment": "Show Assignment?",
+        "hideAssignment": "Hide Assignment?",
+        "showAssignmentDesc": "Show this assignment so students can see it",
+        "hideAssignmentDesc": "Hidden assignments will not be accessible by students",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "genericError": "Failed to update status. Please try again."
+      },
+      "assignments": {
+        "headers": {
+          "assignmentName": "Assignment Name",
+          "status": "Status",
+          "manageControl": "Manage Control"
+        },
+        "row": {
+          "openAssignment": "Open assignment"
+        },
+        "editTrigger": "Edit assignment",
+        "deleteTrigger": "Delete assignment",
+        "archived": "Archived Assignments",
+        "deleteTitle": "Delete Assignment?",
+        "deleteDesc": "This action is permanent and cannot be undone.",
+        "deleteConfirm": "Delete",
+        "deleteCancel": "Cancel",
+        "search": {
+          "placeholder": "Search assignments"
+        },
+        "empty": {
+          "noActive": "No active assignments yet.",
+          "noArchived": "No archived assignments yet."
+        }
+      },
+      "unavailable": "Manage dashboard is not available for your role.",
+      "empty": {
+        "noActiveClasses": "No active classes yet.",
+        "noArchivedClasses": "No archived classes yet."
+      }
+    },
     "studentManage": {
       "title": "Manage Classes",
       "subtitle": "Hello {name}, manage your groups and assignments here.",
@@ -735,6 +915,7 @@
       },
       "card": {
         "yourTeam": "Your Team",
+        "teamName": "Group {label}",
         "topic": "Topic: {name}",
         "noName": "No Name",
         "waitingBadge": "Waiting for Assignment",

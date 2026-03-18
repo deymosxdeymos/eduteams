@@ -4,24 +4,21 @@ import { ArrowLeft, Calendar, Plus, Share2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useQueryState } from "nuqs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
 import { dateFormatterUTC, timeFormatterUTC } from "@/lib/constants";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import {
   buildDemoAssignmentHref,
   DEMO_COURSE_ID,
-  DEMO_SANDBOX_STORAGE_KEY,
-  DEMO_TEAM_FORMATION_STORAGE_EVENT,
+  getDemoAssignmentSubmissionSnapshot,
 } from "@/lib/demo/sandbox";
-import {
-  getDemoAssignmentStatus,
-  getDemoCreatedAssignments,
-  mergeDemoAssignments,
-} from "@/lib/demo/sandbox-client";
+import { useDemoCourseSandboxSync } from "@/lib/hooks/use-demo-course-sandbox-sync";
+import { getDemoAssignmentStatus, mergeDemoAssignments } from "@/lib/demo/sandbox-client";
 import { useFuzzySearch } from "@/lib/hooks/use-fuzzy-search";
 import type { AssignmentResponse } from "@/lib/validation/assignments";
 import { EmptyAssignmentState } from "./empty-assignment-state";
@@ -52,6 +49,8 @@ interface ClassAssignmentsProps {
   };
   initialAssignments?: AssignmentResponse[];
   studentCount?: number;
+  currentUserId?: string;
+  enrolledStudentIds?: string[];
 }
 
 export function ClassAssignments({
@@ -59,6 +58,8 @@ export function ClassAssignments({
   courseData,
   initialAssignments,
   studentCount = 0,
+  currentUserId,
+  enrolledStudentIds = [],
 }: ClassAssignmentsProps) {
   const router = useRouter();
   const t = useTranslations("dashboard.classAssignments");
@@ -70,27 +71,61 @@ export function ClassAssignments({
   });
   const hasInitialAssignments = initialAssignments !== undefined;
   const isDemoCourse = classId === DEMO_COURSE_ID;
-  const [localAssignments, setLocalAssignments] = useState<AssignmentResponse[]>([]);
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
     fetcher<{ data: AssignmentResponse[] }>,
     {
       fallbackData: initialAssignments ? { data: initialAssignments } : undefined,
       revalidateOnMount: !hasInitialAssignments,
-      revalidateIfStale: !hasInitialAssignments,
+      revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
     },
   );
-
-  useEffect(() => {
-    if (!isDemoCourse) {
-      return;
+  const serverAssignments = useMemo(
+    () => assignmentsData?.data ?? initialAssignments ?? [],
+    [assignmentsData?.data, initialAssignments],
+  );
+  const seededSubmittedAssignmentIds = useMemo(() => {
+    if (!isDemoCourse || !currentUserId) {
+      return [] as string[];
     }
 
-    const syncLocalAssignments = () => {
-      setLocalAssignments(
-        getDemoCreatedAssignments(classId).map((assignment) => ({
+    return serverAssignments.flatMap((assignment) => {
+      const pendingSubmissionCount = getDemoAssignmentSubmissionSnapshot({
+        assignmentId: assignment.id,
+        currentUserId,
+        enrolledStudentIds,
+        submittedAssignmentIds: [],
+      }).submittedStudentIds.length;
+
+      return assignment.submissionsCount > pendingSubmissionCount ? [assignment.id] : [];
+    });
+  }, [currentUserId, enrolledStudentIds, isDemoCourse, serverAssignments]);
+
+  const { createdAssignments, submittedAssignmentIds, isReady } = useDemoCourseSandboxSync({
+    courseId: classId,
+    enabled: isDemoCourse,
+    seededSubmittedAssignmentIds,
+  });
+  const submittedAssignmentIdList = useMemo(
+    () => Array.from(submittedAssignmentIds),
+    [submittedAssignmentIds],
+  );
+
+  const localAssignments = useMemo(
+    () =>
+      createdAssignments.map((assignment) => {
+        const submissionSnapshot = currentUserId
+          ? getDemoAssignmentSubmissionSnapshot({
+              assignmentId: assignment.id,
+              currentUserId,
+              enrolledStudentIds,
+              submittedAssignmentIds: submittedAssignmentIdList,
+            })
+          : null;
+
+        return {
           id: assignment.id,
           courseId: assignment.courseId,
           title: assignment.title,
@@ -100,44 +135,48 @@ export function ClassAssignments({
           status: getDemoAssignmentStatus(assignment.id),
           skills: assignment.skills,
           topics: assignment.topics,
-          submissionsCount: assignment.submissionsCount,
-        })),
-      );
-    };
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.storageArea !== window.localStorage) {
-        return;
-      }
-
-      if (
-        event.key !== null &&
-        event.key !== DEMO_SANDBOX_STORAGE_KEY &&
-        !event.key.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)
-      ) {
-        return;
-      }
-
-      syncLocalAssignments();
-    };
-
-    syncLocalAssignments();
-    window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, [classId, isDemoCourse]);
-
-  const assignments: AssignmentResponse[] = useMemo(() => {
-    const serverAssignments = assignmentsData?.data ?? [];
-    if (!isDemoCourse) {
+          submissionsCount:
+            submissionSnapshot?.submittedStudentIds.length ?? assignment.submissionsCount,
+        } satisfies AssignmentResponse;
+      }),
+    [createdAssignments, currentUserId, enrolledStudentIds, submittedAssignmentIdList],
+  );
+  const syncedServerAssignments = useMemo(() => {
+    if (!isDemoCourse || !isReady || !currentUserId) {
       return serverAssignments;
     }
 
-    return mergeDemoAssignments(serverAssignments, localAssignments);
-  }, [assignmentsData?.data, isDemoCourse, localAssignments]);
+    return serverAssignments.map((assignment) => {
+      const submissionsCount = getDemoAssignmentSubmissionSnapshot({
+        assignmentId: assignment.id,
+        currentUserId,
+        enrolledStudentIds,
+        submittedAssignmentIds: submittedAssignmentIdList,
+      }).submittedStudentIds.length;
+
+      return submissionsCount === assignment.submissionsCount
+        ? assignment
+        : {
+            ...assignment,
+            submissionsCount,
+          };
+    });
+  }, [
+    currentUserId,
+    enrolledStudentIds,
+    isDemoCourse,
+    isReady,
+    serverAssignments,
+    submittedAssignmentIdList,
+  ]);
+
+  const assignments: AssignmentResponse[] = useMemo(() => {
+    if (!isDemoCourse || !isReady) {
+      return serverAssignments;
+    }
+
+    return mergeDemoAssignments(syncedServerAssignments, localAssignments);
+  }, [isDemoCourse, isReady, localAssignments, serverAssignments, syncedServerAssignments]);
   const hasAssignments = assignments.length > 0;
 
   const filteredAssignments = useFuzzySearch<AssignmentResponse>({
@@ -150,16 +189,6 @@ export function ClassAssignments({
   const formatIdTimeDate = (input: Date | string) => {
     const d = new Date(input);
     return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
-  };
-
-  const extractDescriptionText = (description: string | null | undefined) => {
-    if (!description) return null;
-    try {
-      const parsed = JSON.parse(description);
-      return parsed.text || null;
-    } catch {
-      return description;
-    }
   };
 
   return (
@@ -218,7 +247,7 @@ export function ClassAssignments({
                   </div>
                 ) : null}
                 {filteredAssignments.map((a) => {
-                  const descriptionText = extractDescriptionText(a.description);
+                  const descriptionText = parseAssignmentDescription(a.description).text;
                   return (
                     <div key={a.id} className="content-auto">
                       <div

@@ -1,7 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { render, screen } from "@testing-library/react";
 
 const actualRouting = await import("@/i18n/routing");
+const actualServerAuth = await import("@/lib/server-auth");
+const actualAuthorization = await import("@/lib/authorization");
 const originalDemoMode = process.env.DEMO_MODE;
 
 const protectOnboardingPageMock = mock(async () => ({
@@ -23,6 +25,7 @@ const ensurePersonalitySessionMock = mock(async () => ({
 }));
 
 mock.module("@/lib/server-auth", () => ({
+  ...actualServerAuth,
   protectOnboardingPage: protectOnboardingPageMock,
 }));
 
@@ -36,6 +39,7 @@ mock.module("@/lib/actions/personality", () => ({
 }));
 
 mock.module("@/lib/authorization", () => ({
+  ...actualAuthorization,
   needsDataDiri: (user: any) => {
     if (user.role === "STUDENT") {
       return !user.nim;
@@ -56,6 +60,10 @@ mock.module("@/components/onboarding/kepribadian/demo-personality-picker", () =>
 mock.module("@/components/onboarding/kepribadian/personality-test-client", () => ({
   default: () => <div data-testid="personality-test-client" />,
 }));
+
+afterAll(() => {
+  mock.restore();
+});
 
 describe("KepribadianPage", () => {
   beforeEach(() => {

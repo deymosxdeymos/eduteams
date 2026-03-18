@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { AnswersControlsClient } from "@/components/dashboard/answers-controls-client";
+import { AssignmentAnswersTabs } from "@/components/dashboard/assignment-answers-tabs";
 import { AssignmentLayout } from "@/components/dashboard/assignment-layout";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { ProfileHeader } from "@/components/dashboard/profile-header";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getLocalizedHref } from "@/i18n/routing";
 import { canAccessDosenFeatures } from "@/lib/authorization";
 import {
@@ -14,16 +15,19 @@ import {
   getDemoAssignmentAnswersView,
   getDemoAssignmentDefinitionFromSearchParams,
   getDemoCourse,
+  getDemoSandboxPrincipalId,
   getDemoSubmittedStudents,
   isDemoSandboxAssignmentId,
   isDemoSandboxUser,
 } from "@/lib/demo/sandbox";
 import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
+import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import { getMBTIQuestions } from "@/lib/mbti-questions-simple";
 import prisma from "@/lib/prisma";
 import { protectDashboard } from "@/lib/server-auth";
 import type { Course, ExtendedUser } from "@/lib/types";
-import { getMBTIColorScheme } from "@/lib/utils/mbti-colors";
+import { buildAssignmentAnswerRows } from "@/lib/dashboard/assignment-answer-rows";
+import { getAssignmentAnswerView } from "@/lib/dashboard/assignment-answer-view";
 import { getMBTIType } from "@/lib/utils/mbti-helpers";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +45,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string; assignmentId: string }>;
 }): Promise<Metadata> {
   const { assignmentId } = await params;
-  const assignment = await getAssignmentTitle(assignmentId);
-  const title = assignment ? `${assignment.title} - Jawaban | EduTeams` : "Jawaban - EduTeams";
-  return { title, description: "Lihat jawaban mahasiswa untuk tugas ini" };
+  const [assignment, t] = await Promise.all([
+    getAssignmentTitle(assignmentId),
+    getTranslations("dashboard.assignment"),
+  ]);
+  const answersLabel = t("answersTabs.personality");
+  const title = assignment
+    ? `${assignment.title} - ${answersLabel} | EduTeams`
+    : `${answersLabel} - EduTeams`;
+  return { title };
 }
 
 async function getCourseForDosen(courseId: string, dosenId: string) {
@@ -97,125 +107,6 @@ async function getSubmittedStudents(assignmentId: string) {
   });
 }
 
-async function getAssignmentAnswersView(assignmentId: string, studentId: string) {
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      AssignmentTopic: {
-        select: {
-          id: true,
-          name: true,
-          preferences: {
-            where: { personId: studentId },
-            select: { preference: true },
-          },
-        },
-      },
-    },
-  });
-  if (!assignment)
-    return null as null | {
-      title: string;
-      skills: Array<{ name: string; level: number | null }>;
-      topics: Array<{ name: string; preference: number | null }>;
-    };
-
-  let skills: string[] = [];
-  try {
-    if (assignment.description) {
-      const parsed = JSON.parse(assignment.description);
-      if (Array.isArray(parsed?.skills)) skills = parsed.skills as string[];
-    }
-  } catch {}
-  if (skills.length === 0) {
-    skills = ["UI/UX Design", "Frontend Development", "Backend Development"];
-  }
-
-  let skillAnswers: Array<{ name: string; level: number | null }> = [];
-  if (skills.length > 0) {
-    const skillRows = await prisma.skill.findMany({
-      where: { name: { in: skills } },
-      select: {
-        name: true,
-        personSkills: {
-          where: { personId: studentId },
-          select: { level: true },
-        },
-      },
-    });
-    const byName = new Map<string, number | null>(
-      skillRows.map((r: (typeof skillRows)[number]) => [
-        r.name,
-        (r.personSkills[0]?.level ?? null) as number | null,
-      ]),
-    );
-    skillAnswers = skills.map((name: string) => ({
-      name,
-      level: byName.get(name) ?? null,
-    }));
-  }
-
-  const topicAnswers = assignment.AssignmentTopic.map(
-    (t: (typeof assignment.AssignmentTopic)[number]) => ({
-      name: t.name,
-      preference: t.preferences[0]?.preference ?? null,
-    }),
-  );
-
-  return {
-    title: assignment.title,
-    skills: skillAnswers,
-    topics: topicAnswers,
-  };
-}
-
-function toSkillLabel(v: number | null | undefined) {
-  const n = Math.max(0, Math.min(1, v ?? 0));
-  if (n < 0.2) return "Pemula";
-  if (n < 0.4) return "Pemula Lanjut";
-  if (n < 0.6) return "Kompeten";
-  if (n < 0.8) return "Mahir";
-  return "Jago Banget";
-}
-function toPreferenceLabel(v: number | null | undefined) {
-  const n = Math.max(0, Math.min(1, v ?? 0));
-  if (n < 0.2) return "Sangat tidak tertarik";
-  if (n < 0.4) return "Tidak tertarik";
-  if (n < 0.6) return "Netral";
-  if (n < 0.8) return "Tertarik";
-  return "Sangat tertarik";
-}
-function toLikert(n?: number | null) {
-  switch (n) {
-    case 1:
-      return "Sangat tidak setuju";
-    case 2:
-      return "Tidak setuju";
-    case 3:
-      return "Netral";
-    case 4:
-      return "Setuju";
-    case 5:
-      return "Sangat setuju";
-    default:
-      return "—";
-  }
-}
-
-function getLikertValue(
-  personalityAnswers: Record<string, unknown>,
-  q: { id: string; orderHint?: number },
-  i: number,
-): number | undefined {
-  const byId = (personalityAnswers as Record<string, unknown>)[q.id];
-  const byOrder = (personalityAnswers as Record<string, unknown>)[String(q.orderHint ?? i + 1)];
-  const raw = byId ?? byOrder;
-  return typeof raw === "string" ? Number.parseInt(raw, 10) : (raw as number | undefined);
-}
-
 interface AnswersPageProps {
   params: Promise<{ locale: string; id: string; assignmentId: string }>;
   searchParams: Promise<{
@@ -233,6 +124,7 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
   const { locale, id: classId, assignmentId } = await params;
   const isDosen = canAccessDosenFeatures(user);
   if (!isDosen) notFound();
+  const tAssignment = await getTranslations("dashboard.assignment");
   const sp = await searchParams;
 
   if (
@@ -241,9 +133,16 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
     isDemoSandboxAssignmentId(assignmentId)
   ) {
     const course = getDemoCourse();
-    const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
+    const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
+    const [removedStudentIds, submittedAssignmentIds] = await Promise.all([
+      getRemovedDemoStudentIdsFromCookieStore(),
+      getDemoSubmittedAssignmentIdsFromCookieStore(),
+    ]);
     const students = getDemoSubmittedStudents({
+      assignmentId,
+      currentUserId,
       excludedStudentIds: removedStudentIds,
+      submittedAssignmentIds,
     });
     const studentsLite = students.map((student) => ({
       id: student.id,
@@ -259,23 +158,6 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
     }
 
     const selected = students[currentIndex];
-    if (!selected) notFound();
-
-    const [answersView, mbtiQuestions] = await Promise.all([
-      Promise.resolve(getDemoAssignmentAnswersView(selected.id, assignmentDefinition)),
-      getMBTIQuestions(locale),
-    ]);
-    const assignmentTitle = answersView?.title ?? assignmentDefinition.title;
-    const selectedUser = selected as unknown as ExtendedUser;
-    const personalityJson = selected.personalityData as unknown as {
-      answers?: Record<string, number>;
-    } | null;
-    const personalityAnswers = (personalityJson?.answers ?? {}) as Record<string, number>;
-    const mbtiType = getMBTIType(selectedUser);
-    const colorScheme = getMBTIColorScheme(mbtiType);
-    const underlineClass = colorScheme.primaryBg;
-    const textColor600 = colorScheme.gradientFrom.replace("from-", "text-");
-    const textActiveClass = `data-[state=active]:${textColor600}`;
     const backHref = getLocalizedHref(
       locale,
       buildDemoAssignmentHref({
@@ -290,6 +172,54 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
       locale,
       `/dashboard/class/${classId}/assignments/${assignmentId}/answers`,
     );
+
+    if (!selected) {
+      return (
+        <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
+          <AssignmentLayout
+            user={user}
+            course={course}
+            classId={classId}
+            assignmentId={assignmentId}
+            students={[]}
+            canManage={true}
+            hideStudentList
+            assignmentTitle={assignmentDefinition.title}
+            answersCrumb
+          >
+            <div className="flex flex-col p-6 gap-6">
+              <AnswersControlsClient
+                backHref={backHref}
+                students={studentsLite}
+                currentIndex={0}
+                baseHref={baseHref}
+              />
+              <div className="flex-1 flex items-center justify-center p-6">
+                <div className="text-center text-neutral-600">
+                  {tAssignment("answersTabs.emptyAnswers")}
+                </div>
+              </div>
+            </div>
+          </AssignmentLayout>
+        </DashboardClient>
+      );
+    }
+
+    const answersView = getDemoAssignmentAnswersView(selected.id, assignmentDefinition);
+    const mbtiQuestions = await getMBTIQuestions(locale);
+    const assignmentTitle = answersView?.title ?? assignmentDefinition.title;
+    const selectedUser = selected as unknown as ExtendedUser;
+    const personalityJson = selected.personalityData as unknown as {
+      answers?: Record<string, number>;
+    } | null;
+    const personalityAnswers = (personalityJson?.answers ?? {}) as Record<string, number>;
+    const mbtiType = getMBTIType(selectedUser);
+    const { personalityRows, skillRows, topicRows } = buildAssignmentAnswerRows({
+      mbtiQuestions,
+      personalityAnswers,
+      skills: answersView?.skills ?? [],
+      topics: answersView?.topics ?? [],
+    });
 
     return (
       <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
@@ -313,147 +243,12 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
             />
             <ProfileHeader user={selectedUser} hideEditButton />
 
-            <div className="px-2">
-              <Tabs defaultValue="kepribadian" className="w-full">
-                <TabsList className="w-full bg-transparent rounded-none p-0 shadow-none text-neutral-700 justify-between">
-                  <TabsTrigger
-                    value="kepribadian"
-                    className={`group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 transition-colors flex flex-col items-center gap-1 ${textActiveClass}`}
-                  >
-                    <span className="group-hover:underline">Kepribadian</span>
-                    <span
-                      className={`hidden group-data-[state=active]:block ${underlineClass} h-3 w-full rounded-full`}
-                    />
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="skills"
-                    className={`group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 flex flex-col items-center gap-1 ${textActiveClass}`}
-                  >
-                    <span className="group-hover:underline">Skills</span>
-                    <span
-                      className={`hidden group-data-[state=active]:block ${underlineClass} h-3 w-full rounded-full`}
-                    />
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="preferences"
-                    className={`group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 flex flex-col items-center gap-1 ${textActiveClass}`}
-                  >
-                    <span className="group-hover:underline">Preferences</span>
-                    <span
-                      className={`hidden group-data-[state=active]:block ${underlineClass} h-3 w-full rounded-full`}
-                    />
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="kepribadian" className="mt-4">
-                  <div className="rounded-lg border overflow-hidden">
-                    <div className="max-h-[420px] overflow-y-auto">
-                      <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10">
-                          <tr>
-                            <th className="px-4 py-3 w-16">No</th>
-                            <th className="px-4 py-3">Pertanyaan</th>
-                            <th className="px-4 py-3">Jawaban</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {mbtiQuestions.map((q, i) => (
-                            <tr
-                              key={q.id || `${q.orderHint ?? i + 1}-${q.text}`}
-                              className="hover:bg-gray-50"
-                            >
-                              <td className="px-4 py-3">{i + 1}</td>
-                              <td className="px-4 py-3">{q.text}</td>
-                              <td className="px-4 py-3">
-                                {toLikert(
-                                  getLikertValue(
-                                    personalityAnswers as Record<string, unknown>,
-                                    q as { id: string; orderHint?: number },
-                                    i,
-                                  ),
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="skills" className="mt-4">
-                  <div className="rounded-lg border overflow-hidden">
-                    <div className="max-h-[420px] overflow-y-auto">
-                      <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10">
-                          <tr>
-                            <th className="px-4 py-3 w-16">No</th>
-                            <th className="px-4 py-3">Pertanyaan</th>
-                            <th className="px-4 py-3">Jawaban</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {(answersView?.skills ?? []).map((s, i) => (
-                            <tr key={s.name} className="hover:bg-gray-50">
-                              <td className="px-4 py-3">{i + 1}</td>
-                              <td className="px-4 py-3">
-                                Seberapa mahir kamu dengan keahlian <strong>{s.name}</strong>?
-                              </td>
-                              <td className="px-4 py-3">{toSkillLabel(s.level)}</td>
-                            </tr>
-                          ))}
-                          {(!answersView?.skills || answersView.skills.length === 0) && (
-                            <tr>
-                              <td className="px-4 py-3" colSpan={3}>
-                                Tidak ada data keahlian.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="preferences" className="mt-4">
-                  <div className="rounded-lg border overflow-hidden">
-                    <div className="max-h-[420px] overflow-y-auto">
-                      <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10">
-                          <tr>
-                            <th className="px-4 py-3 w-16">No</th>
-                            <th className="px-4 py-3">Pertanyaan</th>
-                            <th className="px-4 py-3">Jawaban</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {(answersView?.topics ?? []).map((topic, i) => (
-                            <tr key={topic.name} className="hover:bg-gray-50">
-                              <td className="px-4 py-3">{i + 1}</td>
-                              <td className="px-4 py-3">
-                                Seberapa Tertarik Anda dengan topik{" "}
-                                <strong>
-                                  #{i + 1}: {topic.name}
-                                </strong>
-                                ?
-                              </td>
-                              <td className="px-4 py-3">{toPreferenceLabel(topic.preference)}</td>
-                            </tr>
-                          ))}
-                          {(!answersView?.topics || answersView.topics.length === 0) && (
-                            <tr>
-                              <td className="px-4 py-3" colSpan={3}>
-                                Tidak ada data preferensi topik.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
+            <AssignmentAnswersTabs
+              personalityRows={personalityRows}
+              skills={skillRows}
+              topics={topicRows}
+              mbtiType={mbtiType}
+            />
           </div>
         </AssignmentLayout>
       </DashboardClient>
@@ -479,7 +274,8 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
 
   // If there are no submissions yet, show an empty state
   if (!selected) {
-    const assignmentTitle = (await getAssignmentTitle(assignmentId))?.title ?? "Tugas";
+    const assignmentTitle =
+      (await getAssignmentTitle(assignmentId))?.title ?? tAssignment("defaultTitle");
 
     return (
       <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
@@ -509,7 +305,7 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
             />
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center text-neutral-600">
-                Belum ada jawaban mahasiswa untuk tugas ini.
+                {tAssignment("answersTabs.emptyAnswers")}
               </div>
             </div>
           </div>
@@ -522,20 +318,22 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
   const selectedUser = selected as unknown as ExtendedUser;
 
   const [answersView, mbtiQuestions] = await Promise.all([
-    getAssignmentAnswersView(assignmentId, selected.id),
+    getAssignmentAnswerView(assignmentId, selected.id),
     getMBTIQuestions(locale),
   ]);
-  const assignmentTitle = answersView?.title ?? "Tugas";
+  const assignmentTitle = answersView?.title ?? tAssignment("defaultTitle");
   const personalityJson = selected.personalityData as unknown as {
     answers?: Record<string, number>;
   } | null;
   const personalityAnswers = (personalityJson?.answers ?? {}) as Record<string, number>;
 
   const mbtiType = getMBTIType(selectedUser);
-  const colorScheme = getMBTIColorScheme(mbtiType);
-  const underlineClass = colorScheme.primaryBg;
-  const textColor600 = colorScheme.gradientFrom.replace("from-", "text-");
-  const textActiveClass = `data-[state=active]:${textColor600}`;
+  const { personalityRows, skillRows, topicRows } = buildAssignmentAnswerRows({
+    mbtiQuestions,
+    personalityAnswers,
+    skills: answersView?.skills ?? [],
+    topics: answersView?.topics ?? [],
+  });
 
   return (
     <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
@@ -565,151 +363,12 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
           />
           <ProfileHeader user={selectedUser} hideEditButton />
 
-          <div className="px-2">
-            <Tabs defaultValue="kepribadian" className="w-full">
-              <TabsList className="w-full bg-transparent rounded-none p-0 shadow-none text-neutral-700 justify-between">
-                <TabsTrigger
-                  value="kepribadian"
-                  className={`group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 transition-colors flex flex-col items-center gap-1 ${textActiveClass}`}
-                >
-                  <span className="group-hover:underline">Kepribadian</span>
-                  <span
-                    className={`hidden group-data-[state=active]:block ${underlineClass} h-3 w-full rounded-full`}
-                  />
-                </TabsTrigger>
-                <TabsTrigger
-                  value="skills"
-                  className={`group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 flex flex-col items-center gap-1 ${textActiveClass}`}
-                >
-                  <span className="group-hover:underline">Skills</span>
-                  <span
-                    className={`hidden group-data-[state=active]:block ${underlineClass} h-3 w-full rounded-full`}
-                  />
-                </TabsTrigger>
-                <TabsTrigger
-                  value="preferences"
-                  className={`group flex-1 bg-transparent hover:bg-transparent border-none data-[state=active]:bg-transparent data-[state=active]:shadow-none text-neutral-700 hover:text-neutral-900 flex flex-col items-center gap-1 ${textActiveClass}`}
-                >
-                  <span className="group-hover:underline">Preferences</span>
-                  <span
-                    className={`hidden group-data-[state=active]:block ${underlineClass} h-3 w-full rounded-full`}
-                  />
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="kepribadian" className="mt-4">
-                <div className="rounded-lg border overflow-hidden">
-                  <div className="max-h-[420px] overflow-y-auto">
-                    <table className="min-w-full text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10">
-                        <tr>
-                          <th className="px-4 py-3 w-16">No</th>
-                          <th className="px-4 py-3">Pertanyaan</th>
-                          <th className="px-4 py-3">Jawaban</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {mbtiQuestions.map((q, i) => (
-                          <tr
-                            key={q.id || `${q.orderHint ?? i + 1}-${q.text}`}
-                            className="hover:bg-gray-50"
-                          >
-                            <td className="px-4 py-3">{i + 1}</td>
-                            <td className="px-4 py-3">{q.text}</td>
-                            <td className="px-4 py-3">
-                              {toLikert(
-                                getLikertValue(
-                                  personalityAnswers as Record<string, unknown>,
-                                  q as { id: string; orderHint?: number },
-                                  i,
-                                ),
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="skills" className="mt-4">
-                <div className="rounded-lg border overflow-hidden">
-                  <div className="max-h-[420px] overflow-y-auto">
-                    <table className="min-w-full text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10">
-                        <tr>
-                          <th className="px-4 py-3 w-16">No</th>
-                          <th className="px-4 py-3">Pertanyaan</th>
-                          <th className="px-4 py-3">Jawaban</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {(answersView?.skills ?? []).map(
-                          (s: { name: string; level: number | null }, i: number) => (
-                            <tr key={s.name} className="hover:bg-gray-50">
-                              <td className="px-4 py-3">{i + 1}</td>
-                              <td className="px-4 py-3">
-                                Seberapa mahir kamu dengan keahlian <strong>{s.name}</strong>?
-                              </td>
-                              <td className="px-4 py-3">{toSkillLabel(s.level)}</td>
-                            </tr>
-                          ),
-                        )}
-                        {(!answersView?.skills || answersView.skills.length === 0) && (
-                          <tr>
-                            <td className="px-4 py-3" colSpan={3}>
-                              Tidak ada data keahlian.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="preferences" className="mt-4">
-                <div className="rounded-lg border overflow-hidden">
-                  <div className="max-h-[420px] overflow-y-auto">
-                    <table className="min-w-full text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10">
-                        <tr>
-                          <th className="px-4 py-3 w-16">No</th>
-                          <th className="px-4 py-3">Pertanyaan</th>
-                          <th className="px-4 py-3">Jawaban</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {(answersView?.topics ?? []).map(
-                          (t: { name: string; preference: number | null }, i: number) => (
-                            <tr key={t.name} className="hover:bg-gray-50">
-                              <td className="px-4 py-3">{i + 1}</td>
-                              <td className="px-4 py-3">
-                                Seberapa Tertarik Anda dengan topik{" "}
-                                <strong>
-                                  #{i + 1}: {t.name}
-                                </strong>
-                                ?
-                              </td>
-                              <td className="px-4 py-3">{toPreferenceLabel(t.preference)}</td>
-                            </tr>
-                          ),
-                        )}
-                        {(!answersView?.topics || answersView.topics.length === 0) && (
-                          <tr>
-                            <td className="px-4 py-3" colSpan={3}>
-                              Tidak ada data preferensi topik.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+          <AssignmentAnswersTabs
+            personalityRows={personalityRows}
+            skills={skillRows}
+            topics={topicRows}
+            mbtiType={mbtiType}
+          />
         </div>
       </AssignmentLayout>
     </DashboardClient>

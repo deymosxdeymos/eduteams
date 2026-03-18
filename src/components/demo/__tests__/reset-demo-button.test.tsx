@@ -5,6 +5,7 @@ const clearDemoSandboxClientStateMock = mock(() => undefined);
 
 mock.module("next-intl", () => ({
   useLocale: () => "id",
+  useTranslations: () => (key: string) => key,
 }));
 
 mock.module("@/lib/demo/sandbox-client", () => ({

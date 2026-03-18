@@ -3,6 +3,7 @@
 import { Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { AssignmentEditConfirmationDialog } from "@/components/dashboard/assignment-edit-confirmation-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,9 +16,9 @@ import { InputRounded } from "@/components/ui/input-rounded";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { MultiSelectComboboxBadges } from "@/components/ui/multi-select-combobox-badges";
 import { Textarea } from "@/components/ui/textarea";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import type { EditImpact } from "@/lib/utils/assignment-change-detection";
 import type { ManageAssignmentRow } from "@/types/manage";
-import { AssignmentEditConfirmationDialog } from "./assignment-edit-confirmation-dialog";
 
 interface EditAssignmentModalProps {
   open: boolean;
@@ -27,23 +28,6 @@ interface EditAssignmentModalProps {
   onUpdatedAction?: (
     assignment: Pick<ManageAssignmentRow, "id"> & Partial<ManageAssignmentRow>,
   ) => void;
-}
-
-function parseDescriptionJSON(description: string | null) {
-  if (!description) {
-    return { text: "", skills: [], topics: [] };
-  }
-
-  try {
-    const parsed = JSON.parse(description);
-    return {
-      text: parsed.text || "",
-      skills: Array.isArray(parsed.skills) ? parsed.skills : [],
-      topics: Array.isArray(parsed.topics) ? parsed.topics : [],
-    };
-  } catch {
-    return { text: description, skills: [], topics: [] };
-  }
 }
 
 function areStringArraysEqual(left: string[], right: string[]) {
@@ -58,9 +42,11 @@ function EditAssignmentModalBody({
   onUpdatedAction,
 }: EditAssignmentModalProps) {
   const t = useTranslations("dashboard.assignments.edit");
-  const parsedAssignmentDescription = parseDescriptionJSON(assignment.description);
+  const parsedAssignmentDescription = parseAssignmentDescription(assignment.description, {
+    defaultSkills: [],
+  });
   const [title, setTitle] = useState(() => assignment.title);
-  const [description, setDescription] = useState(() => parsedAssignmentDescription.text);
+  const [description, setDescription] = useState(() => parsedAssignmentDescription.text ?? "");
   const [skills, setSkills] = useState<string[]>(() => parsedAssignmentDescription.skills);
   const [topics, setTopics] = useState<string[]>(() => parsedAssignmentDescription.topics);
   const [submitting, setSubmitting] = useState(false);
@@ -71,7 +57,7 @@ function EditAssignmentModalBody({
   const isFormValid = Boolean(title.trim()) && skills.length > 0;
   const hasUnsavedChanges =
     title !== assignment.title ||
-    description !== parsedAssignmentDescription.text ||
+    description !== (parsedAssignmentDescription.text ?? "") ||
     !areStringArraysEqual(skills, parsedAssignmentDescription.skills) ||
     !areStringArraysEqual(topics, parsedAssignmentDescription.topics);
 
@@ -192,10 +178,10 @@ function EditAssignmentModalBody({
           </DialogHeader>
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="mb-8 grid grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-base mb-2">{t("titleField")}</h3>
+                  <h3 className="mb-2 text-base font-medium">{t("titleField")}</h3>
                   <InputRounded
                     className="w-full"
                     placeholder={t("titlePlaceholder")}
@@ -205,11 +191,11 @@ function EditAssignmentModalBody({
                   />
                 </div>
                 <div>
-                  <h3 className="font-medium text-base mb-2">
+                  <h3 className="mb-2 text-base font-medium">
                     {t("descriptionField")} <span className="font-light">({t("optional")})</span>
                   </h3>
                   <Textarea
-                    className="bg-neutral-50 w-full h-32 resize-none"
+                    className="h-32 w-full resize-none bg-neutral-50"
                     placeholder={t("descriptionPlaceholder")}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -224,7 +210,7 @@ function EditAssignmentModalBody({
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-base mb-2">{t("skills")}</h3>
+                  <h3 className="mb-2 text-base font-medium">{t("skills")}</h3>
                   <MultiSelectComboboxBadges
                     value={skills}
                     onChange={setSkills}
@@ -237,7 +223,7 @@ function EditAssignmentModalBody({
                 </div>
 
                 <div>
-                  <h3 className="font-medium text-base mb-2">
+                  <h3 className="mb-2 text-base font-medium">
                     {t("topics")} <span className="font-light">({t("optional")})</span>
                   </h3>
                   <MultiSelectComboboxBadges
@@ -254,7 +240,7 @@ function EditAssignmentModalBody({
 
             {error && (
               <div
-                className="rounded-md border border-red-200 bg-red-50 p-3 mb-4"
+                className="mb-4 rounded-md border border-red-200 bg-red-50 p-3"
                 role="alert"
                 aria-live="polite"
               >
@@ -265,13 +251,13 @@ function EditAssignmentModalBody({
             <Button
               type="submit"
               variant="onboarding"
-              className="w-full py-6 rounded-4xl font-medium"
+              className="w-full rounded-4xl py-6 font-medium"
               disabled={submitting || !isFormValid}
             >
               {submitting ? (
                 <LoadingSpinner size="sm" className="mr-2" />
               ) : (
-                <Pencil strokeWidth={3} className="w-4 h-4 mr-2" />
+                <Pencil strokeWidth={3} className="mr-2 h-4 w-4" />
               )}
               <span className="text-sm">{submitting ? t("saving") : t("save")}</span>
             </Button>

@@ -27,9 +27,6 @@ export function DosenManageAssignmentsContent({
       assignments={assignments}
       courseId={courseId}
       totalStudents={totalStudents}
-      searchPlaceholder="Cari tugas…"
-      emptyActiveMessage="Belum ada tugas aktif"
-      emptyArchivedMessage="Belum ada tugas yang diarsipkan"
       onArchiveToggle={handleArchiveToggle}
     />
   );

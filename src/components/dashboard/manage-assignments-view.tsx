@@ -1,7 +1,8 @@
 "use client";
 
 import { Calendar, ExternalLink, Eye, EyeOff, Pencil, Search, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { memo, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { EditAssignmentModal } from "@/components/dashboard/edit-assignment-modal";
@@ -30,40 +31,26 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getAssignmentStatusBadge } from "@/lib/utils/assignment-status";
+import { buildDemoAssignmentHref } from "@/lib/demo/sandbox";
 import {
-  buildDemoAssignmentHref,
   DEMO_ASSIGNMENT_ID,
   DEMO_COURSE_ID,
   DEMO_LOCAL_ASSIGNMENT_ID_PREFIX,
-  DEMO_SANDBOX_STORAGE_KEY,
-  DEMO_TEAM_FORMATION_STORAGE_EVENT,
-} from "@/lib/demo/sandbox";
+} from "@/lib/demo/sandbox-shared";
 import {
   getDemoAssignmentStatus,
   getDemoCreatedAssignments,
   mergeDemoAssignments,
 } from "@/lib/demo/sandbox-client";
+import { useDemoSandboxStorageListener } from "@/lib/hooks/use-demo-sandbox-storage-listener";
 import type { ManageAssignmentRow } from "@/types/manage";
 
 interface ManageAssignmentsViewProps {
   assignments: ManageAssignmentRow[];
   courseId: string;
   totalStudents: number;
-  searchPlaceholder: string;
-  emptyActiveMessage: string;
-  emptyArchivedMessage: string;
   renderActions?: (assignment: ManageAssignmentRow) => ReactNode;
   onArchiveToggle?: (assignment: ManageAssignmentRow) => Promise<void> | void;
-}
-
-const dateFormatter = new Intl.DateTimeFormat("id-ID", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
-
-function formatDate(isoString: string): string {
-  return dateFormatter.format(new Date(isoString));
 }
 
 interface AssignmentOverlayState {
@@ -116,6 +103,18 @@ function ManageTable({
   emptyMessage: string;
   renderActions: (assignment: ManageAssignmentRow) => ReactNode;
 }) {
+  const t = useTranslations("dashboard.dosenManage.assignments");
+  const locale = useLocale();
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    [locale],
+  );
+
   if (rows.length === 0) {
     return (
       <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/40 bg-muted/30">
@@ -128,9 +127,9 @@ function ManageTable({
     <Table className="min-w-[720px]">
       <TableHeader className="[&_tr]:border-b-0">
         <TableRow className="bg-muted overflow-hidden rounded-md">
-          <TableHead className="rounded-md">Nama Tugas</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right rounded-md">Manage Control</TableHead>
+          <TableHead className="rounded-md">{t("headers.assignmentName")}</TableHead>
+          <TableHead>{t("headers.status")}</TableHead>
+          <TableHead className="text-right rounded-md">{t("headers.manageControl")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -148,7 +147,7 @@ function ManageTable({
                   <span className="font-medium">{assignment.title}</span>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="size-3.5" />
-                    <span>{formatDate(assignment.startAt)}</span>
+                    <span>{dateFormatter.format(new Date(assignment.startAt))}</span>
                   </div>
                 </div>
               </TableCell>
@@ -167,26 +166,18 @@ function ManageTable({
 }
 
 function DeleteAssignmentDialog(): ReactNode {
+  const t = useTranslations("dashboard.dosenManage.assignments");
+
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Delete assignment"
-          disabled
-          className="text-destructive hover:text-destructive"
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="rounded-2xl sm:max-w-[400px]">
-        <DialogHeader>
-          <DialogTitle className="font-medium">Hapus Tugas?</DialogTitle>
-          <DialogDescription>Fitur hapus tugas akan segera hadir.</DialogDescription>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label={t("deleteTrigger")}
+      disabled
+      className="text-destructive hover:text-destructive"
+    >
+      <Trash2 className="size-4" />
+    </Button>
   );
 }
 
@@ -194,12 +185,11 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   assignments,
   courseId,
   totalStudents,
-  searchPlaceholder,
-  emptyActiveMessage,
-  emptyArchivedMessage,
   renderActions,
   onArchiveToggle,
 }: ManageAssignmentsViewProps) {
+  const t = useTranslations("dashboard.dosenManage.assignments");
+  const tArchive = useTranslations("dashboard.dosenManage.archive");
   const [searchTerm, setSearchTerm] = useQueryState("search", {
     defaultValue: "",
     shallow: true,
@@ -218,77 +208,55 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   const [assignmentOverlayState, setAssignmentOverlayState] = useState<AssignmentOverlayState>(() =>
     createAssignmentOverlayState(assignmentSnapshotKey),
   );
-  const [optimisticDeletedAssignmentIds] = useState<Set<string>>(() => new Set());
   const activeAssignmentOverlayState = getCurrentAssignmentOverlayState(
     assignmentOverlayState,
     assignmentSnapshotKey,
   );
   const optimisticAssignmentUpdates = activeAssignmentOverlayState.optimisticAssignmentUpdates;
 
-  useEffect(() => {
+  const syncLocalAssignments = useCallback(() => {
     if (!isDemoCourse) {
+      setLocalAssignments([]);
       return;
     }
 
-    const syncLocalAssignments = () => {
-      setLocalAssignments(
-        getDemoCreatedAssignments(courseId).map((assignment) => ({
-          id: assignment.id,
-          title: assignment.title,
-          description: assignment.description ?? null,
-          status: getDemoAssignmentStatus(assignment.id),
-          startAt: assignment.startAt,
-          createdAt: assignment.createdAt,
-          isArchived: false,
-          submissionsCount: assignment.submissionsCount,
-          totalStudents,
-          skills: [...assignment.skills],
-          topics: [...assignment.topics],
-        })),
-      );
-    };
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.storageArea !== window.localStorage) {
-        return;
-      }
-
-      if (
-        event.key !== null &&
-        event.key !== DEMO_SANDBOX_STORAGE_KEY &&
-        !event.key.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)
-      ) {
-        return;
-      }
-
-      syncLocalAssignments();
-    };
-
-    syncLocalAssignments();
-    window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, syncLocalAssignments);
-      window.removeEventListener("storage", handleStorage);
-    };
+    setLocalAssignments(
+      getDemoCreatedAssignments(courseId).map((assignment) => ({
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description ?? null,
+        status: getDemoAssignmentStatus(assignment.id),
+        startAt: assignment.startAt,
+        createdAt: assignment.createdAt,
+        isArchived: false,
+        submissionsCount: assignment.submissionsCount,
+        totalStudents,
+        skills: [...assignment.skills],
+        topics: [...assignment.topics],
+      })),
+    );
   }, [courseId, isDemoCourse, totalStudents]);
+
+  useEffect(() => {
+    syncLocalAssignments();
+  }, [syncLocalAssignments]);
+
+  useDemoSandboxStorageListener(isDemoCourse, syncLocalAssignments);
 
   const assignmentRows = useMemo(
     () =>
-      mergeDemoAssignments(assignments, localAssignments)
-        .filter((assignment) => !optimisticDeletedAssignmentIds.has(assignment.id))
-        .map((assignment) => {
-          const optimisticUpdate = optimisticAssignmentUpdates[assignment.id];
-          if (!optimisticUpdate) {
-            return assignment;
-          }
+      mergeDemoAssignments(assignments, localAssignments).map((assignment) => {
+        const optimisticUpdate = optimisticAssignmentUpdates[assignment.id];
+        if (!optimisticUpdate) {
+          return assignment;
+        }
 
-          return {
-            ...assignment,
-            ...optimisticUpdate,
-          };
-        }),
-    [assignments, localAssignments, optimisticAssignmentUpdates, optimisticDeletedAssignmentIds],
+        return {
+          ...assignment,
+          ...optimisticUpdate,
+        };
+      }),
+    [assignments, localAssignments, optimisticAssignmentUpdates],
   );
 
   const handleArchiveToggle = useCallback(
@@ -336,17 +304,14 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
               optimisticAssignmentUpdates: nextOptimisticAssignmentUpdates,
             };
           });
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "Gagal mengubah status tugas. Silakan coba lagi.";
+          const errorMessage = error instanceof Error ? error.message : tArchive("genericError");
           setArchiveError(errorMessage);
         } finally {
           setPendingAssignmentId((current) => (current === assignment.id ? null : current));
         }
       })();
     },
-    [assignmentSnapshotKey, onArchiveToggle, optimisticAssignmentUpdates],
+    [assignmentSnapshotKey, onArchiveToggle, optimisticAssignmentUpdates, tArchive],
   );
 
   const defaultActions = useCallback(
@@ -354,7 +319,9 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
       const isSyntheticDemoAssignment =
         assignment.id === DEMO_ASSIGNMENT_ID ||
         assignment.id.startsWith(DEMO_LOCAL_ASSIGNMENT_ID_PREFIX);
-      const archiveLabel = assignment.isArchived ? "Tampilkan tugas" : "Sembunyikan tugas";
+      const archiveLabel = assignment.isArchived
+        ? tArchive("showAssignment")
+        : tArchive("hideAssignment");
       const ArchiveIcon = assignment.isArchived ? Eye : EyeOff;
       const isPending = pendingAssignmentId === assignment.id;
       const assignmentHref = buildDemoAssignmentHref({
@@ -367,7 +334,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
 
       return (
         <div className="flex items-center justify-end gap-2">
-          <Button asChild variant="ghost" size="icon" aria-label="Lihat tugas">
+          <Button asChild variant="ghost" size="icon" aria-label={t("row.openAssignment")}>
             <Link href={assignmentHref}>
               <ExternalLink className="size-4" />
             </Link>
@@ -387,12 +354,12 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
             <DialogContent className="rounded-2xl sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle className="font-medium">
-                  {assignment.isArchived ? "Munculkan Tugas?" : "Sembunyikan Tugas?"}
+                  {assignment.isArchived ? tArchive("showAssignment") : tArchive("hideAssignment")}
                 </DialogTitle>
                 <DialogDescription>
                   {assignment.isArchived
-                    ? "Tampilkan tugas ini agar mahasiswa dapat melihatnya"
-                    : "Tugas yang disembunyikan tidak akan bisa diakses oleh mahasiswa"}
+                    ? tArchive("showAssignmentDesc")
+                    : tArchive("hideAssignmentDesc")}
                 </DialogDescription>
               </DialogHeader>
               {archiveError && (
@@ -407,7 +374,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
               <DialogFooter className="flex-col-reverse sm:flex-col-reverse">
                 <DialogClose asChild>
                   <Button variant="ghost" className="rounded-full">
-                    Cancel
+                    {tArchive("cancel")}
                   </Button>
                 </DialogClose>
                 <Button
@@ -419,7 +386,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
                   onClick={() => handleArchiveToggle(assignment)}
                 >
                   {isPending && <LoadingSpinner size="sm" color="white" className="mr-2" />}
-                  {assignment.isArchived ? "Munculkan" : "Sembunyikan"}
+                  {archiveLabel}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -427,7 +394,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Edit assignment"
+            aria-label={t("editTrigger")}
             disabled={isSyntheticDemoAssignment}
             onClick={() => setEditingAssignment(assignment)}
           >
@@ -437,7 +404,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
         </div>
       );
     },
-    [handleArchiveToggle, pendingAssignmentId, archiveError, courseId],
+    [handleArchiveToggle, pendingAssignmentId, archiveError, courseId, t, tArchive],
   );
 
   const renderRowActions = renderActions ?? defaultActions;
@@ -463,7 +430,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
             type="search"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder={searchPlaceholder}
+            placeholder={t("search.placeholder")}
             className="h-11 rounded-full pl-4 pr-11"
             autoFocus
           />
@@ -474,7 +441,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
       <div className="min-h-0 flex-1 overflow-auto">
         <ManageTable
           rows={activeAssignments}
-          emptyMessage={emptyActiveMessage}
+          emptyMessage={t("empty.noActive")}
           renderActions={renderRowActions}
         />
       </div>
@@ -491,7 +458,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           )}
           aria-expanded={showArchived}
         >
-          <span>Tugas yang Diarsipkan</span>
+          <span>{t("archived")}</span>
           <svg
             className={cn(
               "size-4 text-current transition-transform",
@@ -508,7 +475,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           <div className="mt-4">
             <ManageTable
               rows={archivedAssignments}
-              emptyMessage={emptyArchivedMessage}
+              emptyMessage={t("empty.noArchived")}
               renderActions={renderRowActions}
             />
           </div>

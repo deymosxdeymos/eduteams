@@ -1,4 +1,5 @@
 import type { Gender, MBTIType } from "@/generated/prisma/client";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import prisma from "@/lib/prisma";
 
 type MbtiStat = { kategori: MBTIType; jumlah: number };
@@ -77,8 +78,6 @@ export async function getAssignmentStats(
       where: { id: assignmentId },
       select: {
         description: true,
-        startAt: true,
-        course: { select: { dosenId: true } },
       },
     }),
     prisma.assignmentSubmission.count({
@@ -131,45 +130,51 @@ export async function getAssignmentStats(
     { name: "perempuan", value: female },
   ];
 
-  // Determine assignment-specific skills and topics from assignment.description JSON
-  let skillNames: string[] = [];
-  let topicNames: string[] = [];
-  try {
-    const parsed = assignmentMeta?.description ? JSON.parse(assignmentMeta.description) : null;
-    if (Array.isArray(parsed?.skills)) {
-      skillNames = parsed.skills as string[];
-    }
-    if (Array.isArray(parsed?.topics)) {
-      topicNames = parsed.topics as string[];
-    }
-  } catch {
-    // ignore
-  }
-  if (skillNames.length === 0) {
-    // Fallback to the same defaults used in the quiz page
-    skillNames = ["UI/UX Design", "Frontend Development", "Backend Development"];
-  }
-  // Fetch only declared skills
-  const skillRecords = skillNames.length
-    ? await prisma.skill.findMany({
-        where: { name: { in: skillNames } },
-        select: { id: true, name: true },
-      })
-    : [];
+  const { skills: skillNames, topics: topicNames } = parseAssignmentDescription(
+    assignmentMeta?.description,
+  );
+  // Fetch skills and topics in parallel since they're independent
+  const studentIds = enrollments.map((e: { studentId: string }) => e.studentId);
+  const [skillRecords, topicRows]: [
+    { id: string; name: string }[],
+    { id: string; name: string }[],
+  ] = await Promise.all([
+    skillNames.length
+      ? prisma.skill.findMany({
+          where: { name: { in: skillNames } },
+          select: { id: true, name: true },
+        })
+      : ([] as { id: string; name: string }[]),
+    prisma.assignmentTopic.findMany({
+      where: topicNames.length ? { assignmentId, name: { in: topicNames } } : { assignmentId },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
   const skillIdByName = new Map<string, string>(
     skillRecords.map((s: { id: string; name: string }) => [s.name, s.id]),
   );
-  const studentIds = enrollments.map((e: { studentId: string }) => e.studentId);
 
-  const personSkills = studentIds.length
-    ? await prisma.personSkill.findMany({
-        where: {
-          personId: { in: studentIds },
-          skillId: { in: skillRecords.map((s: { id: string }) => s.id) },
-        },
-        select: { personId: true, skillId: true, level: true },
-      })
-    : [];
+  // Fetch personSkills and topicPrefs in parallel since they're independent
+  const topicIds = topicRows.map((t: { id: string }) => t.id);
+  const [personSkills, topicPrefs] = await Promise.all([
+    studentIds.length
+      ? prisma.personSkill.findMany({
+          where: {
+            personId: { in: studentIds },
+            skillId: { in: skillRecords.map((s: { id: string }) => s.id) },
+          },
+          select: { personId: true, skillId: true, level: true },
+        })
+      : ([] as { personId: string; skillId: string; level: number }[]),
+    topicIds.length
+      ? prisma.assignmentTopicPreference.findMany({
+          where: { assignmentTopicId: { in: topicIds } },
+          select: { assignmentTopicId: true, preference: true },
+        })
+      : ([] as { assignmentTopicId: string; preference: number }[]),
+  ]);
 
   const levelSums = new Map<string, { sum: number; count: number }>();
   for (const s of personSkills) {
@@ -189,21 +194,6 @@ export async function getAssignmentStats(
   });
 
   const skillsReady = skills.some((s) => s.value > 0);
-
-  // Assignment topics preference distribution
-  // Prefer labels from description if present; fallback to DB topics
-  const topicRows: { id: string; name: string }[] = await prisma.assignmentTopic.findMany({
-    where: topicNames.length ? { assignmentId, name: { in: topicNames } } : { assignmentId },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
-  const topicIds = topicRows.map((t: { id: string }) => t.id);
-  const topicPrefs = topicIds.length
-    ? await prisma.assignmentTopicPreference.findMany({
-        where: { assignmentTopicId: { in: topicIds } },
-        select: { assignmentTopicId: true, preference: true },
-      })
-    : [];
 
   const prefSumsById = new Map<string, { sum: number; count: number }>();
   for (const p of topicPrefs as {
@@ -232,27 +222,21 @@ export async function getAssignmentStats(
     value: avgByName.get(name) ?? 0,
   }));
 
-  // Teams formed heuristic: any team formation by course's dosen after assignment start
-  let teamsFormed = false;
-  if (assignmentMeta?.course?.dosenId && assignmentMeta.startAt) {
-    const tfCount = await prisma.teamFormationRequest.count({
+  const teamsFormed =
+    (await prisma.teamFormationRequest.count({
       where: {
-        ownerId: assignmentMeta.course.dosenId,
-        createdAt: { gte: assignmentMeta.startAt },
+        assignmentId,
         status: { in: ["PROCESSING", "COMPLETED"] },
       },
-    });
-    teamsFormed = tfCount > 0;
-  }
+    })) > 0;
 
   // Calculate team quality metrics from latest completed team formation for THIS assignment only
   // Group by taskId and compute metrics from per-task averages
   let teamQuality: TeamQualityMetrics | undefined;
-  if (teamsFormed && assignmentMeta?.course?.dosenId) {
+  if (teamsFormed) {
     const latestFormation = await prisma.teamFormationRequest.findFirst({
       where: {
         assignmentId,
-        ownerId: assignmentMeta.course.dosenId,
         status: "COMPLETED",
       },
       select: {

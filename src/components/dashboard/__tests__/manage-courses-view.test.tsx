@@ -1,16 +1,24 @@
-import { describe, expect, it, mock } from "bun:test";
+import { afterAll, describe, expect, it, mock } from "bun:test";
 import { render, screen } from "@testing-library/react";
 
-mock.module("nuqs", () => ({
-  parseAsBoolean: {},
-  parseAsStringLiteral: () => ({}),
-  useQueryState: (_key: string, options?: { defaultValue?: unknown }) => [
-    options?.defaultValue ?? "",
-    () => {},
-  ],
-}));
+function installManageCoursesViewMocks() {
+  mock.module("nuqs", () => ({
+    parseAsBoolean: {},
+    parseAsStringLiteral: () => ({}),
+    useQueryState: (_key: string, options?: { defaultValue?: unknown }) => [
+      options?.defaultValue ?? "",
+      () => {},
+    ],
+  }));
+}
+
+installManageCoursesViewMocks();
 
 describe("ManageCoursesView", () => {
+  afterAll(() => {
+    mock.restore();
+  });
+
   it("keeps the synthetic demo course read-only", async () => {
     const { ManageCoursesView } = await import("../manage-courses-view");
 
@@ -32,14 +40,12 @@ describe("ManageCoursesView", () => {
             updatedAt: "2026-03-04T10:30:00.000Z",
           },
         ]}
-        searchPlaceholder="Cari kelas"
-        archivedLabel="Kelas yang diarsipkan"
-        emptyActiveMessage="Belum ada kelas aktif."
-        emptyArchivedMessage="Belum ada kelas yang diarsipkan."
       />,
     );
 
-    expect(screen.getByLabelText("Lihat kelas demo")).toBeInTheDocument();
+    // The demo course row should render
+    expect(screen.getByText("Machine Learning")).toBeInTheDocument();
+    // Archive/edit/delete actions must NOT appear for the demo course
     expect(screen.queryByLabelText("Sembunyikan kelas")).toBeNull();
     expect(screen.queryByLabelText("Tampilkan kelas")).toBeNull();
     expect(screen.queryByLabelText("Edit class")).toBeNull();

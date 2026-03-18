@@ -1,4 +1,13 @@
-import { describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+
+const actualApiUtils = await import("@/lib/api-utils");
+const getCurrentUserMock = mock(async () => ({
+  id: "u1",
+  email: "teacher@example.com",
+  role: "TEACHER",
+  isOnboarded: true,
+}));
+const getDemoSubmittedAssignmentIdsFromRequestMock = mock(() => [] as string[]);
 
 const prismaMock: any = {
   user: {
@@ -78,14 +87,32 @@ const prismaMock: any = {
 };
 
 mock.module("@/lib/prisma", () => ({ default: prismaMock }));
+mock.module("@/lib/api-utils", () => ({
+  ...actualApiUtils,
+  getCurrentUser: getCurrentUserMock,
+}));
+mock.module("@/lib/demo/sandbox-submissions", () => ({
+  getDemoSubmittedAssignmentIdsFromRequest: getDemoSubmittedAssignmentIdsFromRequestMock,
+  getDemoSubmittedAssignmentIdsFromCookieStore: async () => [],
+}));
+mock.module("@/lib/demo/sandbox-roster", () => ({
+  getRemovedDemoStudentIdsFromRequest: () => [],
+  getRemovedDemoStudentIdsFromCookieStore: async () => [],
+}));
 
 describe("courses/[id]/assignments API", () => {
+  beforeEach(() => {
+    getCurrentUserMock.mockReset();
+    getDemoSubmittedAssignmentIdsFromRequestMock.mockReset();
+    getCurrentUserMock.mockResolvedValue({
+      id: "u1",
+      email: "teacher@example.com",
+      role: "TEACHER",
+      isOnboarded: true,
+    });
+    getDemoSubmittedAssignmentIdsFromRequestMock.mockReturnValue([]);
+  });
   it("GET returns assignments for dosen owner without submittedByMe", async () => {
-    // Auth: dosen u1
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
-    }));
-
     const { GET } = await import("../route");
     const res = await GET(
       new Request("http://localhost/api/courses/c1/assignments") as any,
@@ -99,16 +126,12 @@ describe("courses/[id]/assignments API", () => {
   });
 
   it("GET returns assignments for mahasiswa with submittedByMe", async () => {
-    // Auth: mahasiswa s1
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+    getCurrentUserMock.mockResolvedValue({
       id: "s1",
       email: "student@example.com",
       role: "STUDENT",
       isOnboarded: true,
-    }));
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "s1" } }) } },
-    }));
+    });
 
     const { GET } = await import("../route");
     const res = await GET(
@@ -120,11 +143,94 @@ describe("courses/[id]/assignments API", () => {
     expect(json.data[0].submittedByMe).toBe(true);
   });
 
+  it("GET reflects persisted sandbox submissions for demo students", async () => {
+    const originalDemoMode = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = "1";
+    getCurrentUserMock.mockResolvedValue({
+      id: "s1",
+      email: "demo.student.visitor1234@eduteams.local",
+      role: "STUDENT",
+      isOnboarded: true,
+    });
+
+    try {
+      const { GET } = await import("../route");
+      const { DEMO_ASSIGNMENT_ID, getDemoStudentsForCourse } = await import("@/lib/demo/sandbox");
+      getDemoSubmittedAssignmentIdsFromRequestMock.mockReturnValue([DEMO_ASSIGNMENT_ID]);
+      const res = await GET(
+        new Request("http://localhost/api/courses/demo-sandbox-course/assignments") as any,
+        { params: Promise.resolve({ id: "demo-sandbox-course" }) } as any,
+      );
+
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as any;
+      expect(json.data[0]).toEqual(
+        expect.objectContaining({
+          id: DEMO_ASSIGNMENT_ID,
+          submittedByMe: true,
+          submissionsCount: getDemoStudentsForCourse().length,
+        }),
+      );
+    } finally {
+      if (originalDemoMode === undefined) {
+        delete process.env.DEMO_MODE;
+      } else {
+        process.env.DEMO_MODE = originalDemoMode;
+      }
+    }
+  });
+
+  it("GET keeps demo teacher assignment counts aligned with persisted sandbox submissions", async () => {
+    const originalDemoMode = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = "1";
+    getCurrentUserMock.mockResolvedValue({
+      id: "u1",
+      email: "demo.teacher.visitor1234@eduteams.local",
+      role: "TEACHER",
+      isOnboarded: true,
+    });
+
+    try {
+      const { GET } = await import("../route");
+      const { DEMO_ASSIGNMENT_ID, getDemoStudentsForCourse } = await import("@/lib/demo/sandbox");
+      const totalStudents = getDemoStudentsForCourse().length;
+      getDemoSubmittedAssignmentIdsFromRequestMock.mockReturnValue([]);
+      const pendingRes = await GET(
+        new Request("http://localhost/api/courses/demo-sandbox-course/assignments") as any,
+        { params: Promise.resolve({ id: "demo-sandbox-course" }) } as any,
+      );
+      getDemoSubmittedAssignmentIdsFromRequestMock.mockReturnValue([DEMO_ASSIGNMENT_ID]);
+      const submittedRes = await GET(
+        new Request("http://localhost/api/courses/demo-sandbox-course/assignments") as any,
+        { params: Promise.resolve({ id: "demo-sandbox-course" }) } as any,
+      );
+
+      expect(pendingRes.status).toBe(200);
+      expect(submittedRes.status).toBe(200);
+      expect(((await pendingRes.json()) as any).data[0]).toEqual(
+        expect.objectContaining({
+          id: DEMO_ASSIGNMENT_ID,
+          submittedByMe: false,
+          submissionsCount: totalStudents - 1,
+        }),
+      );
+      expect(((await submittedRes.json()) as any).data[0]).toEqual(
+        expect.objectContaining({
+          id: DEMO_ASSIGNMENT_ID,
+          submittedByMe: false,
+          submissionsCount: totalStudents,
+        }),
+      );
+    } finally {
+      if (originalDemoMode === undefined) {
+        delete process.env.DEMO_MODE;
+      } else {
+        process.env.DEMO_MODE = originalDemoMode;
+      }
+    }
+  });
+
   it("GET returns 404 for dosen non-owner", async () => {
-    // Auth: dosen u1, wrong course id
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
-    }));
     const { GET } = await import("../route");
     const res = await GET(
       new Request("http://localhost/api/courses/wrong/assignments") as any,
@@ -134,11 +240,6 @@ describe("courses/[id]/assignments API", () => {
   });
 
   it("POST creates assignment for dosen owner with 201", async () => {
-    // Auth: dosen u1
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
-    }));
-
     const { POST } = await import("../route");
     const req = new Request("http://localhost/api/courses/c1/assignments", {
       method: "POST",
@@ -161,15 +262,12 @@ describe("courses/[id]/assignments API", () => {
   it("POST preserves the chosen start date for local demo assignments", async () => {
     const originalDemoMode = process.env.DEMO_MODE;
     process.env.DEMO_MODE = "1";
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+    getCurrentUserMock.mockResolvedValue({
       id: "u1",
       email: "demo.teacher.visitor1234@eduteams.local",
       role: "TEACHER",
       isOnboarded: true,
-    }));
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
-    }));
+    });
 
     try {
       const { POST } = await import("../route");
@@ -235,15 +333,12 @@ describe("courses/[id]/assignments API", () => {
     prismaMock.assignmentSubmission.createMany.mockResolvedValueOnce({
       count: 2,
     });
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+    getCurrentUserMock.mockResolvedValue({
       id: "u1",
       email: "demo.teacher.visitor1234@eduteams.local",
       role: "TEACHER",
       isOnboarded: true,
-    }));
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
-    }));
+    });
 
     try {
       const { POST } = await import("../route");
@@ -415,9 +510,12 @@ describe("courses/[id]/assignments API", () => {
       return result;
     });
 
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
-    }));
+    getCurrentUserMock.mockResolvedValue({
+      id: "u1",
+      email: "demo.teacher.visitor1234@eduteams.local",
+      role: "TEACHER",
+      isOnboarded: true,
+    });
 
     try {
       const { POST } = await import("../route");
@@ -457,16 +555,12 @@ describe("courses/[id]/assignments API", () => {
   });
 
   it("POST denies mahasiswa", async () => {
-    // Auth: mahasiswa s1
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
+    getCurrentUserMock.mockResolvedValue({
       id: "s1",
       email: "student@example.com",
       role: "STUDENT",
       isOnboarded: true,
-    }));
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "s1" } }) } },
-    }));
+    });
 
     const { POST } = await import("../route");
     const req = new Request("http://localhost/api/courses/c1/assignments", {

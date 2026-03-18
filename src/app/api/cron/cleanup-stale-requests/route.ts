@@ -13,14 +13,14 @@ export async function GET(req: Request) {
   const cronSecret = process.env.CRON_SECRET;
 
   // Vercel automatically sends the CRON_SECRET as a bearer token
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     console.warn("[Cron] Unauthorized cleanup attempt - invalid bearer token");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const now = new Date();
-    const staleCutoff = new Date(now.getTime() - STUCK_REQUEST_TIMEOUT_MS);
+    const currentTime = new Date();
+    const staleCutoff = new Date(currentTime.getTime() - STUCK_REQUEST_TIMEOUT_MS);
 
     console.log(
       `[Cron] Starting cleanup of stale team formation requests older than ${staleCutoff.toISOString()}`,
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
       data: {
         status: "FAILED",
         errorMessage: "Request timed out - no response from Edu2com within 10 minutes.",
-        completedAt: now,
+        completedAt: currentTime,
       },
     });
 
@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       success: true,
       cleaned: count,
       message: `Cleaned up ${count} stale request(s)`,
-      timestamp: now.toISOString(),
+      timestamp: currentTime.toISOString(),
     });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";

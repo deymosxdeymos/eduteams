@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
+import { getLanguageSwitcherTarget } from "@/components/dashboard/language-switcher-shared";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,7 @@ interface LanguageSwitcherServerProps {
 export async function LanguageSwitcherServer({ className }: LanguageSwitcherServerProps) {
   const current = (await getLocale()) as "id" | "en";
   const t = await getTranslations("dashboard.languageSwitcher");
-  const nextLocale: "id" | "en" = current === "id" ? "en" : "id";
+  const { nextLocale, switchLabel, flagSrc } = getLanguageSwitcherTarget(current, t);
 
   return (
     <Button
@@ -23,15 +24,15 @@ export async function LanguageSwitcherServer({ className }: LanguageSwitcherServ
         className,
       )}
     >
-      <Link href="/" locale={nextLocale}>
+      <Link href="/" locale={nextLocale} aria-label={switchLabel} title={switchLabel}>
         <span className="text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold">
           {nextLocale.toUpperCase()}
         </span>
         <Image
-          src={nextLocale === "id" ? "/indo.svg" : "/english.svg"}
+          src={flagSrc}
           width={40}
           height={40}
-          alt={current === "id" ? t("indonesiaAlt") : t("englishAlt")}
+          alt={switchLabel}
           className="w-4 h-4 sm:w-5 sm:h-5 lg:w-10 lg:h-10 shrink-0"
         />
       </Link>

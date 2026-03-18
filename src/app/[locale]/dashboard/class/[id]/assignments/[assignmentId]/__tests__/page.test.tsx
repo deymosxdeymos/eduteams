@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import { getDemoStudentsForCourse } from "@/lib/demo/sandbox";
 
+const actualServerAuth = await import("@/lib/server-auth");
+const actualAuthorization = await import("@/lib/authorization");
+
 const protectDashboardMock = mock(async () => ({
   id: "db-user-1",
   email: "demo.student.visitor-alpha@eduteams.local",
@@ -13,6 +16,7 @@ const notFoundMock = mock(() => {
   throw new Error("NEXT_NOT_FOUND");
 });
 const getRemovedDemoStudentIdsFromCookieStoreMock = mock(async () => []);
+const getDemoSubmittedAssignmentIdsFromCookieStoreMock = mock(async () => []);
 
 function applyModuleMocks() {
   mock.module("next/navigation", () => ({
@@ -20,10 +24,12 @@ function applyModuleMocks() {
   }));
 
   mock.module("@/lib/server-auth", () => ({
+    ...actualServerAuth,
     protectDashboard: protectDashboardMock,
   }));
 
   mock.module("@/lib/authorization", () => ({
+    ...actualAuthorization,
     canAccessDosenFeatures: canAccessDosenFeaturesMock,
     canAccessMahasiswaFeatures: canAccessMahasiswaFeaturesMock,
   }));
@@ -46,17 +52,11 @@ function applyModuleMocks() {
   }));
 
   mock.module("@/components/demo/demo-local-assignment-body", () => ({
-    DemoLocalAssignmentBody: ({
-      currentUserId,
-      canManage,
-      initialSubmissionsCount,
-      enrolledStudents,
-    }: any) => (
+    DemoLocalAssignmentBody: ({ currentUserId, canManage, enrolledStudents }: any) => (
       <div
         data-testid="demo-local-assignment-body"
         data-current-user-id={currentUserId}
         data-can-manage={String(canManage)}
-        data-initial-submissions-count={String(initialSubmissionsCount)}
         data-enrolled-student-ids={enrolledStudents.map((student: any) => student.id).join(",")}
       />
     ),
@@ -73,6 +73,11 @@ function applyModuleMocks() {
   mock.module("@/lib/demo/sandbox-roster", () => ({
     getRemovedDemoStudentIdsFromCookieStore: getRemovedDemoStudentIdsFromCookieStoreMock,
   }));
+
+  mock.module("@/lib/demo/sandbox-submissions", () => ({
+    getDemoSubmittedAssignmentIdsFromCookieStore: getDemoSubmittedAssignmentIdsFromCookieStoreMock,
+    getDemoSubmittedAssignmentIdsFromRequest: () => [],
+  }));
 }
 
 describe("AssignmentPage demo identity", () => {
@@ -85,8 +90,10 @@ describe("AssignmentPage demo identity", () => {
     canAccessDosenFeaturesMock.mockClear();
     canAccessMahasiswaFeaturesMock.mockClear();
     notFoundMock.mockClear();
-    getRemovedDemoStudentIdsFromCookieStoreMock.mockClear();
+    getRemovedDemoStudentIdsFromCookieStoreMock.mockReset();
+    getDemoSubmittedAssignmentIdsFromCookieStoreMock.mockReset();
     getRemovedDemoStudentIdsFromCookieStoreMock.mockResolvedValue([]);
+    getDemoSubmittedAssignmentIdsFromCookieStoreMock.mockResolvedValue([]);
     canAccessDosenFeaturesMock.mockReturnValue(false);
     canAccessMahasiswaFeaturesMock.mockReturnValue(true);
 
@@ -114,6 +121,32 @@ describe("AssignmentPage demo identity", () => {
       }),
     );
 
+    expect(
+      screen.getByTestId("demo-local-assignment-body").getAttribute("data-current-user-id"),
+    ).toBe("demo-sandbox-student");
+  });
+
+  it("keeps the seeded demo assignment pending for student views before submission", async () => {
+    const { default: AssignmentPage } = await import("../page");
+
+    render(
+      await AssignmentPage({
+        params: Promise.resolve({
+          id: "demo-sandbox-course",
+          assignmentId: "demo-sandbox-assignment",
+        }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const submittedStudentIds =
+      screen
+        .getByTestId("assignment-layout")
+        .getAttribute("data-submitted-student-ids")
+        ?.split(",")
+        .filter(Boolean) ?? [];
+
+    expect(submittedStudentIds).not.toContain("demo-sandbox-student");
     expect(
       screen.getByTestId("demo-local-assignment-body").getAttribute("data-current-user-id"),
     ).toBe("demo-sandbox-student");
@@ -190,14 +223,10 @@ describe("AssignmentPage demo identity", () => {
 
     expect(studentIds).not.toContain("demo-sandbox-student-2");
     expect(submittedStudentIds).not.toContain("demo-sandbox-student-2");
+    expect(submittedStudentIds).not.toContain("demo-sandbox-student");
     expect(enrolledStudentIds).not.toContain("demo-sandbox-student-2");
     expect(studentIds).toHaveLength(expectedStudentCount);
-    expect(submittedStudentIds).toHaveLength(expectedStudentCount);
+    expect(submittedStudentIds).toHaveLength(expectedStudentCount - 1);
     expect(enrolledStudentIds).toHaveLength(expectedStudentCount);
-    expect(
-      screen
-        .getByTestId("demo-local-assignment-body")
-        .getAttribute("data-initial-submissions-count"),
-    ).toBe(String(expectedStudentCount));
   });
 });

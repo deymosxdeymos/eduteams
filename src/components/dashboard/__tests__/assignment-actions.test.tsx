@@ -3,14 +3,26 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 mock.module("next-intl", () => ({
+  useLocale: () => "en",
   useTranslations: () => (key: string) => key,
 }));
 
 const pushMock = mock(() => undefined);
 mock.module("@/i18n/routing", () => ({
+  routing: {
+    locales: ["id", "en"],
+    defaultLocale: "id",
+    localePrefix: "as-needed",
+  },
   Link: ({ children, href }: { children: ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   ),
+  redirect: (href: string) => {
+    throw new Error(`Redirecting to ${href}`);
+  },
+  getLocalizedHref: (locale: string, href: string) =>
+    locale === "id" || !href.startsWith("/") ? href : `/${locale}${href}`,
+  usePathname: () => "/dashboard/class/demo-sandbox-course",
   useRouter: () => ({ push: pushMock, refresh: mock(() => undefined) }),
 }));
 

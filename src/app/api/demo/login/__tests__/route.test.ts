@@ -619,9 +619,9 @@ describe("POST /api/demo/login", () => {
       create: {
         userId: "demo-student",
         ei: -0.7,
-        sn: -0.6,
+        sn: 0.6,
         tf: 0.5,
-        pj: 0.7,
+        pj: -0.7,
         mbtiType: "INFJ",
       },
       update: {},

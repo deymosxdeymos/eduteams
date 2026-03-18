@@ -4,11 +4,20 @@ import { render, screen } from "@testing-library/react";
 const useDemoSandboxClientStateMock = mock(() => ({
   createdAssignments: [],
   formedTeams: {},
+  submittedAssignments: [],
 }));
 
 function applyModuleMocks() {
   mock.module("@/components/dashboard/assignment-content", () => ({
-    AssignmentContent: ({ hasTeams, allowPersistedTeamActions, teams, taskIdByIndex }: any) => (
+    AssignmentContent: ({
+      hasTeams,
+      allowPersistedTeamActions,
+      teams,
+      taskIdByIndex,
+      submittedStudentIds,
+      quizCompletionPercent,
+      incompleteStudentCount,
+    }: any) => (
       <div
         data-testid="assignment-content"
         data-has-teams={String(hasTeams)}
@@ -17,6 +26,9 @@ function applyModuleMocks() {
           teams?.map((team: any) => team.members.map((member: any) => member.user.id)) ?? [],
         )}
         data-task-ids={JSON.stringify(taskIdByIndex ?? [])}
+        data-submitted-student-ids={JSON.stringify(submittedStudentIds ?? [])}
+        data-quiz-completion-percent={String(quizCompletionPercent ?? 0)}
+        data-incomplete-student-count={String(incompleteStudentCount ?? 0)}
       />
     ),
   }));
@@ -31,6 +43,7 @@ describe("DemoLocalAssignmentBody", () => {
     useDemoSandboxClientStateMock.mockReset();
     useDemoSandboxClientStateMock.mockReturnValue({
       createdAssignments: [],
+      submittedAssignments: [],
       formedTeams: {
         "demo-local-1": {
           assignmentId: "demo-local-1",
@@ -106,9 +119,49 @@ describe("DemoLocalAssignmentBody", () => {
     expect(content.getAttribute("data-team-member-ids")).toBe('[["student-1"]]');
   });
 
+  it("keeps the paired demo student pending for teacher views until the student submits", async () => {
+    const { DemoLocalAssignmentBody } = await import("../demo-local-assignment-body");
+
+    render(
+      <DemoLocalAssignmentBody
+        classId="demo-course"
+        assignmentId="demo-sandbox-assignment"
+        courseName="Machine Learning"
+        courseClass="K01"
+        canManage
+        isStudent={false}
+        currentUserId="demo-sandbox-teacher"
+        enrolledStudents={[
+          {
+            id: "demo-sandbox-student",
+            name: "Bagas Pratama",
+            nim: "20260001",
+            email: "bagas@eduteams.local",
+            gender: "MALE",
+            mbtiType: "ENTP",
+          },
+          {
+            id: "demo-sandbox-student-2",
+            name: "Alya Rahma",
+            nim: "20260002",
+            email: "alya@eduteams.local",
+            gender: "FEMALE",
+            mbtiType: "INFJ",
+          },
+        ]}
+      />,
+    );
+
+    const content = screen.getByTestId("assignment-content");
+    expect(content.getAttribute("data-submitted-student-ids")).toBe('["demo-sandbox-student-2"]');
+    expect(content.getAttribute("data-quiz-completion-percent")).toBe("50");
+    expect(content.getAttribute("data-incomplete-student-count")).toBe("1");
+  });
+
   it("filters persisted teams against the current enrolled roster", async () => {
     useDemoSandboxClientStateMock.mockReturnValue({
       createdAssignments: [],
+      submittedAssignments: [],
       formedTeams: {
         "demo-local-1": {
           assignmentId: "demo-local-1",
@@ -222,6 +275,7 @@ describe("DemoLocalAssignmentBody", () => {
   it("keeps topic ids aligned with the filtered demo teams", async () => {
     useDemoSandboxClientStateMock.mockReturnValue({
       createdAssignments: [],
+      submittedAssignments: [],
       formedTeams: {
         "demo-local-1": {
           assignmentId: "demo-local-1",

@@ -726,6 +726,31 @@ export function getDemoSubmittedStudentIds(input?: { excludedStudentIds?: Iterab
   return getFilteredDemoStudents(input?.excludedStudentIds).map((student) => student.id);
 }
 
+export function getDemoAssignmentSubmissionSnapshot(input: {
+  assignmentId: string;
+  currentUserId: string;
+  enrolledStudentIds: readonly string[];
+  submittedAssignmentIds: readonly string[];
+}) {
+  const submissionStudentId = input.enrolledStudentIds.includes(input.currentUserId)
+    ? input.currentUserId
+    : input.enrolledStudentIds.includes(DEMO_STUDENT_ID)
+      ? DEMO_STUDENT_ID
+      : null;
+  const hasSubmissionStudentSubmitted = submissionStudentId
+    ? input.submittedAssignmentIds.includes(input.assignmentId)
+    : true;
+
+  return {
+    submissionStudentId,
+    hasSubmissionStudentSubmitted,
+    submittedStudentIds:
+      submissionStudentId && !hasSubmissionStudentSubmitted
+        ? input.enrolledStudentIds.filter((studentId) => studentId !== submissionStudentId)
+        : [...input.enrolledStudentIds],
+  };
+}
+
 export function getDemoSeededAssignment(input?: { submissionsCount?: number }): AssignmentResponse {
   return {
     id: demoAssignment.id,
@@ -746,15 +771,28 @@ export function getDemoSeededAssignment(input?: { submissionsCount?: number }): 
 }
 
 export function getDemoAssignmentsForUser(
-  user: Pick<ExtendedUser, "id" | "role">,
+  user: Pick<ExtendedUser, "id" | "role" | "email">,
+  input?: { submittedAssignmentIds?: readonly string[]; removedStudentIds?: readonly string[] },
 ): AssignmentClient[] {
-  const assignment = getDemoSeededAssignment();
-  const submittedByMe = user.role === "STUDENT";
+  const isStudent = user.role === "STUDENT";
+  const removedSet = input?.removedStudentIds?.length ? new Set(input.removedStudentIds) : null;
+  const enrolledStudentIds = removedSet
+    ? demoStudents.filter((student) => !removedSet.has(student.id)).map((student) => student.id)
+    : demoStudents.map((student) => student.id);
+  const submissionSnapshot = getDemoAssignmentSubmissionSnapshot({
+    assignmentId: DEMO_ASSIGNMENT_ID,
+    currentUserId: getDemoSandboxPrincipalId(user) ?? user.id,
+    enrolledStudentIds,
+    submittedAssignmentIds: input?.submittedAssignmentIds ?? [],
+  });
+  const assignment = getDemoSeededAssignment({
+    submissionsCount: submissionSnapshot.submittedStudentIds.length,
+  });
 
   return [
     {
       ...assignment,
-      submittedByMe,
+      submittedByMe: isStudent ? submissionSnapshot.hasSubmissionStudentSubmitted : false,
       needsUpdate: false,
     },
   ];
@@ -1147,11 +1185,28 @@ export function getDemoStudentManageItems(): GroupListItem[] {
   ];
 }
 
-export function getDemoSubmittedStudents(options?: { excludedStudentIds?: readonly string[] }) {
+export function getDemoSubmittedStudents(options?: {
+  excludedStudentIds?: readonly string[];
+  assignmentId?: string;
+  currentUserId?: string;
+  submittedAssignmentIds?: readonly string[];
+}) {
   const excludedStudentIds = new Set(options?.excludedStudentIds ?? []);
+  const visibleStudents = demoStudents.filter((student) => !excludedStudentIds.has(student.id));
+  const submittedStudentIds =
+    options?.assignmentId && options.currentUserId
+      ? new Set(
+          getDemoAssignmentSubmissionSnapshot({
+            assignmentId: options.assignmentId,
+            currentUserId: options.currentUserId,
+            enrolledStudentIds: visibleStudents.map((student) => student.id),
+            submittedAssignmentIds: options.submittedAssignmentIds ?? [],
+          }).submittedStudentIds,
+        )
+      : null;
 
-  return demoStudents
-    .filter((student) => !excludedStudentIds.has(student.id))
+  return visibleStudents
+    .filter((student) => !submittedStudentIds || submittedStudentIds.has(student.id))
     .map((student) => ({
       id: student.id,
       name: student.name,

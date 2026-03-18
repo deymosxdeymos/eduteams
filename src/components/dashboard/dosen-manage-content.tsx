@@ -12,18 +12,9 @@ export function DosenManageContent({ courses }: DosenManageContentProps) {
 
     await toggleCourseArchive({
       courseId: course.id,
-      archive: !course.isManuallyArchived,
+      archive: !course.isArchived,
     });
   }
 
-  return (
-    <ManageCoursesView
-      courses={courses}
-      searchPlaceholder="Cari kelas atau kode"
-      archivedLabel="Kelas yang diarsipkan"
-      emptyActiveMessage="Belum ada kelas aktif."
-      emptyArchivedMessage="Belum ada kelas yang diarsipkan."
-      onArchiveToggle={handleArchiveToggle}
-    />
-  );
+  return <ManageCoursesView courses={courses} onArchiveToggle={handleArchiveToggle} />;
 }

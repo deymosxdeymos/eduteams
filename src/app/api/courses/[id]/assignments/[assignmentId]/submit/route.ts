@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { CompetencyKind } from "@/generated/prisma/client";
 import { createApiResponse, createErrorResponse, handleApiError, withAuth } from "@/lib/api-utils";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import { canAccessMahasiswaFeatures } from "@/lib/authorization";
 import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
 import { normalizeTopicKey } from "@/lib/data/student-competency-profiles";
@@ -115,20 +116,10 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
         profileUpdatedAt?: string;
       }> = [];
 
-      // Helper to parse skills/topics from assignment.description JSON if present
-      const parsedDesc = (() => {
-        try {
-          return dbAssignment.description ? JSON.parse(dbAssignment.description) : null;
-        } catch {
-          return null;
-        }
-      })();
-      const assignmentSkills: string[] = Array.isArray(parsedDesc?.skills)
-        ? parsedDesc?.skills
-        : [];
-      const assignmentTopics: string[] = Array.isArray(parsedDesc?.topics)
-        ? parsedDesc?.topics
-        : [];
+      const { skills: assignmentSkills, topics: assignmentTopics } = parseAssignmentDescription(
+        dbAssignment.description,
+        { defaultSkills: [] },
+      );
 
       if (arraysParse.success && (arraysParse.data.skills || arraysParse.data.topics)) {
         skillsToPersist = (arraysParse.data.skills ?? []).map((s) => ({

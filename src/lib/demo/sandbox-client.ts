@@ -4,93 +4,70 @@ import { useSyncExternalStore } from "react";
 import type { DemoRole } from "@/lib/demo/config";
 import { DEMO_VISITOR_PUBLIC_COOKIE_NAME } from "@/lib/demo/cookies";
 import {
+  DEFAULT_DEMO_SANDBOX_CLIENT_STATE,
+  normalizeDemoSandboxClientState,
+} from "@/lib/demo/sandbox-client-state";
+import type {
+  DemoLocalAssignment,
+  DemoLocalTeam,
+  DemoLocalTeamFormation,
+  DemoLocalTeamMember,
+  DemoSandboxClientState,
+} from "@/lib/demo/sandbox-client-state";
+import {
   DEMO_SANDBOX_STORAGE_KEY,
   DEMO_TEAM_FORMATION_STORAGE_EVENT,
   isDemoSandboxAssignmentId,
 } from "@/lib/demo/sandbox-shared";
+import { subscribeToDemoSandboxChanges } from "@/lib/demo/sandbox-storage-shared";
+import {
+  DEMO_SANDBOX_SUBMISSIONS_COOKIE_NAME,
+  normalizeDemoSandboxSubmittedAssignmentIds,
+  serializeDemoSandboxSubmissionsCookieValue,
+} from "@/lib/demo/sandbox-submissions-shared";
 import type { AssignmentResponse } from "@/lib/validation/assignments";
 
-export type DemoLocalAssignment = {
-  id: string;
-  courseId: string;
-  title: string;
-  description?: string | null;
-  startAt: string;
-  createdAt: string;
-  skills: string[];
-  topics: string[];
-  submissionsCount: number;
-};
-
-export type DemoLocalTeamMember = {
-  id: string;
-  assignedSkillIds?: string[];
-  topSkills?: string[];
-  preferredTopics?: string[];
-  user: {
-    id: string;
-    name: string;
-    email?: string;
-    mbtiType?: string | null;
-    nim?: string;
-    ei?: number | null;
-    sn?: number | null;
-    tf?: number | null;
-    pj?: number | null;
-    gender?: string | null;
-  };
-};
-
-export type DemoLocalTeam = {
-  id: string;
-  quality: number | null;
-  createdAt: string;
-  taskId?: string;
-  members: DemoLocalTeamMember[];
-};
-
-export type DemoLocalTeamFormation = {
-  assignmentId: string;
-  topicNames: Record<string, string>;
-  taskIdByIndex: string[];
-  teams: DemoLocalTeam[];
-};
-
-type DemoSandboxClientState = {
-  version: 1;
-  currentRole: DemoRole;
-  onboardingCompleted: boolean;
-  welcomeSplashSeen: boolean;
-  createdAssignments: DemoLocalAssignment[];
-  formedTeams: Record<string, DemoLocalTeamFormation>;
-};
-
-const DEFAULT_STATE: DemoSandboxClientState = {
-  version: 1,
-  currentRole: "TEACHER",
-  onboardingCompleted: true,
-  welcomeSplashSeen: true,
-  createdAssignments: [],
-  formedTeams: {},
-};
+export type {
+  DemoLocalAssignment,
+  DemoLocalTeam,
+  DemoLocalTeamFormation,
+  DemoLocalTeamMember,
+  DemoSandboxClientState,
+} from "@/lib/demo/sandbox-client-state";
 
 const DEMO_VISITOR_ID_PATTERN = /^[a-z0-9_-]{8,64}$/i;
+const DEMO_SANDBOX_STORAGE_KEY_PREFIX = `${DEMO_SANDBOX_STORAGE_KEY}:`;
+const DEMO_SANDBOX_STORAGE_KEYS_KEY = `${DEMO_SANDBOX_STORAGE_KEY}:keys`;
+const MAX_TRACKED_DEMO_SANDBOX_STORAGE_KEYS = 16;
+
+const demoSandboxClientCache = {
+  trackedStorageKeys: {
+    raw: undefined as string | null | undefined,
+    values: [] as string[],
+  },
+  snapshot: {
+    raw: undefined as string | null | undefined,
+    key: undefined as string | null | undefined,
+    exists: false,
+    state: DEFAULT_DEMO_SANDBOX_CLIENT_STATE as DemoSandboxClientState,
+  },
+};
 
 function readCookie(name: string) {
   if (typeof document === "undefined") {
     return null;
   }
 
-  const cookies = document.cookie.split(";");
+  const prefix = `${name}=`;
 
-  for (const cookie of cookies) {
-    const [rawName, ...rawValueParts] = cookie.trim().split("=");
-    if (rawName !== name) {
+  for (const cookie of document.cookie.split(";")) {
+    const trimmedCookie = cookie.trim();
+    if (!trimmedCookie.startsWith(prefix)) {
       continue;
     }
 
     try {
-      const value = decodeURIComponent(rawValueParts.join("=")).trim();
+      const value = decodeURIComponent(trimmedCookie.slice(prefix.length));
       return value.length > 0 ? value : null;
     } catch {
       return null;
@@ -111,7 +88,114 @@ function getDemoSandboxVisitorId() {
 }
 
 function getDemoSandboxStorageKey(visitorId: string) {
-  return `${DEMO_SANDBOX_STORAGE_KEY}:${visitorId}`;
+  return `${DEMO_SANDBOX_STORAGE_KEY_PREFIX}${visitorId}`;
+}
+
+function normalizeTrackedDemoSandboxStorageKeys(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [] as string[];
+  }
+
+  return Array.from(
+    new Set(
+      value.filter(
+        (storageKey): storageKey is string =>
+          typeof storageKey === "string" &&
+          storageKey.startsWith(DEMO_SANDBOX_STORAGE_KEY_PREFIX) &&
+          storageKey !== DEMO_SANDBOX_STORAGE_KEYS_KEY,
+      ),
+    ),
+  );
+}
+
+function pruneTrackedDemoSandboxStorageKeys(storageKeys: readonly string[]) {
+  if (typeof window === "undefined") {
+    return normalizeTrackedDemoSandboxStorageKeys(storageKeys).slice(
+      -MAX_TRACKED_DEMO_SANDBOX_STORAGE_KEYS,
+    );
+  }
+
+  return normalizeTrackedDemoSandboxStorageKeys(storageKeys)
+    .filter((storageKey) => window.localStorage.getItem(storageKey) !== null)
+    .slice(-MAX_TRACKED_DEMO_SANDBOX_STORAGE_KEYS);
+}
+
+function setTrackedDemoSandboxStorageKeysCache(
+  raw: string | null | undefined,
+  storageKeys: string[],
+) {
+  demoSandboxClientCache.trackedStorageKeys.raw = raw;
+  demoSandboxClientCache.trackedStorageKeys.values = storageKeys;
+}
+
+function getTrackedDemoSandboxStorageKeys() {
+  if (typeof window === "undefined") {
+    return [] as string[];
+  }
+
+  const raw = window.localStorage.getItem(DEMO_SANDBOX_STORAGE_KEYS_KEY);
+  if (raw === demoSandboxClientCache.trackedStorageKeys.raw) {
+    return demoSandboxClientCache.trackedStorageKeys.values;
+  }
+
+  if (!raw) {
+    setTrackedDemoSandboxStorageKeysCache(raw, []);
+    return [];
+  }
+
+  try {
+    const trackedStorageKeys = pruneTrackedDemoSandboxStorageKeys(JSON.parse(raw));
+
+    if (trackedStorageKeys.length === 0) {
+      window.localStorage.removeItem(DEMO_SANDBOX_STORAGE_KEYS_KEY);
+      setTrackedDemoSandboxStorageKeysCache(null, []);
+      return [];
+    }
+
+    const serialized = JSON.stringify(trackedStorageKeys);
+    if (serialized !== raw) {
+      window.localStorage.setItem(DEMO_SANDBOX_STORAGE_KEYS_KEY, serialized);
+      setTrackedDemoSandboxStorageKeysCache(serialized, trackedStorageKeys);
+      return trackedStorageKeys;
+    }
+
+    setTrackedDemoSandboxStorageKeysCache(raw, trackedStorageKeys);
+    return trackedStorageKeys;
+  } catch {
+    setTrackedDemoSandboxStorageKeysCache(raw, []);
+    return [];
+  }
+}
+
+function setTrackedDemoSandboxStorageKeys(storageKeys: readonly string[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const nextStorageKeys = pruneTrackedDemoSandboxStorageKeys(storageKeys);
+
+  if (nextStorageKeys.length === 0) {
+    window.localStorage.removeItem(DEMO_SANDBOX_STORAGE_KEYS_KEY);
+    setTrackedDemoSandboxStorageKeysCache(null, []);
+    return;
+  }
+
+  const serialized = JSON.stringify(nextStorageKeys);
+  window.localStorage.setItem(DEMO_SANDBOX_STORAGE_KEYS_KEY, serialized);
+  setTrackedDemoSandboxStorageKeysCache(serialized, nextStorageKeys);
+}
+
+function trackDemoSandboxStorageKey(storageKey: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const trackedStorageKeys = getTrackedDemoSandboxStorageKeys();
+  if (trackedStorageKeys.includes(storageKey)) {
+    return;
+  }
+
+  setTrackedDemoSandboxStorageKeys([...trackedStorageKeys, storageKey]);
 }
 
 function getActiveDemoSandboxStorageKey() {
@@ -124,58 +208,154 @@ function getActiveDemoSandboxStorageKey() {
   return getDemoSandboxStorageKey(visitorId);
 }
 
-function subscribeToDemoSandboxState(onStoreChange: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
-  }
-
-  const handleChange = () => onStoreChange();
-  window.addEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, handleChange);
-  window.addEventListener("storage", handleChange);
-
-  return () => {
-    window.removeEventListener(DEMO_TEAM_FORMATION_STORAGE_EVENT, handleChange);
-    window.removeEventListener("storage", handleChange);
-  };
+function persistMigratedDemoSandboxClientState(storageKey: string, state: DemoSandboxClientState) {
+  const serialized = JSON.stringify(state);
+  window.localStorage.setItem(storageKey, serialized);
+  trackDemoSandboxStorageKey(storageKey);
+  setDemoSandboxClientStateCache(storageKey, serialized, true, state);
+  syncDemoSandboxSubmissionCookie(state.submittedAssignments);
 }
 
-export function getDemoSandboxClientState(): DemoSandboxClientState {
+export function getDemoSandboxClientSnapshot() {
   if (typeof window === "undefined") {
-    return DEFAULT_STATE;
+    return { exists: false, state: DEFAULT_DEMO_SANDBOX_CLIENT_STATE };
   }
 
   const storageKey = getActiveDemoSandboxStorageKey();
   if (!storageKey) {
-    return DEFAULT_STATE;
+    return { exists: false, state: DEFAULT_DEMO_SANDBOX_CLIENT_STATE };
+  }
+
+  const raw = window.localStorage.getItem(storageKey);
+  if (
+    raw === demoSandboxClientCache.snapshot.raw &&
+    storageKey === demoSandboxClientCache.snapshot.key
+  ) {
+    return {
+      exists: demoSandboxClientCache.snapshot.exists,
+      state: demoSandboxClientCache.snapshot.state,
+    };
+  }
+
+  return readAndCacheDemoSandboxClientState(storageKey, raw);
+}
+
+export function hasDemoSandboxClientState() {
+  return getDemoSandboxClientSnapshot().exists;
+}
+
+function writeCookie(name: string, value: string, options?: { maxAge?: number }) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const parts = [`${name}=${encodeURIComponent(value)}`, "path=/", "SameSite=Lax"];
+
+  if (typeof options?.maxAge === "number") {
+    parts.push(`Max-Age=${options.maxAge}`);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    parts.push("Secure");
+  }
+
+  document.cookie = parts.join("; ");
+}
+
+function clearCookie(name: string) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const parts = [`${name}=`, "expires=Thu, 01 Jan 1970 00:00:00 GMT", "path=/", "SameSite=Lax"];
+
+  if (process.env.NODE_ENV === "production") {
+    parts.push("Secure");
+  }
+
+  document.cookie = parts.join("; ");
+}
+
+function syncDemoSandboxSubmissionCookie(assignmentIds: readonly string[]) {
+  if (assignmentIds.length === 0) {
+    clearCookie(DEMO_SANDBOX_SUBMISSIONS_COOKIE_NAME);
+    return;
+  }
+
+  writeCookie(
+    DEMO_SANDBOX_SUBMISSIONS_COOKIE_NAME,
+    serializeDemoSandboxSubmissionsCookieValue(assignmentIds),
+    {
+      maxAge: 60 * 60 * 24 * 30,
+    },
+  );
+}
+
+const subscribeToDemoSandboxState = subscribeToDemoSandboxChanges;
+
+function setDemoSandboxClientStateCache(
+  storageKey: string | null | undefined,
+  raw: string | null | undefined,
+  exists: boolean,
+  state: DemoSandboxClientState,
+) {
+  demoSandboxClientCache.snapshot.raw = raw;
+  demoSandboxClientCache.snapshot.key = storageKey;
+  demoSandboxClientCache.snapshot.exists = exists;
+  demoSandboxClientCache.snapshot.state = state;
+}
+
+function resetCache() {
+  demoSandboxClientCache.trackedStorageKeys.raw = undefined;
+  demoSandboxClientCache.trackedStorageKeys.values = [];
+  setDemoSandboxClientStateCache(undefined, undefined, false, DEFAULT_DEMO_SANDBOX_CLIENT_STATE);
+}
+
+function readAndCacheDemoSandboxClientState(storageKey: string, raw: string | null) {
+  if (!raw) {
+    setDemoSandboxClientStateCache(storageKey, raw, false, DEFAULT_DEMO_SANDBOX_CLIENT_STATE);
+    return { exists: false, state: DEFAULT_DEMO_SANDBOX_CLIENT_STATE } as const;
   }
 
   try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) {
-      return DEFAULT_STATE;
-    }
-
     const parsed = JSON.parse(raw) as Partial<DemoSandboxClientState>;
-    if (parsed.version !== 1) {
-      return DEFAULT_STATE;
+    const normalizedState = normalizeDemoSandboxClientState(parsed);
+
+    if (!normalizedState) {
+      setDemoSandboxClientStateCache(storageKey, raw, false, DEFAULT_DEMO_SANDBOX_CLIENT_STATE);
+      return { exists: false, state: DEFAULT_DEMO_SANDBOX_CLIENT_STATE } as const;
     }
 
-    return {
-      ...DEFAULT_STATE,
-      ...parsed,
-      createdAssignments: parsed.createdAssignments ?? [],
-      formedTeams: parsed.formedTeams ?? {},
-    };
+    if (normalizedState.didMigrate) {
+      persistMigratedDemoSandboxClientState(storageKey, normalizedState.state);
+      return { exists: true, state: demoSandboxClientCache.snapshot.state } as const;
+    }
+
+    trackDemoSandboxStorageKey(storageKey);
+    setDemoSandboxClientStateCache(storageKey, raw, true, normalizedState.state);
+    return { exists: true, state: demoSandboxClientCache.snapshot.state } as const;
   } catch {
-    return DEFAULT_STATE;
+    setDemoSandboxClientStateCache(storageKey, raw, false, DEFAULT_DEMO_SANDBOX_CLIENT_STATE);
+    return { exists: false, state: DEFAULT_DEMO_SANDBOX_CLIENT_STATE } as const;
   }
+}
+
+export function getDemoSandboxClientState(): DemoSandboxClientState {
+  return getDemoSandboxClientSnapshot().state;
 }
 
 export function useDemoSandboxClientState() {
   return useSyncExternalStore(
     subscribeToDemoSandboxState,
     getDemoSandboxClientState,
-    () => DEFAULT_STATE,
+    () => DEFAULT_DEMO_SANDBOX_CLIENT_STATE,
+  );
+}
+
+function haveSameSubmittedAssignments(nextAssignments: string[], previousAssignments: string[]) {
+  return (
+    nextAssignments.length === previousAssignments.length &&
+    nextAssignments.every((assignmentId, index) => assignmentId === previousAssignments[index])
   );
 }
 
@@ -183,17 +363,46 @@ export function setDemoSandboxClientState(
   updater: DemoSandboxClientState | ((state: DemoSandboxClientState) => DemoSandboxClientState),
 ) {
   if (typeof window === "undefined") {
-    return DEFAULT_STATE;
+    return DEFAULT_DEMO_SANDBOX_CLIENT_STATE;
   }
 
   const storageKey = getActiveDemoSandboxStorageKey();
   if (!storageKey) {
-    return DEFAULT_STATE;
+    return DEFAULT_DEMO_SANDBOX_CLIENT_STATE;
   }
 
-  const nextState = typeof updater === "function" ? updater(getDemoSandboxClientState()) : updater;
+  const currentState = getDemoSandboxClientState();
+  const nextStateInput = typeof updater === "function" ? updater(currentState) : updater;
 
-  window.localStorage.setItem(storageKey, JSON.stringify(nextState));
+  if (nextStateInput === currentState) {
+    return currentState;
+  }
+
+  const nextState = {
+    ...nextStateInput,
+    submittedAssignments: normalizeDemoSandboxSubmittedAssignmentIds(
+      nextStateInput.submittedAssignments,
+    ),
+  } satisfies DemoSandboxClientState;
+  const serialized = JSON.stringify(nextState);
+
+  if (
+    serialized === demoSandboxClientCache.snapshot.raw &&
+    storageKey === demoSandboxClientCache.snapshot.key
+  ) {
+    return currentState;
+  }
+
+  window.localStorage.setItem(storageKey, serialized);
+  trackDemoSandboxStorageKey(storageKey);
+  setDemoSandboxClientStateCache(storageKey, serialized, true, nextState);
+
+  if (
+    !haveSameSubmittedAssignments(nextState.submittedAssignments, currentState.submittedAssignments)
+  ) {
+    syncDemoSandboxSubmissionCookie(nextState.submittedAssignments);
+  }
+
   window.dispatchEvent(new Event(DEMO_TEAM_FORMATION_STORAGE_EVENT));
 
   return nextState;
@@ -320,19 +529,36 @@ export function mergeDemoAssignments<T extends DemoStatusAssignment>(
   ];
 }
 
+export function markDemoAssignmentSubmitted(assignmentId: string) {
+  return setDemoSandboxClientState((state) => ({
+    ...state,
+    submittedAssignments: normalizeDemoSandboxSubmittedAssignmentIds([
+      ...state.submittedAssignments,
+      assignmentId,
+    ]),
+  }));
+}
+
 export function clearDemoSandboxClientState() {
   if (typeof window === "undefined") {
     return;
   }
 
-  const storageKeys = Array.from({ length: window.localStorage.length }, (_, index) =>
-    window.localStorage.key(index),
-  ).filter((key): key is string => Boolean(key?.startsWith(`${DEMO_SANDBOX_STORAGE_KEY}:`)));
+  const activeStorageKey = getActiveDemoSandboxStorageKey();
+  const storageKeys = new Set(getTrackedDemoSandboxStorageKeys());
+
+  if (activeStorageKey) {
+    storageKeys.add(activeStorageKey);
+  }
 
   for (const storageKey of storageKeys) {
     window.localStorage.removeItem(storageKey);
   }
 
+  setTrackedDemoSandboxStorageKeys([]);
+  resetCache();
+
+  clearCookie(DEMO_SANDBOX_SUBMISSIONS_COOKIE_NAME);
   window.localStorage.removeItem(DEMO_SANDBOX_STORAGE_KEY);
   window.dispatchEvent(new Event(DEMO_TEAM_FORMATION_STORAGE_EVENT));
 }

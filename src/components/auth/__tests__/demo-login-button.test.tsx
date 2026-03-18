@@ -6,6 +6,7 @@ const clearDemoSandboxClientStateMock = mock(() => undefined);
 const originalFetch = globalThis.fetch;
 
 mock.module("next-intl", () => ({
+  useLocale: () => "en",
   useTranslations: () => (key: string) => {
     if (key === "signingIn") {
       return "Signing in";

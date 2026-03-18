@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { render, screen } from "@testing-library/react";
 
 const actualRouting = await import("@/i18n/routing");
+const actualServerAuth = await import("@/lib/server-auth");
 const originalDemoMode = process.env.DEMO_MODE;
 
 const getTranslationsMock = mock(async () => (key: string) => key);
@@ -28,6 +29,7 @@ mock.module("next-intl/server", () => ({
 }));
 
 mock.module("@/lib/server-auth", () => ({
+  ...actualServerAuth,
   protectOnboardingPage: protectOnboardingPageMock,
 }));
 
@@ -69,6 +71,10 @@ mock.module("next/image", () => ({
 mock.module("next/link", () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }));
+
+afterAll(() => {
+  mock.restore();
+});
 
 describe("DataDiriPage", () => {
   beforeEach(() => {

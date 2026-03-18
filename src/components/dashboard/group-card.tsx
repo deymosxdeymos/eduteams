@@ -4,6 +4,7 @@ import { Calendar } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import { cn } from "@/lib/utils";
 import type { GroupListItem } from "@/types/manage";
 
@@ -132,18 +133,7 @@ export function GroupCard({ item }: GroupCardProps) {
     return dateTimeFormatter.format(d);
   };
 
-  // Extract description text (handle JSON format)
-  const extractDescriptionText = (description: string | null | undefined) => {
-    if (!description) return null;
-    try {
-      const parsed = JSON.parse(description);
-      return parsed.text || null;
-    } catch {
-      return description;
-    }
-  };
-
-  const descriptionText = extractDescriptionText(item.description);
+  const descriptionText = parseAssignmentDescription(item.description, { defaultSkills: [] }).text;
 
   return (
     <div

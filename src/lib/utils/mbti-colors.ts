@@ -16,6 +16,8 @@ export type ColorScheme = {
   gradientToOklch: string;
   shadowColorOklch: string;
   borderColorOklch: string;
+  /** Tailwind class for `data-[state=active]:text-*` (tab highlights). */
+  activeText: string;
 };
 
 const MBTI_CATEGORIES: Record<MBTIType, PersonalityCategory> = {
@@ -52,6 +54,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     gradientToOklch: "oklch(0.75 0.18 160)",
     shadowColorOklch: "oklch(0.96 0.05 160)",
     borderColorOklch: "oklch(0.65 0.18 160)",
+    activeText: "data-[state=active]:text-emerald-600",
   },
   analysts: {
     primaryBg: "bg-violet-500",
@@ -67,6 +70,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     gradientToOklch: "oklch(0.70 0.24 290)",
     shadowColorOklch: "oklch(0.96 0.05 290)",
     borderColorOklch: "oklch(0.60 0.24 290)",
+    activeText: "data-[state=active]:text-violet-600",
   },
   explorers: {
     primaryBg: "bg-orange-500",
@@ -82,6 +86,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     gradientToOklch: "oklch(0.75 0.20 40)",
     shadowColorOklch: "oklch(0.96 0.05 40)",
     borderColorOklch: "oklch(0.68 0.20 40)",
+    activeText: "data-[state=active]:text-orange-600",
   },
   sentinels: {
     primaryBg: "bg-blue-500",
@@ -97,6 +102,7 @@ const COLOR_SCHEMES: Record<PersonalityCategory, ColorScheme> = {
     gradientToOklch: "oklch(0.75 0.22 250)",
     shadowColorOklch: "oklch(0.96 0.05 250)",
     borderColorOklch: "oklch(0.65 0.22 250)",
+    activeText: "data-[state=active]:text-blue-600",
   },
 };
 

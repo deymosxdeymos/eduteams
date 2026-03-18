@@ -362,7 +362,10 @@ export const StudentList = memo(function StudentList({
                 >
                   <Badge className="bg-amber-50 px-3 rounded-full">
                     <span className="text-sm text-orange-900 font-medium">
-                      {`${Math.min(submittedCount, totalStudents)} dari ${totalStudents} mahasiswa telah mengisi kuesioner`}
+                      {t("status.submissionProgress", {
+                        count: Math.min(submittedCount, totalStudents),
+                        total: totalStudents,
+                      })}
                     </span>
                   </Badge>
                 </motion.div>
@@ -378,7 +381,9 @@ export const StudentList = memo(function StudentList({
                   }}
                 >
                   <Badge className="bg-sky-50 px-3 rounded-full">
-                    <span className="text-sm text-sky-900 font-medium">Grup siap untuk dibagi</span>
+                    <span className="text-sm text-sky-900 font-medium">
+                      {t("status.groupReady")}
+                    </span>
                   </Badge>
                 </motion.div>
               ))}
@@ -627,7 +632,7 @@ export const StudentList = memo(function StudentList({
                     {canManage && !isSelectMode && (
                       <div className="ml-auto relative">
                         <button
-                          aria-label="Opsi"
+                          aria-label={t("optionsFor", { name: student.name })}
                           className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
                           onClick={(e) => {
                             e.stopPropagation();

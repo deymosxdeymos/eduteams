@@ -2,6 +2,7 @@
 
 import { Smile } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +25,7 @@ interface ProfileContentProps {
 }
 
 export function ProfileContent({ user }: ProfileContentProps) {
+  const t = useTranslations("dashboard.profile");
   const [isMbtiOpen, setIsMbtiOpen] = useState(false);
 
   return (
@@ -40,7 +42,7 @@ export function ProfileContent({ user }: ProfileContentProps) {
         className="rounded-full self-start border-2 border-black w-[19rem] h-[3rem]"
       >
         <Smile strokeWidth={3} />
-        <p className="text-md text-stone-900 font-semibold">Lihat Persebaran MBTI</p>
+        <p className="text-md text-stone-900 font-semibold">{t("viewMbtiDistribution")}</p>
       </Button>
 
       <Dialog open={isMbtiOpen} onOpenChange={setIsMbtiOpen}>
@@ -49,8 +51,7 @@ export function ProfileContent({ user }: ProfileContentProps) {
           className="w-[95vw] max-w-[1400px] rounded-3xl p-0 border-0 max-h-[90vh]"
           showCloseButton={false}
         >
-          {/* Accessible title for screen readers */}
-          <DialogTitle className="sr-only">Persebaran MBTI</DialogTitle>
+          <DialogTitle className="sr-only">{t("viewMbtiDistribution")}</DialogTitle>
           <MBTIOverviewLayout user={user} isModal onRequestClose={() => setIsMbtiOpen(false)} />
         </DialogContent>
       </Dialog>

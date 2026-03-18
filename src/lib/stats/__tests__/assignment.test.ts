@@ -260,6 +260,34 @@ describe("lib/stats/getAssignmentStats", () => {
     expect(stats.chartReady).toBe(true);
   });
 
+  it("only marks teams as formed for the current assignment", async () => {
+    const { getAssignmentStats } = await import("@/lib/stats/assignment");
+
+    prismaMock.courseEnrollment.findMany.mockImplementationOnce(async () => []);
+    prismaMock.assignment.findUnique.mockImplementationOnce(async (args: any) => ({
+      description: args?.select?.description
+        ? JSON.stringify({
+            skills: ["Skill A"],
+            topics: ["Topic A"],
+          })
+        : undefined,
+    }));
+    prismaMock.assignmentTopic.findMany.mockImplementationOnce(async () => [
+      { id: "t1", name: "Topic A" },
+    ]);
+    prismaMock.assignmentTopicPreference.findMany.mockImplementationOnce(async () => []);
+    prismaMock.teamFormationRequest.count.mockImplementationOnce(async (args: any) =>
+      args?.where?.assignmentId === "a-current" ? 1 : 0,
+    );
+    prismaMock.teamFormationRequest.findFirst.mockImplementationOnce(async () => ({
+      teams: [{ taskId: "task-1", quality: 0.8 }],
+    }));
+
+    const stats = await getAssignmentStats("a-current", "course-current");
+
+    expect(stats.teamsFormed).toBe(true);
+  });
+
   it("calculates team quality metrics from task-level averages when teams are formed", async () => {
     const { getAssignmentStats } = await import("@/lib/stats/assignment");
 

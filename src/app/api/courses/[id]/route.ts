@@ -7,6 +7,7 @@ import { CACHE_TAGS } from "@/lib/cache-tags";
 import { parseDemoVisitorIdFromEmail } from "@/lib/demo/auth";
 import { getDemoStudentCourseEmailPrefix } from "@/lib/demo/seed-students";
 import prisma, { type TransactionClient } from "@/lib/prisma";
+import { buildVisibleCourseFilter } from "@/lib/utils/course-archive";
 import { courseUpdateSchema } from "@/lib/validation/course";
 
 // Cache for 10 minutes since course data doesn't change frequently
@@ -28,7 +29,7 @@ type CourseWithDosen = {
   dosen: {
     id: string;
     name: string;
-    email: string;
+    email?: string;
   };
 };
 
@@ -77,7 +78,7 @@ export const GET = withAuth<{ id: string }>(async (_request: NextRequest, { user
               select: {
                 id: true,
                 name: true,
-                email: true,
+                // email removed for student-facing responses
               },
             },
           },
@@ -178,7 +179,7 @@ export const PATCH = withAuth<{ id: string }>(
         tahunAwalPeriode: finalTahunAwalPeriode,
         tahunAkhirPeriode: finalTahunAkhirPeriode,
         periode: finalPeriode,
-        archivedAt: null,
+        ...buildVisibleCourseFilter(),
       },
     });
 

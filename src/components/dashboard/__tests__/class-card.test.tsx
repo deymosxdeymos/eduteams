@@ -1,17 +1,9 @@
-import { afterAll, describe, expect, it, mock } from "bun:test";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "bun:test";
+import { render, screen } from "@testing-library/react";
 import { ClassCard } from "@/components/dashboard/class-card";
 
-afterAll(() => {
-  mock.restore();
-});
-
 describe("ClassCard", () => {
-  it("renders props and navigates on click", async () => {
-    const push = mock(() => {});
-    // Override next/navigation for this test to capture push
-    mock.module("next/navigation", () => ({ useRouter: () => ({ push }) }));
-
+  it("renders props and links to class page", () => {
     const classId = `class-${Math.random().toString(36).slice(2)}`;
 
     render(
@@ -29,17 +21,13 @@ describe("ClassCard", () => {
     expect(screen.getByText("12 students")).toBeTruthy();
     expect(screen.getByText("RA")).toBeTruthy();
 
-    const card = screen.getByRole("button");
-    fireEvent.click(card);
-    expect(push).toHaveBeenCalledWith(`/dashboard/class/${classId}`);
+    const card = screen.getByRole("link");
+    expect(card.getAttribute("href")).toBe(`/dashboard/class/${classId}`);
 
     // Snapshot removed to avoid interactive updates in CI
   });
 
-  it("supports keyboard activation (Enter)", () => {
-    const push = mock(() => {});
-    mock.module("next/navigation", () => ({ useRouter: () => ({ push }) }));
-
+  it("supports keyboard activation via native link semantics", () => {
     const classId = `class-${Math.random().toString(36).slice(2)}`;
 
     render(
@@ -52,8 +40,8 @@ describe("ClassCard", () => {
       />,
     );
 
-    const card = screen.getByRole("button");
-    fireEvent.keyDown(card, { key: "Enter", code: "Enter" });
-    expect(push).toHaveBeenCalledWith(`/dashboard/class/${classId}`);
+    const card = screen.getByRole("link");
+    expect(card.tagName).toBe("A");
+    expect(card.getAttribute("href")).toBe(`/dashboard/class/${classId}`);
   });
 });

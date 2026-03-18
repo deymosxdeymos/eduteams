@@ -6,15 +6,19 @@ import { getAssignmentStats } from "@/lib/stats/assignment";
 export const runtime = "nodejs";
 
 // GET /api/assignments/[id]/stats
-export const GET = withAuth<{ id: string }>(async (_req, { params }) => {
+export const GET = withAuth<{ id: string }>(async (_req, { params, user }) => {
   try {
     const { id: assignmentId } = await params;
 
     const assignment = await prisma.assignment.findUnique({
       where: { id: assignmentId },
-      select: { id: true, courseId: true },
+      select: { id: true, courseId: true, course: { select: { dosenId: true } } },
     });
     if (!assignment) return createErrorResponse("Assignment not found", 404);
+
+    // Authorization: only the course dosen or admins can view class-wide stats
+    const canViewStats = assignment.course.dosenId === user.id || user.role === "ADMIN";
+    if (!canViewStats) return createErrorResponse("Access denied", 403);
 
     const stats = await getAssignmentStats(assignmentId, assignment.courseId);
 
@@ -22,7 +26,7 @@ export const GET = withAuth<{ id: string }>(async (_req, { params }) => {
     const url = new URL(_req.url);
     const zeroIfNoTeams = url.searchParams.get("zeroIfNoTeams") === "1";
     const data =
-      zeroIfNoTeams && !stats.chartReady
+      zeroIfNoTeams && !stats.teamsFormed
         ? {
             ...stats,
             mbti: stats.mbti.map((s) => ({ ...s, jumlah: 0 })),

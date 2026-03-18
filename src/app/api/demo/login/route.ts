@@ -19,6 +19,7 @@ import {
 import { isDemoModeEnabled } from "@/lib/demo/config";
 import { setDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
 import { clearDemoSandboxRosterCookie } from "@/lib/demo/sandbox-roster";
+import { clearDemoSandboxSubmissionsCookie } from "@/lib/demo/sandbox-submissions";
 import { buildDemoSandboxSession } from "@/lib/demo/sandbox";
 import { getDemoStudentVisitorEmailPrefix } from "@/lib/demo/seed-students";
 import { bootstrapDemoStudentAccount } from "@/lib/demo/sync-account";
@@ -276,6 +277,7 @@ export async function POST(request: NextRequest) {
   const createSuccessResponse = (body: Record<string, unknown>, init?: ResponseInit) => {
     const response = createResponse(body, init);
     clearDemoSandboxRosterCookie(response);
+    clearDemoSandboxSubmissionsCookie(response);
     return response;
   };
 

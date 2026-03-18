@@ -6,7 +6,8 @@ import {
   getDemoSandboxPrincipalId,
 } from "@/lib/demo/sandbox";
 import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
-import { formatAcademicPeriodLabel, getCurrentAcademicPeriod } from "@/lib/utils/period";
+import { formatAcademicPeriodLabel, resolveAcademicSemester } from "@/lib/utils/period";
+import { isCourseManuallyArchived, resolveCourseArchivedState } from "@/lib/utils/course-archive";
 import type { ExtendedUser } from "@/lib/types";
 import type { ManageCourseRow } from "@/types/manage";
 
@@ -16,45 +17,12 @@ interface BaseCoursePeriod {
   periode: string;
 }
 
-type AcademicSemester = "ganjil" | "genap" | "pendek";
-
-function resolveSemester(value: string): AcademicSemester {
-  const lower = value.toLowerCase();
-  if (lower === "genap") return "genap";
-  if (lower === "pendek") return "pendek";
-  return "ganjil";
-}
-
 function normalizePeriodLabel({ tahunAwalPeriode, tahunAkhirPeriode, periode }: BaseCoursePeriod) {
-  const semester = resolveSemester(periode);
-  const formatted = formatAcademicPeriodLabel(tahunAwalPeriode, tahunAkhirPeriode, semester);
-  return formatted.replace(" ", "/");
-}
-
-function isArchivedCourse(
-  course: BaseCoursePeriod,
-  currentPeriod: ReturnType<typeof getCurrentAcademicPeriod>,
-) {
-  if (course.tahunAkhirPeriode < currentPeriod.tahunAkhirPeriode) {
-    return true;
-  }
-
-  if (course.tahunAkhirPeriode > currentPeriod.tahunAkhirPeriode) {
-    return false;
-  }
-
-  const semester = resolveSemester(course.periode);
-
-  if (semester === currentPeriod.periode) {
-    return false;
-  }
-
-  // Same academic year, current semester is Genap so Ganjil is archived.
-  if (currentPeriod.periode === "genap" && semester === "ganjil") {
-    return true;
-  }
-
-  return false;
+  return formatAcademicPeriodLabel(
+    tahunAwalPeriode,
+    tahunAkhirPeriode,
+    resolveAcademicSemester(periode),
+  );
 }
 
 function mergeDemoManageCourses(
@@ -81,8 +49,6 @@ function mergeDemoManageCourses(
 export async function getManageCoursesForDosen(
   user: Pick<ExtendedUser, "id"> & Partial<Pick<ExtendedUser, "email">>,
 ): Promise<ManageCourseRow[]> {
-  const currentPeriod = getCurrentAcademicPeriod();
-
   const courses = await prisma.course.findMany({
     where: { dosenId: user.id },
     select: {
@@ -107,11 +73,11 @@ export async function getManageCoursesForDosen(
     periodLabel: normalizePeriodLabel(course),
     startYear: course.tahunAwalPeriode,
     endYear: course.tahunAkhirPeriode,
-    semester: resolveSemester(course.periode),
+    semester: resolveAcademicSemester(course.periode),
     assignmentsCount: course._count.assignments,
     studentsCount: course._count.enrollments,
-    isManuallyArchived: Boolean(course.archivedAt),
-    isArchived: Boolean(course.archivedAt) || isArchivedCourse(course, currentPeriod),
+    isManuallyArchived: isCourseManuallyArchived(course.archivedAt),
+    isArchived: resolveCourseArchivedState(course),
     updatedAt: course.updatedAt.toISOString(),
   }));
 

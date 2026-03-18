@@ -1,5 +1,6 @@
 import { AssignmentContent } from "@/components/dashboard/assignment-content";
 import { AssignmentLayout } from "@/components/dashboard/assignment-layout";
+import { parseAssignmentDescription } from "@/lib/assignment-description";
 import prisma from "@/lib/prisma";
 import { getAssignmentStats } from "@/lib/stats/assignment";
 import type { Course, ExtendedUser } from "@/lib/types";
@@ -195,25 +196,10 @@ export async function AssignmentDetailAsync({
 
   // Topics are optional: prefer assignment's current description JSON;
   // fall back to historical topic records only if parsing fails.
-  let topicCount = 0;
-  if (assignment?.description) {
-    try {
-      const parsed = JSON.parse(assignment.description) as {
-        topics?: unknown;
-      };
-      if (Array.isArray(parsed?.topics)) {
-        topicCount = parsed.topics
-          .map((topic) => (typeof topic === "string" ? topic.trim() : ""))
-          .filter(Boolean).length;
-      } else {
-        topicCount = 0;
-      }
-    } catch {
-      topicCount = topicRecords.length;
-    }
-  } else {
-    topicCount = topicRecords.length;
-  }
+  const { topics: parsedTopics } = parseAssignmentDescription(assignment?.description, {
+    defaultSkills: [],
+  });
+  const topicCount = parsedTopics.length > 0 ? parsedTopics.length : topicRecords.length;
 
   const totalEnrollments = students.length;
   const quizCompletionPercent = totalEnrollments

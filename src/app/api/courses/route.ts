@@ -9,11 +9,12 @@ import { isDemoModeEnabled } from "@/lib/demo/config";
 import { seedDemoStudentsForCourse } from "@/lib/demo/seed-students";
 import { enrollPairedDemoStudentInCourse } from "@/lib/demo/sync-account";
 import prisma, { type TransactionClient } from "@/lib/prisma";
+import { buildVisibleCourseFilter } from "@/lib/utils/course-archive";
 import { getCurrentAcademicYear } from "@/lib/utils/period";
 import {
   type CourseCreateInput,
   type CourseCreateUserInput,
-  courseCreateInputSchema,
+  buildCourseCreateInputSchema,
 } from "@/lib/validation/course";
 
 // Prisma requires Node.js runtime
@@ -21,7 +22,24 @@ export const runtime = "nodejs";
 
 export const POST = withAuth(
   withValidation(
-    (data: unknown) => courseCreateInputSchema.parse(data),
+    (data: unknown, request: NextRequest) => {
+      const locale = getRequestLocale(request);
+      const localizedSchema = buildCourseCreateInputSchema({
+        courseNameRequired: getLocalizedApiMessage(
+          locale,
+          "dashboard.modals.createClass.validation.courseNameRequired",
+        ),
+        classRequired: getLocalizedApiMessage(
+          locale,
+          "dashboard.modals.createClass.validation.classRequired",
+        ),
+        periodInvalid: getLocalizedApiMessage(
+          locale,
+          "dashboard.modals.createClass.validation.periodInvalid",
+        ),
+      });
+      return localizedSchema.parse(data);
+    },
     async (_request: NextRequest, { user, validatedData }) => {
       const userInput = validatedData as CourseCreateUserInput;
 
@@ -49,7 +67,7 @@ export const POST = withAuth(
           tahunAwalPeriode: courseData.tahunAwalPeriode,
           tahunAkhirPeriode: courseData.tahunAkhirPeriode,
           periode: courseData.periode,
-          archivedAt: null,
+          ...buildVisibleCourseFilter(),
         },
       });
 

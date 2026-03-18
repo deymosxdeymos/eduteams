@@ -154,7 +154,7 @@ describe("Dashboard Content", () => {
 
     expect(classGridProps.classes).toHaveLength(0);
     expect(classGridProps.showNoResults).toBe(true);
-    expect(screen.getByText("Tidak ada kelas yang ditemukan")).toBeInTheDocument();
+    expect(screen.getByText("No classes found")).toBeInTheDocument();
   });
 
   it("updates the class list when a new course is created", async () => {

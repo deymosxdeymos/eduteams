@@ -38,6 +38,7 @@ export async function ClassPageLayout({
   const sidebarData = await getSidebarDataForUser(user);
   const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
   const canManage = user.role === "TEACHER" && currentUserId === course.dosenId;
+  const enrolledStudentIds = studentsData?.map((student) => student.id) ?? [];
 
   return (
     <main className="bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden">
@@ -52,6 +53,8 @@ export async function ClassPageLayout({
             courseData={course}
             initialAssignments={initialAssignments}
             studentCount={studentsData?.length ?? 0}
+            currentUserId={currentUserId}
+            enrolledStudentIds={enrolledStudentIds}
           />
           <StudentList
             classId={classId}

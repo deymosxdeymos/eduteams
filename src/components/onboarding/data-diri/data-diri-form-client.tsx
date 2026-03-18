@@ -161,6 +161,9 @@ export default function DataDiriFormClient({ role, initialData }: DataDiriFormCl
                     aria-invalid={!!fieldState.error}
                     animationTargetRef={namaWrapperRef}
                     className="pl-10"
+                    required
+                    minLength={2}
+                    maxLength={100}
                   />
                 </motion.div>
               </FormControl>
@@ -194,6 +197,10 @@ export default function DataDiriFormClient({ role, initialData }: DataDiriFormCl
                       aria-invalid={!!fieldState.error}
                       animationTargetRef={nimWrapperRef}
                       className="pl-10"
+                      required
+                      minLength={8}
+                      maxLength={15}
+                      pattern="[0-9]+"
                     />
                   </motion.div>
                 </FormControl>

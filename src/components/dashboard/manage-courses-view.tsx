@@ -15,9 +15,10 @@ import {
   SortDesc,
   Trash2,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from "nuqs";
 import {
+  Fragment,
   memo,
   type ReactNode,
   useCallback,
@@ -76,20 +77,18 @@ import {
 import { Link } from "@/i18n/routing";
 import { classCatalogFetcher } from "@/lib/client-api";
 import { EMPTY_ARRAY } from "@/lib/constants";
-import { DEMO_COURSE_ID } from "@/lib/demo/sandbox";
+import { DEMO_COURSE_ID } from "@/lib/demo/sandbox-shared";
 import type { ClassCatalog } from "@/lib/types";
-import { formatAcademicPeriodLabel, getCurrentAcademicPeriod } from "@/lib/utils/period";
+import {
+  formatAcademicPeriodLabel,
+  getCurrentAcademicPeriod,
+  isArchivedAcademicPeriod,
+} from "@/lib/utils/period";
 import { cn } from "@/lib/utils";
 import { type CourseCreateUserInput, courseCreateInputSchema } from "@/lib/validation/course";
 import type { ManageCourseRow } from "@/types/manage";
 
 type SortKey = "recent" | "name-asc" | "year-desc";
-
-const sortOptions: Array<{ value: SortKey; label: string }> = [
-  { value: "recent", label: "Terbaru" },
-  { value: "year-desc", label: "Tahun akademik" },
-  { value: "name-asc", label: "Nama A-Z" },
-];
 
 const semesterOrder: Record<ManageCourseRow["semester"], number> = {
   ganjil: 1,
@@ -99,10 +98,6 @@ const semesterOrder: Record<ManageCourseRow["semester"], number> = {
 
 interface ManageCoursesViewProps {
   courses: ManageCourseRow[];
-  searchPlaceholder: string;
-  archivedLabel: string;
-  emptyActiveMessage: string;
-  emptyArchivedMessage: string;
   renderActions?: (course: ManageCourseRow) => ReactNode;
   onArchiveToggle?: (course: ManageCourseRow) => Promise<void> | void;
 }
@@ -132,11 +127,14 @@ function ManageTable({
   rows,
   emptyMessage,
   renderActions,
+  rowActionRenderKey,
 }: {
   rows: ManageCourseRow[];
   emptyMessage: string;
   renderActions: (course: ManageCourseRow) => ReactNode;
+  rowActionRenderKey: string;
 }) {
+  const t = useTranslations("dashboard.dosenManage");
   if (rows.length === 0) {
     return (
       <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/40 bg-muted/30">
@@ -149,11 +147,11 @@ function ManageTable({
     <Table className="min-w-[720px]">
       <TableHeader className="[&_tr]:border-b-0">
         <TableRow className="bg-muted overflow-hidden rounded-md">
-          <TableHead className="rounded-md">Nama Kelas</TableHead>
-          <TableHead>Periode</TableHead>
-          <TableHead>Total Tugas</TableHead>
-          <TableHead>Total Mahasiswa</TableHead>
-          <TableHead className="text-right rounded-md">Manage Control</TableHead>
+          <TableHead className="rounded-md">{t("headers.className")}</TableHead>
+          <TableHead>{t("headers.period")}</TableHead>
+          <TableHead>{t("headers.totalAssignments")}</TableHead>
+          <TableHead>{t("headers.totalStudents")}</TableHead>
+          <TableHead className="text-right rounded-md">{t("headers.manageControl")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -168,9 +166,13 @@ function ManageTable({
               </Link>
             </TableCell>
             <TableCell className="text-muted-foreground">{course.periodLabel}</TableCell>
-            <TableCell>{`${course.assignmentsCount} Tugas`}</TableCell>
-            <TableCell>{`${course.studentsCount} Mahasiswa`}</TableCell>
-            <TableCell className="text-right">{renderActions(course)}</TableCell>
+            <TableCell>{t("row.assignments", { count: course.assignmentsCount })}</TableCell>
+            <TableCell>{t("row.students", { count: course.studentsCount })}</TableCell>
+            <TableCell className="text-right">
+              <Fragment key={`${rowActionRenderKey}:${course.id}`}>
+                {renderActions(course)}
+              </Fragment>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -191,7 +193,7 @@ function formatPeriodLabel(
   endYear: number,
   semester: ManageCourseRow["semester"],
 ) {
-  return formatAcademicPeriodLabel(startYear, endYear, semester).replace(" ", "/");
+  return formatAcademicPeriodLabel(startYear, endYear, semester);
 }
 
 function resolveArchivedState(course: ManageCourseRow, isManuallyArchived: boolean) {
@@ -199,17 +201,17 @@ function resolveArchivedState(course: ManageCourseRow, isManuallyArchived: boole
     return true;
   }
 
-  const currentPeriod = getCurrentAcademicPeriod();
-  if (course.endYear < currentPeriod.tahunAkhirPeriode) {
-    return true;
-  }
-  if (course.endYear > currentPeriod.tahunAkhirPeriode) {
-    return false;
-  }
-  if (course.semester === currentPeriod.periode) {
-    return false;
-  }
-  return currentPeriod.periode === "genap" && course.semester === "ganjil";
+  return isArchivedAcademicPeriod(
+    {
+      tahunAkhirPeriode: course.endYear,
+      periode: course.semester,
+    },
+    getCurrentAcademicPeriod(),
+  );
+}
+
+function isForceVisibleCourse(course: ManageCourseRow) {
+  return !course.isArchived && !course.isManuallyArchived && resolveArchivedState(course, false);
 }
 
 function EditCourseDialog({
@@ -283,14 +285,6 @@ function EditCourseDialog({
     setClassSearch("");
   };
 
-  const _handleResetClassSelection = () => {
-    setSelectedCatalogClass(null);
-    setClassSearch("");
-    setClassPopoverOpen(false);
-    form.setValue("kelas", "", { shouldValidate: false });
-    form.clearErrors("kelas");
-  };
-
   const handleClassPopoverChange = (nextOpen: boolean) => {
     setClassPopoverOpen(nextOpen);
     if (!nextOpen) {
@@ -337,7 +331,6 @@ function EditCourseDialog({
     if (!typedValue) {
       return;
     }
-    const _trimmedClassSearchQuery = typedValue.trim();
     const hasMatches = classOptions.some((classItem) => {
       return classItem.code.toLowerCase().includes(typedValue.toLowerCase());
     });
@@ -807,15 +800,27 @@ function DeleteCourseDialog({
   );
 }
 
-export const ManageCoursesView = memo(function ManageCoursesView({
+interface ManageCoursesViewContentProps extends ManageCoursesViewProps {
+  locale: string;
+}
+
+const ManageCoursesViewContent = memo(function ManageCoursesViewContent({
   courses,
-  searchPlaceholder,
-  archivedLabel,
-  emptyActiveMessage,
-  emptyArchivedMessage,
   renderActions,
   onArchiveToggle,
-}: ManageCoursesViewProps) {
+  locale,
+}: ManageCoursesViewContentProps) {
+  const t = useTranslations("dashboard.dosenManage");
+
+  const sortOptions = useMemo<Array<{ value: SortKey; label: string }>>(
+    () => [
+      { value: "recent", label: t("sort.recent") },
+      { value: "year-desc", label: t("sort.byYear") },
+      { value: "name-asc", label: t("sort.byNameAZ") },
+    ],
+    [t],
+  );
+
   const [optimisticCourseUpdates, setOptimisticCourseUpdates] = useState<
     Record<string, Partial<ManageCourseRow>>
   >({});
@@ -871,6 +876,11 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         periodLabel: formatPeriodLabel(course.startYear, course.endYear, values.semester),
         updatedAt: new Date().toISOString(),
       };
+      const nextIsArchived = isForceVisibleCourse(course)
+        ? false
+        : values.semester === course.semester
+          ? course.isArchived
+          : resolveArchivedState(nextCourse, nextCourse.isManuallyArchived);
 
       setOptimisticCourseUpdates((current) => ({
         ...current,
@@ -881,7 +891,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
           semester: nextCourse.semester,
           periodLabel: nextCourse.periodLabel,
           updatedAt: nextCourse.updatedAt,
-          isArchived: resolveArchivedState(nextCourse, nextCourse.isManuallyArchived),
+          isArchived: nextIsArchived,
         },
       }));
     },
@@ -907,21 +917,17 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         return;
       }
 
-      const nextIsManuallyArchived = !course.isManuallyArchived;
+      const nextIsArchived = !course.isArchived;
+      const nextUpdatedAt = new Date().toISOString();
       const previousOverlay = optimisticCourseUpdates[course.id];
-      const nextCourse = {
-        ...course,
-        isManuallyArchived: nextIsManuallyArchived,
-        updatedAt: new Date().toISOString(),
-      };
       setPendingCourseId(course.id);
       setOptimisticCourseUpdates((current) => ({
         ...current,
         [course.id]: {
           ...(current[course.id] ?? {}),
-          isManuallyArchived: nextIsManuallyArchived,
-          isArchived: resolveArchivedState(nextCourse, nextIsManuallyArchived),
-          updatedAt: nextCourse.updatedAt,
+          isManuallyArchived: nextIsArchived,
+          isArchived: nextIsArchived,
+          updatedAt: nextUpdatedAt,
         },
       }));
       void (async () => {
@@ -953,7 +959,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
       if (course.id === DEMO_COURSE_ID) {
         return (
           <div className="flex items-center justify-end gap-2">
-            <Button asChild variant="ghost" size="icon" aria-label="Lihat kelas demo">
+            <Button asChild variant="ghost" size="icon" aria-label={t("row.openClass")}>
               <Link href={`/dashboard/class/${course.id}`}>
                 <ExternalLink className="size-4" />
               </Link>
@@ -962,13 +968,14 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         );
       }
 
-      const archiveLabel = course.isManuallyArchived ? "Tampilkan kelas" : "Sembunyikan kelas";
-      const ArchiveIcon = course.isManuallyArchived ? Eye : EyeOff;
+      const isArchived = course.isArchived;
+      const archiveLabel = isArchived ? t("archive.showClass") : t("archive.hideClass");
+      const ArchiveIcon = isArchived ? Eye : EyeOff;
       const isPending = pendingCourseId === course.id;
 
       return (
         <div className="flex items-center justify-end gap-2">
-          <Button asChild variant="ghost" size="icon" aria-label="Lihat kelas">
+          <Button asChild variant="ghost" size="icon" aria-label={t("row.openClass")}>
             <Link href={`/dashboard/class/${course.id}`}>
               <ExternalLink className="size-4" />
             </Link>
@@ -988,18 +995,16 @@ export const ManageCoursesView = memo(function ManageCoursesView({
             <DialogContent className="rounded-2xl sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle className="font-medium">
-                  {course.isManuallyArchived ? "Munculkan Tugas?" : "Sembunyikan Kelas?"}
+                  {isArchived ? t("archive.showClass") : t("archive.hideClass")}
                 </DialogTitle>
                 <DialogDescription>
-                  {course.isManuallyArchived
-                    ? "Tampilkan tugas untuk kelas ini agar mahasiswa dapat melihatnya"
-                    : "Kelas yang disembunyikan tidak akan bisa diakses oleh mahasiswa"}
+                  {isArchived ? t("archive.showClassDesc") : t("archive.hideClassDesc")}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="flex-col-reverse sm:flex-col-reverse">
                 <DialogClose asChild>
                   <Button variant="ghost" className="rounded-full">
-                    Cancel
+                    {t("archive.cancel")}
                   </Button>
                 </DialogClose>
                 <Button
@@ -1011,7 +1016,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
                   onClick={() => handleArchiveToggle(course)}
                 >
                   {isPending && <LoadingSpinner size="sm" color="white" />}
-                  {course.isManuallyArchived ? "Munculkan" : "Sembunyikan"}
+                  {archiveLabel}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1021,7 +1026,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         </div>
       );
     },
-    [handleArchiveToggle, handleCourseDeleted, handleCourseUpdated, pendingCourseId],
+    [handleArchiveToggle, handleCourseDeleted, handleCourseUpdated, pendingCourseId, t],
   );
 
   const renderRowActions = renderActions ?? defaultActions;
@@ -1046,7 +1051,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
         <Select value={sortKey} onValueChange={(value) => setSortKey(value as SortKey)}>
           <SelectTrigger className="min-w-[180px] rounded-full bg-accent/30 gap-2">
             <SortDesc className="size-4 text-muted-foreground" />
-            <SelectValue placeholder="Urutkan" />
+            <SelectValue placeholder={t("sort.recent")} />
           </SelectTrigger>
           <SelectContent>
             {sortOptions.map((option) => (
@@ -1061,7 +1066,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
             type="search"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder={searchPlaceholder}
+            placeholder={t("search.placeholder")}
             className="h-11 rounded-full pl-4 pr-11"
           />
           <Search className="absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -1071,8 +1076,9 @@ export const ManageCoursesView = memo(function ManageCoursesView({
       <div className="min-h-0 flex-1 overflow-auto">
         <ManageTable
           rows={activeCourses}
-          emptyMessage={emptyActiveMessage}
+          emptyMessage={t("empty.noActiveClasses")}
           renderActions={renderRowActions}
+          rowActionRenderKey={locale}
         />
       </div>
 
@@ -1088,7 +1094,7 @@ export const ManageCoursesView = memo(function ManageCoursesView({
           )}
           aria-expanded={showArchived}
         >
-          <span>{archivedLabel}</span>
+          <span>{t("archive.archivedClasses")}</span>
           {showArchived ? (
             <ChevronDown className="size-4 text-current" />
           ) : (
@@ -1099,8 +1105,9 @@ export const ManageCoursesView = memo(function ManageCoursesView({
           <div className="mt-4">
             <ManageTable
               rows={archivedCourses}
-              emptyMessage={emptyArchivedMessage}
+              emptyMessage={t("empty.noArchivedClasses")}
               renderActions={renderRowActions}
+              rowActionRenderKey={locale}
             />
           </div>
         )}
@@ -1108,3 +1115,9 @@ export const ManageCoursesView = memo(function ManageCoursesView({
     </section>
   );
 });
+
+export function ManageCoursesView(props: ManageCoursesViewProps) {
+  const locale = useLocale();
+
+  return <ManageCoursesViewContent {...props} locale={locale} />;
+}
