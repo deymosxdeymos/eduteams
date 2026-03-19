@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import type { MBTIType } from "@/generated/prisma/client";
 import {
@@ -143,7 +144,9 @@ export async function getInitialAssignments(
  * @param courseId - The course ID
  * @returns Array of student data with enrollment information
  */
-export async function getStudentsData(courseId: string): Promise<StudentData[]> {
+export const getStudentsData = cache(async function getStudentsData(
+  courseId: string,
+): Promise<StudentData[]> {
   if (courseId === DEMO_COURSE_ID) {
     return await getDemoStudentsData();
   }
@@ -176,7 +179,7 @@ export async function getStudentsData(courseId: string): Promise<StudentData[]> 
   return enrollments.map((enrollment: (typeof enrollments)[number]) =>
     mapStudentData(enrollment as EnrollmentStudentRow),
   );
-}
+});
 
 export async function getAuthorizedStudentsData(
   courseId: string,

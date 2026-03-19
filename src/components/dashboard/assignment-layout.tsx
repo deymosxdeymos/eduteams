@@ -10,7 +10,7 @@ interface AssignmentLayoutProps {
   course: Course;
   classId: string;
   assignmentId: string;
-  students: Array<{
+  students?: Array<{
     id: string;
     name: string;
     nim: string;
@@ -22,6 +22,7 @@ interface AssignmentLayoutProps {
     pj?: number | null;
     enrolledAt: Date;
   }>;
+  totalStudents?: number;
   canManage: boolean;
   hideStudentList?: boolean;
   assignmentTitle?: string;
@@ -36,6 +37,7 @@ export async function AssignmentLayout({
   classId,
   assignmentId: _,
   students,
+  totalStudents: totalStudentsProp,
   canManage,
   hideStudentList = false,
   assignmentTitle,
@@ -47,7 +49,7 @@ export async function AssignmentLayout({
   const currentUserId =
     course.id === DEMO_COURSE_ID ? (getDemoSandboxPrincipalId(user) ?? user.id) : user.id;
   const submittedCount = submittedStudentIds ? submittedStudentIds.length : 0;
-  const totalStudents = students.length;
+  const totalStudents = totalStudentsProp ?? students?.length ?? 0;
 
   return (
     <main className="bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden">

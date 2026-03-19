@@ -344,15 +344,18 @@ export async function AssignmentDetailAsync({
     }
   }
 
+  const hideStudentList = percentAssigned > 0;
+
   return (
     <AssignmentLayout
       user={user}
       course={course}
       classId={classId}
       assignmentId={assignmentId}
-      students={students}
+      {...(hideStudentList
+        ? { totalStudents: totalEnrollments, hideStudentList: true }
+        : { students })}
       canManage={isDosen}
-      hideStudentList={percentAssigned > 0}
       assignmentTitle={assignmentTitle}
       submittedStudentIds={Array.from(submittedStudentIds) as string[]}
     >
