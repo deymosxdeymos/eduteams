@@ -67,6 +67,16 @@ const getCoursesForDosenMock = mock(async () => [
   },
 ]);
 const checkMutationRateLimitMock = mock(async () => ({ allowed: true }));
+const createRateLimitResponseMock = mock(
+  (rateLimit: { scope: "ip" | "user" }, messages: { ip: string; user: string }) =>
+    Response.json(
+      {
+        success: false,
+        error: rateLimit.scope === "ip" ? messages.ip : messages.user,
+      },
+      { status: 429 },
+    ),
+);
 
 const prismaMock = {
   $transaction: transactionMock,
@@ -159,6 +169,7 @@ function applyModuleMocks() {
 
   mock.module("@/lib/mutation-rate-limit", () => ({
     checkMutationRateLimit: checkMutationRateLimitMock,
+    createRateLimitResponse: createRateLimitResponseMock,
   }));
 }
 
@@ -180,11 +191,22 @@ describe("courses API", () => {
     transactionMock.mockReset();
     getCoursesForDosenMock.mockReset();
     checkMutationRateLimitMock.mockReset();
+    createRateLimitResponseMock.mockReset();
     prismaMock.user.findUnique.mockReset();
     prismaMock.course.findFirst.mockReset();
 
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
     checkMutationRateLimitMock.mockResolvedValue({ allowed: true });
+    createRateLimitResponseMock.mockImplementation(
+      (rateLimit: { scope: "ip" | "user" }, messages: { ip: string; user: string }) =>
+        Response.json(
+          {
+            success: false,
+            error: rateLimit.scope === "ip" ? messages.ip : messages.user,
+          },
+          { status: 429 },
+        ),
+    );
     courseCreateMock.mockImplementation(async (args: any) => ({
       id: "c1",
       ...args.data,

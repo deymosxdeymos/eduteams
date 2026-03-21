@@ -17,6 +17,16 @@ const isSameOriginMock = mock(() => true);
 const checkMutationRateLimitMock = mock(async () => ({
   allowed: true,
 }));
+const createRateLimitResponseMock = mock(
+  (rateLimit: { scope: "ip" | "user" }, messages: { ip: string; user: string }) =>
+    Response.json(
+      {
+        success: false,
+        error: rateLimit.scope === "ip" ? messages.ip : messages.user,
+      },
+      { status: 429 },
+    ),
+);
 const getClientIdentifierMock = mock(() => null);
 const cleanupStaleRequestsMock = mock(async () => ({ count: 0 }));
 const getInFlightRequestMock = mock(async () => null);
@@ -93,6 +103,7 @@ function applyModuleMocks() {
   mock.module("@/lib/prisma", () => ({ default: prismaMock }));
   mock.module("@/lib/mutation-rate-limit", () => ({
     checkMutationRateLimit: checkMutationRateLimitMock,
+    createRateLimitResponse: createRateLimitResponseMock,
   }));
   mock.module("@/lib/rate-limit", () => ({
     getClientIdentifier: getClientIdentifierMock,
@@ -135,6 +146,17 @@ describe("POST /api/assignments/[id]/form-teams", () => {
     checkMutationRateLimitMock.mockResolvedValue({
       allowed: true,
     });
+    createRateLimitResponseMock.mockReset();
+    createRateLimitResponseMock.mockImplementation(
+      (rateLimit: { scope: "ip" | "user" }, messages: { ip: string; user: string }) =>
+        Response.json(
+          {
+            success: false,
+            error: rateLimit.scope === "ip" ? messages.ip : messages.user,
+          },
+          { status: 429 },
+        ),
+    );
     getClientIdentifierMock.mockReset();
     getClientIdentifierMock.mockReturnValue(null);
     cleanupStaleRequestsMock.mockReset();

@@ -9,6 +9,16 @@ const getCurrentUserMock = mock(async () => ({
 }));
 
 const checkMutationRateLimitMock = mock(async () => ({ allowed: true }));
+const createRateLimitResponseMock = mock(
+  (rateLimit: { scope: "ip" | "user" }, messages: { ip: string; user: string }) =>
+    Response.json(
+      {
+        success: false,
+        error: rateLimit.scope === "ip" ? messages.ip : messages.user,
+      },
+      { status: 429 },
+    ),
+);
 
 const prismaMock: any = {
   user: {
@@ -91,12 +101,14 @@ mock.module("@/lib/prisma", () => ({ default: prismaMock }));
 mock.module("@/lib/api-utils", () => createApiUtilsModule({ getCurrentUser: getCurrentUserMock }));
 mock.module("@/lib/mutation-rate-limit", () => ({
   checkMutationRateLimit: checkMutationRateLimitMock,
+  createRateLimitResponse: createRateLimitResponseMock,
 }));
 
 describe("courses/[id]/assignments API", () => {
   beforeEach(() => {
     getCurrentUserMock.mockReset();
     checkMutationRateLimitMock.mockReset();
+    createRateLimitResponseMock.mockReset();
     getCurrentUserMock.mockResolvedValue({
       id: "u1",
       email: "teacher@example.com",
@@ -104,6 +116,16 @@ describe("courses/[id]/assignments API", () => {
       isOnboarded: true,
     });
     checkMutationRateLimitMock.mockResolvedValue({ allowed: true });
+    createRateLimitResponseMock.mockImplementation(
+      (rateLimit: { scope: "ip" | "user" }, messages: { ip: string; user: string }) =>
+        Response.json(
+          {
+            success: false,
+            error: rateLimit.scope === "ip" ? messages.ip : messages.user,
+          },
+          { status: 429 },
+        ),
+    );
   });
 
   afterAll(() => {
