@@ -22,7 +22,7 @@ mock.module("@/i18n/routing", () => ({
   },
   getLocalizedHref: (locale: string, href: string) =>
     locale === "id" || !href.startsWith("/") ? href : `/${locale}${href}`,
-  usePathname: () => "/dashboard/class/demo-sandbox-course",
+  usePathname: () => "/dashboard/class/test-course-1",
   useRouter: () => ({ push: pushMock, refresh: mock(() => undefined) }),
 }));
 
@@ -39,16 +39,14 @@ describe("AssignmentActions", () => {
     pushMock.mockReset();
   });
 
-  it("routes seeded demo assignments to the demo quiz page", async () => {
+  it("routes seeded assignments to the quiz page", async () => {
     const { AssignmentActions } = await import("../assignment-actions");
 
     render(
       <AssignmentActions
-        classId="demo-sandbox-course"
-        assignmentId="demo-sandbox-assignment"
+        classId="test-course-1"
+        assignmentId="test-assignment-1"
         assignmentTitle="Capstone Recommendation Sprint"
-        demoSkills={["Python Programming"]}
-        demoTopics={["Movie Recommendation"]}
         canManage={false}
         isStudent={true}
       />,
@@ -57,29 +55,7 @@ describe("AssignmentActions", () => {
     fireEvent.click(screen.getByRole("button", { name: "viewMyAnswers" }));
 
     expect(pushMock).toHaveBeenCalledWith(
-      "/dashboard/class/demo-sandbox-course/assignments/demo-sandbox-assignment/quiz",
-    );
-  });
-
-  it("preserves local demo assignment metadata when routing to the quiz page", async () => {
-    const { AssignmentActions } = await import("../assignment-actions");
-
-    render(
-      <AssignmentActions
-        classId="demo-sandbox-course"
-        assignmentId="demo-local-1"
-        assignmentTitle="Custom Demo Assignment"
-        demoSkills={["Data Analysis", "Presentation Design"]}
-        demoTopics={["Retail Personalization"]}
-        canManage={false}
-        isStudent={true}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "viewMyAnswers" }));
-
-    expect(pushMock).toHaveBeenCalledWith(
-      "/dashboard/class/demo-sandbox-course/assignments/demo-local-1/quiz?demoTitle=Custom+Demo+Assignment&demoSkill=Data+Analysis&demoSkill=Presentation+Design&demoTopic=Retail+Personalization",
+      "/dashboard/class/test-course-1/assignments/test-assignment-1/quiz",
     );
   });
 

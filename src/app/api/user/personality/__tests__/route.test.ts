@@ -67,7 +67,7 @@ describe("POST /api/user/personality", () => {
     expect(json.success).toBe(false);
   });
 
-  it("accepts demo sandbox-authenticated users through getCurrentUser", async () => {
+  it("accepts authenticated users through getCurrentUser", async () => {
     const { buildPersonalityHandler } = await import("../handler");
     const POST = buildPersonalityHandler({
       submitSession: submitMock,

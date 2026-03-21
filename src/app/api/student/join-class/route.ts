@@ -5,7 +5,6 @@ import { createApiResponse, createErrorResponse, withAuth, withValidation } from
 import { canAccessMahasiswaFeatures } from "@/lib/authorization";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { isSameOrigin } from "@/lib/csrf";
-import { isActiveDemoAccountEmail, isDemoAccountEmail } from "@/lib/demo/auth";
 import prisma from "@/lib/prisma";
 import type { ExtendedUser } from "@/lib/types";
 
@@ -17,14 +16,10 @@ const joinClassSchema = z.object({
 
 async function joinClass(
   request: NextRequest,
-  { user, validatedData }: { user?: ExtendedUser; validatedData: { token: string } },
+  { user, validatedData }: { user: ExtendedUser; validatedData: { token: string } },
 ) {
-  if (!user || !canAccessMahasiswaFeatures(user)) {
+  if (!canAccessMahasiswaFeatures(user)) {
     return createErrorResponse("Access denied", 403);
-  }
-
-  if (isActiveDemoAccountEmail(user.email)) {
-    return createErrorResponse("Demo accounts cannot join shared classes.", 403);
   }
 
   if (!isSameOrigin(request)) {
@@ -49,10 +44,6 @@ async function joinClass(
 
   if (!course) {
     return createErrorResponse("Invalid token. Class not found.", 404);
-  }
-
-  if (isDemoAccountEmail(course.dosen.email)) {
-    return createErrorResponse("Demo classes cannot be joined from shared invites.", 403);
   }
 
   const existingEnrollment = await prisma.courseEnrollment.findUnique({
@@ -91,5 +82,8 @@ async function joinClass(
 }
 
 export const POST = withAuth(
-  withValidation((data: unknown) => joinClassSchema.parse(data), joinClass),
+  withValidation<{ token: string }, { user: ExtendedUser }>(
+    (data: unknown) => joinClassSchema.parse(data),
+    joinClass,
+  ),
 );

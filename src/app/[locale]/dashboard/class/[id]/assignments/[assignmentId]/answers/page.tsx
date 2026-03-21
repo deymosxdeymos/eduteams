@@ -9,19 +9,6 @@ import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { ProfileHeader } from "@/components/dashboard/profile-header";
 import { getLocalizedHref } from "@/i18n/routing";
 import { canAccessDosenFeatures } from "@/lib/authorization";
-import {
-  buildDemoAssignmentHref,
-  DEMO_COURSE_ID,
-  getDemoAssignmentAnswersView,
-  getDemoAssignmentDefinitionFromSearchParams,
-  getDemoCourse,
-  getDemoSandboxPrincipalId,
-  getDemoSubmittedStudents,
-  isDemoSandboxAssignmentId,
-  isDemoSandboxUser,
-} from "@/lib/demo/sandbox";
-import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
-import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import { getMBTIQuestions } from "@/lib/mbti-questions-simple";
 import prisma from "@/lib/prisma";
 import { protectDashboard } from "@/lib/server-auth";
@@ -111,11 +98,6 @@ interface AnswersPageProps {
   params: Promise<{ locale: string; id: string; assignmentId: string }>;
   searchParams: Promise<{
     studentId?: string | string[];
-    demoTitle?: string | string[];
-    demoSkill?: string | string[];
-    demoTopic?: string | string[];
-    demoSkillsEmpty?: string | string[];
-    demoTopicsEmpty?: string | string[];
   }>;
 }
 
@@ -126,134 +108,6 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
   if (!isDosen) notFound();
   const tAssignment = await getTranslations("dashboard.assignment");
   const sp = await searchParams;
-
-  if (
-    classId === DEMO_COURSE_ID &&
-    isDemoSandboxUser(user) &&
-    isDemoSandboxAssignmentId(assignmentId)
-  ) {
-    const course = getDemoCourse();
-    const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
-    const [removedStudentIds, submittedAssignmentIds] = await Promise.all([
-      getRemovedDemoStudentIdsFromCookieStore(),
-      getDemoSubmittedAssignmentIdsFromCookieStore(),
-    ]);
-    const students = getDemoSubmittedStudents({
-      assignmentId,
-      currentUserId,
-      excludedStudentIds: removedStudentIds,
-      submittedAssignmentIds,
-    });
-    const studentsLite = students.map((student) => ({
-      id: student.id,
-      name: student.name ?? "Mahasiswa",
-    }));
-    const assignmentDefinition = getDemoAssignmentDefinitionFromSearchParams(sp);
-    const requestedStudentId = Array.isArray(sp.studentId) ? sp.studentId[0] : sp.studentId;
-    let currentIndex = 0;
-
-    if (requestedStudentId) {
-      const idx = students.findIndex((student) => student.id === requestedStudentId);
-      currentIndex = idx >= 0 ? idx : 0;
-    }
-
-    const selected = students[currentIndex];
-    const backHref = getLocalizedHref(
-      locale,
-      buildDemoAssignmentHref({
-        classId,
-        assignmentId,
-        title: assignmentDefinition.title,
-        skills: assignmentDefinition.skills,
-        topics: assignmentDefinition.topics,
-      }),
-    );
-    const baseHref = getLocalizedHref(
-      locale,
-      `/dashboard/class/${classId}/assignments/${assignmentId}/answers`,
-    );
-
-    if (!selected) {
-      return (
-        <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
-          <AssignmentLayout
-            user={user}
-            course={course}
-            classId={classId}
-            assignmentId={assignmentId}
-            students={[]}
-            canManage={true}
-            hideStudentList
-            assignmentTitle={assignmentDefinition.title}
-            answersCrumb
-          >
-            <div className="flex flex-col p-6 gap-6">
-              <AnswersControlsClient
-                backHref={backHref}
-                students={studentsLite}
-                currentIndex={0}
-                baseHref={baseHref}
-              />
-              <div className="flex-1 flex items-center justify-center p-6">
-                <div className="text-center text-neutral-600">
-                  {tAssignment("answersTabs.emptyAnswers")}
-                </div>
-              </div>
-            </div>
-          </AssignmentLayout>
-        </DashboardClient>
-      );
-    }
-
-    const answersView = getDemoAssignmentAnswersView(selected.id, assignmentDefinition);
-    const mbtiQuestions = await getMBTIQuestions(locale);
-    const assignmentTitle = answersView?.title ?? assignmentDefinition.title;
-    const selectedUser = selected as unknown as ExtendedUser;
-    const personalityJson = selected.personalityData as unknown as {
-      answers?: Record<string, number>;
-    } | null;
-    const personalityAnswers = (personalityJson?.answers ?? {}) as Record<string, number>;
-    const mbtiType = getMBTIType(selectedUser);
-    const { personalityRows, skillRows, topicRows } = buildAssignmentAnswerRows({
-      mbtiQuestions,
-      personalityAnswers,
-      skills: answersView?.skills ?? [],
-      topics: answersView?.topics ?? [],
-    });
-
-    return (
-      <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
-        <AssignmentLayout
-          user={user}
-          course={course}
-          classId={classId}
-          assignmentId={assignmentId}
-          students={[]}
-          canManage={true}
-          hideStudentList
-          assignmentTitle={assignmentTitle}
-          answersCrumb
-        >
-          <div className="flex flex-col p-6 gap-6">
-            <AnswersControlsClient
-              backHref={backHref}
-              students={studentsLite}
-              currentIndex={currentIndex}
-              baseHref={baseHref}
-            />
-            <ProfileHeader user={selectedUser} hideEditButton />
-
-            <AssignmentAnswersTabs
-              personalityRows={personalityRows}
-              skills={skillRows}
-              topics={topicRows}
-              mbtiType={mbtiType}
-            />
-          </div>
-        </AssignmentLayout>
-      </DashboardClient>
-    );
-  }
 
   const [course, students] = await Promise.all([
     getCourseForDosen(classId, user.id),
@@ -283,7 +137,6 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
           user={user}
           course={course}
           classId={classId}
-          assignmentId={assignmentId}
           students={[]}
           canManage={true}
           hideStudentList
@@ -341,7 +194,6 @@ export default async function AssignmentAnswersPage({ params, searchParams }: An
         user={user}
         course={course}
         classId={classId}
-        assignmentId={assignmentId}
         students={[]}
         canManage={true}
         hideStudentList

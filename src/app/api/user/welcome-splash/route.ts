@@ -4,14 +4,11 @@ import prisma from "@/lib/prisma";
 // Prisma requires Node.js runtime
 export const runtime = "nodejs";
 
-export const POST = withAuth(
-  async (_request: NextRequest, { user }) => {
-    await prisma.user.update({
-      where: { id: user?.id },
-      data: { hasSeenWelcomeSplash: true },
-    });
+export const POST = withAuth(async (_request: NextRequest, { user }) => {
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { hasSeenWelcomeSplash: true },
+  });
 
-    return createApiResponse({ success: true });
-  },
-  { allowDemoSandbox: true },
-);
+  return createApiResponse({ success: true });
+});

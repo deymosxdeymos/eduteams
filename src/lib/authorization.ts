@@ -1,3 +1,4 @@
+import { isInstitutionalEmail } from "@/lib/email";
 import type { ExtendedUser, UserRole } from "@/lib/types";
 
 export function canAccessDashboard(user: ExtendedUser): boolean {
@@ -20,6 +21,10 @@ export function canAccessDosenFeatures(user: ExtendedUser): boolean {
   return user.role === "TEACHER" && user.isOnboarded;
 }
 
+export function canStartTeacherOnboarding(user: Pick<ExtendedUser, "role" | "email">): boolean {
+  return user.role === "TEACHER" || isInstitutionalEmail(user.email);
+}
+
 export function canAccessAdminFeatures(user: ExtendedUser): boolean {
   return user.role === "ADMIN";
 }
@@ -40,9 +45,8 @@ export function isCompleteProfile(user: ExtendedUser): boolean {
   return !!(user.name && user.email && user.role && user.isOnboarded);
 }
 
-export function needsOnboarding(user: ExtendedUser): boolean {
-  return !user.isOnboarded;
-}
+/** @deprecated Use `canAccessOnboarding` instead — same logic. */
+export const needsOnboarding = canAccessOnboarding;
 
 export function needsRoleSelection(user: ExtendedUser): boolean {
   return !user.role;
@@ -99,6 +103,7 @@ export const permissions = {
   canAccessRole,
   canAccessMahasiswaFeatures,
   canAccessDosenFeatures,
+  canStartTeacherOnboarding,
   canAccessAdminFeatures,
   canModifyUser,
   canViewUserProfile,

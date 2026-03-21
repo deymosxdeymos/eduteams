@@ -17,6 +17,7 @@ import { afterEach, mock } from "bun:test";
 import React from "react";
 import { cleanup } from "@testing-library/react";
 import messagesEn from "../messages/en.json";
+import { createApiUtilsModule } from "@/test-utils/api-utils-module";
 
 // Automatically cleanup React trees after each test
 afterEach(() => {
@@ -67,24 +68,22 @@ mock.module("@/app/actions/set-locale", () => ({
   setLocale: async () => {},
 }));
 
-// Mock next-intl
-mock.module("next-intl", () => {
-  // Load actual translation messages for testing
-  const messages: Record<string, any> = messagesEn;
-
-  const getNestedValue = (obj: any, path: string): string => {
-    const keys = path.split(".");
-    let value = obj;
-    for (const key of keys) {
-      if (value && typeof value === "object" && key in value) {
-        value = value[key];
-      } else {
-        // Return the full key path if not found
-        return path;
-      }
+// Shared translation mock helpers — used by both top-level and installSharedModuleMocks
+function getNestedValue(obj: any, path: string): string {
+  const keys = path.split(".");
+  let value = obj;
+  for (const key of keys) {
+    if (value && typeof value === "object" && key in value) {
+      value = value[key];
+    } else {
+      return path;
     }
-    return typeof value === "string" ? value : path;
-  };
+  }
+  return typeof value === "string" ? value : path;
+}
+
+function createNextIntlMock() {
+  const messages: Record<string, any> = messagesEn;
 
   return {
     useTranslations: (namespace?: string) => {
@@ -104,12 +103,10 @@ mock.module("next-intl", () => {
         if (params) {
           for (const [k, v] of Object.entries(params)) {
             if (typeof v === "function") {
-              // Rich text tag handler: replace <tag>content</tag> with the handler result
               const tagRegex = new RegExp(`<${k}>(.*?)</${k}>`, "g");
               value = value.replace(tagRegex, (_match: string, content: string) =>
                 String(v(content)),
               );
-              // If no XML tags matched, skip placeholder replacement
               continue;
             }
             value = value.replaceAll(`{${k}}`, String(v));
@@ -125,7 +122,10 @@ mock.module("next-intl", () => {
       dateTime: (value: Date) => value.toISOString(),
     }),
   };
-});
+}
+
+// Mock next-intl
+mock.module("next-intl", () => createNextIntlMock());
 
 mock.module("framer-motion", () => {
   const omitKeys = new Set([
@@ -245,60 +245,7 @@ function installSharedModuleMocks() {
     setLocale: async () => {},
   }));
 
-  mock.module("next-intl", () => {
-    const messages: Record<string, any> = messagesEn;
-
-    const getNestedValue = (obj: any, path: string): string => {
-      const keys = path.split(".");
-      let value = obj;
-      for (const key of keys) {
-        if (value && typeof value === "object" && key in value) {
-          value = value[key];
-        } else {
-          return path;
-        }
-      }
-      return typeof value === "string" ? value : path;
-    };
-
-    return {
-      useTranslations: (namespace?: string) => {
-        const t = (key: string, params?: Record<string, unknown>) => {
-          const fullKey = namespace ? `${namespace}.${key}` : key;
-          let value = getNestedValue(messages, fullKey);
-          if (params) {
-            for (const [k, v] of Object.entries(params)) {
-              value = value.replaceAll(`{${k}}`, String(v));
-            }
-          }
-          return value;
-        };
-        t.rich = (key: string, params?: Record<string, unknown>) => {
-          const fullKey = namespace ? `${namespace}.${key}` : key;
-          let value = getNestedValue(messages, fullKey);
-          if (params) {
-            for (const [k, v] of Object.entries(params)) {
-              if (typeof v === "function") {
-                const tagRegex = new RegExp(`<${k}>(.*?)</${k}>`, "g");
-                value = value.replace(tagRegex, (_match: string, content: string) =>
-                  String(v(content)),
-                );
-                continue;
-              }
-              value = value.replaceAll(`{${k}}`, String(v));
-            }
-          }
-          return value;
-        };
-        return t;
-      },
-      useLocale: () => "en",
-      useFormatter: () => ({
-        number: (value: number) => value.toString(),
-        dateTime: (value: Date) => value.toISOString(),
-      }),
-    };
-  });
+  mock.module("next-intl", () => createNextIntlMock());
 
   mock.module("framer-motion", () => {
     const omitKeys = new Set([
@@ -379,7 +326,26 @@ function installSharedModuleMocks() {
       return `/${locale}${href}`;
     },
   }));
+
+  // Restore app modules that test files commonly override via mock.module().
+  // Without this, afterAll(() => mock.module("@/lib/api-utils", () => ({}))) in one
+  // test file would leave an empty object for all subsequent files.
+  //
+  // We use createApiUtilsModule() instead of the pre-loaded real module because the
+  // real module holds static references to @/lib/auth and @/lib/prisma captured at
+  // load time. createApiUtilsModule() uses dynamic import() at call time, so tests
+  // that mock auth/prisma before importing their route handler get the mocked versions.
+  mock.module("@/lib/api-utils", () => createApiUtilsModule());
+  if (actualCompleteRequest) {
+    mock.module("@/lib/team-formation/complete-request", () => actualCompleteRequest);
+  }
 }
+
+// Holds the actual complete-request module reference, captured AFTER all shared mocks
+// (including server-only) are installed. Used by installSharedModuleMocks() to restore
+// leaked mock.module() overrides from individual test files.
+let actualCompleteRequest: Awaited<typeof import("@/lib/team-formation/complete-request")> | null =
+  null;
 
 const originalMockRestore = mock.restore.bind(mock);
 const restoreSharedMocks: typeof mock.restore = () => {
@@ -389,6 +355,10 @@ const restoreSharedMocks: typeof mock.restore = () => {
 
 mock.restore = restoreSharedMocks;
 installSharedModuleMocks();
+
+// Now that server-only and other shared mocks are in place, capture the actual
+// app module so installSharedModuleMocks() can restore it after test files leak.
+actualCompleteRequest = await import("@/lib/team-formation/complete-request");
 
 // Filter noisy test-only warnings
 const originalWarn = console.warn;

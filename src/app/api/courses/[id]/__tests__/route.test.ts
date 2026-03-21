@@ -248,7 +248,7 @@ describe("DELETE /api/courses/[id]", () => {
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
-    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
     expect(prismaMock.course.delete).toHaveBeenCalledWith({
       where: { id: "c1" },
     });
@@ -258,73 +258,6 @@ describe("DELETE /api/courses/[id]", () => {
       "student-classes-s1",
       "student-classes-s2",
     ]);
-  });
-
-  it("removes seeded demo students when a demo teacher deletes a course", async () => {
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
-      id: "demo-teacher",
-      email: "demo.teacher.visitor1234@eduteams.local",
-      role: "TEACHER",
-      isOnboarded: true,
-    }));
-    prismaMock.course.findUnique.mockImplementationOnce(async () => ({
-      id: "c1",
-      dosenId: "demo-teacher",
-    }));
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "demo-teacher" } }) } },
-    }));
-
-    const { getDemoStudentCourseEmailPrefix } = await import("@/lib/demo/seed-students");
-    const { DELETE } = await import("../route");
-    const res = await DELETE(
-      new Request("http://localhost/api/courses/c1", {
-        method: "DELETE",
-      }) as any,
-      { params: Promise.resolve({ id: "c1" }) } as any,
-    );
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
-    expect(prismaMock.user.deleteMany).toHaveBeenCalledWith({
-      where: {
-        email: {
-          startsWith: getDemoStudentCourseEmailPrefix("visitor1234", "c1"),
-        },
-      },
-    });
-    expect(prismaMock.course.delete).toHaveBeenCalledWith({
-      where: { id: "c1" },
-    });
-  });
-
-  it("allows real demo-account teachers to delete their own course", async () => {
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
-      id: "demo-teacher",
-      email: "demo.teacher.visitor1234@eduteams.local",
-      role: "TEACHER",
-      isOnboarded: true,
-    }));
-    prismaMock.course.findUnique.mockImplementationOnce(async () => ({
-      id: "c1",
-      dosenId: "demo-teacher",
-    }));
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "demo-teacher" } }) } },
-    }));
-
-    const { DELETE } = await import("../route");
-    const res = await DELETE(
-      new Request("http://localhost/api/courses/c1", {
-        method: "DELETE",
-      }) as any,
-      { params: Promise.resolve({ id: "c1" }) } as any,
-    );
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.course.delete).toHaveBeenCalledWith({
-      where: { id: "c1" },
-    });
   });
 
   it("returns 403 when deleting course not owned by dosen", async () => {
@@ -421,41 +354,6 @@ describe("PATCH /api/courses/[id]", () => {
     expect(json.data.kelas).toBe("RB");
     expect(json.data.periode).toBe("genap");
     expect(revalidateTagMock).toHaveBeenCalled();
-  });
-
-  it("allows real demo-account teachers to update their own course", async () => {
-    revalidateTagMock.mockReset();
-    prismaMock.user.findUnique.mockImplementationOnce(async () => ({
-      id: "demo-teacher",
-      email: "demo.teacher.visitor1234@eduteams.local",
-      role: "TEACHER",
-      isOnboarded: true,
-    }));
-    prismaMock.course.findUnique.mockImplementationOnce(async () => ({
-      ...baseCourse,
-      dosenId: "demo-teacher",
-    }));
-    prismaMock.course.findFirst.mockImplementationOnce(async () => null);
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "demo-teacher" } }) } },
-    }));
-
-    const { PATCH } = await import("../route");
-    const res = await PATCH(
-      new Request("http://localhost/api/courses/c1", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ namaMataKuliah: "Algoritma Demo" }),
-      }) as any,
-      { params: Promise.resolve({ id: "c1" }) } as any,
-    );
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.course.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "c1" },
-      }),
-    );
   });
 
   it("returns 403 when updating course not owned by dosen", async () => {

@@ -1,5 +1,4 @@
 import { getSidebarDataForUser } from "@/lib/dashboard/sidebar-data";
-import { getDemoSandboxPrincipalId } from "@/lib/demo/sandbox";
 import type { Course, ExtendedUser } from "@/lib/types";
 import type { AssignmentResponse } from "@/lib/validation/assignments";
 import { ClassAssignments } from "./class-assignments";
@@ -36,9 +35,7 @@ export async function ClassPageLayout({
   studentsData,
 }: ClassPageLayoutProps) {
   const sidebarData = await getSidebarDataForUser(user);
-  const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
-  const canManage = user.role === "TEACHER" && currentUserId === course.dosenId;
-  const enrolledStudentIds = studentsData?.map((student) => student.id) ?? [];
+  const canManage = user.role === "TEACHER" && user.id === course.dosenId;
 
   return (
     <main className="bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden">
@@ -53,13 +50,11 @@ export async function ClassPageLayout({
             courseData={course}
             initialAssignments={initialAssignments}
             studentCount={studentsData?.length ?? 0}
-            currentUserId={currentUserId}
-            enrolledStudentIds={enrolledStudentIds}
           />
           <StudentList
             classId={classId}
             initialData={studentsData}
-            currentUserId={currentUserId}
+            currentUserId={user.id}
             canManage={canManage}
           />
         </div>

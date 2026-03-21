@@ -1,11 +1,4 @@
 import prisma from "@/lib/prisma";
-import {
-  DEMO_TEACHER_ID,
-  getDemoCourse,
-  getDemoManageCourses,
-  getDemoSandboxPrincipalId,
-} from "@/lib/demo/sandbox";
-import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
 import { formatAcademicPeriodLabel, resolveAcademicSemester } from "@/lib/utils/period";
 import { isCourseManuallyArchived, resolveCourseArchivedState } from "@/lib/utils/course-archive";
 import type { ExtendedUser } from "@/lib/types";
@@ -23,27 +16,6 @@ function normalizePeriodLabel({ tahunAwalPeriode, tahunAkhirPeriode, periode }: 
     tahunAkhirPeriode,
     resolveAcademicSemester(periode),
   );
-}
-
-function mergeDemoManageCourses(
-  persistedCourses: ManageCourseRow[],
-  excludedStudentIds?: Iterable<string>,
-) {
-  const demoCourse = getDemoCourse();
-  const demoCourses = getDemoManageCourses({ excludedStudentIds });
-  const mergedCourses = [
-    ...persistedCourses.filter((course) => course.id !== demoCourse.id),
-    ...demoCourses,
-  ];
-
-  return mergedCourses.toSorted((left, right) => {
-    const updatedAtDelta = new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
-    if (updatedAtDelta !== 0) {
-      return updatedAtDelta;
-    }
-
-    return left.name.localeCompare(right.name, "id");
-  });
 }
 
 export async function getManageCoursesForDosen(
@@ -80,11 +52,6 @@ export async function getManageCoursesForDosen(
     isArchived: resolveCourseArchivedState(course),
     updatedAt: course.updatedAt.toISOString(),
   }));
-
-  if (getDemoSandboxPrincipalId(user) === DEMO_TEACHER_ID) {
-    const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
-    return mergeDemoManageCourses(persistedCourses, removedStudentIds);
-  }
 
   return persistedCourses;
 }

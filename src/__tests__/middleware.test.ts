@@ -57,27 +57,8 @@ function createRequest(pathname: string, cookieHeader?: string) {
   } as NextRequest;
 }
 
-async function demoCookieValue(role: "TEACHER" | "STUDENT") {
-  const { stringifyDemoSandboxCookieValue } = await import("@/lib/demo/sandbox");
-
-  return stringifyDemoSandboxCookieValue({
-    version: 1,
-    role,
-    onboarded: true,
-    userId: role === "TEACHER" ? "demo-teacher-user" : "demo-student-user",
-    email:
-      role === "TEACHER"
-        ? "demo.teacher.visitor-alpha@eduteams.local"
-        : "demo.student.visitor-alpha@eduteams.local",
-  });
-}
-
 describe("middleware auth handling", () => {
-  const originalDemoMode = process.env.DEMO_MODE;
-
   beforeEach(() => {
-    process.env.DEMO_MODE = "1";
-
     getSessionCookieMock.mockReset();
     createIntlMiddlewareMock.mockReset();
 
@@ -90,94 +71,6 @@ describe("middleware auth handling", () => {
   afterEach(() => {
     mock.restore();
     restoreModuleMocks();
-
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-      return;
-    }
-
-    process.env.DEMO_MODE = originalDemoMode;
-  });
-
-  it("redirects demo-cookie visitors away from login", async () => {
-    const sandboxCookie = await demoCookieValue("TEACHER");
-    const { middleware } = await import("@/middleware");
-    const request = createRequest(
-      "/login",
-      `eduteams-demo-sandbox=${encodeURIComponent(sandboxCookie)}`,
-    );
-
-    const response = await middleware(request);
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost/dashboard");
-  });
-
-  it("still redirects real sessions away from login even if the demo cookie exists", async () => {
-    getSessionCookieMock.mockReturnValue("real-session");
-    const sandboxCookie = await demoCookieValue("TEACHER");
-
-    const { middleware } = await import("@/middleware");
-    const request = createRequest(
-      "/login",
-      [
-        "better-auth.session_token=real-session",
-        `eduteams-demo-sandbox=${encodeURIComponent(sandboxCookie)}`,
-      ].join("; "),
-    );
-
-    const response = await middleware(request);
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost/dashboard");
-  });
-
-  it("skips nonce forwarding for redirect responses", async () => {
-    const sandboxCookie = await demoCookieValue("TEACHER");
-    const { middleware } = await import("@/middleware");
-    const request = createRequest(
-      "/login",
-      `eduteams-demo-sandbox=${encodeURIComponent(sandboxCookie)}`,
-    );
-
-    const response = await middleware(request);
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("x-nonce")).toBeNull();
-    expect(response.headers.get("Content-Security-Policy")).toBeNull();
-    expect(response.headers.get("x-middleware-request-x-nonce")).toBeNull();
-  });
-
-  it("rejects unsigned sandbox cookies on protected routes", async () => {
-    const { middleware } = await import("@/middleware");
-    const request = createRequest(
-      "/dashboard",
-      `eduteams-demo-sandbox=${encodeURIComponent('{"version":1,"role":"TEACHER","onboarded":true}')}`,
-    );
-
-    const response = await middleware(request);
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost/");
-  });
-
-  it("rejects signed sandbox cookies that do not include a real demo identity", async () => {
-    const { stringifyDemoSandboxCookieValue } = await import("@/lib/demo/sandbox");
-    const sandboxCookie = await stringifyDemoSandboxCookieValue({
-      version: 1,
-      role: "TEACHER",
-      onboarded: true,
-    });
-    const { middleware } = await import("@/middleware");
-    const request = createRequest(
-      "/dashboard",
-      `eduteams-demo-sandbox=${encodeURIComponent(sandboxCookie)}`,
-    );
-
-    const response = await middleware(request);
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost/");
   });
 
   it("forwards only the CSP nonce into Next.js request header overrides", async () => {
@@ -203,6 +96,16 @@ describe("middleware auth handling", () => {
     expect(response.headers.get("x-middleware-request-content-security-policy")).toBeNull();
     expect(response.headers.get("x-middleware-request-x-nonce")).toBe(nonce);
     expect(response.headers.get("x-middleware-request-cookie")).toBeNull();
+  });
+
+  it("redirects authenticated users when only the secure session cookie is present", async () => {
+    const { middleware } = await import("@/middleware");
+    const request = createRequest("/", "__Secure-better-auth.session_token=secure-token");
+
+    const response = await middleware(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("http://localhost/dashboard");
   });
 
   it("allows local development connections only in the development CSP", async () => {

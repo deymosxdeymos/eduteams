@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/api-utils";
-import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from "@/lib/demo/auth";
-import { refreshDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
+import { canStartTeacherOnboarding } from "@/lib/authorization";
 import prisma from "@/lib/prisma";
 import { AuthError, AuthorizationError, ValidationError } from "@/lib/types";
 import { genderToLabel, labelToGender } from "@/lib/utils/gender";
@@ -39,10 +38,13 @@ export async function submitDataDiri(formData: FormData, getCurrentUserImpl = ge
 
   const gender = labelToGender(jenisKelamin);
   const dbRole = role === "dosen" ? "TEACHER" : "STUDENT";
-  const demoRole = isActiveDemoAccountEmail(user.email) ? parseDemoRoleFromEmail(user.email) : null;
 
-  if (demoRole && demoRole !== dbRole) {
-    throw new AuthorizationError("Demo accounts cannot switch role scope");
+  if (user.role && user.role !== dbRole) {
+    throw new AuthorizationError("Submitted role does not match the current onboarding role");
+  }
+
+  if (dbRole === "TEACHER" && !canStartTeacherOnboarding(user)) {
+    throw new AuthorizationError("Institutional email required for teacher role");
   }
 
   await prisma.user.update({
@@ -55,10 +57,6 @@ export async function submitDataDiri(formData: FormData, getCurrentUserImpl = ge
       isOnboarded: role === "dosen",
       onboardingStep: role === "mahasiswa" ? "kepribadian" : null,
     },
-  });
-  await refreshDemoSandboxSessionCookie(user, {
-    role: dbRole,
-    onboarded: role === "dosen",
   });
 
   revalidatePath("/dashboard");

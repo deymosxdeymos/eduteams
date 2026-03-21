@@ -9,65 +9,33 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { canAccessDosenFeatures } from "@/lib/authorization";
 import { getAuthorizedStudentsData } from "@/lib/data/course-data";
 import { getManageAssignmentsForCourse } from "@/lib/data/manage-assignments";
-import {
-  DEMO_COURSE_ID,
-  DEMO_TEACHER_ID,
-  getDemoCourse,
-  getDemoSandboxPrincipalId,
-  getDemoStudentsForCourse,
-} from "@/lib/demo/sandbox";
-import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
 import prisma from "@/lib/prisma";
 import { protectDashboard } from "@/lib/server-auth";
 import type { ExtendedUser } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const getCourseForManage = cache(
-  async (
-    courseId: string,
-    user: Pick<ExtendedUser, "id"> & Partial<Pick<ExtendedUser, "email">>,
-  ) => {
-    if (courseId === DEMO_COURSE_ID && getDemoSandboxPrincipalId(user) === DEMO_TEACHER_ID) {
-      const course = getDemoCourse();
-      const removedStudentIds = await getRemovedDemoStudentIdsFromCookieStore();
-
-      return {
-        id: course.id,
-        namaMataKuliah: course.namaMataKuliah,
-        kelas: course.kelas,
-        tahunAwalPeriode: course.tahunAwalPeriode,
-        tahunAkhirPeriode: course.tahunAkhirPeriode,
-        periode: course.periode,
-        _count: {
-          enrollments: getDemoStudentsForCourse({
-            excludedStudentIds: removedStudentIds,
-          }).length,
-        },
-      };
-    }
-
-    return await prisma.course.findFirst({
-      where: {
-        id: courseId,
-        dosenId: user.id,
-      },
-      select: {
-        id: true,
-        namaMataKuliah: true,
-        kelas: true,
-        tahunAwalPeriode: true,
-        tahunAkhirPeriode: true,
-        periode: true,
-        _count: {
-          select: {
-            enrollments: true,
-          },
+const getCourseForManage = cache(async (courseId: string, user: Pick<ExtendedUser, "id">) => {
+  return await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      dosenId: user.id,
+    },
+    select: {
+      id: true,
+      namaMataKuliah: true,
+      kelas: true,
+      tahunAwalPeriode: true,
+      tahunAkhirPeriode: true,
+      periode: true,
+      _count: {
+        select: {
+          enrollments: true,
         },
       },
-    });
-  },
-);
+    },
+  });
+});
 
 export async function generateMetadata({
   params,

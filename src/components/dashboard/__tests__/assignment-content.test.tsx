@@ -73,14 +73,14 @@ describe("AssignmentContent", () => {
     mock.restore();
   });
 
-  it("does not poll persisted formation status for demo-only teacher assignments", async () => {
+  it("does not poll team formation status for teacher assignments with existing teams", async () => {
     const { AssignmentContent } = await import("../assignment-content");
 
     render(
       <AssignmentContent
-        assignmentId="demo-sandbox-assignment"
-        classId="demo-sandbox-course"
-        courseId="demo-sandbox-course"
+        assignmentId="test-assignment-1"
+        classId="test-course-1"
+        courseId="test-course-1"
         assignmentTitleLabel="Capstone Recommendation Sprint"
         courseNameLabel="Machine Learning"
         courseClassLabel="K01"
@@ -102,7 +102,7 @@ describe("AssignmentContent", () => {
 
     expect(useTeamFormationStatusMock).toHaveBeenCalledTimes(1);
     expect(useTeamFormationStatusMock.mock.calls[0]?.[0]).toMatchObject({
-      assignmentId: "demo-sandbox-assignment",
+      assignmentId: "test-assignment-1",
       enabled: false,
       shouldPoll: false,
     });

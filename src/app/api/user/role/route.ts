@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
-import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from "@/lib/demo/auth";
-import { isInstitutionalEmail } from "@/lib/email";
+import { canStartTeacherOnboarding } from "@/lib/authorization";
 import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
 // Prisma requires Node.js runtime
 export const runtime = "nodejs";
 
@@ -12,26 +12,16 @@ const roleSchema = z.object({
 });
 
 export const POST = withAuth(
-  withValidation(
+  withValidation<z.infer<typeof roleSchema>, { user: ExtendedUser }>(
     (data: unknown) => roleSchema.parse(data),
-    async (_request: NextRequest, { user, validatedData }) => {
-      if (!user) {
-        return createErrorResponse("Unauthorized", 401);
-      }
-
+    async (
+      _request: NextRequest,
+      { user, validatedData }: { user: ExtendedUser; validatedData: z.infer<typeof roleSchema> },
+    ) => {
       const { role } = validatedData;
-      const demoRole = isActiveDemoAccountEmail(user.email)
-        ? parseDemoRoleFromEmail(user.email)
-        : null;
-      const canChooseTeacher =
-        role !== "TEACHER" || isInstitutionalEmail(user.email) || demoRole === "TEACHER";
 
-      if (!canChooseTeacher) {
-        return createErrorResponse("Only eligible accounts can choose TEACHER", 403);
-      }
-
-      if (demoRole && demoRole !== role) {
-        return createErrorResponse("Demo accounts cannot switch role scope", 403);
+      if (role === "TEACHER" && !canStartTeacherOnboarding(user)) {
+        return createErrorResponse("Institutional email required for teacher role", 403);
       }
 
       await prisma.user.update({
@@ -42,5 +32,4 @@ export const POST = withAuth(
       return createApiResponse({ success: true });
     },
   ),
-  { allowDemoSandbox: true },
 );

@@ -1,6 +1,7 @@
 import { getCurrentAcademicPeriod, isArchivedAcademicPeriod } from "@/lib/utils/period";
 
-const COURSE_FORCE_VISIBLE_ARCHIVED_AT_TIME = new Date("1970-01-01T00:00:00.000Z").getTime();
+const COURSE_FORCE_VISIBLE_ARCHIVED_AT_DATE = new Date("1970-01-01T00:00:00.000Z");
+const COURSE_FORCE_VISIBLE_ARCHIVED_AT_TIME = COURSE_FORCE_VISIBLE_ARCHIVED_AT_DATE.getTime();
 
 interface CourseArchivePeriodInput {
   tahunAkhirPeriode: number;

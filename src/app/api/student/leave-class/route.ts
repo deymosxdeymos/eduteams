@@ -16,9 +16,9 @@ const leaveClassSchema = z.object({
 
 async function leaveClass(
   request: NextRequest,
-  { user, validatedData }: { user?: ExtendedUser; validatedData: { courseId: string } },
+  { user, validatedData }: { user: ExtendedUser; validatedData: { courseId: string } },
 ) {
-  if (!user || !canAccessMahasiswaFeatures(user)) {
+  if (!canAccessMahasiswaFeatures(user)) {
     return createErrorResponse("Access denied", 403);
   }
 
@@ -69,6 +69,8 @@ async function leaveClass(
 }
 
 export const POST = withAuth(
-  withValidation((data: unknown) => leaveClassSchema.parse(data), leaveClass),
-  { allowDemoSandbox: true },
+  withValidation<{ courseId: string }, { user: ExtendedUser }>(
+    (data: unknown) => leaveClassSchema.parse(data),
+    leaveClass,
+  ),
 );

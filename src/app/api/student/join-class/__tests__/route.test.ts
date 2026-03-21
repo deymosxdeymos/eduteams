@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
-const originalDemoMode = process.env.DEMO_MODE;
 
 const prismaMock: any = {
   user: {
@@ -99,13 +98,6 @@ afterEach(() => {
   } else {
     process.env.NEXT_PUBLIC_APP_URL = originalAppUrl;
   }
-
-  if (originalDemoMode === undefined) {
-    delete process.env.DEMO_MODE;
-    return;
-  }
-
-  process.env.DEMO_MODE = originalDemoMode;
 });
 
 describe("POST /api/student/join-class", () => {
@@ -146,75 +138,5 @@ describe("POST /api/student/join-class", () => {
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(404);
-  });
-
-  it("rejects demo students from joining shared classes", async () => {
-    process.env.DEMO_MODE = "1";
-    prismaMock.user.findUnique.mockResolvedValueOnce({
-      id: "s1",
-      role: "STUDENT",
-      isOnboarded: true,
-      name: "Demo Student",
-      email: "demo.student.visitor1234@eduteams.local",
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      nim: "20260001",
-      gender: "MALE",
-      hasSeenWelcomeSplash: true,
-      onboardingStep: null,
-      onboardingData: null,
-      personalityProfile: null,
-    });
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "s1" } }) } },
-    }));
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/student/join-class", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        origin: "http://localhost:3000",
-        "x-forwarded-host": "localhost",
-      },
-      body: JSON.stringify({ token: "token123" }),
-    });
-    const res = await POST(req as any, undefined as any);
-    expect(res.status).toBe(403);
-    expect(prismaMock.courseEnrollment.create).not.toHaveBeenCalled();
-  });
-
-  it("rejects real students from joining demo-owned classes", async () => {
-    process.env.DEMO_MODE = "1";
-    prismaMock.course.findUnique.mockResolvedValueOnce({
-      id: "c1",
-      namaMataKuliah: "Algoritma",
-      kelas: "RA",
-      tahunAwalPeriode: 2025,
-      tahunAkhirPeriode: 2025,
-      dosenId: "u1",
-      dosen: {
-        name: "Demo Teacher",
-        email: "demo.teacher.visitor1234@eduteams.local",
-      },
-    });
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "s1" } }) } },
-    }));
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/student/join-class", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        origin: "http://localhost:3000",
-        "x-forwarded-host": "localhost",
-      },
-      body: JSON.stringify({ token: "token123" }),
-    });
-    const res = await POST(req as any, undefined as any);
-    expect(res.status).toBe(403);
-    expect(prismaMock.courseEnrollment.create).not.toHaveBeenCalled();
   });
 });

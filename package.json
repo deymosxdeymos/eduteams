@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:demo": "DEMO_MODE=1 NEXT_PUBLIC_DISABLE_INSTITUTIONAL_EMAIL=1 bun dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "oxlint .",

@@ -8,18 +8,9 @@ const getTranslationsMock = mock(async () => {
   t.raw = (key: string) => key;
   return t;
 });
-const originalDemoMode = process.env.DEMO_MODE;
 
 mock.module("next-intl/server", () => ({
   getTranslations: getTranslationsMock,
-}));
-
-mock.module("@/components/auth/demo-login-button", () => ({
-  DemoLoginButton: ({ className }: { className?: string }) => (
-    <button data-testid="demo-login-button" className={className}>
-      Demo login
-    </button>
-  ),
 }));
 
 mock.module("@/components/auth/login-button", () => ({
@@ -77,12 +68,6 @@ afterAll(() => {
 
 describe("marketing Home page", () => {
   beforeEach(() => {
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-    } else {
-      process.env.DEMO_MODE = originalDemoMode;
-    }
-
     getTranslationsMock.mockReset();
 
     getTranslationsMock.mockImplementation(async () => {
@@ -94,25 +79,11 @@ describe("marketing Home page", () => {
     });
   });
 
-  it("renders the regular login CTA when demo mode is disabled", async () => {
-    delete process.env.DEMO_MODE;
-
+  it("renders login CTAs", async () => {
     const { default: Home } = await import("../page");
 
     render(await Home());
 
     expect(screen.getAllByTestId("login-button")).toHaveLength(2);
-    expect(screen.queryByTestId("demo-login-button")).toBeNull();
-  });
-
-  it("renders only demo login CTAs when demo login is enabled", async () => {
-    process.env.DEMO_MODE = "1";
-
-    const { default: Home } = await import("../page");
-
-    render(await Home());
-
-    expect(screen.getAllByTestId("demo-login-button")).toHaveLength(2);
-    expect(screen.queryByTestId("login-button")).toBeNull();
   });
 });

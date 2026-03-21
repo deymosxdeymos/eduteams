@@ -81,33 +81,4 @@ describe("POST /api/assignments/[id]/check-edit-impact", () => {
       data: expect.objectContaining({ tier: expect.any(Number) }),
     });
   });
-
-  it("allows demo-account teachers to check edit impact", async () => {
-    currentUser = {
-      id: "demo-teacher-user",
-      email: "demo.teacher.visitor-alpha@eduteams.local",
-      role: "TEACHER",
-      isOnboarded: true,
-    };
-    prismaMock.assignment.findUnique.mockImplementationOnce(async () => ({
-      id: "a1",
-      courseId: "c1",
-      description: JSON.stringify({ text: "old", skills: ["A"], topics: ["X"] }),
-      status: "MENUNGGU",
-      course: { dosenId: "demo-teacher-user" },
-      _count: { submissions: 3 },
-    }));
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/assignments/a1/check-edit-impact", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ skills: ["A"], topics: ["X", "Y"] }),
-    });
-
-    const res = await POST(req as any, { params: Promise.resolve({ id: "a1" }) } as any);
-
-    expect(res.status).toBe(200);
-    await expect(res.json()).resolves.toMatchObject({ success: true });
-  });
 });

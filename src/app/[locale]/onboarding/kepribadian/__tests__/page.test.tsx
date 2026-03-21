@@ -4,7 +4,6 @@ import { render, screen } from "@testing-library/react";
 const actualRouting = await import("@/i18n/routing");
 const actualServerAuth = await import("@/lib/server-auth");
 const actualAuthorization = await import("@/lib/authorization");
-const originalDemoMode = process.env.DEMO_MODE;
 
 const protectOnboardingPageMock = mock(async () => ({
   id: "demo-user",
@@ -53,10 +52,6 @@ mock.module("@/lib/authorization", () => ({
   },
 }));
 
-mock.module("@/components/onboarding/kepribadian/demo-personality-picker", () => ({
-  DemoPersonalityPicker: () => <div data-testid="demo-personality-picker" />,
-}));
-
 mock.module("@/components/onboarding/kepribadian/personality-test-client", () => ({
   default: () => <div data-testid="personality-test-client" />,
 }));
@@ -67,17 +62,16 @@ afterAll(() => {
 
 describe("KepribadianPage", () => {
   beforeEach(() => {
-    process.env.DEMO_MODE = "1";
     protectOnboardingPageMock.mockReset();
     redirectMock.mockReset();
     ensurePersonalitySessionMock.mockReset();
 
     protectOnboardingPageMock.mockResolvedValue({
-      id: "demo-user",
-      email: "demo.student.visitor1234@eduteams.local",
+      id: "user-1",
+      email: "student@example.com",
       role: "STUDENT",
       nim: "20260001",
-      name: "Demo Student",
+      name: "Test Student",
       gender: "MALE",
       isOnboarded: false,
     });
@@ -92,86 +86,15 @@ describe("KepribadianPage", () => {
   });
 
   afterEach(() => {
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-      return;
-    }
-
-    process.env.DEMO_MODE = originalDemoMode;
+    mock.restore();
   });
 
-  it("redirects roleless demo users back to the role step", async () => {
-    protectOnboardingPageMock.mockResolvedValue({
-      id: "demo-user",
-      email: "demo.student.visitor1234@eduteams.local",
-      role: null,
-      nim: null,
-      name: "Demo User",
-      gender: null,
-      isOnboarded: false,
-    });
-
-    const { default: KepribadianPage } = await import("../page");
-
-    await expect(KepribadianPage({ params: Promise.resolve({ locale: "id" }) })).rejects.toThrow(
-      "NEXT_REDIRECT",
-    );
-
-    expect(redirectMock).toHaveBeenCalledWith({
-      href: "/onboarding/role",
-      locale: "id",
-    });
-  });
-
-  it("redirects demo students with incomplete data diri back to the data diri step", async () => {
-    protectOnboardingPageMock.mockResolvedValue({
-      id: "demo-user",
-      email: "demo.student.visitor1234@eduteams.local",
-      role: "STUDENT",
-      nim: null,
-      name: "Demo Student",
-      gender: "MALE",
-      isOnboarded: false,
-    });
-
-    const { default: KepribadianPage } = await import("../page");
-
-    await expect(KepribadianPage({ params: Promise.resolve({ locale: "id" }) })).rejects.toThrow(
-      "NEXT_REDIRECT",
-    );
-
-    expect(redirectMock).toHaveBeenCalledWith({
-      href: "/onboarding/data-diri/mahasiswa",
-      locale: "id",
-    });
-  });
-
-  it("renders the real personality test for non-demo users even when demo mode is enabled", async () => {
-    protectOnboardingPageMock.mockResolvedValue({
-      id: "real-user",
-      email: "student@example.com",
-      role: "STUDENT",
-      nim: "20260001",
-      name: "Real Student",
-      gender: "MALE",
-      isOnboarded: false,
-    });
-
+  it("renders the personality test for users", async () => {
     const { default: KepribadianPage } = await import("../page");
 
     render(await KepribadianPage({ params: Promise.resolve({ locale: "id" }) }));
 
     expect(screen.getByTestId("personality-test-client")).toBeTruthy();
-    expect(screen.queryByTestId("demo-personality-picker")).toBeNull();
     expect(ensurePersonalitySessionMock).toHaveBeenCalledWith("id");
-  });
-
-  it("renders the demo personality picker only for eligible demo students", async () => {
-    const { default: KepribadianPage } = await import("../page");
-
-    render(await KepribadianPage({ params: Promise.resolve({ locale: "id" }) }));
-
-    expect(screen.getByTestId("demo-personality-picker")).toBeTruthy();
-    expect(ensurePersonalitySessionMock).not.toHaveBeenCalled();
   });
 });

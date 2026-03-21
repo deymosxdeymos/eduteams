@@ -118,10 +118,7 @@ mock.module("@/lib/mbti-questions-simple", () => ({
 }));
 
 describe("POST /api/user/complete-onboarding", () => {
-  const originalDemoMode = process.env.DEMO_MODE;
-
   beforeEach(() => {
-    delete process.env.DEMO_MODE;
     prismaMock.user.findUnique.mockReset();
     prismaMock.user.findUnique.mockImplementation(async () => ({
       id: "u1",
@@ -139,12 +136,7 @@ describe("POST /api/user/complete-onboarding", () => {
   });
 
   afterEach(() => {
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-      return;
-    }
-
-    process.env.DEMO_MODE = originalDemoMode;
+    mock.restore();
   });
 
   it("calculates personality for mahasiswa answers", async () => {
@@ -250,41 +242,5 @@ describe("POST /api/user/complete-onboarding", () => {
     expect(res.status).toBe(400);
     expect(prismaMock.user.update).not.toHaveBeenCalled();
     expect(prismaMock.personalityProfile.upsert).not.toHaveBeenCalled();
-  });
-
-  it("allows demo users to complete onboarding", async () => {
-    process.env.DEMO_MODE = "1";
-    prismaMock.user.findUnique.mockImplementation(async () => ({
-      id: "demo-user",
-      name: "Demo Student",
-      email: "demo.student.visitor-alpha@eduteams.local",
-      emailVerified: true,
-      image: null,
-      role: "STUDENT",
-      isOnboarded: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      nim: "20260001",
-      gender: "MALE",
-      hasSeenWelcomeSplash: false,
-      onboardingStep: "kepribadian",
-      onboardingData: null,
-      personalityProfile: null,
-    }));
-
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "demo-user" } }) } },
-    }));
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/user/complete-onboarding", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ answers: { 1: 3, 2: 3, 3: 3, 4: 3 } }),
-    });
-
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
   });
 });

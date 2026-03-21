@@ -1,7 +1,6 @@
 import { Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { DemoLoginButton } from "@/components/auth/demo-login-button";
 import { LoginButton } from "@/components/auth/login-button";
 import { LanguageSwitcherServer } from "@/components/dashboard/language-switcher-server";
 import {
@@ -10,30 +9,14 @@ import {
 } from "@/components/landing/deferred-decorations";
 import Logo from "@/components/logo";
 import { CopyrightYear } from "./copyright-year";
-import { isDemoModeEnabled } from "@/lib/demo/config";
 import { HighlightText } from "@/components/ui/highlight-text";
 import { ScrollToTopClient } from "@/components/ui/scroll-to-top-client";
 import { SkipLink } from "@/components/ui/skip-link";
 import { SocialRow } from "@/components/ui/social-row";
 
-function AuthCallToActionGroup({
-  demoLoginEnabled,
-  className,
-}: {
-  demoLoginEnabled: boolean;
-  className: string;
-}) {
-  if (!demoLoginEnabled) {
-    return <LoginButton className={className} />;
-  }
-
-  return <DemoLoginButton className={className} />;
-}
-
 export default async function Home() {
   const t = await getTranslations();
   const mainContentId = "main-content";
-  const demoLoginEnabled = isDemoModeEnabled();
   const initialCopyrightYear = new Date().getFullYear();
   const copyrightYearToken = "__COPYRIGHT_YEAR__";
   const [copyrightBeforeYear, copyrightAfterYear = ""] = t("homepage.footer.copyright", {
@@ -81,10 +64,7 @@ export default async function Home() {
             </p>
 
             <div className="mt-4">
-              <AuthCallToActionGroup
-                demoLoginEnabled={demoLoginEnabled}
-                className="animate-hero-delay-800 min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10"
-              />
+              <LoginButton className="animate-hero-delay-800 min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10" />
             </div>
             <div className="relative z-20 flex w-full items-center justify-center">
               <div className="animate-mascot relative mt-4 mb-6 h-[255px] w-full max-w-[980px] sm:h-[365px] md:h-[350px] lg:mb-0 lg:h-[420px]">
@@ -458,10 +438,7 @@ export default async function Home() {
               size="text-xl sm:text-2xl md:text-5xl"
               className="justify-center"
             />
-            <AuthCallToActionGroup
-              demoLoginEnabled={demoLoginEnabled}
-              className="min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10"
-            />
+            <LoginButton className="min-w-[240px] sm:min-w-[280px] rounded-full text-sm sm:text-lg py-8 px-10" />
           </div>
           <div className="flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-48 text-start whitespace-pre-line z-10 w-full">
             <h2 className="text-white text-3xl font-semibold mt-2 max-w-lg">

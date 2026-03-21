@@ -2,23 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 import { AssignmentDetailAsync } from "@/components/dashboard/async/assignment-detail-async";
-import { AssignmentLayout } from "@/components/dashboard/assignment-layout";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
-import { DemoLocalAssignmentBody } from "@/components/demo/demo-local-assignment-body";
 import { AssignmentSkeleton } from "@/components/ui/skeletons/assignment-skeleton";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
-import {
-  DEMO_COURSE_ID,
-  getDemoAssignmentDefinitionFromSearchParams,
-  getDemoAssignmentSubmissionSnapshot,
-  getDemoCourse,
-  getDemoSandboxPrincipalId,
-  getDemoStudentsForCourse,
-  isDemoSandboxAssignmentId,
-  isDemoSandboxUser,
-} from "@/lib/demo/sandbox";
-import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
-import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import prisma from "@/lib/prisma";
 import { protectDashboard } from "@/lib/server-auth";
 import type { Course, ExtendedUser } from "@/lib/types";
@@ -170,16 +156,9 @@ async function getCourseAndStudents(courseId: string, user: ExtendedUser) {
 
 interface AssignmentPageProps {
   params: Promise<{ id: string; assignmentId: string }>;
-  searchParams: Promise<{
-    demoTitle?: string | string[];
-    demoSkill?: string | string[];
-    demoTopic?: string | string[];
-    demoSkillsEmpty?: string | string[];
-    demoTopicsEmpty?: string | string[];
-  }>;
 }
 
-export default async function AssignmentPage({ params, searchParams }: AssignmentPageProps) {
+export default async function AssignmentPage({ params }: AssignmentPageProps) {
   const user = await protectDashboard();
   const { id, assignmentId } = await params;
 
@@ -188,67 +167,6 @@ export default async function AssignmentPage({ params, searchParams }: Assignmen
 
   if (!isDosen && !isMahasiswa) {
     notFound();
-  }
-
-  if (id === DEMO_COURSE_ID && isDemoSandboxUser(user) && isDemoSandboxAssignmentId(assignmentId)) {
-    const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
-    const assignmentDefinition = getDemoAssignmentDefinitionFromSearchParams(await searchParams);
-    const course = getDemoCourse();
-    const [removedStudentIds, submittedAssignmentIds] = await Promise.all([
-      getRemovedDemoStudentIdsFromCookieStore(),
-      getDemoSubmittedAssignmentIdsFromCookieStore(),
-    ]);
-    const students = getDemoStudentsForCourse({
-      excludedStudentIds: removedStudentIds,
-    }).map((student) => ({
-      id: student.id,
-      name: student.name,
-      nim: student.nim,
-      email: student.email,
-      gender: student.gender,
-      mbtiType: student.mbtiType,
-      ei: student.ei,
-      sn: student.sn,
-      tf: student.tf,
-      pj: student.pj,
-      enrolledAt: student.enrolledAt,
-    }));
-    const submissionSnapshot = getDemoAssignmentSubmissionSnapshot({
-      assignmentId,
-      currentUserId,
-      enrolledStudentIds: students.map((student) => student.id),
-      submittedAssignmentIds,
-    });
-
-    return (
-      <DashboardClient shouldShowSplash={false} isFirstVisit={false}>
-        <AssignmentLayout
-          user={user}
-          course={course}
-          classId={id}
-          assignmentId={assignmentId}
-          students={students}
-          canManage={isDosen}
-          assignmentTitle={assignmentDefinition.title}
-          submittedStudentIds={submissionSnapshot.submittedStudentIds}
-        >
-          <DemoLocalAssignmentBody
-            classId={id}
-            assignmentId={assignmentId}
-            courseName={course.namaMataKuliah}
-            courseClass={course.kelas}
-            canManage={isDosen}
-            isStudent={isMahasiswa}
-            currentUserId={currentUserId}
-            initialTitle={assignmentDefinition.title}
-            initialSkills={assignmentDefinition.skills}
-            initialTopics={assignmentDefinition.topics}
-            initialSubmittedAssignmentIds={submittedAssignmentIds}
-            enrolledStudents={students}
-          />
-        </AssignmentLayout>
-      </DashboardClient>
-    );
   }
 
   // Fetch course and students data

@@ -1,9 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { NextRequest } from "next/server";
 
 const actualCsrf = await import("@/lib/csrf");
-const actualCleanup = await import("@/lib/demo/cleanup");
-const deleteDemoVisitorDataMock = mock(async () => ({ visitorId: null, deletedUserCount: 0 }));
 const isSameOriginMock = mock(() => true);
 
 function applyModuleMocks() {
@@ -11,111 +9,69 @@ function applyModuleMocks() {
     ...actualCsrf,
     isSameOrigin: isSameOriginMock,
   }));
-  mock.module("@/lib/demo/cleanup", () => ({
-    ...actualCleanup,
-    deleteDemoVisitorData: deleteDemoVisitorDataMock,
-  }));
-}
-
-function restoreModuleMocks() {
-  mock.module("@/lib/csrf", () => actualCsrf);
-  mock.module("@/lib/demo/cleanup", () => actualCleanup);
 }
 
 describe("/api/auth/clear-session", () => {
   beforeEach(() => {
-    deleteDemoVisitorDataMock.mockReset();
     isSameOriginMock.mockReset();
-    deleteDemoVisitorDataMock.mockResolvedValue({ visitorId: null, deletedUserCount: 0 });
     isSameOriginMock.mockReturnValue(true);
     applyModuleMocks();
   });
 
-  afterEach(() => {
-    mock.restore();
-    restoreModuleMocks();
-  });
-
-  it("GET deletes current demo data for same-origin requests", async () => {
+  it("GET redirects to the specified path and clears Better Auth cookies", async () => {
     const { GET } = await import("../route");
     const request = new NextRequest("http://localhost/api/auth/clear-session?redirect=/dashboard", {
-      headers: { referer: "http://localhost/dashboard" },
+      headers: {
+        cookie:
+          "better-auth.session_token=token; better-auth.session_data.0=chunk-0; __Secure-better-auth.dont_remember=true",
+      },
     });
 
     const response = await GET(request);
-    const cookieNames = response.cookies.getAll().map((cookie) => cookie.name);
 
-    expect(isSameOriginMock).toHaveBeenCalledWith(request);
-    expect(deleteDemoVisitorDataMock).toHaveBeenCalledWith(request);
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("http://localhost/dashboard");
-    expect(cookieNames).toEqual(
-      expect.arrayContaining([
-        "better-auth.session_token",
-        "__Secure-better-auth.session_token",
-        "better-auth.session_data",
-        "__Secure-better-auth.session_data",
-        "better-auth.dont_remember",
-        "__Secure-better-auth.dont_remember",
-        "eduteams-demo-sandbox",
-        "eduteams-demo-sandbox-roster",
-        "eduteams-demo-visitor",
-        "eduteams-demo-visitor-public",
-      ]),
+
+    const setCookies = response.headers.getSetCookie();
+    expect(setCookies.some((cookie) => cookie.includes("better-auth.session_token=;"))).toBe(true);
+    expect(setCookies.some((cookie) => cookie.includes("better-auth.session_data=;"))).toBe(true);
+
+    const secureCookie = setCookies.find((cookie) =>
+      cookie.includes("__Secure-better-auth.dont_remember=;"),
     );
+    expect(secureCookie).toBeDefined();
+    expect(secureCookie).toContain("Secure");
   });
 
-  it("GET skips demo cleanup for cross-site requests while clearing session cookies", async () => {
-    isSameOriginMock.mockReturnValue(false);
-
+  it("GET clears __Secure session cookies with the Secure attribute", async () => {
     const { GET } = await import("../route");
-    const request = new NextRequest("http://localhost/api/auth/clear-session?redirect=/dashboard", {
-      headers: { referer: "https://attacker.example/logout" },
+    const request = new NextRequest("https://example.com/api/auth/clear-session", {
+      headers: {
+        cookie: "__Secure-better-auth.session_data=chunk-0",
+      },
     });
 
     const response = await GET(request);
-    const cookieNames = response.cookies.getAll().map((cookie) => cookie.name);
-
-    expect(isSameOriginMock).toHaveBeenCalledWith(request);
-    expect(deleteDemoVisitorDataMock).not.toHaveBeenCalled();
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost/dashboard");
-    expect(cookieNames).toEqual(
-      expect.arrayContaining([
-        "better-auth.session_token",
-        "__Secure-better-auth.session_token",
-        "better-auth.session_data",
-        "__Secure-better-auth.session_data",
-        "better-auth.dont_remember",
-        "__Secure-better-auth.dont_remember",
-        "eduteams-demo-sandbox",
-        "eduteams-demo-sandbox-roster",
-      ]),
+    const setCookies = response.headers.getSetCookie();
+    const secureSessionCookie = setCookies.find((cookie) =>
+      cookie.includes("__Secure-better-auth.session_data=;"),
     );
-    expect(cookieNames).not.toContain("eduteams-demo-visitor");
-    expect(cookieNames).not.toContain("eduteams-demo-visitor-public");
+
+    expect(secureSessionCookie).toBeDefined();
+    expect(secureSessionCookie).toContain("Secure");
   });
 
-  it("GET clears demo sandbox cookies even without origin or referer headers", async () => {
-    isSameOriginMock.mockReturnValue(false);
-
+  it("GET defaults to / when no redirect param", async () => {
     const { GET } = await import("../route");
-    const request = new NextRequest("http://localhost/api/auth/clear-session?redirect=/dashboard");
+    const request = new NextRequest("http://localhost/api/auth/clear-session");
 
     const response = await GET(request);
-    const cookieNames = response.cookies.getAll().map((cookie) => cookie.name);
 
-    expect(isSameOriginMock).toHaveBeenCalledWith(request);
-    expect(deleteDemoVisitorDataMock).not.toHaveBeenCalled();
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost/dashboard");
-    expect(cookieNames).toContain("eduteams-demo-sandbox");
-    expect(cookieNames).toContain("eduteams-demo-sandbox-roster");
-    expect(cookieNames).not.toContain("eduteams-demo-visitor");
-    expect(cookieNames).not.toContain("eduteams-demo-visitor-public");
+    expect(response.headers.get("location")).toBe("http://localhost/");
   });
 
-  it("POST deletes current demo data before redirecting", async () => {
+  it("POST redirects for same-origin requests", async () => {
     const { POST } = await import("../route");
     const request = new NextRequest("http://localhost/api/auth/clear-session?redirect=/dashboard", {
       method: "POST",
@@ -125,12 +81,11 @@ describe("/api/auth/clear-session", () => {
     const response = await POST(request);
 
     expect(isSameOriginMock).toHaveBeenCalledWith(request);
-    expect(deleteDemoVisitorDataMock).toHaveBeenCalledWith(request);
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("http://localhost/dashboard");
   });
 
-  it("POST rejects cross-site cleanup attempts", async () => {
+  it("POST rejects cross-site requests", async () => {
     isSameOriginMock.mockReturnValue(false);
 
     const { POST } = await import("../route");
@@ -140,7 +95,6 @@ describe("/api/auth/clear-session", () => {
 
     const response = await POST(request);
 
-    expect(deleteDemoVisitorDataMock).not.toHaveBeenCalled();
     expect(response.status).toBe(403);
   });
 });

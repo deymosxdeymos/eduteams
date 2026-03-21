@@ -1,5 +1,4 @@
 import { getSidebarDataForUser } from "@/lib/dashboard/sidebar-data";
-import { DEMO_COURSE_ID, getDemoSandboxPrincipalId } from "@/lib/demo/sandbox";
 import type { Course, ExtendedUser } from "@/lib/types";
 import Nav from "./nav";
 import Sidebar from "./sidebar";
@@ -9,7 +8,6 @@ interface AssignmentLayoutProps {
   user: ExtendedUser;
   course: Course;
   classId: string;
-  assignmentId: string;
   students?: Array<{
     id: string;
     name: string;
@@ -35,7 +33,6 @@ export async function AssignmentLayout({
   user,
   course,
   classId,
-  assignmentId: _,
   students,
   totalStudents: totalStudentsProp,
   canManage,
@@ -46,8 +43,7 @@ export async function AssignmentLayout({
   children,
 }: AssignmentLayoutProps) {
   const sidebarData = await getSidebarDataForUser(user);
-  const currentUserId =
-    course.id === DEMO_COURSE_ID ? (getDemoSandboxPrincipalId(user) ?? user.id) : user.id;
+  const currentUserId = user.id;
   const submittedCount = submittedStudentIds ? submittedStudentIds.length : 0;
   const totalStudents = totalStudentsProp ?? students?.length ?? 0;
 

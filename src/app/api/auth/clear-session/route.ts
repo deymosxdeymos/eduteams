@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  getBetterAuthCookiesToClear,
+  isSecureBetterAuthCookieName,
+} from "@/lib/better-auth-cookies";
 import { isSameOrigin } from "@/lib/csrf";
-import { deleteAuthSessionCookies, deleteDemoVisitorCookies } from "@/lib/demo/auth";
-import { deleteDemoVisitorData } from "@/lib/demo/cleanup";
-import { DEMO_SANDBOX_COOKIE_NAME } from "@/lib/demo/sandbox";
-import { clearDemoSandboxRosterCookie } from "@/lib/demo/sandbox-roster";
-import { clearDemoSandboxSubmissionsCookie } from "@/lib/demo/sandbox-submissions";
 
 function getRedirectTarget(request: NextRequest) {
   const redirectTo = request.nextUrl.searchParams.get("redirect");
@@ -16,27 +15,23 @@ function getRedirectTarget(request: NextRequest) {
   return redirectTo;
 }
 
-async function clearSessionAndRedirect(
-  request: NextRequest,
-  options?: { deleteDemoData?: boolean },
-) {
-  if (options?.deleteDemoData ?? true) {
-    await deleteDemoVisitorData(request);
+function clearSessionAndRedirect(request: NextRequest) {
+  const response = NextResponse.redirect(new URL(getRedirectTarget(request), request.url));
+
+  for (const cookieName of getBetterAuthCookiesToClear(request)) {
+    response.cookies.set(cookieName, "", {
+      expires: new Date(0),
+      maxAge: 0,
+      path: "/",
+      secure: isSecureBetterAuthCookieName(cookieName),
+    });
   }
 
-  const response = NextResponse.redirect(new URL(getRedirectTarget(request), request.url));
-  deleteAuthSessionCookies(response);
-  response.cookies.delete(DEMO_SANDBOX_COOKIE_NAME);
-  clearDemoSandboxRosterCookie(response);
-  clearDemoSandboxSubmissionsCookie(response);
-  if (options?.deleteDemoData ?? true) {
-    deleteDemoVisitorCookies(response);
-  }
   return response;
 }
 
 export async function GET(request: NextRequest) {
-  return clearSessionAndRedirect(request, { deleteDemoData: isSameOrigin(request) });
+  return clearSessionAndRedirect(request);
 }
 
 export async function POST(request: NextRequest) {

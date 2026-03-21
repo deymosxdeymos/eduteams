@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const revalidateTagMock = mock(() => {});
 
@@ -26,6 +26,10 @@ const prismaMock = {
 mock.module("@/lib/prisma", () => ({ default: prismaMock }));
 
 describe("completeTeamFormationRequest", () => {
+  afterAll(() => {
+    mock.restore();
+  });
+
   beforeEach(() => {
     mock.module("next/cache", () => ({
       unstable_cache: (fn: unknown) => fn,

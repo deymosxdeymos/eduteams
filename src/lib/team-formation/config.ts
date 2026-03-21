@@ -1,4 +1,4 @@
-import { isDemoModeEnabled } from "@/lib/demo/config";
+import { isManagedVercelProductionDeployment } from "@/lib/utils/environment";
 import type { TeamFormationProviderName } from "./types";
 
 const VALID_PROVIDERS = new Set<TeamFormationProviderName>(["local", "edu2com"]);
@@ -30,15 +30,11 @@ export function resolveTeamFormationProvider(): TeamFormationProviderName {
     return explicitProvider;
   }
 
-  if (isDemoModeEnabled()) {
-    return "local";
+  if (isManagedVercelProductionDeployment()) {
+    return "edu2com";
   }
 
-  if (process.env.NODE_ENV === "development") {
-    return "local";
-  }
-
-  return "edu2com";
+  return "local";
 }
 
 export function getRequiredEdu2comWebhookSecret(): string {
@@ -80,4 +76,10 @@ export function getRequiredEdu2comWebhookBaseUrl(): string {
 export function assertEdu2comProviderConfiguration(): void {
   getRequiredEdu2comWebhookSecret();
   getRequiredEdu2comWebhookBaseUrl();
+}
+
+export function assertTeamFormationConfiguration(): void {
+  if (resolveTeamFormationProvider() === "edu2com") {
+    assertEdu2comProviderConfiguration();
+  }
 }

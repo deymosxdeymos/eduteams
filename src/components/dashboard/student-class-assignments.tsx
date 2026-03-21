@@ -8,16 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
-import { dateFormatterUTC, timeFormatterUTC } from "@/lib/constants";
+import { formatIdTimeDate } from "@/lib/constants";
 import { parseAssignmentDescription } from "@/lib/assignment-description";
-import {
-  buildDemoAssignmentHref,
-  buildDemoAssignmentQuizHref,
-  DEMO_COURSE_ID,
-  isDemoSandboxAssignmentId,
-} from "@/lib/demo/sandbox";
-import { useDemoCourseSandboxSync } from "@/lib/hooks/use-demo-course-sandbox-sync";
-import { getDemoAssignmentStatus, mergeDemoAssignments } from "@/lib/demo/sandbox-client";
 import { useFuzzySearch } from "@/lib/hooks/use-fuzzy-search";
 import type { AssignmentClient } from "@/lib/validation/assignments";
 import { EmptyStudentAssignmentState } from "./empty-student-assignment-state";
@@ -38,7 +30,6 @@ export function StudentClassAssignments({
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const hasInitialAssignments = initialAssignments !== undefined;
-  const isDemoCourse = classId === DEMO_COURSE_ID;
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
     fetcher<{ data: AssignmentClient[] }>,
@@ -50,75 +41,10 @@ export function StudentClassAssignments({
       revalidateOnReconnect: false,
     },
   );
-  const seededSubmittedAssignmentIds = useMemo(() => {
-    if (!isDemoCourse) {
-      return [];
-    }
-
-    const serverAssignments = assignmentsData?.data ?? initialAssignments ?? [];
-    return serverAssignments
-      .filter((assignment) => isDemoSandboxAssignmentId(assignment.id) && assignment.submittedByMe)
-      .map((assignment) => assignment.id);
-  }, [assignmentsData?.data, initialAssignments, isDemoCourse]);
-
-  const { createdAssignments, submittedAssignmentIds, isReady } = useDemoCourseSandboxSync({
-    courseId: classId,
-    enabled: isDemoCourse,
-    seededSubmittedAssignmentIds,
-  });
-
-  const localAssignments = useMemo(
-    () =>
-      createdAssignments.map((assignment) => {
-        const hasSubmitted = submittedAssignmentIds.has(assignment.id);
-
-        return {
-          id: assignment.id,
-          courseId: assignment.courseId,
-          title: assignment.title,
-          description: assignment.description ?? undefined,
-          startAt: new Date(assignment.startAt),
-          createdAt: new Date(assignment.createdAt),
-          status: getDemoAssignmentStatus(assignment.id),
-          skills: assignment.skills,
-          topics: assignment.topics,
-          submissionsCount: hasSubmitted
-            ? assignment.submissionsCount
-            : Math.max(0, assignment.submissionsCount - 1),
-          submittedByMe: hasSubmitted,
-          needsUpdate: false,
-        } satisfies AssignmentClient;
-      }),
-    [createdAssignments, submittedAssignmentIds],
+  const assignments = useMemo(
+    () => assignmentsData?.data ?? initialAssignments ?? [],
+    [assignmentsData?.data, initialAssignments],
   );
-
-  const assignments: AssignmentClient[] = useMemo(() => {
-    const serverAssignments = assignmentsData?.data ?? [];
-    if (!isDemoCourse) {
-      return serverAssignments;
-    }
-
-    if (!isReady) {
-      return serverAssignments;
-    }
-
-    return mergeDemoAssignments(serverAssignments, localAssignments).map((assignment) => {
-      if (!isDemoSandboxAssignmentId(assignment.id)) {
-        return assignment;
-      }
-
-      const hasSubmittedLocally = submittedAssignmentIds.has(assignment.id);
-      const hadSubmittedOnServer = Boolean(assignment.submittedByMe);
-      const submissionsCountDelta =
-        hasSubmittedLocally === hadSubmittedOnServer ? 0 : hasSubmittedLocally ? 1 : -1;
-
-      return {
-        ...assignment,
-        submissionsCount: Math.max(0, assignment.submissionsCount + submissionsCountDelta),
-        submittedByMe: hasSubmittedLocally,
-      };
-    });
-  }, [assignmentsData?.data, isReady, isDemoCourse, localAssignments, submittedAssignmentIds]);
   const hasAssignments = assignments.length > 0;
 
   const filteredAssignments = useFuzzySearch<AssignmentClient>({
@@ -127,11 +53,6 @@ export function StudentClassAssignments({
     keys: ["title"],
     debounceDelay: 250,
   });
-
-  const formatIdTimeDate = (input: Date | string) => {
-    const d = new Date(input);
-    return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
-  };
 
   return (
     <div className="bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden">
@@ -172,23 +93,10 @@ export function StudentClassAssignments({
                 ) : null}
                 {filteredAssignments.map((a) => {
                   const descriptionText = parseAssignmentDescription(a.description).text;
-                  const hasAssignmentDetails =
-                    a.submittedByMe || a.status === "BERHASIL_PEMBAGIAN_GRUP";
-                  const assignmentHref = hasAssignmentDetails
-                    ? buildDemoAssignmentHref({
-                        classId,
-                        assignmentId: a.id,
-                        title: a.title,
-                        skills: a.skills,
-                        topics: a.topics,
-                      })
-                    : buildDemoAssignmentQuizHref({
-                        classId,
-                        assignmentId: a.id,
-                        title: a.title,
-                        skills: a.skills,
-                        topics: a.topics,
-                      });
+                  const assignmentHref =
+                    !a.submittedByMe && a.status !== "BERHASIL_PEMBAGIAN_GRUP"
+                      ? `/dashboard/class/${classId}/assignments/${a.id}/quiz`
+                      : `/dashboard/class/${classId}/assignments/${a.id}`;
                   return (
                     <div key={a.id} className="content-auto">
                       <div
@@ -247,7 +155,7 @@ export function StudentClassAssignments({
                                     })}
                                   </Badge>
                                 )}
-                                {process.env.NODE_ENV !== "production" && !isDemoCourse && (
+                                {process.env.NODE_ENV !== "production" && (
                                   <Button
                                     variant="outline"
                                     size="sm"

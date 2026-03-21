@@ -1,12 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
-import {
-  DEMO_SANDBOX_COOKIE_NAME,
-  hasDemoSandboxAuthenticatedSession,
-  isDemoModeEnabled,
-  parseDemoSandboxCookieValue,
-} from "@/lib/demo/sandbox";
+import { getBetterAuthSessionToken } from "@/lib/better-auth-cookies";
 import { routing } from "./i18n/routing";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -109,6 +104,7 @@ function applySecurityHeaders(response: NextResponse) {
   return response;
 }
 
+const STATIC_EXT_RE = /\.(ico|png|jpg|jpeg|svg|gif|webp)$/;
 const intlMiddleware = createMiddleware(routing);
 
 function hasBetterAuthSessionToken(request: NextRequest) {
@@ -121,23 +117,7 @@ function hasBetterAuthSessionToken(request: NextRequest) {
     // ignore and fallback
   }
 
-  const token = request.cookies.get("better-auth.session_token")?.value;
-  return Boolean(token);
-}
-
-async function hasDemoSandboxSession(request: NextRequest) {
-  if (!isDemoModeEnabled()) {
-    return false;
-  }
-
-  const demoCookieValue = request.cookies.get(DEMO_SANDBOX_COOKIE_NAME)?.value;
-  if (!demoCookieValue) {
-    return false;
-  }
-
-  const demoSession = await parseDemoSandboxCookieValue(demoCookieValue);
-
-  return hasDemoSandboxAuthenticatedSession(demoSession);
+  return Boolean(getBetterAuthSessionToken(request));
 }
 
 export async function middleware(request: NextRequest) {
@@ -147,13 +127,12 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
-    pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp)$/)
+    STATIC_EXT_RE.test(pathname)
   ) {
     return NextResponse.next();
   }
 
-  const hasBetterAuthSession = hasBetterAuthSessionToken(request);
-  const hasRouteSession = hasBetterAuthSession || (await hasDemoSandboxSession(request));
+  const hasRouteSession = hasBetterAuthSessionToken(request);
 
   const protectedPathnameRegex = /^\/(en\/)?(dashboard|onboarding|profile|settings)/;
   const isProtectedRoute = protectedPathnameRegex.test(pathname);

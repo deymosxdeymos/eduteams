@@ -10,15 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
-import { dateFormatterUTC, timeFormatterUTC } from "@/lib/constants";
+import { formatIdTimeDate } from "@/lib/constants";
 import { parseAssignmentDescription } from "@/lib/assignment-description";
-import {
-  buildDemoAssignmentHref,
-  DEMO_COURSE_ID,
-  getDemoAssignmentSubmissionSnapshot,
-} from "@/lib/demo/sandbox";
-import { useDemoCourseSandboxSync } from "@/lib/hooks/use-demo-course-sandbox-sync";
-import { getDemoAssignmentStatus, mergeDemoAssignments } from "@/lib/demo/sandbox-client";
 import { useFuzzySearch } from "@/lib/hooks/use-fuzzy-search";
 import type { AssignmentResponse } from "@/lib/validation/assignments";
 import { EmptyAssignmentState } from "./empty-assignment-state";
@@ -49,8 +42,6 @@ interface ClassAssignmentsProps {
   };
   initialAssignments?: AssignmentResponse[];
   studentCount?: number;
-  currentUserId?: string;
-  enrolledStudentIds?: string[];
 }
 
 export function ClassAssignments({
@@ -58,8 +49,6 @@ export function ClassAssignments({
   courseData,
   initialAssignments,
   studentCount = 0,
-  currentUserId,
-  enrolledStudentIds = [],
 }: ClassAssignmentsProps) {
   const router = useRouter();
   const t = useTranslations("dashboard.classAssignments");
@@ -70,7 +59,6 @@ export function ClassAssignments({
     shallow: true,
   });
   const hasInitialAssignments = initialAssignments !== undefined;
-  const isDemoCourse = classId === DEMO_COURSE_ID;
   const { data: assignmentsData, mutate: mutateAssignments } = useSWR(
     `/api/courses/${classId}/assignments`,
     fetcher<{ data: AssignmentResponse[] }>,
@@ -82,101 +70,10 @@ export function ClassAssignments({
       revalidateOnReconnect: false,
     },
   );
-  const serverAssignments = useMemo(
+  const assignments = useMemo(
     () => assignmentsData?.data ?? initialAssignments ?? [],
     [assignmentsData?.data, initialAssignments],
   );
-  const seededSubmittedAssignmentIds = useMemo(() => {
-    if (!isDemoCourse || !currentUserId) {
-      return [] as string[];
-    }
-
-    return serverAssignments.flatMap((assignment) => {
-      const pendingSubmissionCount = getDemoAssignmentSubmissionSnapshot({
-        assignmentId: assignment.id,
-        currentUserId,
-        enrolledStudentIds,
-        submittedAssignmentIds: [],
-      }).submittedStudentIds.length;
-
-      return assignment.submissionsCount > pendingSubmissionCount ? [assignment.id] : [];
-    });
-  }, [currentUserId, enrolledStudentIds, isDemoCourse, serverAssignments]);
-
-  const { createdAssignments, submittedAssignmentIds, isReady } = useDemoCourseSandboxSync({
-    courseId: classId,
-    enabled: isDemoCourse,
-    seededSubmittedAssignmentIds,
-  });
-  const submittedAssignmentIdList = useMemo(
-    () => Array.from(submittedAssignmentIds),
-    [submittedAssignmentIds],
-  );
-
-  const localAssignments = useMemo(
-    () =>
-      createdAssignments.map((assignment) => {
-        const submissionSnapshot = currentUserId
-          ? getDemoAssignmentSubmissionSnapshot({
-              assignmentId: assignment.id,
-              currentUserId,
-              enrolledStudentIds,
-              submittedAssignmentIds: submittedAssignmentIdList,
-            })
-          : null;
-
-        return {
-          id: assignment.id,
-          courseId: assignment.courseId,
-          title: assignment.title,
-          description: assignment.description ?? undefined,
-          startAt: new Date(assignment.startAt),
-          createdAt: new Date(assignment.createdAt),
-          status: getDemoAssignmentStatus(assignment.id),
-          skills: assignment.skills,
-          topics: assignment.topics,
-          submissionsCount:
-            submissionSnapshot?.submittedStudentIds.length ?? assignment.submissionsCount,
-        } satisfies AssignmentResponse;
-      }),
-    [createdAssignments, currentUserId, enrolledStudentIds, submittedAssignmentIdList],
-  );
-  const syncedServerAssignments = useMemo(() => {
-    if (!isDemoCourse || !isReady || !currentUserId) {
-      return serverAssignments;
-    }
-
-    return serverAssignments.map((assignment) => {
-      const submissionsCount = getDemoAssignmentSubmissionSnapshot({
-        assignmentId: assignment.id,
-        currentUserId,
-        enrolledStudentIds,
-        submittedAssignmentIds: submittedAssignmentIdList,
-      }).submittedStudentIds.length;
-
-      return submissionsCount === assignment.submissionsCount
-        ? assignment
-        : {
-            ...assignment,
-            submissionsCount,
-          };
-    });
-  }, [
-    currentUserId,
-    enrolledStudentIds,
-    isDemoCourse,
-    isReady,
-    serverAssignments,
-    submittedAssignmentIdList,
-  ]);
-
-  const assignments: AssignmentResponse[] = useMemo(() => {
-    if (!isDemoCourse || !isReady) {
-      return serverAssignments;
-    }
-
-    return mergeDemoAssignments(syncedServerAssignments, localAssignments);
-  }, [isDemoCourse, isReady, localAssignments, serverAssignments, syncedServerAssignments]);
   const hasAssignments = assignments.length > 0;
 
   const filteredAssignments = useFuzzySearch<AssignmentResponse>({
@@ -185,11 +82,6 @@ export function ClassAssignments({
     keys: ["title"],
     debounceDelay: 250,
   });
-
-  const formatIdTimeDate = (input: Date | string) => {
-    const d = new Date(input);
-    return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
-  };
 
   return (
     <div className="bg-white rounded-3xl rounded-r-none h-full flex flex-col overflow-hidden">
@@ -255,28 +147,12 @@ export function ClassAssignments({
                         role="button"
                         tabIndex={0}
                         onClick={() =>
-                          router.push(
-                            buildDemoAssignmentHref({
-                              classId,
-                              assignmentId: a.id,
-                              title: a.title,
-                              skills: a.skills,
-                              topics: a.topics,
-                            }),
-                          )
+                          router.push(`/dashboard/class/${classId}/assignments/${a.id}`)
                         }
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            router.push(
-                              buildDemoAssignmentHref({
-                                classId,
-                                assignmentId: a.id,
-                                title: a.title,
-                                skills: a.skills,
-                                topics: a.topics,
-                              }),
-                            );
+                            router.push(`/dashboard/class/${classId}/assignments/${a.id}`);
                           }
                         }}
                       >

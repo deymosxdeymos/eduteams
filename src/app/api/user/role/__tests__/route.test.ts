@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const actualAuth = await import("@/lib/auth");
 
-// Mock auth + prisma before importing route
 const prismaMock: any = {
   user: {
     findUnique: mock(async () => ({
@@ -66,7 +65,7 @@ describe("POST /api/user/role", () => {
     mock.restore();
   });
 
-  it("updates role for authenticated user", async () => {
+  it("updates role for eligible teacher accounts", async () => {
     const { POST } = await import("../route");
 
     const req = new Request("http://localhost/api/user/role", {
@@ -85,19 +84,19 @@ describe("POST /api/user/role", () => {
     });
   });
 
-  it("allows demo sandbox users to keep their scoped role", async () => {
+  it("rejects teacher role for non-institutional accounts", async () => {
     prismaMock.user.findUnique.mockResolvedValueOnce({
       id: "u1",
-      role: "STUDENT",
+      role: null,
       isOnboarded: true,
-      name: "Demo Student",
-      email: "demo.student.visitor1234@eduteams.local",
+      name: "User",
+      email: "person@gmail.com",
       emailVerified: true,
       image: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      nim: "20260001",
-      gender: "MALE",
+      nim: null,
+      gender: null,
       hasSeenWelcomeSplash: true,
       onboardingStep: null,
       onboardingData: null,
@@ -105,19 +104,19 @@ describe("POST /api/user/role", () => {
     });
 
     const { POST } = await import("../route");
+
     const req = new Request("http://localhost/api/user/role", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ role: "STUDENT" }),
+      body: JSON.stringify({ role: "TEACHER" }),
     });
 
     const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: "u1" },
-      data: { role: "STUDENT" },
-    });
+    expect(res.status).toBe(403);
+    const json = (await res.json()) as any;
+    expect(json.success).toBe(false);
+    expect(json.error).toBe("Institutional email required for teacher role");
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
   });
 
   it("rejects admin payloads", async () => {
@@ -133,36 +132,5 @@ describe("POST /api/user/role", () => {
     expect(res.status).toBe(400);
     const json = (await res.json()) as any;
     expect(json.success).toBe(false);
-  });
-
-  it("prevents demo accounts from switching out of their scoped role", async () => {
-    prismaMock.user.findUnique.mockResolvedValueOnce({
-      id: "u1",
-      role: "STUDENT",
-      isOnboarded: true,
-      name: "Demo Student",
-      email: "demo.student.visitor1234@eduteams.local",
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      nim: "20260001",
-      gender: "MALE",
-      hasSeenWelcomeSplash: true,
-      onboardingStep: null,
-      onboardingData: null,
-      personalityProfile: null,
-    });
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/user/role", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ role: "TEACHER" }),
-    });
-
-    const res = await POST(req as any, undefined as any);
-    expect(res.status).toBe(403);
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
   });
 });

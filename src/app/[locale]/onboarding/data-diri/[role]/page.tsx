@@ -7,11 +7,11 @@ import DataDiriFormClient from "@/components/onboarding/data-diri/data-diri-form
 import { Button } from "@/components/ui/button";
 import { redirect } from "@/i18n/routing";
 import { getDataDiri } from "@/lib/actions/data-diri";
-import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from "@/lib/demo/auth";
-import { getDemoDataDiriDefaults } from "@/lib/demo/config";
-import { isInstitutionalEmail } from "@/lib/email";
+import { canStartTeacherOnboarding } from "@/lib/authorization";
+import { getInstitutionalEmailRequiredRolePath } from "@/lib/onboarding/role-errors";
 import { getUserPersonalitySessionStatus } from "@/lib/personality-session";
 import { protectOnboardingPage } from "@/lib/server-auth";
+import { isTruthyEnv } from "@/lib/utils/environment";
 
 interface DataDiriPageProps {
   params: Promise<{
@@ -37,7 +37,7 @@ export default async function DataDiriPage({
   const user = await protectOnboardingPage();
 
   // Check if auto-role is disabled (show back button) or enabled (hide back button)
-  const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === "true";
+  const devDisableAutoRole = isTruthyEnv(process.env.DEV_DISABLE_AUTO_ROLE);
 
   // Convert URL slug to database role for comparison
   const expectedDbRole = role === "dosen" ? "TEACHER" : "STUDENT";
@@ -46,17 +46,8 @@ export default async function DataDiriPage({
     redirect({ href: `/onboarding/data-diri/${userRoleSlug}`, locale });
   }
 
-  const demoRole = isActiveDemoAccountEmail(user.email) ? parseDemoRoleFromEmail(user.email) : null;
-  const isDemoUser = demoRole !== null;
-
-  if (demoRole && demoRole !== expectedDbRole) {
-    const demoRoleSlug = demoRole === "TEACHER" ? "dosen" : "mahasiswa";
-    redirect({ href: `/onboarding/data-diri/${demoRoleSlug}`, locale });
-  }
-
-  // For dosen, ensure institutional email domain unless this is a teacher-scoped demo account.
-  if (role === "dosen" && !isDemoUser && !isInstitutionalEmail(user.email)) {
-    redirect({ href: "/onboarding/role?err=dosen_email", locale });
+  if (role === "dosen" && !canStartTeacherOnboarding(user)) {
+    redirect({ href: getInstitutionalEmailRequiredRolePath(), locale });
   }
 
   if (role === "mahasiswa" && user.nim && edit !== "true") {
@@ -69,14 +60,6 @@ export default async function DataDiriPage({
     redirect({ href: "/onboarding/kepribadian", locale });
   }
 
-  const emptyInitialData = {
-    namaLengkap: "",
-    nim: "",
-    jenisKelamin: "",
-    role: "",
-  };
-  const demoInitialData = isDemoUser ? getDemoDataDiriDefaults(role) : emptyInitialData;
-
   let initialData: {
     namaLengkap: string;
     nim: string;
@@ -85,17 +68,14 @@ export default async function DataDiriPage({
   };
 
   try {
-    const savedData = await getDataDiri();
-    initialData = isDemoUser
-      ? {
-          namaLengkap: savedData.namaLengkap || demoInitialData.namaLengkap,
-          nim: savedData.nim || demoInitialData.nim,
-          jenisKelamin: savedData.jenisKelamin || demoInitialData.jenisKelamin,
-          role: savedData.role || demoInitialData.role,
-        }
-      : savedData;
+    initialData = await getDataDiri();
   } catch {
-    initialData = demoInitialData;
+    initialData = {
+      namaLengkap: "",
+      nim: "",
+      jenisKelamin: "",
+      role: "",
+    };
   }
 
   return (

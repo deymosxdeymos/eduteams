@@ -7,8 +7,6 @@ import { useTranslations } from "next-intl";
 import { useReducer, useRef, useState } from "react";
 import SkillTestInstructionModal from "@/components/dashboard/skill-test-instruction-modal";
 import { Button } from "@/components/ui/button";
-import { DEMO_COURSE_ID } from "@/lib/demo/sandbox-shared";
-import { markDemoAssignmentSubmitted } from "@/lib/demo/sandbox-client";
 import { toFivePointLikertValue } from "@/lib/utils/five-point-scale";
 import SkillsQuiz from "./skills-quiz";
 
@@ -275,12 +273,6 @@ export function AssignmentQuizClient({
         throw new Error("Failed to submit quiz");
       }
 
-      // Track submission for demo assignments
-      if (classId === DEMO_COURSE_ID) {
-        markDemoAssignmentSubmitted(assignmentId);
-      }
-
-      // Redirect to assignment page (CTA will guide to task)
       router.push(`/dashboard/class/${classId}/assignments/${assignmentId}`);
     } catch (error) {
       console.error("Error submitting quiz:", error);

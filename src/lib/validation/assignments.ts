@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeAssignmentNames } from "@/lib/assignment-description";
 
 const AssignmentStatusSchema = z.enum([
   "BELUM_ISI", // no submissions yet
@@ -9,6 +10,15 @@ const AssignmentStatusSchema = z.enum([
 type _AssignmentStatus = z.infer<typeof AssignmentStatusSchema>;
 
 const SkillOrTopicItemSchema = z.union([z.string().min(1), z.object({ name: z.string().min(1) })]);
+
+type SkillOrTopicItem = z.infer<typeof SkillOrTopicItemSchema>;
+
+/** Normalize a mixed array of string | { name } items into trimmed, non-empty strings. */
+export function normalizeTagList(items: SkillOrTopicItem[] | undefined): string[] {
+  return normalizeAssignmentNames(
+    (items || []).map((item) => (typeof item === "string" ? item : item.name)),
+  );
+}
 
 export const AssignmentCreateSchema = z.object({
   title: z.string().min(1, "Judul tugas wajib diisi"),

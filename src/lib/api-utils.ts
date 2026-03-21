@@ -4,12 +4,6 @@ import "server-only";
 import { type NextRequest, NextResponse } from "next/server";
 import { cache } from "react";
 import { auth } from "@/lib/auth";
-import {
-  hasDemoSandboxAuthenticatedSession,
-  isDemoSandboxUser,
-  isDemoModeEnabled,
-  parseDemoSandboxCookieValue,
-} from "@/lib/demo/sandbox";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import {
@@ -27,10 +21,6 @@ import {
 interface AuthApiRequestContext {
   headers: Headers;
   cookies: unknown;
-}
-
-interface WithAuthOptions {
-  allowDemoSandbox?: boolean;
 }
 
 export function handleApiError(error: unknown): NextResponse {
@@ -112,18 +102,12 @@ export function withAuth<
     request: NextRequest,
     context: TContext & { user: ExtendedUser },
   ) => Promise<NextResponse>,
-  options?: WithAuthOptions,
 ) {
   return async (request: NextRequest, nextContext: TContext): Promise<NextResponse> => {
     try {
       const user = await getCurrentUser();
       if (!user) {
         return handleApiError(new AuthError());
-      }
-
-      const isUnsafeMethod = !["GET", "HEAD", "OPTIONS"].includes(request.method);
-      if (isUnsafeMethod && isDemoSandboxUser(user) && !options?.allowDemoSandbox) {
-        return createErrorResponse("Demo sandbox sessions can only use demo-enabled actions.", 403);
       }
 
       const baseCtx = (nextContext ?? ({} as TContext)) as TContext;
@@ -144,7 +128,6 @@ export function withRole<
     request: NextRequest,
     context: TContext & { user: ExtendedUser },
   ) => Promise<NextResponse>,
-  options?: WithAuthOptions,
 ) {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   return withAuth<TParams, TContext>(async (request, context) => {
@@ -152,7 +135,7 @@ export function withRole<
       throw new AuthorizationError("Insufficient permissions");
     }
     return await handler(request, context as unknown as TContext & { user: ExtendedUser });
-  }, options);
+  });
 }
 
 export function withOnboarded<
@@ -173,14 +156,14 @@ export function withOnboarded<
   });
 }
 
-export function withValidation<T>(
+export function withValidation<T, TContext extends object = {}>(
   schema: ((data: unknown) => T) | ((data: unknown, request: NextRequest) => T),
   handler: (
     request: NextRequest,
-    context: { user?: ExtendedUser; validatedData: T },
+    context: TContext & { validatedData: T },
   ) => Promise<NextResponse>,
 ) {
-  return async (request: NextRequest, context?: { user: ExtendedUser }): Promise<NextResponse> => {
+  return async (request: NextRequest, context?: TContext): Promise<NextResponse> => {
     let body: unknown;
 
     try {
@@ -205,7 +188,10 @@ export function withValidation<T>(
       throw new ValidationError("Invalid request data");
     }
 
-    return handler(request, { ...context, validatedData });
+    return handler(request, {
+      ...(context ?? ({} as TContext)),
+      validatedData,
+    } as TContext & { validatedData: T });
   };
 }
 
@@ -227,38 +213,12 @@ async function loadCurrentUser(
   requestContext: AuthApiRequestContext | null,
 ): Promise<ExtendedUser | null> {
   try {
-    let demoSession: Awaited<ReturnType<typeof parseDemoSandboxCookieValue>> = null;
-    if (isDemoModeEnabled() && requestContext?.cookies) {
-      const cookieStore = requestContext.cookies as {
-        get?: (name: string) => { value?: string } | undefined;
-      };
-      const demoCookie = cookieStore.get?.("eduteams-demo-sandbox")?.value;
-      demoSession = await parseDemoSandboxCookieValue(demoCookie);
-    }
-
-    const loadDemoSandboxUser = async () => {
-      if (!hasDemoSandboxAuthenticatedSession(demoSession)) {
-        return null;
-      }
-
-      const demoUser = await prisma.user.findUnique({
-        where: { id: demoSession.userId },
-        select: extendedUserSelect,
-      });
-
-      if (!demoUser || demoUser.email !== demoSession.email || !isDemoSandboxUser(demoUser)) {
-        return null;
-      }
-
-      return mapToExtendedUser(demoUser);
-    };
-
     const session = await auth.api
       .getSession((requestContext ?? {}) as AuthApiRequestContext)
       .catch(() => null);
 
     if (!session?.user) {
-      return loadDemoSandboxUser();
+      return null;
     }
 
     const freshUser = await prisma.user.findUnique({
@@ -292,7 +252,7 @@ export async function getCurrentUser(): Promise<ExtendedUser | null> {
   return getCurrentUserCached();
 }
 
-export function requireAuth(): ExtendedUser {
+export function requireAuth(): never {
   throw new AuthError("This function must be called within an authenticated context");
 }
 

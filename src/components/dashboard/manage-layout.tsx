@@ -2,13 +2,11 @@ import { getTranslations } from "next-intl/server";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import { getSidebarDataForUser } from "@/lib/dashboard/sidebar-data";
 import { getManageCoursesForDosen } from "@/lib/data/manage-dashboard";
-import { isDemoSandboxUser } from "@/lib/demo/sandbox";
 import type { ExtendedUser } from "@/lib/types";
-import { DemoStudentManageContent } from "@/components/demo/demo-student-manage-content";
 import { DosenManageContent } from "./dosen-manage-content";
 import Nav from "./nav";
 import Sidebar from "./sidebar";
-import { getStudentManageItems, StudentManageContent } from "./student-manage-content";
+import { StudentManageContent } from "./student-manage-content";
 
 interface ManageLayoutProps {
   user: ExtendedUser;
@@ -17,11 +15,9 @@ interface ManageLayoutProps {
 export async function ManageLayout({ user }: ManageLayoutProps) {
   const isDosen = canAccessDosenFeatures(user);
   const isMahasiswa = canAccessMahasiswaFeatures(user);
-  const isDemoStudent = isMahasiswa && isDemoSandboxUser(user);
-  const [sidebarData, courses, demoStudentServerItems, t] = await Promise.all([
+  const [sidebarData, courses, t] = await Promise.all([
     getSidebarDataForUser(user),
     isDosen ? getManageCoursesForDosen(user) : Promise.resolve([]),
-    isDemoStudent ? getStudentManageItems(user) : Promise.resolve([]),
     getTranslations("dashboard.dosenManage"),
   ]);
 
@@ -36,11 +32,7 @@ export async function ManageLayout({ user }: ManageLayoutProps) {
           {isDosen ? (
             <DosenManageContent courses={courses} />
           ) : isMahasiswa ? (
-            isDemoStudent ? (
-              <DemoStudentManageContent user={user} serverItems={demoStudentServerItems} />
-            ) : (
-              <StudentManageContent user={user} />
-            )
+            <StudentManageContent user={user} />
           ) : (
             <div className="flex h-full items-center justify-center">
               <p className="text-muted-foreground text-sm">{t("unavailable")}</p>

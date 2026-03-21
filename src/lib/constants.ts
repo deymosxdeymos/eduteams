@@ -17,3 +17,9 @@ export const dateFormatterUTC = new Intl.DateTimeFormat("en-GB", {
   month: "long",
   year: "numeric",
 });
+
+/** Format a Date or ISO string as "HH:mm, DD Month YYYY". */
+export const formatIdTimeDate = (input: Date | string): string => {
+  const d = new Date(input);
+  return `${timeFormatterUTC.format(d)}, ${dateFormatterUTC.format(d)}`;
+};

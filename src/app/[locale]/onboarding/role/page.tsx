@@ -3,25 +3,31 @@ import { getTranslations } from "next-intl/server";
 import Logo from "@/components/logo";
 import RoleFormClient from "@/components/onboarding/role/role-form-client";
 import { redirect } from "@/i18n/routing";
-import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
-import { isInstitutionalEmail } from "@/lib/email";
+import { canStartTeacherOnboarding } from "@/lib/authorization";
+import { INSTITUTIONAL_EMAIL_REQUIRED_ERROR } from "@/lib/onboarding/role-errors";
 import { getUserPersonalitySessionStatus } from "@/lib/personality-session";
 import { protectOnboardingPage } from "@/lib/server-auth";
+import { isTruthyEnv } from "@/lib/utils/environment";
 
 export const dynamic = "force-dynamic";
 
-export default async function RolePage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function RolePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { locale } = await params;
+  const { error } = await searchParams;
   const t = await getTranslations("onboarding.role");
   const user = await protectOnboardingPage();
-  const isDemoAccount = isActiveDemoAccountEmail(user.email);
-  const hasTeacherAccess = isDemoAccount || isInstitutionalEmail(user.email);
 
   // Skip completion check in development if flag is set
-  const devDisableAutoRole = process.env.DEV_DISABLE_AUTO_ROLE === "true";
+  const devDisableAutoRole = isTruthyEnv(process.env.DEV_DISABLE_AUTO_ROLE);
 
   if (!devDisableAutoRole) {
-    if (user.role === "TEACHER" && hasTeacherAccess) {
+    if (user.role === "TEACHER") {
       // Dosen only needs name and gender (no NPM requirement)
       if (!user.name || !user.gender) {
         redirect({ href: "/onboarding/data-diri/dosen", locale });
@@ -58,8 +64,8 @@ export default async function RolePage({ params }: { params: Promise<{ locale: s
         initialRole={
           devDisableAutoRole ? undefined : (user.role as "dosen" | "mahasiswa" | undefined)
         }
-        hasInstitutionalEmail={hasTeacherAccess}
-        enableDemoLogin={isDemoAccount}
+        canChooseTeacher={canStartTeacherOnboarding(user)}
+        initialShowDosenInvalid={error === INSTITUTIONAL_EMAIL_REQUIRED_ERROR}
       />
     </main>
   );

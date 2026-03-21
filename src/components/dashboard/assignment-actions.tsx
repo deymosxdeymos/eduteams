@@ -38,15 +38,11 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Link, useRouter } from "@/i18n/routing";
 import { fetcher } from "@/lib/client-api";
-import { buildDemoAssignmentAnswersHref, buildDemoAssignmentQuizHref } from "@/lib/demo/sandbox";
-import { persistDemoTeamFormation } from "@/lib/demo/sandbox-client";
 
 interface AssignmentActionsProps {
   classId: string;
   assignmentId: string;
   assignmentTitle?: string;
-  demoSkills?: readonly string[];
-  demoTopics?: readonly string[];
   canManage: boolean;
   disableForm?: boolean;
   incompleteStudentCount?: number;
@@ -97,9 +93,6 @@ const mapApiWeights = (weights: ApiWeights): TeamWeights => ({
 export function AssignmentActions({
   assignmentId,
   classId,
-  assignmentTitle,
-  demoSkills,
-  demoTopics,
   canManage,
   disableForm,
   incompleteStudentCount = 0,
@@ -132,8 +125,7 @@ export function AssignmentActions({
   const [customWeights, setCustomWeights] = useState<TeamWeights | null>(null);
   const lastRetrySignalRef = useRef(retryFormationModalSignal);
   const createButtonLabel = hasTeams ? t("recreateTeamsButton") : t("createTeamsButton");
-  const isProcessing = Boolean(isTeamFormationProcessing);
-  const shouldDisableForm = submitting || isProcessing;
+  const shouldDisableForm = submitting || isTeamFormationProcessing;
 
   const { data: fetchedWeights } = useSWR<ApiWeights>(
     defaultWeights ? null : "/api/edu2com/weights",
@@ -194,8 +186,6 @@ export function AssignmentActions({
         body: JSON.stringify({
           method,
           value: Number(value),
-          demoTopics: demoTopics ? [...demoTopics] : undefined,
-          // Only send weight overrides if user explicitly modified them
           weights: weightsModified
             ? {
                 alpha: resolvedWeights.skills,
@@ -211,9 +201,6 @@ export function AssignmentActions({
           res.status === 409 ? t("alreadyProcessing") : data?.error || t("errorCreateFailed"),
         );
         return;
-      }
-      if (data?.data?.assignmentId) {
-        persistDemoTeamFormation(data.data);
       }
       setSuccess(t("successCreate"));
       setMethod("");
@@ -272,17 +259,7 @@ export function AssignmentActions({
           variant="outline"
           className="rounded-full border border-black p-6 w-[14rem]"
           onClick={() => {
-            const href =
-              assignmentTitle && demoSkills && demoTopics
-                ? buildDemoAssignmentQuizHref({
-                    classId,
-                    assignmentId,
-                    title: assignmentTitle,
-                    skills: demoSkills,
-                    topics: demoTopics,
-                  })
-                : `/dashboard/class/${classId}/assignments/${assignmentId}/quiz`;
-            router.push(href);
+            router.push(`/dashboard/class/${classId}/assignments/${assignmentId}/quiz`);
           }}
         >
           <ChartLineIcon className="w-4 h-4 text-black" />
@@ -594,17 +571,7 @@ export function AssignmentActions({
             variant="outline"
             className="rounded-full border border-black p-6 w-[15rem]"
             onClick={() => {
-              const href =
-                assignmentTitle && demoSkills && demoTopics
-                  ? buildDemoAssignmentAnswersHref({
-                      classId,
-                      assignmentId,
-                      title: assignmentTitle,
-                      skills: demoSkills,
-                      topics: demoTopics,
-                    })
-                  : `/dashboard/class/${classId}/assignments/${assignmentId}/answers`;
-              router.push(href);
+              router.push(`/dashboard/class/${classId}/assignments/${assignmentId}/answers`);
             }}
           >
             <ChartLineIcon className="w-4 h-4 text-black" />

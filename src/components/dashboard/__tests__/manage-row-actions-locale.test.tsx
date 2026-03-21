@@ -124,9 +124,14 @@ describe("manage row action locale updates", () => {
 
     const { rerender } = render(<ManageAssignmentsView {...props} />);
 
-    expect(
-      screen.getByLabelText("en:dashboard.dosenManage.assignments.row.openAssignment"),
-    ).toBeInTheDocument();
+    const openAssignmentLinkEn = screen.getByLabelText(
+      "en:dashboard.dosenManage.assignments.row.openAssignment",
+    );
+    expect(openAssignmentLinkEn).toBeInTheDocument();
+    expect(openAssignmentLinkEn).toHaveAttribute(
+      "href",
+      "/dashboard/class/course-1/assignments/assignment-1",
+    );
     expect(
       screen.getAllByLabelText("en:dashboard.dosenManage.archive.hideAssignment").length,
     ).toBeGreaterThan(0);
@@ -134,9 +139,14 @@ describe("manage row action locale updates", () => {
     currentLocale = "id";
     rerender(<ManageAssignmentsView key="id" {...props} />);
 
-    expect(
-      screen.getByLabelText("id:dashboard.dosenManage.assignments.row.openAssignment"),
-    ).toBeInTheDocument();
+    const openAssignmentLinkId = screen.getByLabelText(
+      "id:dashboard.dosenManage.assignments.row.openAssignment",
+    );
+    expect(openAssignmentLinkId).toBeInTheDocument();
+    expect(openAssignmentLinkId).toHaveAttribute(
+      "href",
+      "/dashboard/class/course-1/assignments/assignment-1",
+    );
     expect(
       screen.queryByLabelText("en:dashboard.dosenManage.assignments.row.openAssignment"),
     ).toBeNull();

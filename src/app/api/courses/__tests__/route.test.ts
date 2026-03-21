@@ -18,7 +18,7 @@ function createSession(userId: string) {
   };
 }
 
-let currentUserId: "u1" | "u2" | "demo-teacher" = "u1";
+let currentUserId: "u1" | "u2" | "u3" | "demo-teacher" = "u1";
 
 const courseCreateMock = mock(async (args: any) => ({
   id: "c1",
@@ -66,6 +66,7 @@ const getCoursesForDosenMock = mock(async () => [
     dosen: { id: "u1", name: "Test User", email: "test@example.com" },
   },
 ]);
+const checkMutationRateLimitMock = mock(async () => ({ allowed: true }));
 
 const prismaMock = {
   $transaction: transactionMock,
@@ -111,21 +112,21 @@ const prismaMock = {
         };
       }
 
-      if (where.id === "demo-teacher") {
+      if (where.id === "u3") {
         return {
-          id: "demo-teacher",
-          name: "Demo Teacher",
-          email: "demo.teacher.visitor1234@eduteams.local",
+          id: "u3",
+          name: "Pending Dosen",
+          email: "pending@if.itera.ac.id",
           emailVerified: true,
           image: null,
           role: "TEACHER",
-          isOnboarded: true,
+          isOnboarded: false,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: "FEMALE",
-          hasSeenWelcomeSplash: true,
-          onboardingStep: null,
+          gender: null,
+          hasSeenWelcomeSplash: false,
+          onboardingStep: "role",
           onboardingData: null,
           personalityProfile: null,
         };
@@ -155,6 +156,10 @@ function applyModuleMocks() {
   mock.module("@/lib/dashboard/courses", () => ({
     getCoursesForDosen: getCoursesForDosenMock,
   }));
+
+  mock.module("@/lib/mutation-rate-limit", () => ({
+    checkMutationRateLimit: checkMutationRateLimitMock,
+  }));
 }
 
 function restoreModuleMocks() {
@@ -166,7 +171,6 @@ function restoreModuleMocks() {
 describe("courses API", () => {
   beforeEach(() => {
     currentUserId = "u1";
-    delete process.env.DEMO_MODE;
 
     authGetSessionMock.mockReset();
     courseCreateMock.mockReset();
@@ -175,10 +179,12 @@ describe("courses API", () => {
     seedEnrollmentsCreateManyMock.mockReset();
     transactionMock.mockReset();
     getCoursesForDosenMock.mockReset();
+    checkMutationRateLimitMock.mockReset();
     prismaMock.user.findUnique.mockReset();
     prismaMock.course.findFirst.mockReset();
 
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
+    checkMutationRateLimitMock.mockResolvedValue({ allowed: true });
     courseCreateMock.mockImplementation(async (args: any) => ({
       id: "c1",
       ...args.data,
@@ -265,28 +271,24 @@ describe("courses API", () => {
         };
       }
 
-      if (where.id === "demo-teacher") {
+      if (where.id === "u3") {
         return {
-          id: "demo-teacher",
-          name: "Demo Teacher",
-          email: "demo.teacher.visitor1234@eduteams.local",
+          id: "u3",
+          name: "Pending Dosen",
+          email: "pending@if.itera.ac.id",
           emailVerified: true,
           image: null,
           role: "TEACHER",
-          isOnboarded: true,
+          isOnboarded: false,
           createdAt: new Date(),
           updatedAt: new Date(),
           nim: null,
-          gender: "FEMALE",
-          hasSeenWelcomeSplash: true,
-          onboardingStep: null,
+          gender: null,
+          hasSeenWelcomeSplash: false,
+          onboardingStep: "role",
           onboardingData: null,
           personalityProfile: null,
         };
-      }
-
-      if (where.email === "demo.student.visitor1234@eduteams.local") {
-        return null;
       }
 
       return null;
@@ -321,132 +323,6 @@ describe("courses API", () => {
     expect(seedUsersCreateManyMock).not.toHaveBeenCalled();
   });
 
-  it("POST still allows real demo-account teachers to create courses", async () => {
-    process.env.DEMO_MODE = "1";
-    currentUserId = "demo-teacher";
-    authGetSessionMock.mockResolvedValue(createSession(currentUserId));
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/courses", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        namaMataKuliah: "Algoritma Demo",
-        kelas: "RE",
-        periode: "ganjil",
-      }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(courseCreateMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not seed demo students for non-demo teachers when demo mode is enabled", async () => {
-    process.env.DEMO_MODE = "1";
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/courses", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        namaMataKuliah: "Algoritma",
-        kelas: "RB",
-        periode: "ganjil",
-      }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(seedUsersCreateManyMock).not.toHaveBeenCalled();
-    expect(seedProfilesCreateManyMock).not.toHaveBeenCalled();
-    expect(seedEnrollmentsCreateManyMock).not.toHaveBeenCalled();
-  });
-
-  it("seeds demo students for demo teachers when demo mode is enabled", async () => {
-    process.env.DEMO_MODE = "1";
-    currentUserId = "demo-teacher";
-    authGetSessionMock.mockResolvedValue(createSession(currentUserId));
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/courses", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        namaMataKuliah: "Algoritma",
-        kelas: "RC",
-        periode: "ganjil",
-      }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(seedUsersCreateManyMock).toHaveBeenCalled();
-    expect(seedProfilesCreateManyMock).toHaveBeenCalled();
-    expect(seedEnrollmentsCreateManyMock).toHaveBeenCalled();
-  });
-
-  it("enrolls an existing paired demo student into newly created demo courses", async () => {
-    process.env.DEMO_MODE = "1";
-    currentUserId = "demo-teacher";
-    authGetSessionMock.mockResolvedValue(createSession(currentUserId));
-    prismaMock.user.findUnique.mockImplementation(async ({ where }: any) => {
-      if (where.id === "demo-teacher") {
-        return {
-          id: "demo-teacher",
-          name: "Demo Teacher",
-          email: "demo.teacher.visitor1234@eduteams.local",
-          emailVerified: true,
-          image: null,
-          role: "TEACHER",
-          isOnboarded: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          nim: null,
-          gender: "FEMALE",
-          hasSeenWelcomeSplash: true,
-          onboardingStep: null,
-          onboardingData: null,
-          personalityProfile: null,
-        };
-      }
-
-      if (where.email === "demo.student.visitor1234@eduteams.local") {
-        return { id: "demo-student" };
-      }
-
-      return null;
-    });
-    seedEnrollmentsCreateManyMock
-      .mockResolvedValueOnce({ count: 24 })
-      .mockResolvedValueOnce({ count: 1 });
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/courses", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        namaMataKuliah: "Algoritma",
-        kelas: "RD",
-        periode: "ganjil",
-      }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(seedEnrollmentsCreateManyMock).toHaveBeenCalledTimes(2);
-    expect(seedEnrollmentsCreateManyMock.mock.calls[1]?.[0]).toEqual({
-      data: [
-        {
-          courseId: "c1",
-          studentId: "demo-student",
-          enrolledAt: expect.any(Date),
-        },
-      ],
-      skipDuplicates: true,
-    });
-  });
-
   it("POST denies non-dosen", async () => {
     currentUserId = "u2";
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
@@ -460,6 +336,24 @@ describe("courses API", () => {
         kelas: "RA",
         tahunAwalPeriode: 2025,
         tahunAkhirPeriode: 2025,
+        periode: "ganjil",
+      }),
+    });
+    const res = await POST(req as any, undefined as any);
+    expect(res.status).toBe(403);
+  });
+
+  it("POST denies teachers who have not completed onboarding", async () => {
+    currentUserId = "u3";
+    authGetSessionMock.mockResolvedValue(createSession(currentUserId));
+
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/courses", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        namaMataKuliah: "Algo",
+        kelas: "RA",
         periode: "ganjil",
       }),
     });
@@ -484,6 +378,15 @@ describe("courses API", () => {
 
   it("GET denies non-dosen", async () => {
     currentUserId = "u2";
+    authGetSessionMock.mockResolvedValue(createSession(currentUserId));
+
+    const { GET } = await import("../route");
+    const res = await GET(new Request("http://localhost/api/courses") as any, undefined as any);
+    expect(res.status).toBe(403);
+  });
+
+  it("GET denies teachers who have not completed onboarding", async () => {
+    currentUserId = "u3";
     authGetSessionMock.mockResolvedValue(createSession(currentUserId));
 
     const { GET } = await import("../route");

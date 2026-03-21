@@ -56,8 +56,6 @@ interface AssignmentContentProps {
   assignmentId: string;
   classId: string;
   courseId: string;
-  demoSkills?: readonly string[];
-  demoTopics?: readonly string[];
   assignmentTitleLabel: string;
   courseNameLabel: string;
   courseClassLabel: string;
@@ -118,8 +116,6 @@ export function AssignmentContent({
   assignmentId,
   classId,
   courseId,
-  demoSkills,
-  demoTopics,
   assignmentTitleLabel,
   courseNameLabel,
   courseClassLabel,
@@ -221,8 +217,6 @@ export function AssignmentContent({
           assignmentId={assignmentId}
           classId={classId}
           assignmentTitle={assignmentTitleLabel}
-          demoSkills={demoSkills}
-          demoTopics={demoTopics}
           canManage={canManage}
           disableForm={!canManage}
           incompleteStudentCount={adjustedIncompleteCount}

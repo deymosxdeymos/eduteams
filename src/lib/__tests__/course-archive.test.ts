@@ -49,4 +49,12 @@ describe("course archive helpers", () => {
       )?.getTime(),
     ).toBe(getCourseForceVisibleArchivedAt().getTime());
   });
+
+  it("returns a fresh force-visible marker instance on each call", () => {
+    const first = getCourseForceVisibleArchivedAt();
+    const second = getCourseForceVisibleArchivedAt();
+
+    expect(first.getTime()).toBe(second.getTime());
+    expect(first).not.toBe(second);
+  });
 });

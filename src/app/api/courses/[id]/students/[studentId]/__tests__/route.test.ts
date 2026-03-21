@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const revalidateTagMock = mock(() => {});
 
@@ -28,8 +28,6 @@ const prismaMock: any = {
 mock.module("@/lib/prisma", () => ({ default: prismaMock }));
 
 describe("DELETE /api/courses/[id]/students/[studentId]", () => {
-  const originalDemoMode = process.env.DEMO_MODE;
-
   beforeEach(() => {
     revalidateTagMock.mockReset();
     prismaMock.user.findUnique.mockReset();
@@ -52,15 +50,6 @@ describe("DELETE /api/courses/[id]/students/[studentId]", () => {
     prismaMock.courseEnrollment.delete.mockResolvedValue({});
   });
 
-  afterEach(() => {
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-      return;
-    }
-
-    process.env.DEMO_MODE = originalDemoMode;
-  });
-
   it("removes student from course for dosen owner", async () => {
     mock.module("@/lib/auth", () => ({
       auth: { api: { getSession: async () => ({ user: { id: "u1" } }) } },
@@ -74,71 +63,5 @@ describe("DELETE /api/courses/[id]/students/[studentId]", () => {
     const json = (await res.json()) as any;
     expect(json.success).toBe(true);
     expect(json.data.removed).toBe(true);
-  });
-
-  it("removes students from the synthetic demo roster for authenticated demo teachers", async () => {
-    process.env.DEMO_MODE = "1";
-    prismaMock.user.findUnique.mockResolvedValueOnce({
-      id: "teacher-db-id",
-      email: "demo.teacher.visitor1234@eduteams.local",
-      role: "TEACHER",
-      isOnboarded: true,
-    });
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "teacher-db-id" } }) } },
-    }));
-
-    const request = {
-      method: "DELETE",
-      cookies: {
-        get: () => undefined,
-      },
-    } as any;
-
-    const { DELETE } = await import("../route");
-    const res = await DELETE(request, {
-      params: Promise.resolve({
-        id: "demo-sandbox-course",
-        studentId: "demo-sandbox-student-2",
-      }),
-    } as any);
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.course.findFirst).not.toHaveBeenCalled();
-    expect(prismaMock.courseEnrollment.delete).not.toHaveBeenCalled();
-    expect(res.headers.get("set-cookie")).toContain("eduteams-demo-sandbox-roster=");
-  });
-
-  it("blocks removing the required synthetic demo student", async () => {
-    process.env.DEMO_MODE = "1";
-    prismaMock.user.findUnique.mockResolvedValueOnce({
-      id: "teacher-db-id",
-      email: "demo.teacher.visitor1234@eduteams.local",
-      role: "TEACHER",
-      isOnboarded: true,
-    });
-    mock.module("@/lib/auth", () => ({
-      auth: { api: { getSession: async () => ({ user: { id: "teacher-db-id" } }) } },
-    }));
-
-    const request = {
-      method: "DELETE",
-      cookies: {
-        get: () => undefined,
-      },
-    } as any;
-
-    const { DELETE } = await import("../route");
-    const res = await DELETE(request, {
-      params: Promise.resolve({
-        id: "demo-sandbox-course",
-        studentId: "demo-sandbox-student",
-      }),
-    } as any);
-
-    expect(res.status).toBe(403);
-    expect(prismaMock.course.findFirst).not.toHaveBeenCalled();
-    expect(prismaMock.courseEnrollment.delete).not.toHaveBeenCalled();
-    expect(res.headers.get("set-cookie")).toBeNull();
   });
 });

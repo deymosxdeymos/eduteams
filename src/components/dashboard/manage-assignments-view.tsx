@@ -4,7 +4,7 @@ import { Calendar, ExternalLink, Eye, EyeOff, Pencil, Search, Trash2 } from "luc
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { parseAsBoolean, useQueryState } from "nuqs";
-import { memo, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, type ReactNode, useCallback, useMemo, useState } from "react";
 import { EditAssignmentModal } from "@/components/dashboard/edit-assignment-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,18 +31,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getAssignmentStatusBadge } from "@/lib/utils/assignment-status";
-import { buildDemoAssignmentHref } from "@/lib/demo/sandbox";
-import {
-  DEMO_ASSIGNMENT_ID,
-  DEMO_COURSE_ID,
-  DEMO_LOCAL_ASSIGNMENT_ID_PREFIX,
-} from "@/lib/demo/sandbox-shared";
-import {
-  getDemoAssignmentStatus,
-  getDemoCreatedAssignments,
-  mergeDemoAssignments,
-} from "@/lib/demo/sandbox-client";
-import { useDemoSandboxStorageListener } from "@/lib/hooks/use-demo-sandbox-storage-listener";
 import type { ManageAssignmentRow } from "@/types/manage";
 
 interface ManageAssignmentsViewProps {
@@ -184,7 +172,6 @@ function DeleteAssignmentDialog(): ReactNode {
 export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   assignments,
   courseId,
-  totalStudents,
   renderActions,
   onArchiveToggle,
 }: ManageAssignmentsViewProps) {
@@ -202,8 +189,6 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   const [pendingAssignmentId, setPendingAssignmentId] = useState<string | null>(null);
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<ManageAssignmentRow | null>(null);
-  const [localAssignments, setLocalAssignments] = useState<ManageAssignmentRow[]>([]);
-  const isDemoCourse = courseId === DEMO_COURSE_ID;
   const assignmentSnapshotKey = getAssignmentOverlaySnapshotKey(assignments);
   const [assignmentOverlayState, setAssignmentOverlayState] = useState<AssignmentOverlayState>(() =>
     createAssignmentOverlayState(assignmentSnapshotKey),
@@ -214,38 +199,9 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
   );
   const optimisticAssignmentUpdates = activeAssignmentOverlayState.optimisticAssignmentUpdates;
 
-  const syncLocalAssignments = useCallback(() => {
-    if (!isDemoCourse) {
-      setLocalAssignments([]);
-      return;
-    }
-
-    setLocalAssignments(
-      getDemoCreatedAssignments(courseId).map((assignment) => ({
-        id: assignment.id,
-        title: assignment.title,
-        description: assignment.description ?? null,
-        status: getDemoAssignmentStatus(assignment.id),
-        startAt: assignment.startAt,
-        createdAt: assignment.createdAt,
-        isArchived: false,
-        submissionsCount: assignment.submissionsCount,
-        totalStudents,
-        skills: [...assignment.skills],
-        topics: [...assignment.topics],
-      })),
-    );
-  }, [courseId, isDemoCourse, totalStudents]);
-
-  useEffect(() => {
-    syncLocalAssignments();
-  }, [syncLocalAssignments]);
-
-  useDemoSandboxStorageListener(isDemoCourse, syncLocalAssignments);
-
   const assignmentRows = useMemo(
     () =>
-      mergeDemoAssignments(assignments, localAssignments).map((assignment) => {
+      assignments.map((assignment) => {
         const optimisticUpdate = optimisticAssignmentUpdates[assignment.id];
         if (!optimisticUpdate) {
           return assignment;
@@ -256,7 +212,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
           ...optimisticUpdate,
         };
       }),
-    [assignments, localAssignments, optimisticAssignmentUpdates],
+    [assignments, optimisticAssignmentUpdates],
   );
 
   const handleArchiveToggle = useCallback(
@@ -316,21 +272,12 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
 
   const defaultActions = useCallback(
     (assignment: ManageAssignmentRow) => {
-      const isSyntheticDemoAssignment =
-        assignment.id === DEMO_ASSIGNMENT_ID ||
-        assignment.id.startsWith(DEMO_LOCAL_ASSIGNMENT_ID_PREFIX);
       const archiveLabel = assignment.isArchived
         ? tArchive("showAssignment")
         : tArchive("hideAssignment");
       const ArchiveIcon = assignment.isArchived ? Eye : EyeOff;
       const isPending = pendingAssignmentId === assignment.id;
-      const assignmentHref = buildDemoAssignmentHref({
-        classId: courseId,
-        assignmentId: assignment.id,
-        title: assignment.title,
-        skills: assignment.skills,
-        topics: assignment.topics,
-      });
+      const assignmentHref = `/dashboard/class/${courseId}/assignments/${assignment.id}`;
 
       return (
         <div className="flex items-center justify-end gap-2">
@@ -345,7 +292,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
                 variant="ghost"
                 size="icon"
                 aria-label={archiveLabel}
-                disabled={isPending || isSyntheticDemoAssignment}
+                disabled={isPending}
                 aria-busy={isPending}
               >
                 <ArchiveIcon className="size-4" />
@@ -381,7 +328,7 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
                   variant="onboarding"
                   className="h-12 text-sm rounded-full"
                   aria-label={archiveLabel}
-                  disabled={isPending || isSyntheticDemoAssignment}
+                  disabled={isPending}
                   aria-busy={isPending}
                   onClick={() => handleArchiveToggle(assignment)}
                 >
@@ -395,7 +342,6 @@ export const ManageAssignmentsView = memo(function ManageAssignmentsView({
             variant="ghost"
             size="icon"
             aria-label={t("editTrigger")}
-            disabled={isSyntheticDemoAssignment}
             onClick={() => setEditingAssignment(assignment)}
           >
             <Pencil className="size-4" />

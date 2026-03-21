@@ -4,9 +4,7 @@ import { getLocalizedApiMessage, getRequestLocale } from "@/lib/api-i18n";
 import { createApiResponse, createErrorResponse, withAuth } from "@/lib/api-utils";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import { CACHE_TAGS } from "@/lib/cache-tags";
-import { parseDemoVisitorIdFromEmail } from "@/lib/demo/auth";
-import { getDemoStudentCourseEmailPrefix } from "@/lib/demo/seed-students";
-import prisma, { type TransactionClient } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { buildVisibleCourseFilter } from "@/lib/utils/course-archive";
 import { courseUpdateSchema } from "@/lib/validation/course";
 
@@ -50,7 +48,7 @@ export const GET = withAuth<{ id: string }>(async (_request: NextRequest, { user
     course = await prisma.course.findFirst({
       where: {
         id,
-        dosenId: user?.id,
+        dosenId: user.id,
       },
       include: {
         dosen: {
@@ -95,179 +93,159 @@ export const GET = withAuth<{ id: string }>(async (_request: NextRequest, { user
   return createApiResponse(course);
 });
 
-export const PATCH = withAuth<{ id: string }>(
-  async (request: NextRequest, { user, params }) => {
-    if (!canAccessDosenFeatures(user)) {
-      return createErrorResponse("Only dosen can update courses", 403);
-    }
+export const PATCH = withAuth<{ id: string }>(async (request: NextRequest, { user, params }) => {
+  if (!canAccessDosenFeatures(user)) {
+    return createErrorResponse("Only dosen can update courses", 403);
+  }
 
-    const { id } = await params;
+  const { id } = await params;
 
-    let payload: unknown;
-    try {
-      payload = await request.json();
-    } catch (_error) {
-      return createErrorResponse("Invalid JSON payload", 400);
-    }
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch (_error) {
+    return createErrorResponse("Invalid JSON payload", 400);
+  }
 
-    const parsed = courseUpdateSchema.safeParse(payload);
-    if (!parsed.success) {
-      const message =
-        parsed.error.issues.map((issue) => issue.message).join(", ") || "Invalid course data";
-      return createErrorResponse(message, 400);
-    }
+  const parsed = courseUpdateSchema.safeParse(payload);
+  if (!parsed.success) {
+    const message =
+      parsed.error.issues.map((issue) => issue.message).join(", ") || "Invalid course data";
+    return createErrorResponse(message, 400);
+  }
 
-    const data = parsed.data;
-    const updateData: Record<string, unknown> = {};
+  const data = parsed.data;
+  const updateData: Record<string, unknown> = {};
 
-    if (data.namaMataKuliah !== undefined) {
-      updateData.namaMataKuliah = data.namaMataKuliah;
-    }
-    if (data.kelas !== undefined) {
-      updateData.kelas = data.kelas;
-    }
-    if (data.periode !== undefined) {
-      updateData.periode = data.periode;
-    }
-    if (data.tahunAwalPeriode !== undefined) {
-      updateData.tahunAwalPeriode = data.tahunAwalPeriode;
-    }
-    if (data.tahunAkhirPeriode !== undefined) {
-      updateData.tahunAkhirPeriode = data.tahunAkhirPeriode;
-    }
+  if (data.namaMataKuliah !== undefined) {
+    updateData.namaMataKuliah = data.namaMataKuliah;
+  }
+  if (data.kelas !== undefined) {
+    updateData.kelas = data.kelas;
+  }
+  if (data.periode !== undefined) {
+    updateData.periode = data.periode;
+  }
+  if (data.tahunAwalPeriode !== undefined) {
+    updateData.tahunAwalPeriode = data.tahunAwalPeriode;
+  }
+  if (data.tahunAkhirPeriode !== undefined) {
+    updateData.tahunAkhirPeriode = data.tahunAkhirPeriode;
+  }
 
-    if (Object.keys(updateData).length === 0) {
-      return createErrorResponse("No changes provided", 400);
-    }
+  if (Object.keys(updateData).length === 0) {
+    return createErrorResponse("No changes provided", 400);
+  }
 
-    const course = await prisma.course.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        dosenId: true,
-        namaMataKuliah: true,
-        kelas: true,
-        periode: true,
-        tahunAwalPeriode: true,
-        tahunAkhirPeriode: true,
-      },
-    });
+  const course = await prisma.course.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      dosenId: true,
+      namaMataKuliah: true,
+      kelas: true,
+      periode: true,
+      tahunAwalPeriode: true,
+      tahunAkhirPeriode: true,
+    },
+  });
 
-    if (!course) {
-      return createErrorResponse("Course not found", 404);
-    }
+  if (!course) {
+    return createErrorResponse("Course not found", 404);
+  }
 
-    if (course.dosenId !== user.id) {
-      return createErrorResponse("Access denied", 403);
-    }
+  if (course.dosenId !== user.id) {
+    return createErrorResponse("Access denied", 403);
+  }
 
-    const finalNamaMataKuliah =
-      (updateData.namaMataKuliah as string | undefined) ?? course.namaMataKuliah;
-    const finalKelas = (updateData.kelas as string | undefined) ?? course.kelas;
-    const finalPeriode = (updateData.periode as string | undefined) ?? course.periode;
-    const finalTahunAwalPeriode =
-      (updateData.tahunAwalPeriode as number | undefined) ?? course.tahunAwalPeriode;
-    const finalTahunAkhirPeriode =
-      (updateData.tahunAkhirPeriode as number | undefined) ?? course.tahunAkhirPeriode;
+  const finalNamaMataKuliah =
+    (updateData.namaMataKuliah as string | undefined) ?? course.namaMataKuliah;
+  const finalKelas = (updateData.kelas as string | undefined) ?? course.kelas;
+  const finalPeriode = (updateData.periode as string | undefined) ?? course.periode;
+  const finalTahunAwalPeriode =
+    (updateData.tahunAwalPeriode as number | undefined) ?? course.tahunAwalPeriode;
+  const finalTahunAkhirPeriode =
+    (updateData.tahunAkhirPeriode as number | undefined) ?? course.tahunAkhirPeriode;
 
-    const existingCourse = await prisma.course.findFirst({
-      where: {
-        id: { not: id },
-        dosenId: user.id,
-        namaMataKuliah: finalNamaMataKuliah,
-        kelas: finalKelas,
-        tahunAwalPeriode: finalTahunAwalPeriode,
-        tahunAkhirPeriode: finalTahunAkhirPeriode,
-        periode: finalPeriode,
-        ...buildVisibleCourseFilter(),
-      },
-    });
+  const existingCourse = await prisma.course.findFirst({
+    where: {
+      id: { not: id },
+      dosenId: user.id,
+      namaMataKuliah: finalNamaMataKuliah,
+      kelas: finalKelas,
+      tahunAwalPeriode: finalTahunAwalPeriode,
+      tahunAkhirPeriode: finalTahunAkhirPeriode,
+      periode: finalPeriode,
+      ...buildVisibleCourseFilter(),
+    },
+  });
 
-    if (existingCourse) {
-      const locale = getRequestLocale(request);
-      const errorMessage = getLocalizedApiMessage(
-        locale,
-        "dashboard.modals.createClass.duplicateError",
-      );
-      return createErrorResponse(errorMessage, 409);
-    }
+  if (existingCourse) {
+    const locale = getRequestLocale(request);
+    const errorMessage = getLocalizedApiMessage(
+      locale,
+      "dashboard.modals.createClass.duplicateError",
+    );
+    return createErrorResponse(errorMessage, 409);
+  }
 
-    const updatedCourse = await prisma.course.update({
-      where: { id },
-      data: updateData,
-      include: {
-        dosen: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+  const updatedCourse = await prisma.course.update({
+    where: { id },
+    data: updateData,
+    include: {
+      dosen: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
         },
       },
-    });
+    },
+  });
 
-    revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
+  revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
-    return createApiResponse(updatedCourse);
-  },
-  { allowDemoSandbox: true },
-);
+  return createApiResponse(updatedCourse);
+});
 
-export const DELETE = withAuth<{ id: string }>(
-  async (_request: NextRequest, { user, params }) => {
-    if (!canAccessDosenFeatures(user)) {
-      return createErrorResponse("Only dosen can delete courses", 403);
-    }
+export const DELETE = withAuth<{ id: string }>(async (_request: NextRequest, { user, params }) => {
+  if (!canAccessDosenFeatures(user)) {
+    return createErrorResponse("Only dosen can delete courses", 403);
+  }
 
-    const { id } = await params;
-    if (!id) {
-      return createErrorResponse("Course ID is required", 400);
-    }
+  const { id } = await params;
+  if (!id) {
+    return createErrorResponse("Course ID is required", 400);
+  }
 
-    const course = await prisma.course.findUnique({
-      where: { id },
-      select: { id: true, dosenId: true },
-    });
+  const course = await prisma.course.findUnique({
+    where: { id },
+    select: { id: true, dosenId: true },
+  });
 
-    if (!course) {
-      return createErrorResponse("Course not found", 404);
-    }
+  if (!course) {
+    return createErrorResponse("Course not found", 404);
+  }
 
-    if (course.dosenId !== user.id) {
-      return createErrorResponse("Access denied", 403);
-    }
+  if (course.dosenId !== user.id) {
+    return createErrorResponse("Access denied", 403);
+  }
 
-    const enrollments = await prisma.courseEnrollment.findMany({
-      where: { courseId: id },
-      select: { studentId: true },
-    });
+  const enrollments = await prisma.courseEnrollment.findMany({
+    where: { courseId: id },
+    select: { studentId: true },
+  });
 
-    const demoVisitorId = parseDemoVisitorIdFromEmail(user.email);
+  await prisma.course.delete({ where: { id } });
 
-    await prisma.$transaction(async (tx: TransactionClient) => {
-      if (demoVisitorId) {
-        await tx.user.deleteMany({
-          where: {
-            email: {
-              startsWith: getDemoStudentCourseEmailPrefix(demoVisitorId, id),
-            },
-          },
-        });
-      }
+  revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
 
-      await tx.course.delete({ where: { id } });
-    });
+  const studentIds = new Set<string>(
+    enrollments.map(({ studentId }: { studentId: string }) => studentId),
+  );
+  for (const studentId of studentIds) {
+    revalidateTag(CACHE_TAGS.studentClasses(studentId));
+  }
 
-    revalidateTag(CACHE_TAGS.coursesByDosen(user.id));
-
-    const studentIds = new Set(
-      enrollments.map(({ studentId }: { studentId: string }) => studentId),
-    );
-    for (const studentId of studentIds as Set<string>) {
-      revalidateTag(CACHE_TAGS.studentClasses(studentId));
-    }
-
-    return createApiResponse({ removed: true }, "Course deleted");
-  },
-  { allowDemoSandbox: true },
-);
+  return createApiResponse({ removed: true }, "Course deleted");
+});

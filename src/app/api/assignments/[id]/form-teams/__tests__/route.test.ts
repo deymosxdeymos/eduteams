@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { createApiUtilsModule } from "@/test-utils/api-utils-module";
 
 const prismaMock = {
@@ -14,9 +14,8 @@ const currentUserMock = mock(async () => ({
   isOnboarded: true,
 }));
 const isSameOriginMock = mock(() => true);
-const checkRateLimitMock = mock(async () => ({
+const checkMutationRateLimitMock = mock(async () => ({
   allowed: true,
-  retryAfterSeconds: 60,
 }));
 const getClientIdentifierMock = mock(() => null);
 const cleanupStaleRequestsMock = mock(async () => ({ count: 0 }));
@@ -75,7 +74,6 @@ const getTeamFormationProviderMock = mock(() => ({
 }));
 
 const originalNodeEnv = process.env.NODE_ENV;
-const originalDemoMode = process.env.DEMO_MODE;
 
 function applyModuleMocks() {
   mock.module("next/cache", () => ({
@@ -93,8 +91,10 @@ function applyModuleMocks() {
   );
   mock.module("@/lib/csrf", () => ({ isSameOrigin: isSameOriginMock }));
   mock.module("@/lib/prisma", () => ({ default: prismaMock }));
+  mock.module("@/lib/mutation-rate-limit", () => ({
+    checkMutationRateLimit: checkMutationRateLimitMock,
+  }));
   mock.module("@/lib/rate-limit", () => ({
-    checkRateLimit: checkRateLimitMock,
     getClientIdentifier: getClientIdentifierMock,
   }));
   mock.module("@/lib/team-formation/request-store", () => ({
@@ -117,7 +117,6 @@ function applyModuleMocks() {
 describe("POST /api/assignments/[id]/form-teams", () => {
   beforeEach(() => {
     process.env.NODE_ENV = "development";
-    delete process.env.DEMO_MODE;
     applyModuleMocks();
 
     currentUserMock.mockReset();
@@ -132,10 +131,9 @@ describe("POST /api/assignments/[id]/form-teams", () => {
     prismaMock.assignment.findUnique.mockResolvedValue({
       course: { dosenId: "teacher-1" },
     });
-    checkRateLimitMock.mockReset();
-    checkRateLimitMock.mockResolvedValue({
+    checkMutationRateLimitMock.mockReset();
+    checkMutationRateLimitMock.mockResolvedValue({
       allowed: true,
-      retryAfterSeconds: 60,
     });
     getClientIdentifierMock.mockReset();
     getClientIdentifierMock.mockReturnValue(null);
@@ -204,11 +202,12 @@ describe("POST /api/assignments/[id]/form-teams", () => {
   afterEach(() => {
     mock.restore();
     process.env.NODE_ENV = originalNodeEnv;
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-    } else {
-      process.env.DEMO_MODE = originalDemoMode;
-    }
+  });
+
+  afterAll(() => {
+    // mock.restore() triggers installSharedModuleMocks() (patched in setup.ts),
+    // which restores @/lib/api-utils, next/cache, etc. to their real modules.
+    mock.restore();
   });
 
   it("returns 200 and COMPLETED for the local provider", async () => {
@@ -357,13 +356,12 @@ describe("POST /api/assignments/[id]/form-teams", () => {
     expect(createTeamFormationRequestMock).not.toHaveBeenCalled();
   });
 
-  it("keeps the user rate limit unchanged", async () => {
-    checkRateLimitMock.mockImplementation(async ({ key }: { key: string }) => {
-      if (key === "form-teams:user:teacher-1") {
-        return { allowed: false, retryAfterSeconds: 60 };
-      }
-
-      return { allowed: true, retryAfterSeconds: 60 };
+  it("does not consume the teacher-specific bucket when the shared IP bucket is already blocked", async () => {
+    getClientIdentifierMock.mockReturnValue("198.51.100.9");
+    checkMutationRateLimitMock.mockResolvedValue({
+      allowed: false,
+      scope: "ip",
+      retryAfterSeconds: 45,
     });
 
     const { POST } = await import("../route");
@@ -377,5 +375,48 @@ describe("POST /api/assignments/[id]/form-teams", () => {
 
     expect(res.status).toBe(429);
     expect(buildPayloadMock).not.toHaveBeenCalled();
+    expect(checkMutationRateLimitMock).toHaveBeenCalledTimes(1);
+    expect(checkMutationRateLimitMock).toHaveBeenCalledWith(
+      req,
+      expect.objectContaining({
+        keyPrefix: "form-teams",
+        userId: "teacher-1",
+        windowMs: 600000,
+        perIp: 15,
+        perUser: 8,
+      }),
+    );
+  });
+
+  it("checks the teacher-specific bucket only after the shared IP bucket passes", async () => {
+    getClientIdentifierMock.mockReturnValue("198.51.100.9");
+    checkMutationRateLimitMock.mockResolvedValue({
+      allowed: false,
+      scope: "user",
+      retryAfterSeconds: 60,
+    });
+
+    const { POST } = await import("../route");
+    const req = new Request("http://localhost/api/assignments/a1/form-teams", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ method: "JUMLAH_KELOMPOK", value: 2 }),
+    });
+
+    const res = await POST(req as any, { params: Promise.resolve({ id: "a1" }) } as any);
+
+    expect(res.status).toBe(429);
+    expect(buildPayloadMock).not.toHaveBeenCalled();
+    expect(checkMutationRateLimitMock).toHaveBeenCalledTimes(1);
+    expect(checkMutationRateLimitMock).toHaveBeenCalledWith(
+      req,
+      expect.objectContaining({
+        keyPrefix: "form-teams",
+        userId: "teacher-1",
+        windowMs: 600000,
+        perIp: 15,
+        perUser: 8,
+      }),
+    );
   });
 });

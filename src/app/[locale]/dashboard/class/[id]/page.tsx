@@ -8,7 +8,6 @@ import { AssignmentListSkeleton } from "@/components/ui/skeletons/assignment-lis
 import { StudentListSkeleton } from "@/components/ui/skeletons/student-list-skeleton";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import { getAuthorizedStudentsData } from "@/lib/data/course-data";
-import { DEMO_COURSE_ID, getDemoCourse, isDemoSandboxUser } from "@/lib/demo/sandbox";
 import prisma from "@/lib/prisma";
 import { protectDashboard } from "@/lib/server-auth";
 import type { ExtendedUser } from "@/lib/types";
@@ -41,10 +40,6 @@ const getMahasiswaCourseData = cache(async (id: string, userId: string) =>
 );
 
 async function getCourseData(id: string, user: ExtendedUser) {
-  if (id === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-    return getDemoCourse();
-  }
-
   if (canAccessDosenFeatures(user)) {
     return getDosenCourseData(id, user.id);
   }

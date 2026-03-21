@@ -1,9 +1,4 @@
 import { unstable_cache } from "next/cache";
-import {
-  DEMO_TEACHER_ID,
-  getDemoDashboardStatistics,
-  getDemoSandboxPrincipalId,
-} from "@/lib/demo/sandbox";
 import prisma from "@/lib/prisma";
 import type { ExtendedUser } from "@/lib/types";
 import { DASHBOARD_STATISTICS_TAG, type DashboardStatistics } from "./statistics-types";
@@ -75,9 +70,5 @@ const getDashboardStatisticsCached = unstable_cache(
 export async function getDashboardStatisticsForUser(
   user: Pick<ExtendedUser, "id"> & Partial<Pick<ExtendedUser, "email">>,
 ): Promise<DashboardStatistics> {
-  if (getDemoSandboxPrincipalId(user) === DEMO_TEACHER_ID) {
-    return getDemoDashboardStatistics();
-  }
-
   return getDashboardStatisticsCached(user.id);
 }

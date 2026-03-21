@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
-import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from "@/lib/demo/auth";
 import prisma from "@/lib/prisma";
+import type { ExtendedUser } from "@/lib/types";
 import { genderToLabel, labelToGender } from "@/lib/utils/gender";
 // Prisma requires Node.js runtime
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ const dataDiriSchema = z.object({
 
 export const GET = withAuth(async (_request: NextRequest, { user }) => {
   const currentUser = await prisma.user.findUnique({
-    where: { id: user?.id },
+    where: { id: user.id },
     select: {
       name: true,
       nim: true,
@@ -39,25 +39,20 @@ export const GET = withAuth(async (_request: NextRequest, { user }) => {
 });
 
 export const POST = withAuth(
-  withValidation(
+  withValidation<z.infer<typeof dataDiriSchema>, { user: ExtendedUser }>(
     (data: unknown) => dataDiriSchema.parse(data),
-    async (_request: NextRequest, { user, validatedData }) => {
-      if (!user) {
-        return createErrorResponse("Unauthorized", 401);
-      }
-
+    async (
+      _request: NextRequest,
+      {
+        user,
+        validatedData,
+      }: { user: ExtendedUser; validatedData: z.infer<typeof dataDiriSchema> },
+    ) => {
       const { namaLengkap, nim, jenisKelamin } = validatedData;
       const currentRole = user.role;
-      const demoRole = isActiveDemoAccountEmail(user.email)
-        ? parseDemoRoleFromEmail(user.email)
-        : null;
 
       if (!currentRole) {
         return createErrorResponse("Role must be selected before updating profile", 400);
-      }
-
-      if (demoRole && demoRole !== currentRole) {
-        return createErrorResponse("Demo accounts cannot switch role scope", 403);
       }
 
       if (currentRole === "STUDENT" && !nim) {
@@ -78,5 +73,4 @@ export const POST = withAuth(
       return createApiResponse({ success: true });
     },
   ),
-  { allowDemoSandbox: true },
 );

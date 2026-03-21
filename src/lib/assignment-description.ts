@@ -7,7 +7,7 @@ export const DEFAULT_ASSIGNMENT_SKILLS = [
 const NORMALIZED_DEFAULT_SKILLS: string[] = [...DEFAULT_ASSIGNMENT_SKILLS];
 const EMPTY_TOPICS: string[] = [];
 
-function normalizeNames(values: unknown) {
+export function normalizeAssignmentNames(values: unknown) {
   if (!Array.isArray(values)) {
     return [] as string[];
   }
@@ -42,7 +42,7 @@ export function parseAssignmentDescription(
   options?: { defaultSkills?: readonly string[] },
 ) {
   const defaultSkills = options?.defaultSkills
-    ? normalizeNames(options.defaultSkills)
+    ? normalizeAssignmentNames(options.defaultSkills)
     : NORMALIZED_DEFAULT_SKILLS;
 
   if (!description) {
@@ -55,8 +55,8 @@ export function parseAssignmentDescription(
 
   try {
     const parsed = JSON.parse(description);
-    const skills = normalizeNames(parsed?.skills);
-    const topics = normalizeNames(parsed?.topics);
+    const skills = normalizeAssignmentNames(parsed?.skills);
+    const topics = normalizeAssignmentNames(parsed?.topics);
 
     return {
       text: typeof parsed?.text === "string" ? parsed.text.trim() || null : null,

@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createApiResponse, createErrorResponse, handleApiError, withAuth } from "@/lib/api-utils";
 import { canAccessDosenFeatures } from "@/lib/authorization";
-import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
-import { DEMO_COURSE_ID, getDemoSeededAssignment, isDemoSandboxUser } from "@/lib/demo/sandbox";
 import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -22,17 +20,6 @@ export const GET = withAuth<{ id: string }>(async (request: NextRequest, { user,
 
     const isDosen = canAccessDosenFeatures(user);
     if (!isDosen) return createErrorResponse("Access denied", 403);
-
-    if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-      const skills = getDemoSeededAssignment()
-        .skills.filter((name) => name.toLowerCase().includes(search.toLowerCase()))
-        .map((name) => ({
-          id: name,
-          name,
-        }));
-
-      return createApiResponse(skills);
-    }
 
     // Verify course ownership
     const course = await prisma.course.findFirst({
@@ -71,59 +58,44 @@ export const GET = withAuth<{ id: string }>(async (request: NextRequest, { user,
 });
 
 // POST /api/courses/[id]/skills (idempotent add)
-export const POST = withAuth<{ id: string }>(
-  async (request: NextRequest, { user, params }) => {
-    try {
-      const { id: courseId } = await params;
+export const POST = withAuth<{ id: string }>(async (request: NextRequest, { user, params }) => {
+  try {
+    const { id: courseId } = await params;
 
-      const isDosen = canAccessDosenFeatures(user);
-      if (!isDosen) return createErrorResponse("Access denied", 403);
-      if (isActiveDemoAccountEmail(user.email)) {
-        return createErrorResponse("Demo accounts cannot modify shared skills", 403);
-      }
+    const isDosen = canAccessDosenFeatures(user);
+    if (!isDosen) return createErrorResponse("Access denied", 403);
 
-      // Verify course ownership
-      const course = await prisma.course.findFirst({
-        where: { id: courseId, dosenId: user.id },
-        select: { id: true },
-      });
-      if (!course) return createErrorResponse("Course not found", 404);
+    // Verify course ownership
+    const course = await prisma.course.findFirst({
+      where: { id: courseId, dosenId: user.id },
+      select: { id: true },
+    });
+    if (!course) return createErrorResponse("Course not found", 404);
 
-      const body = await request.json();
-      const data = CourseSkillAddSchema.parse(body);
+    const body = await request.json();
+    const data = CourseSkillAddSchema.parse(body);
 
-      // Ensure global Skill exists (create if not)
-      let skill = await prisma.skill.findUnique({
-        where: { name: data.name },
-        select: { id: true, name: true },
-      });
+    // Upsert global Skill (race-safe)
+    const skill = await prisma.skill.upsert({
+      where: { name: data.name },
+      update: {},
+      create: { name: data.name },
+      select: { id: true, name: true },
+    });
 
-      if (!skill) {
-        skill = await prisma.skill.create({
-          data: { name: data.name },
-          select: { id: true, name: true },
-        });
-      }
+    // Idempotent: link skill to course (race-safe)
+    await prisma.courseSkill.upsert({
+      where: { courseId_skillId: { courseId, skillId: skill.id } },
+      update: {},
+      create: { courseId, skillId: skill.id },
+      select: { id: true },
+    });
 
-      // Idempotent: create CourseSkill if not exists
-      const existing = await prisma.courseSkill.findUnique({
-        where: { courseId_skillId: { courseId, skillId: skill.id } },
-        select: { id: true },
-      });
-
-      if (!existing) {
-        await prisma.courseSkill.create({
-          data: { courseId, skillId: skill.id },
-        });
-      }
-
-      return NextResponse.json(
-        { success: true, data: { id: skill.id, name: skill.name } },
-        { status: existing ? 200 : 201 },
-      );
-    } catch (error) {
-      return handleApiError(error);
-    }
-  },
-  { allowDemoSandbox: true },
-);
+    return NextResponse.json(
+      { success: true, data: { id: skill.id, name: skill.name } },
+      { status: 200 },
+    );
+  } catch (error) {
+    return handleApiError(error);
+  }
+});

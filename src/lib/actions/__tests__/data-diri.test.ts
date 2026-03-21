@@ -55,10 +55,7 @@ function createDosenFormData() {
 }
 
 describe("data diri actions", () => {
-  const originalDemoMode = process.env.DEMO_MODE;
-
   beforeEach(() => {
-    process.env.DEMO_MODE = "1";
     redirectMock.mockReset();
     revalidatePathMock.mockReset();
     prismaMock.user.update.mockReset();
@@ -76,44 +73,21 @@ describe("data diri actions", () => {
   afterEach(() => {
     mock.restore();
     restoreModuleMocks();
-
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-      return;
-    }
-
-    process.env.DEMO_MODE = originalDemoMode;
   });
 
-  it("rejects student-scoped demo accounts from submitting teacher data diri", async () => {
+  it("allows eligible teacher accounts to complete the teacher data diri flow", async () => {
     const { submitDataDiri } = await import("../data-diri");
 
     await expect(
       submitDataDiri(createDosenFormData(), async () => ({
-        id: "demo-student",
-        email: "demo.student.visitor1234@eduteams.local",
-      })),
-    ).rejects.toMatchObject({
-      status: 403,
-      code: "AUTHORIZATION_ERROR",
-    });
-
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
-    expect(revalidatePathMock).not.toHaveBeenCalled();
-  });
-
-  it("allows teacher-scoped demo accounts to complete the teacher data diri flow", async () => {
-    const { submitDataDiri } = await import("../data-diri");
-
-    await expect(
-      submitDataDiri(createDosenFormData(), async () => ({
-        id: "demo-teacher",
-        email: "demo.teacher.visitor1234@eduteams.local",
+        id: "user-1",
+        email: "lecturer@if.itera.ac.id",
+        role: null,
       })),
     ).rejects.toThrow("NEXT_REDIRECT:/dashboard?firstVisit=true");
 
     expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: "demo-teacher" },
+      where: { id: "user-1" },
       data: {
         name: "Dr. Rina Wijaya",
         nim: null,
@@ -127,18 +101,46 @@ describe("data diri actions", () => {
     expect(revalidatePathMock).toHaveBeenCalledWith("/onboarding");
   });
 
-  it("still allows student-scoped demo accounts to submit student data diri", async () => {
+  it("rejects teacher data diri submissions for non-institutional accounts", async () => {
+    const { submitDataDiri } = await import("../data-diri");
+
+    await expect(
+      submitDataDiri(createDosenFormData(), async () => ({
+        id: "user-1",
+        email: "user@example.com",
+        role: null,
+      })),
+    ).rejects.toThrow("Institutional email required for teacher role");
+
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects role changes that do not match the persisted onboarding role", async () => {
+    const { submitDataDiri } = await import("../data-diri");
+
+    await expect(
+      submitDataDiri(createDosenFormData(), async () => ({
+        id: "user-1",
+        email: "lecturer@if.itera.ac.id",
+        role: "STUDENT",
+      })),
+    ).rejects.toThrow("Submitted role does not match the current onboarding role");
+
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+
+  it("allows student role to submit student data diri", async () => {
     const { submitDataDiri } = await import("../data-diri");
 
     await expect(
       submitDataDiri(createMahasiswaFormData(), async () => ({
-        id: "demo-student",
-        email: "demo.student.visitor1234@eduteams.local",
+        id: "user-1",
+        email: "student@example.com",
       })),
     ).rejects.toThrow("NEXT_REDIRECT:/onboarding/kepribadian");
 
     expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: "demo-student" },
+      where: { id: "user-1" },
       data: {
         name: "Bagas Pratama",
         nim: "20260001",

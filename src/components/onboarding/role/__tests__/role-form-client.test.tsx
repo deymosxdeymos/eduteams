@@ -1,9 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, mock } from "bun:test";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 const submitRoleMock = mock(async () => undefined);
-const clearDemoSandboxClientStateMock = mock(() => undefined);
-const originalFetch = globalThis.fetch;
 
 function stripMotionProps(props: Record<string, unknown>) {
   const {
@@ -31,8 +29,8 @@ mock.module("next-intl", () => ({
       ({
         continue: "Continue",
         loading: "Loading...",
-        institutionalEmailRequired: "Institutional email required",
         demoLoginError: "Failed to start the demo session. Please try again.",
+        institutionalEmailRequired: "Institutional email required",
       }) as Record<string, string>
     )[key] ?? key,
 }));
@@ -65,15 +63,9 @@ mock.module("@/lib/actions/role", () => ({
   submitRole: submitRoleMock,
 }));
 
-mock.module("@/lib/demo/sandbox-client", () => ({
-  clearDemoSandboxClientState: clearDemoSandboxClientStateMock,
-}));
-
 describe("RoleFormClient", () => {
   afterEach(() => {
     submitRoleMock.mockReset();
-    clearDemoSandboxClientStateMock.mockReset();
-    globalThis.fetch = originalFetch;
   });
 
   afterAll(() => {
@@ -93,94 +85,43 @@ describe("RoleFormClient", () => {
     expect(submitRoleMock).not.toHaveBeenCalled();
   });
 
-  it("keeps the blocked teacher submit button clickable without an institutional email", async () => {
+  it("blocks teacher selection for non-institutional accounts", async () => {
     const { default: RoleFormClient } = await import("../role-form-client");
 
-    render(<RoleFormClient initialRole="dosen" hasInstitutionalEmail={false} />);
+    render(<RoleFormClient canChooseTeacher={false} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Choose dosen/i }));
+
+    expect(screen.getByText("Institutional email required")).toBeInTheDocument();
 
     const button = screen.getByRole("button", { name: /Continue/i }) as HTMLButtonElement;
-    expect(button.disabled).toBe(false);
     expect(button.getAttribute("aria-disabled")).toBe("true");
-
     fireEvent.click(button);
     expect(submitRoleMock).not.toHaveBeenCalled();
   });
 
-  it("clears demo sandbox client state after a successful demo onboarding login", async () => {
-    globalThis.fetch = mock(
-      async () =>
-        new Response(
-          JSON.stringify({
-            success: true,
-          }),
-          {
-            headers: { "Content-Type": "application/json" },
-          },
-        ),
-    ) as typeof fetch;
-
+  it("shows the server-reported teacher eligibility error and lets the user recover", async () => {
     const { default: RoleFormClient } = await import("../role-form-client");
 
-    render(<RoleFormClient enableDemoLogin />);
+    render(<RoleFormClient canChooseTeacher={false} initialShowDosenInvalid />);
 
-    fireEvent.click(screen.getByRole("button", { name: /choose mahasiswa/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+    expect(screen.getByText("Institutional email required")).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
-      expect(clearDemoSandboxClientStateMock).toHaveBeenCalledTimes(1);
-      expect(submitRoleMock).toHaveBeenCalledTimes(1);
-    });
+    fireEvent.click(screen.getByRole("button", { name: /Choose mahasiswa/i }));
+
+    expect(screen.queryByText("Institutional email required")).not.toBeInTheDocument();
+
+    const button = screen.getByRole("button", { name: /Continue/i }) as HTMLButtonElement;
+    expect(button.getAttribute("aria-disabled")).toBe("false");
   });
 
-  it("shows an error when demo onboarding login returns a non-ok response", async () => {
-    globalThis.fetch = mock(
-      async () =>
-        new Response(
-          JSON.stringify({
-            success: false,
-          }),
-          {
-            status: 429,
-            headers: { "Content-Type": "application/json" },
-          },
-        ),
-    ) as typeof fetch;
-
+  it("allows submitting after selecting teacher", async () => {
     const { default: RoleFormClient } = await import("../role-form-client");
 
-    render(<RoleFormClient enableDemoLogin />);
+    render(<RoleFormClient initialRole="dosen" />);
 
-    fireEvent.click(screen.getByRole("button", { name: /choose mahasiswa/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
-
-    expect(
-      await screen.findByText("Failed to start the demo session. Please try again."),
-    ).toBeTruthy();
-    expect(submitRoleMock).not.toHaveBeenCalled();
-    expect(clearDemoSandboxClientStateMock).not.toHaveBeenCalled();
-  });
-
-  it("shows an error when demo onboarding login returns invalid JSON", async () => {
-    globalThis.fetch = mock(
-      async () =>
-        new Response("Service unavailable", {
-          status: 200,
-          headers: { "Content-Type": "text/plain" },
-        }),
-    ) as typeof fetch;
-
-    const { default: RoleFormClient } = await import("../role-form-client");
-
-    render(<RoleFormClient enableDemoLogin />);
-
-    fireEvent.click(screen.getByRole("button", { name: /choose mahasiswa/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
-
-    expect(
-      await screen.findByText("Failed to start the demo session. Please try again."),
-    ).toBeTruthy();
-    expect(submitRoleMock).not.toHaveBeenCalled();
-    expect(clearDemoSandboxClientStateMock).not.toHaveBeenCalled();
+    const button = screen.getByRole("button", { name: /Continue/i }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    expect(button.getAttribute("aria-disabled")).toBe("false");
   });
 });

@@ -180,7 +180,7 @@ export function createApiUtilsModule(overrides: ApiUtilsOverrides = {}) {
   };
 
   const withValidation = <T>(
-    schema: (data: unknown) => T,
+    schema: ((data: unknown) => T) | ((data: unknown, request: NextRequest) => T),
     handler: (
       request: NextRequest,
       context: { user?: ExtendedUser; validatedData: T },
@@ -201,7 +201,7 @@ export function createApiUtilsModule(overrides: ApiUtilsOverrides = {}) {
       let validatedData: T;
 
       try {
-        validatedData = schema(body);
+        validatedData = schema(body, request);
       } catch (error) {
         if (error instanceof ValidationError) {
           throw error;
@@ -218,7 +218,7 @@ export function createApiUtilsModule(overrides: ApiUtilsOverrides = {}) {
     };
   };
 
-  const requireAuth = (): ExtendedUser => {
+  const requireAuth = (): never => {
     throw new AuthError("This function must be called within an authenticated context");
   };
 

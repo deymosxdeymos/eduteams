@@ -1,14 +1,11 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import type { MBTIType, Prisma as PrismaNS } from "@/generated/prisma/client";
-import { createApiResponse, withAuth, withValidation } from "@/lib/api-utils";
-import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
-import { buildDemoSandboxSession } from "@/lib/demo/sandbox";
-import { setDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
+import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
 import { type ActivePersonalityBank, getActivePersonalityBank } from "@/lib/mbti-questions-simple";
 import { calculatePersonalityScores, getMBTIType } from "@/lib/personality";
 import prisma, { type TransactionClient } from "@/lib/prisma";
-import { AuthError } from "@/lib/types";
+import type { ExtendedUser } from "@/lib/types";
 // Prisma requires Node.js runtime
 export const runtime = "nodejs";
 
@@ -71,40 +68,41 @@ async function resolveBankForAnswers(
 }
 
 export const POST = withAuth(
-  withValidation(
+  withValidation<z.infer<typeof completeOnboardingSchema>, { user: ExtendedUser }>(
     (data: unknown) => completeOnboardingSchema.parse(data),
-    async (_request: NextRequest, { user, validatedData }) => {
-      if (!user) {
-        throw new AuthError();
-      }
-
+    async (
+      _request: NextRequest,
+      {
+        user,
+        validatedData,
+      }: { user: ExtendedUser; validatedData: z.infer<typeof completeOnboardingSchema> },
+    ) => {
       const { answers } = validatedData;
 
-      // Get current user to check role
-      const currentUser = await prisma.user.findUnique({
+      const persistedUser = await prisma.user.findUnique({
         where: { id: user.id },
         select: { role: true },
       });
 
-      if (!currentUser) {
-        return createApiResponse(null, "User not found", 404);
+      if (!persistedUser) {
+        return createErrorResponse("User not found", 404);
       }
 
-      const updateData: Record<string, unknown> = { isOnboarded: true };
       let personalityUpdate: PersonalityProfileUpdate | null = null;
 
-      // If user is mahasiswa and provided answers, calculate personality scores
-      if (currentUser.role === "STUDENT" && answers) {
+      if (persistedUser.role === "STUDENT" && answers) {
         const bank = await resolveBankForAnswers(answers);
         if (!bank) {
-          return createApiResponse(null, "Personality bank unavailable", 400);
+          return createErrorResponse("Personality bank unavailable", 400);
         }
+
         const normalizedAnswers: Record<string, number> = {};
         for (const [key, value] of Object.entries(answers)) {
           if (typeof value === "number") {
             normalizedAnswers[key] = value;
           }
         }
+
         bank.questions.forEach((question, index) => {
           const ordinalKey = String(index + 1);
           const byId = normalizedAnswers[question.id];
@@ -125,13 +123,14 @@ export const POST = withAuth(
         });
 
         if (!hasAnyMatch) {
-          return createApiResponse(null, "No answers matched the current question bank", 400);
+          return createErrorResponse("No answers matched the current question bank", 400);
         }
 
         const questions = bank.questions.filter((q) => !q.isAttentionCheck);
         const scores = calculatePersonalityScores(normalizedAnswers, questions);
         const mbtiType = getMBTIType(scores) as MBTIType;
-        const payload = {
+
+        personalityUpdate = {
           ei: scores.ei,
           sn: scores.sn,
           tf: scores.tf,
@@ -143,14 +142,12 @@ export const POST = withAuth(
             metadata: { completedAt: new Date().toISOString() },
           } as unknown as PrismaNS.InputJsonValue,
         };
-        personalityUpdate = payload;
       }
 
-      // Mark user as fully onboarded and save personality data if applicable
       await prisma.$transaction(async (tx: TransactionClient) => {
         await tx.user.update({
           where: { id: user.id },
-          data: updateData,
+          data: { isOnboarded: true },
         });
 
         if (personalityUpdate) {
@@ -165,25 +162,7 @@ export const POST = withAuth(
         }
       });
 
-      const response = createApiResponse({ success: true });
-
-      if (
-        typeof user.email === "string" &&
-        isActiveDemoAccountEmail(user.email) &&
-        (user.role === "TEACHER" || user.role === "STUDENT")
-      ) {
-        await setDemoSandboxSessionCookie(
-          response,
-          buildDemoSandboxSession(user.role, {
-            userId: user.id,
-            email: user.email,
-            onboarded: true,
-          }),
-        );
-      }
-
-      return response;
+      return createApiResponse({ success: true });
     },
   ),
-  { allowDemoSandbox: true },
 );

@@ -2,15 +2,6 @@ import "server-only";
 import { cache } from "react";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import type { MBTIType } from "@/generated/prisma/client";
-import {
-  DEMO_COURSE_ID,
-  getDemoAssignmentsForUser,
-  getDemoSandboxPrincipalId,
-  getDemoStudentsForCourse,
-  isDemoSandboxUser,
-} from "@/lib/demo/sandbox";
-import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
-import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import prisma from "@/lib/prisma";
 import type { ExtendedUser } from "@/lib/types";
 import type { AssignmentClient } from "@/lib/validation/assignments";
@@ -52,29 +43,6 @@ function mapStudentData(enrollment: EnrollmentStudentRow, sensitiveViewerId?: st
   };
 }
 
-async function getDemoStudentsData(sensitiveViewerId?: string): Promise<StudentData[]> {
-  const removedStudentIds = new Set(await getRemovedDemoStudentIdsFromCookieStore());
-
-  return getDemoStudentsForCourse()
-    .filter((student) => !removedStudentIds.has(student.id))
-    .map((student) => {
-      const canViewSensitiveData = !sensitiveViewerId || student.id === sensitiveViewerId;
-
-      return {
-        id: student.id,
-        name: student.name,
-        nim: student.nim,
-        email: canViewSensitiveData ? student.email : "N/A",
-        mbtiType: canViewSensitiveData ? student.mbtiType : null,
-        ei: canViewSensitiveData ? student.ei : null,
-        sn: canViewSensitiveData ? student.sn : null,
-        tf: canViewSensitiveData ? student.tf : null,
-        pj: canViewSensitiveData ? student.pj : null,
-        enrolledAt: student.enrolledAt,
-      };
-    });
-}
-
 /**
  * Fetches assignments for a course with role-based authorization
  * @param courseId - The course ID
@@ -89,14 +57,6 @@ export async function getInitialAssignments(
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
   if (!isDosen && !isMahasiswa) return [];
-
-  if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-    const [submittedAssignmentIds, removedStudentIds] = await Promise.all([
-      getDemoSubmittedAssignmentIdsFromCookieStore(),
-      getRemovedDemoStudentIdsFromCookieStore(),
-    ]);
-    return getDemoAssignmentsForUser(user, { submittedAssignmentIds, removedStudentIds });
-  }
 
   const rows = await prisma.assignment.findMany({
     where: { courseId, archivedAt: null },
@@ -147,10 +107,6 @@ export async function getInitialAssignments(
 export const getStudentsData = cache(async function getStudentsData(
   courseId: string,
 ): Promise<StudentData[]> {
-  if (courseId === DEMO_COURSE_ID) {
-    return await getDemoStudentsData();
-  }
-
   const enrollments = await prisma.courseEnrollment.findMany({
     where: { courseId },
     select: {
@@ -189,12 +145,6 @@ export async function getAuthorizedStudentsData(
   const isMahasiswa = canAccessMahasiswaFeatures(user);
 
   if (!isDosen && !isMahasiswa) return [];
-
-  if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-    return await getDemoStudentsData(
-      isMahasiswa ? (getDemoSandboxPrincipalId(user) ?? user.id) : undefined,
-    );
-  }
 
   const enrollments = await prisma.courseEnrollment.findMany({
     where: {

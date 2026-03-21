@@ -77,7 +77,6 @@ import {
 import { Link } from "@/i18n/routing";
 import { classCatalogFetcher } from "@/lib/client-api";
 import { EMPTY_ARRAY } from "@/lib/constants";
-import { DEMO_COURSE_ID } from "@/lib/demo/sandbox-shared";
 import type { ClassCatalog } from "@/lib/types";
 import {
   formatAcademicPeriodLabel,
@@ -956,18 +955,6 @@ const ManageCoursesViewContent = memo(function ManageCoursesViewContent({
 
   const defaultActions = useCallback(
     (course: ManageCourseRow) => {
-      if (course.id === DEMO_COURSE_ID) {
-        return (
-          <div className="flex items-center justify-end gap-2">
-            <Button asChild variant="ghost" size="icon" aria-label={t("row.openClass")}>
-              <Link href={`/dashboard/class/${course.id}`}>
-                <ExternalLink className="size-4" />
-              </Link>
-            </Button>
-          </div>
-        );
-      }
-
       const isArchived = course.isArchived;
       const archiveLabel = isArchived ? t("archive.showClass") : t("archive.hideClass");
       const ArchiveIcon = isArchived ? Eye : EyeOff;

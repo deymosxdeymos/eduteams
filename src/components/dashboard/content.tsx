@@ -2,17 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ClassGrid, type ClassSummary } from "@/components/dashboard/class-grid";
 import { EmptyClassState } from "@/components/dashboard/empty-class-state";
 import { SearchInput } from "@/components/dashboard/search-input";
 import { StatisticsCards } from "@/components/dashboard/statistics-cards";
 import type { DosenCourseSummary } from "@/lib/dashboard/courses";
 import type { DashboardStatistics } from "@/lib/dashboard/statistics-types";
-import { calculateDemoDashboardStatistics } from "@/lib/demo/dashboard-statistics";
-import { getDemoSandboxClientState } from "@/lib/demo/sandbox-client";
-import { DEMO_COURSE_ID } from "@/lib/demo/sandbox-shared";
-import { useDemoSandboxStorageListener } from "@/lib/hooks/use-demo-sandbox-storage-listener";
 
 interface ContentProps {
   statistics: DashboardStatistics;
@@ -72,7 +68,6 @@ function normalizeCourseSummary(course: unknown): DosenCourseSummary | null {
 export default function Content({ statistics, courses }: ContentProps) {
   const router = useRouter();
   const t = useTranslations("dashboard.classCard");
-  const [demoStatisticsState, setDemoStatisticsState] = useState(() => getDemoSandboxClientState());
   const [optimisticCourses, setOptimisticCourses] = useState<DosenCourseSummary[]>([]);
   const [searchValue, setSearchValue] = useState("");
 
@@ -88,39 +83,6 @@ export default function Content({ statistics, courses }: ContentProps) {
 
     return [...pendingOptimisticCourses, ...courses];
   }, [courses, optimisticCourses]);
-
-  const hasDemoSandboxCourse = useMemo(
-    () => courseList.some((course) => course.id === DEMO_COURSE_ID),
-    [courseList],
-  );
-
-  useEffect(() => {
-    if (!hasDemoSandboxCourse) {
-      return;
-    }
-
-    setDemoStatisticsState(getDemoSandboxClientState());
-  }, [hasDemoSandboxCourse]);
-
-  useDemoSandboxStorageListener(hasDemoSandboxCourse, () => {
-    setDemoStatisticsState(getDemoSandboxClientState());
-  });
-
-  const resolvedStatistics = useMemo(() => {
-    if (!hasDemoSandboxCourse) {
-      return statistics;
-    }
-
-    return calculateDemoDashboardStatistics({
-      createdAssignments: demoStatisticsState.createdAssignments,
-      formedTeams: demoStatisticsState.formedTeams,
-    });
-  }, [
-    demoStatisticsState.createdAssignments,
-    demoStatisticsState.formedTeams,
-    hasDemoSandboxCourse,
-    statistics,
-  ]);
 
   const classes: ClassSummary[] = useMemo(
     () =>
@@ -171,7 +133,7 @@ export default function Content({ statistics, courses }: ContentProps) {
 
   return (
     <div className="h-full flex flex-col gap-4">
-      <StatisticsCards statistics={resolvedStatistics} />
+      <StatisticsCards statistics={statistics} />
       <div className="bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden">
         {hasClasses ? (
           <div className="p-6 pb-0">

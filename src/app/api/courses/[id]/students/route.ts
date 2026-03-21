@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, handleApiError } from "@/lib/api-utils";
 import { canAccessDosenFeatures, canAccessMahasiswaFeatures } from "@/lib/authorization";
 import { getAuthorizedStudentsData } from "@/lib/data/course-data";
-import { DEMO_COURSE_ID, isDemoSandboxUser } from "@/lib/demo/sandbox";
 import prisma from "@/lib/prisma";
 import { HttpError } from "@/lib/types";
 
@@ -26,15 +25,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     }
 
     const { id: courseId } = await params;
-
-    if (courseId === DEMO_COURSE_ID && isDemoSandboxUser(user)) {
-      const students = await getAuthorizedStudentsData(courseId, user);
-
-      return NextResponse.json({
-        success: true,
-        data: students,
-      });
-    }
 
     // Verify access first before fetching student data
     const [courseAccess, enrollmentAccess] = await Promise.all([

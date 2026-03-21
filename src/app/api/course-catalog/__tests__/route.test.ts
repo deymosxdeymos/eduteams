@@ -39,27 +39,6 @@ const usersById: Record<string, any> = {
     tf: 0,
     pj: 0,
   },
-  demo1: {
-    id: "demo1",
-    name: "Demo Dosen",
-    email: "demo.teacher.visitor1234@eduteams.local",
-    emailVerified: true,
-    image: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    role: "TEACHER",
-    nim: null,
-    gender: null,
-    isOnboarded: true,
-    hasSeenWelcomeSplash: true,
-    onboardingStep: null,
-    onboardingData: null,
-    mbtiType: null,
-    ei: 0,
-    sn: 0,
-    tf: 0,
-    pj: 0,
-  },
   m1: {
     id: "m1",
     name: "Mahasiswa",
@@ -81,9 +60,30 @@ const usersById: Record<string, any> = {
     tf: 0,
     pj: 0,
   },
+  d2: {
+    id: "d2",
+    name: "Pending Dosen",
+    email: "pending@if.itera.ac.id",
+    emailVerified: true,
+    image: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    role: "TEACHER",
+    nim: null,
+    gender: null,
+    isOnboarded: false,
+    hasSeenWelcomeSplash: true,
+    onboardingStep: "role",
+    onboardingData: null,
+    mbtiType: null,
+    ei: 0,
+    sn: 0,
+    tf: 0,
+    pj: 0,
+  },
 };
 
-let currentUserId: "d1" | "demo1" | "m1" = "d1";
+let currentUserId: "d1" | "d2" | "demo1" | "m1" = "d1";
 
 const getCourseCatalogMock = mock(async () => [
   {
@@ -136,11 +136,8 @@ function restoreModuleMocks() {
 }
 
 describe("course catalog API", () => {
-  const originalDemoMode = process.env.DEMO_MODE;
-
   beforeEach(() => {
     currentUserId = "d1";
-    delete process.env.DEMO_MODE;
 
     getCourseCatalogMock.mockClear();
     createCourseCatalogEntryMock.mockClear();
@@ -153,13 +150,6 @@ describe("course catalog API", () => {
   afterEach(() => {
     mock.restore();
     restoreModuleMocks();
-
-    if (originalDemoMode === undefined) {
-      delete process.env.DEMO_MODE;
-      return;
-    }
-
-    process.env.DEMO_MODE = originalDemoMode;
   });
 
   it("GET returns catalog entries for dosen", async () => {
@@ -186,39 +176,15 @@ describe("course catalog API", () => {
     expect(getCourseCatalogMock).not.toHaveBeenCalled();
   });
 
-  it("GET keeps real catalog behavior for non-demo teachers in demo mode", async () => {
-    process.env.DEMO_MODE = "1";
-
+  it("GET denies teachers who have not completed onboarding", async () => {
+    currentUserId = "d2";
     const { GET } = await import("../route");
     const res = await GET(
       new Request("http://localhost/api/course-catalog") as any,
       undefined as any,
     );
-
-    expect(res.status).toBe(200);
-    expect(getCourseCatalogMock).toHaveBeenCalledWith({ search: undefined });
-    const json = await res.json();
-    expect(json.data[0].code).toBe("IF25-11001");
-  });
-
-  it("GET returns demo catalog only for demo teachers", async () => {
-    process.env.DEMO_MODE = "1";
-    currentUserId = "demo1";
-
-    const { GET } = await import("../route");
-    const res = await GET(
-      new Request("http://localhost/api/course-catalog") as any,
-      undefined as any,
-    );
-
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
     expect(getCourseCatalogMock).not.toHaveBeenCalled();
-    const json = await res.json();
-    expect(json.data).toEqual([
-      { id: "demo-1", code: "IF3270", name: "Machine Learning" },
-      { id: "demo-2", code: "IF3250", name: "Software Engineering" },
-      { id: "demo-3", code: "IF3210", name: "Mobile Development" },
-    ]);
   });
 
   it("POST creates catalog entry for dosen", async () => {
@@ -236,43 +202,6 @@ describe("course catalog API", () => {
     });
     const json = await res.json();
     expect(json.data.code).toBe("IF25-99999");
-  });
-
-  it("POST still creates real catalog entries for non-demo teachers in demo mode", async () => {
-    process.env.DEMO_MODE = "1";
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/course-catalog", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: "if25-99999", name: "Custom Course" }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(createCourseCatalogEntryMock).toHaveBeenCalledWith({
-      code: "IF25-99999",
-      name: "Custom Course",
-    });
-  });
-
-  it("POST blocks demo teachers from writing catalog entries", async () => {
-    process.env.DEMO_MODE = "1";
-    currentUserId = "demo1";
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/course-catalog", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code: "if25-99999", name: "Custom Course" }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(403);
-    expect(createCourseCatalogEntryMock).not.toHaveBeenCalled();
-    const json = await res.json();
-    expect(json.success).toBe(false);
-    expect(json.error).not.toBe("Demo sandbox sessions can only use demo-enabled actions.");
   });
 
   it("POST handles duplicate code error", async () => {

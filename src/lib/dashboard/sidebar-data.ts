@@ -1,10 +1,5 @@
 import { unstable_cache } from "next/cache";
 import { getCurrentUser } from "@/lib/api-utils";
-import {
-  getDemoSandboxPrincipalId,
-  getDemoSidebarData,
-  isDemoSandboxUser,
-} from "@/lib/demo/sandbox";
 import prisma from "@/lib/prisma";
 import { getStudentAssignmentStatus } from "@/lib/utils/student-status";
 
@@ -186,29 +181,6 @@ export async function getSidebarDataForUser(user: SidebarUserInput | null): Prom
     };
   }
 
-  if (isDemoSandboxUser(user)) {
-    const role =
-      user.role === "TEACHER" || user.role === "STUDENT" || user.role === "ADMIN"
-        ? user.role
-        : null;
-    const demoPrincipalId = getDemoSandboxPrincipalId(user);
-    const notStartedCount =
-      role === "STUDENT" && demoPrincipalId !== user.id
-        ? await getCachedNotStartedCount(user.id)
-        : 0;
-
-    return getDemoSidebarData(
-      {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role,
-      },
-      { notStartedCount },
-    );
-  }
-
-  // For mahasiswa users, get cached not-started count
   const notStartedCount = user.role === "STUDENT" ? await getCachedNotStartedCount(user.id) : 0;
 
   return {

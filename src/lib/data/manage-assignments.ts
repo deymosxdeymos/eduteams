@@ -1,9 +1,3 @@
-import {
-  DEMO_COURSE_ID,
-  DEMO_TEACHER_ID,
-  getDemoManageAssignments,
-  getDemoSandboxPrincipalId,
-} from "@/lib/demo/sandbox";
 import prisma from "@/lib/prisma";
 import type { ExtendedUser } from "@/lib/types";
 import type { ManageAssignmentRow } from "@/types/manage";
@@ -13,10 +7,6 @@ export async function getManageAssignmentsForCourse(
   user: Pick<ExtendedUser, "id"> & Partial<Pick<ExtendedUser, "email">>,
   totalStudentsInput: number | Promise<number>,
 ): Promise<ManageAssignmentRow[]> {
-  if (courseId === DEMO_COURSE_ID && getDemoSandboxPrincipalId(user) === DEMO_TEACHER_ID) {
-    return getDemoManageAssignments({ totalStudents: await totalStudentsInput });
-  }
-
   const [assignments, totalStudents] = await Promise.all([
     prisma.assignment.findMany({
       where: {

@@ -1,5 +1,4 @@
 import { getSidebarDataForUser } from "@/lib/dashboard/sidebar-data";
-import { DEMO_COURSE_ID, getDemoSandboxPrincipalId } from "@/lib/demo/sandbox";
 import type { Course, ExtendedUser } from "@/lib/types";
 import type { AssignmentClient } from "@/lib/validation/assignments";
 import Nav from "./nav";
@@ -35,8 +34,7 @@ export async function StudentClassPageLayout({
   initialAssignments,
 }: StudentClassPageLayoutProps) {
   const sidebarData = await getSidebarDataForUser(user);
-  const currentUserId =
-    course.id === DEMO_COURSE_ID ? (getDemoSandboxPrincipalId(user) ?? user.id) : user.id;
+  const currentUserId = user.id;
 
   return (
     <main className="bg-accent px-10 py-8 h-screen flex flex-col overflow-hidden">

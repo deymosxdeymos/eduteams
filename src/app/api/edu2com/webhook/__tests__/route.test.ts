@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { createHmac } from "node:crypto";
 import { createApiUtilsModule } from "@/test-utils/api-utils-module";
 
@@ -56,6 +56,12 @@ describe("POST /api/edu2com/webhook", () => {
   afterEach(() => {
     mock.restore();
     delete process.env.EDU2COM_WEBHOOK_SECRET;
+  });
+
+  afterAll(() => {
+    // mock.restore() triggers installSharedModuleMocks() (patched in setup.ts),
+    // which restores @/lib/api-utils, complete-request, next/cache, etc.
+    mock.restore();
   });
 
   it("completes a valid callback through the shared completion service", async () => {

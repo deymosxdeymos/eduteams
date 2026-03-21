@@ -1,6 +1,7 @@
 import { isIP } from "node:net";
 import type { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { isTruthyEnv } from "@/lib/utils/environment";
 
 const CLIENT_IP_HEADER_NAME_PATTERN = /^[a-z0-9-]+$/;
 const EXPIRED_BUCKET_PRUNE_INTERVAL_MS = 60_000;
@@ -126,15 +127,11 @@ function getClientIpFromHeader(request: Pick<NextRequest, "headers">, headerName
 export function getTrustedClientIpHeaders(): string[] {
   const trustedHeaders: string[] = [];
 
-  if (process.env.VERCEL === "1" || process.env.VERCEL === "true") {
+  if (isTruthyEnv(process.env.VERCEL)) {
     trustedHeaders.push("x-vercel-forwarded-for");
   }
 
-  if (
-    process.env.CF_PAGES === "1" ||
-    process.env.CF_PAGES === "true" ||
-    Boolean(process.env.CLOUDFLARE_ACCOUNT_ID)
-  ) {
+  if (isTruthyEnv(process.env.CF_PAGES) || Boolean(process.env.CLOUDFLARE_ACCOUNT_ID)) {
     trustedHeaders.push("cf-connecting-ip");
   }
 

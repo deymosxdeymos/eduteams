@@ -1,30 +1,32 @@
-function isTruthyEnv(value: string | undefined) {
-  return value === "1" || value === "true";
-}
+import { assertTeamFormationConfiguration } from "@/lib/team-formation/config";
+import { isVercelDeployment } from "@/lib/utils/environment";
 
-export function isVercelDeployment() {
-  return isTruthyEnv(process.env.VERCEL) || typeof process.env.VERCEL_ENV === "string";
+export { isVercelDeployment };
+
+function assertRequiredEnvironmentVariables(names: string[], message?: string) {
+  const missingVariables = names.filter((name) => !process.env[name]?.trim());
+
+  if (missingVariables.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVariables.join(", ")}${message ? `. ${message}` : ""}`,
+    );
+  }
 }
 
 export function assertDeploymentConfiguration() {
-  const demoMode = process.env.DEMO_MODE === "1";
-  const vercelDeployment = isVercelDeployment();
-  const betterAuthSecret = process.env.BETTER_AUTH_SECRET?.trim();
-  const hasGoogleOauthSecrets = Boolean(
-    process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_SECRET,
+  assertRequiredEnvironmentVariables(["BETTER_AUTH_SECRET"]);
+  assertTeamFormationConfiguration();
+}
+
+export function assertGoogleOAuthConfiguration() {
+  assertRequiredEnvironmentVariables(
+    ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+    "Google OAuth is required for authentication.",
   );
+}
 
-  if (vercelDeployment && !demoMode) {
-    throw new Error(
-      "Vercel deployments must run with DEMO_MODE=1. Self-host production separately.",
-    );
-  }
-
-  if (demoMode && hasGoogleOauthSecrets) {
-    throw new Error("Demo mode must not configure GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET.");
-  }
-
-  if (demoMode && !betterAuthSecret) {
-    throw new Error("Demo mode requires BETTER_AUTH_SECRET to be configured.");
-  }
+export function assertAuthConfiguration() {
+  assertDeploymentConfiguration();
+  assertRequiredEnvironmentVariables(["BETTER_AUTH_URL"]);
+  assertGoogleOAuthConfiguration();
 }

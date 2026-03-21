@@ -16,19 +16,6 @@ import {
   getStudentCompetencyPrefills,
   normalizeTopicKey,
 } from "@/lib/data/student-competency-profiles";
-import {
-  DEMO_COURSE_ID,
-  buildDemoAssignmentHref,
-  buildDemoSandboxUser,
-  getDemoAssignmentAnswersView,
-  getDemoAssignmentDefinitionFromSearchParams,
-  getDemoCourse,
-  getDemoSandboxPrincipalId,
-  isDemoSandboxAssignmentId,
-  isDemoSandboxUser,
-} from "@/lib/demo/sandbox";
-import { getRemovedDemoStudentIdsFromCookieStore } from "@/lib/demo/sandbox-roster";
-import { getDemoSubmittedAssignmentIdsFromCookieStore } from "@/lib/demo/sandbox-submissions";
 import { buildAssignmentAnswerRows } from "@/lib/dashboard/assignment-answer-rows";
 import { getAssignmentAnswerView } from "@/lib/dashboard/assignment-answer-view";
 import { getMBTIQuestions } from "@/lib/mbti-questions-simple";
@@ -192,93 +179,16 @@ export async function generateMetadata({
 
 interface AssignmentQuizPageProps {
   params: Promise<{ locale: string; id: string; assignmentId: string }>;
-  searchParams: Promise<{
-    demoTitle?: string | string[];
-    demoSkill?: string | string[];
-    demoTopic?: string | string[];
-    demoSkillsEmpty?: string | string[];
-    demoTopicsEmpty?: string | string[];
-  }>;
 }
 
-export default async function AssignmentQuizPage({
-  params,
-  searchParams,
-}: AssignmentQuizPageProps) {
+export default async function AssignmentQuizPage({ params }: AssignmentQuizPageProps) {
   const user = await protectDashboard();
   const { locale, id: classId, assignmentId } = await params;
 
   const isMahasiswa = canAccessMahasiswaFeatures(user);
   if (!isMahasiswa) notFound();
 
-  const resolvedSearchParams = await searchParams;
-  const isDemoAssignmentRoute =
-    classId === DEMO_COURSE_ID &&
-    isDemoSandboxUser(user) &&
-    isDemoSandboxAssignmentId(assignmentId);
-
-  let data: AssignmentData | null = null;
-  let demoSubmittedUser: ExtendedUser | null = null;
-  let demoPersonalityAnswers: Record<string, number> | null = null;
-  let demoBackHref: string | null = null;
-  let demoCourse: Course | null = null;
-
-  if (isDemoAssignmentRoute) {
-    const assignmentDefinition = getDemoAssignmentDefinitionFromSearchParams(resolvedSearchParams);
-    const currentUserId = getDemoSandboxPrincipalId(user) ?? user.id;
-    const [removedStudentIds, submittedAssignmentIds] = await Promise.all([
-      getRemovedDemoStudentIdsFromCookieStore(),
-      getDemoSubmittedAssignmentIdsFromCookieStore(),
-    ]);
-
-    if (removedStudentIds.includes(currentUserId)) {
-      notFound();
-    }
-
-    const hasSubmittedDemoAssignment = submittedAssignmentIds.includes(assignmentId);
-
-    if (hasSubmittedDemoAssignment) {
-      const answersView = getDemoAssignmentAnswersView(currentUserId, assignmentDefinition);
-      if (!answersView) {
-        notFound();
-      }
-
-      demoSubmittedUser = buildDemoSandboxUser("STUDENT");
-      demoPersonalityAnswers =
-        (demoSubmittedUser.personalityData as { answers?: Record<string, number> } | null)
-          ?.answers ?? null;
-      demoBackHref = getLocalizedHref(
-        locale,
-        buildDemoAssignmentHref({
-          classId,
-          assignmentId,
-          title: assignmentDefinition.title,
-          skills: assignmentDefinition.skills,
-          topics: assignmentDefinition.topics,
-        }),
-      );
-      demoCourse = getDemoCourse();
-      data = {
-        hasSubmitted: true,
-        view: answersView,
-      };
-    } else {
-      data = {
-        hasSubmitted: false,
-        assignment: {
-          id: assignmentId,
-          title: assignmentDefinition.title,
-          skills: assignmentDefinition.skills,
-          topics: assignmentDefinition.topics,
-          hasTopics: assignmentDefinition.topics.length > 0,
-          skillPrefills: [],
-          topicPrefills: [],
-        },
-      };
-    }
-  } else {
-    data = await getAssignmentData(assignmentId, user);
-  }
+  const data = await getAssignmentData(assignmentId, user);
 
   if (!data) notFound();
 
@@ -286,40 +196,34 @@ export default async function AssignmentQuizPage({
     const answers = data.view;
 
     // Fetch course for layout (student context) and hide student list
-    const enrollment = demoCourse
-      ? null
-      : await prisma.courseEnrollment.findUnique({
-          where: { courseId_studentId: { courseId: classId, studentId: user.id } },
+    const enrollment = await prisma.courseEnrollment.findUnique({
+      where: { courseId_studentId: { courseId: classId, studentId: user.id } },
+      include: {
+        course: {
           include: {
-            course: {
-              include: {
-                dosen: { select: { id: true, name: true, email: true } },
-              },
-            },
+            dosen: { select: { id: true, name: true, email: true } },
           },
-        });
-    if (!demoCourse && !enrollment) notFound();
-    const course = demoCourse ?? (enrollment?.course as unknown as Course);
+        },
+      },
+    });
+    if (!enrollment) notFound();
+    const course = enrollment.course as unknown as Course;
 
     const [mbtiQuestions, userRecord, tActions] = await Promise.all([
       getMBTIQuestions(locale),
-      demoSubmittedUser
-        ? Promise.resolve(null)
-        : prisma.user.findUnique({
-            where: { id: user.id },
-            select: {
-              personalityProfile: { select: { personalityData: true } },
-            },
-          }),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          personalityProfile: { select: { personalityData: true } },
+        },
+      }),
       getTranslations("dashboard.assignment.actions"),
     ]);
     const personalityJson = userRecord?.personalityProfile?.personalityData as unknown as {
       answers?: Record<string, number>;
     } | null;
-    const personalityAnswers =
-      demoPersonalityAnswers ?? ((personalityJson?.answers ?? {}) as Record<string, number>);
-    const submittedUser = demoSubmittedUser ?? user;
-    const submittedUserMbtiType = getMBTIType(submittedUser);
+    const personalityAnswers = (personalityJson?.answers ?? {}) as Record<string, number>;
+    const submittedUserMbtiType = getMBTIType(user);
     const { personalityRows, skillRows, topicRows } = buildAssignmentAnswerRows({
       mbtiQuestions,
       personalityAnswers,
@@ -333,7 +237,6 @@ export default async function AssignmentQuizPage({
           user={user}
           course={course}
           classId={classId}
-          assignmentId={assignmentId}
           students={[]}
           canManage={false}
           hideStudentList
@@ -343,20 +246,17 @@ export default async function AssignmentQuizPage({
           <div className="flex flex-col p-6 gap-6">
             <div className="flex items-center">
               <Link
-                href={
-                  demoBackHref ??
-                  getLocalizedHref(
-                    locale,
-                    `/dashboard/class/${classId}/assignments/${assignmentId}`,
-                  )
-                }
+                href={getLocalizedHref(
+                  locale,
+                  `/dashboard/class/${classId}/assignments/${assignmentId}`,
+                )}
                 className="inline-flex items-center gap-2 text-sm text-neutral-700 hover:text-black"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="font-bold">{tActions("back")}</span>
               </Link>
             </div>
-            <ProfileHeader user={submittedUser} hideEditButton />
+            <ProfileHeader user={user} hideEditButton />
             <AssignmentAnswersTabs
               personalityRows={personalityRows}
               skills={skillRows}

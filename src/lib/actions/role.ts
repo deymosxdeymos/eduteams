@@ -4,10 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/api-utils";
-import { isActiveDemoAccountEmail, parseDemoRoleFromEmail } from "@/lib/demo/auth";
-import { isDemoModeEnabled } from "@/lib/demo/config";
-import { refreshDemoSandboxSessionCookie } from "@/lib/demo/sandbox-cookie";
-import { isInstitutionalEmail } from "@/lib/email";
+import { canStartTeacherOnboarding } from "@/lib/authorization";
+import { getInstitutionalEmailRequiredRolePath } from "@/lib/onboarding/role-errors";
 import prisma from "@/lib/prisma";
 import { AuthError } from "@/lib/types";
 
@@ -27,21 +25,15 @@ export async function submitRole(formData: FormData, getCurrentUserImpl = getCur
     role: formData.get("role") as string,
   };
 
-  const validatedData = roleSchema.parse(rawData);
-  const { role } = validatedData;
-
-  const isTeacherDemoAccount =
-    isActiveDemoAccountEmail(user.email) && parseDemoRoleFromEmail(user.email) === "TEACHER";
-  const isTeacherAllowed =
-    role !== "TEACHER" || isInstitutionalEmail(user.email) || isTeacherDemoAccount;
-
-  if (!isTeacherAllowed) {
-    redirect("/onboarding/role?err=dosen_email");
+  const validatedData = roleSchema.safeParse(rawData);
+  if (!validatedData.success) {
+    redirect("/onboarding/role");
   }
 
-  const demoRole = isActiveDemoAccountEmail(user.email) ? parseDemoRoleFromEmail(user.email) : null;
-  if (demoRole && demoRole !== role) {
-    redirect("/onboarding/role");
+  const { role } = validatedData.data;
+
+  if (role === "TEACHER" && !canStartTeacherOnboarding(user)) {
+    redirect(getInstitutionalEmailRequiredRolePath());
   }
 
   await prisma.user.update({
@@ -51,43 +43,11 @@ export async function submitRole(formData: FormData, getCurrentUserImpl = getCur
       onboardingStep: "role",
     },
   });
-  await refreshDemoSandboxSessionCookie(user, { role, onboarded: false });
 
   revalidatePath("/dashboard");
   revalidatePath("/onboarding");
 
   const roleSlug = role === "TEACHER" ? "dosen" : "mahasiswa";
-
-  redirect(`/onboarding/data-diri/${roleSlug}`);
-}
-
-export async function autoAssignRole(getCurrentUserImpl = getCurrentUser) {
-  const user = await getCurrentUserImpl();
-  if (!user) {
-    throw new AuthError("Authentication required");
-  }
-
-  if (process.env.DEV_DISABLE_AUTO_ROLE === "true") {
-    redirect("/onboarding/role");
-  }
-
-  const demoRole = isActiveDemoAccountEmail(user.email) ? parseDemoRoleFromEmail(user.email) : null;
-
-  if (!demoRole && isDemoModeEnabled() && !isInstitutionalEmail(user.email)) {
-    redirect("/onboarding/role");
-  }
-
-  const role = demoRole ?? (isInstitutionalEmail(user.email) ? "TEACHER" : "STUDENT");
-  const roleSlug = role === "TEACHER" ? "dosen" : "mahasiswa";
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      role,
-      onboardingStep: "role",
-    },
-  });
-  await refreshDemoSandboxSessionCookie(user, { role, onboarded: false });
 
   redirect(`/onboarding/data-diri/${roleSlug}`);
 }

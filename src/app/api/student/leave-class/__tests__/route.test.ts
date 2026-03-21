@@ -1,7 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
-import { NextResponse } from "next/server";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { createApiUtilsModule } from "@/test-utils/api-utils-module";
 
-const actualApiUtils = await import("@/lib/api-utils");
 const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 let currentUser = {
@@ -32,27 +31,11 @@ const prismaMock: any = {
 };
 
 function applyModuleMocks() {
-  mock.module("@/lib/api-utils", () => ({
-    ...actualApiUtils,
-    withAuth: (handler: any, options?: { allowDemoSandbox?: boolean }) => {
-      return async (request: Request, context: unknown) => {
-        const isUnsafeMethod = !["GET", "HEAD", "OPTIONS"].includes(request.method);
-        const isDemoUser = currentUser.email.startsWith("demo.");
-
-        if (isUnsafeMethod && isDemoUser && !options?.allowDemoSandbox) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Demo sandbox sessions can only use demo-enabled actions.",
-            },
-            { status: 403 },
-          );
-        }
-
-        return handler(request, { ...(context as object), user: currentUser });
-      };
-    },
-  }));
+  mock.module("@/lib/api-utils", () =>
+    createApiUtilsModule({
+      getCurrentUser: async () => currentUser as any,
+    }),
+  );
   mock.module("next/cache", () => ({ revalidateTag: () => {} }));
   mock.module("@/lib/csrf", () => ({ isSameOrigin: () => true }));
   mock.module("@/lib/prisma", () => ({ default: prismaMock }));
@@ -98,6 +81,10 @@ describe("POST /api/student/leave-class", () => {
     process.env.NEXT_PUBLIC_APP_URL = originalAppUrl;
   });
 
+  afterAll(() => {
+    mock.restore();
+  });
+
   it("leaves class when enrolled", async () => {
     const { POST } = await import("../route");
     const req = new Request("http://localhost/api/student/leave-class", {
@@ -130,36 +117,5 @@ describe("POST /api/student/leave-class", () => {
     });
     const res = await POST(req as any, undefined as any);
     expect(res.status).toBe(404);
-  });
-
-  it("allows demo-account students to leave classes", async () => {
-    currentUser = {
-      id: "demo-student-user",
-      email: "demo.student.visitor-alpha@eduteams.local",
-      role: "STUDENT",
-      isOnboarded: true,
-    };
-
-    const { POST } = await import("../route");
-    const req = new Request("http://localhost/api/student/leave-class", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        origin: "http://localhost:3000",
-        "x-forwarded-host": "localhost",
-      },
-      body: JSON.stringify({ courseId: "c1" }),
-    });
-    const res = await POST(req as any, undefined as any);
-
-    expect(res.status).toBe(200);
-    expect(prismaMock.courseEnrollment.delete).toHaveBeenCalledWith({
-      where: {
-        courseId_studentId: {
-          courseId: "c1",
-          studentId: "demo-student-user",
-        },
-      },
-    });
   });
 });

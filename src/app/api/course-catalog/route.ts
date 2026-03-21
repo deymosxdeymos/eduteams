@@ -1,11 +1,10 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
-import { getLocalizedApiMessage, getRequestLocale } from "@/lib/api-i18n";
 import { createApiResponse, createErrorResponse, withAuth, withValidation } from "@/lib/api-utils";
+import { canAccessDosenFeatures } from "@/lib/authorization";
 import { createCourseCatalogEntry, getCourseCatalog } from "@/lib/data/course-catalog";
-import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
-import { DEMO_COURSE_CATALOG } from "@/lib/demo/config";
+import type { ExtendedUser } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -30,7 +29,7 @@ const courseCatalogCreateSchema = z.object({
 type CourseCatalogCreateInput = z.infer<typeof courseCatalogCreateSchema>;
 
 export const GET = withAuth(async (request: NextRequest, { user }) => {
-  if (user.role !== "TEACHER") {
+  if (!canAccessDosenFeatures(user)) {
     return createErrorResponse("Only dosen can view course catalog", 403);
   }
 
@@ -44,10 +43,6 @@ export const GET = withAuth(async (request: NextRequest, { user }) => {
     return createErrorResponse(firstError?.message || "Invalid search query", 400);
   }
 
-  if (isActiveDemoAccountEmail(user.email)) {
-    return createApiResponse([...DEMO_COURSE_CATALOG]);
-  }
-
   const { search } = parseResult.data;
   const entries = await getCourseCatalog({ search: search || undefined });
 
@@ -55,24 +50,15 @@ export const GET = withAuth(async (request: NextRequest, { user }) => {
 });
 
 export const POST = withAuth(
-  withValidation(
+  withValidation<CourseCatalogCreateInput, { user: ExtendedUser }>(
     (data: unknown) => courseCatalogCreateSchema.parse(data),
     async (_request: NextRequest, { user, validatedData }) => {
-      if (user?.role !== "TEACHER") {
+      if (!canAccessDosenFeatures(user)) {
         return createErrorResponse("Only dosen can create courses", 403);
       }
 
-      if (isActiveDemoAccountEmail(user.email)) {
-        const locale = getRequestLocale(_request);
-        return createErrorResponse(
-          getLocalizedApiMessage(locale, "dashboard.modals.createClass.catalog.demoLocked"),
-          403,
-        );
-      }
-
-      const payload = validatedData as CourseCatalogCreateInput;
-      const normalizedCode = payload.code.toUpperCase();
-      const normalizedName = payload.name.replace(/\s+/g, " ").trim();
+      const normalizedCode = validatedData.code.toUpperCase();
+      const normalizedName = validatedData.name.replace(/\s+/g, " ").trim();
 
       try {
         const entry = await createCourseCatalogEntry({
@@ -89,5 +75,4 @@ export const POST = withAuth(
       }
     },
   ),
-  { allowDemoSandbox: true },
 );

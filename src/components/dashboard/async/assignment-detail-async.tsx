@@ -351,7 +351,6 @@ export async function AssignmentDetailAsync({
       user={user}
       course={course}
       classId={classId}
-      assignmentId={assignmentId}
       {...(hideStudentList
         ? { totalStudents: totalEnrollments, hideStudentList: true }
         : { students })}

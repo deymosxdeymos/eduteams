@@ -4,14 +4,7 @@ import { CompetencyKind } from "@/generated/prisma/client";
 import { createApiResponse, createErrorResponse, handleApiError, withAuth } from "@/lib/api-utils";
 import { parseAssignmentDescription } from "@/lib/assignment-description";
 import { canAccessMahasiswaFeatures } from "@/lib/authorization";
-import { isActiveDemoAccountEmail } from "@/lib/demo/auth";
 import { normalizeTopicKey } from "@/lib/data/student-competency-profiles";
-import {
-  DEMO_ASSIGNMENT_ID,
-  DEMO_COURSE_ID,
-  isDemoSandboxUser,
-  isLocalDemoAssignmentId,
-} from "@/lib/demo/sandbox";
 import prisma, { type TransactionClient } from "@/lib/prisma";
 import { HttpError } from "@/lib/types";
 
@@ -27,16 +20,6 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       if (!isMahasiswa) {
         return createErrorResponse("Access denied", 403);
       }
-
-      if (
-        courseId === DEMO_COURSE_ID &&
-        isDemoSandboxUser(user) &&
-        (assignmentId === DEMO_ASSIGNMENT_ID || isLocalDemoAssignmentId(assignmentId))
-      ) {
-        return createApiResponse({ success: true });
-      }
-
-      const isDemoAccount = isActiveDemoAccountEmail(user.email);
 
       const [body, enrollment, assignment, existingSubmission] = await Promise.all([
         bodyPromise,
@@ -187,7 +170,7 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
           );
           const missing = uniqueSkillNames.filter((n) => !existingByName.has(n));
 
-          if (missing.length > 0 && !isDemoAccount) {
+          if (missing.length > 0) {
             await prisma.skill.createMany({
               data: missing.map((n) => ({ name: n })),
               skipDuplicates: true,
@@ -466,5 +449,4 @@ export const POST = withAuth<{ id: string; assignmentId: string }>(
       return handleApiError(error);
     }
   },
-  { allowDemoSandbox: true },
 );
