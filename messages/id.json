@@ -947,5 +947,10 @@
     "goToDashboard": "Go to Dashboard",
     "cancel": "Cancel",
     "invitationToken": "Invitation Token:"
+  },
+  "mobileBlocker": {
+    "title": "Layarnya kekecilan nih!",
+    "description": "EquiTeams cuma bisa dipakai di layar besar. Buka di laptop atau komputer ya, kita tungguin kok.",
+    "badge": "Khusus desktop, maaf ya"
   }
 }

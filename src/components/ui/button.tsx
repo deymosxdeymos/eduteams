@@ -1,6 +1,9 @@
+"use client";
+
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
+import { useWebHaptics } from "web-haptics/react";
 
 import { cn } from "@/lib/utils";
 
@@ -38,22 +41,40 @@ const buttonVariants = cva(
   },
 );
 
+const VARIANT_HAPTIC = {
+  default: "medium",
+  destructive: "warning",
+  outline: "light",
+  secondary: "light",
+  ghost: "light",
+  link: "light",
+  onboarding: "medium",
+} as const;
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  onClick,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
+  const haptic = useWebHaptics();
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    haptic.trigger(VARIANT_HAPTIC[variant ?? "default"]);
+    onClick?.(e);
+  };
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={asChild ? onClick : handleClick}
       {...props}
     />
   );

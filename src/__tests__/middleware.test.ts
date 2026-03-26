@@ -27,10 +27,21 @@ function restoreModuleMocks() {
   }));
 }
 
-function createRequest(pathname: string, cookieHeader?: string) {
+function createRequest(
+  pathname: string,
+  options?: {
+    cookieHeader?: string;
+    headers?: HeadersInit;
+  },
+) {
   const url = new URL(`http://localhost${pathname}`);
-  const headers = new Headers(cookieHeader ? { cookie: cookieHeader } : undefined);
+  const headers = new Headers(options?.headers);
+  const cookieHeader = options?.cookieHeader;
   const cookies = new Map<string, string>();
+
+  if (cookieHeader) {
+    headers.set("cookie", cookieHeader);
+  }
 
   for (const entry of cookieHeader?.split(/;\s*/u) ?? []) {
     const separatorIndex = entry.indexOf("=");
@@ -75,7 +86,7 @@ describe("middleware auth handling", () => {
 
   it("forwards only the CSP nonce into Next.js request header overrides", async () => {
     const { middleware } = await import("@/middleware");
-    const request = createRequest("/", "foo=bar; theme=dark");
+    const request = createRequest("/", { cookieHeader: "foo=bar; theme=dark" });
 
     const response = await middleware(request);
     const nonce = response.headers.get("x-nonce");
@@ -100,12 +111,31 @@ describe("middleware auth handling", () => {
 
   it("redirects authenticated users when only the secure session cookie is present", async () => {
     const { middleware } = await import("@/middleware");
-    const request = createRequest("/", "__Secure-better-auth.session_token=secure-token");
+    const request = createRequest("/", {
+      cookieHeader: "__Secure-better-auth.session_token=secure-token",
+    });
 
     const response = await middleware(request);
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("http://localhost/dashboard");
+  });
+
+  it("rewrites small-screen requests before auth redirects run", async () => {
+    const { middleware } = await import("@/middleware");
+    const request = createRequest("/dashboard", {
+      headers: {
+        "sec-ch-ua-mobile": "?1",
+        "user-agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1",
+      },
+    });
+
+    const response = await middleware(request);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBe("http://localhost/id/mobile-blocked");
+    expect(response.headers.get("location")).toBeNull();
   });
 
   it("allows local development connections only in the development CSP", async () => {

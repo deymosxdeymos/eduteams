@@ -5,6 +5,7 @@ import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { MobileBlocker } from "@/components/mobile-blocker";
 import { routing } from "@/i18n/routing";
 import { assertDeploymentConfiguration } from "@/lib/deployment-config";
 import "../globals.css";
@@ -53,17 +54,20 @@ export default async function RootLayout({
     onboarding: messages.onboarding,
     dashboard: messages.dashboard,
     joinClass: messages.joinClass,
+    mobileBlocker: messages.mobileBlocker,
   };
 
   return (
     <html lang={locale}>
       <body className={`${plusJakartaSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider messages={clientMessages}>
-          {children}
-          <SpeedInsights />
-          {process.env.NODE_ENV === "development" && (
-            <Agentation endpoint="http://localhost:4747" />
-          )}
+          <MobileBlocker>
+            {children}
+            <SpeedInsights />
+            {process.env.NODE_ENV === "development" && (
+              <Agentation endpoint="http://localhost:4747" />
+            )}
+          </MobileBlocker>
         </NextIntlClientProvider>
       </body>
     </html>

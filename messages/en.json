@@ -948,5 +948,10 @@
     "goToDashboard": "Go to Dashboard",
     "cancel": "Cancel",
     "invitationToken": "Invitation Token:"
+  },
+  "mobileBlocker": {
+    "title": "Whoa there, tiny screen!",
+    "description": "EquiTeams is built for the big stage. Grab your laptop or desktop and come back, we'll be right here waiting.",
+    "badge": "Desktop only, sorry not sorry"
   }
 }

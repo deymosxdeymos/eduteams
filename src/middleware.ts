@@ -2,6 +2,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { getBetterAuthSessionToken } from "@/lib/better-auth-cookies";
+import { shouldBlockSmallScreenRequest } from "@/lib/request-device";
 import { routing } from "./i18n/routing";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -79,6 +80,7 @@ function applyBaseSecurityHeaders(response: NextResponse) {
       "fullscreen=(self)",
     ].join(", "),
   );
+  response.headers.set("Vary", "Sec-CH-UA-Mobile, Viewport-Width, User-Agent");
 }
 
 function applySecurityHeaders(response: NextResponse) {
@@ -107,6 +109,22 @@ function applySecurityHeaders(response: NextResponse) {
 const STATIC_EXT_RE = /\.(ico|png|jpg|jpeg|svg|gif|webp)$/;
 const intlMiddleware = createMiddleware(routing);
 
+function detectLocale(request: NextRequest): "id" | "en" {
+  if (request.nextUrl.pathname.startsWith("/en")) {
+    return "en";
+  }
+
+  return (routing.defaultLocale ?? "id") as "id" | "en";
+}
+
+function isMobileBlockerPath(pathname: string) {
+  return (
+    pathname === "/mobile-blocked" ||
+    pathname === "/id/mobile-blocked" ||
+    pathname === "/en/mobile-blocked"
+  );
+}
+
 function hasBetterAuthSessionToken(request: NextRequest) {
   try {
     const tokenFromHeader = getSessionCookie(request.headers);
@@ -132,22 +150,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (!isMobileBlockerPath(pathname) && shouldBlockSmallScreenRequest(request.headers)) {
+    const locale = detectLocale(request);
+    const blockerUrl = new URL(request.url);
+    blockerUrl.pathname = locale === "en" ? "/en/mobile-blocked" : "/id/mobile-blocked";
+
+    const res = NextResponse.rewrite(blockerUrl);
+    return applySecurityHeaders(res);
+  }
+
   const hasRouteSession = hasBetterAuthSessionToken(request);
+  const locale = detectLocale(request);
 
   const protectedPathnameRegex = /^\/(en\/)?(dashboard|onboarding|profile|settings)/;
   const isProtectedRoute = protectedPathnameRegex.test(pathname);
 
-  function detectLocale(_request: NextRequest): "id" | "en" {
-    if (pathname.startsWith("/en")) {
-      return "en";
-    }
-
-    return (routing.defaultLocale ?? "id") as "id" | "en";
-  }
-
   // Redirect logged-in users from homepage to dashboard
   if ((pathname === "/" || pathname === "/en") && hasRouteSession) {
-    const locale = detectLocale(request);
     const target = locale === "en" ? "/en/dashboard" : "/dashboard";
     const res = NextResponse.redirect(new URL(target, request.url));
     return applySecurityHeaders(res);
@@ -160,7 +179,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/en/register")
   ) {
     if (hasRouteSession) {
-      const locale = detectLocale(request);
       const target = locale === "en" ? "/en/dashboard" : "/dashboard";
       const res = NextResponse.redirect(new URL(target, request.url));
       return applySecurityHeaders(res);
@@ -168,7 +186,6 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isProtectedRoute && !hasRouteSession) {
-    const locale = detectLocale(request);
     const url = new URL(locale === "en" ? "/en" : "/", request.url);
     const res = NextResponse.redirect(url);
     return applySecurityHeaders(res);
