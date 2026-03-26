@@ -19,7 +19,10 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const current = useLocale() as "id" | "en";
   const [isPending, startTransition] = useTransition();
   const t = useTranslations("dashboard.languageSwitcher");
-  const { nextLocale, switchLabel, flagSrc } = getLanguageSwitcherTarget(current, t);
+  const { nextLocale, currentLabel, switchLabel, currentFlagSrc } = getLanguageSwitcherTarget(
+    current,
+    t,
+  );
 
   return (
     <Button
@@ -39,7 +42,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       title={switchLabel}
     >
       <span className="text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold">
-        {nextLocale.toUpperCase()}
+        {currentLabel}
       </span>
       {isPending ? (
         <LoadingSpinner
@@ -49,7 +52,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         />
       ) : (
         <Image
-          src={flagSrc}
+          src={currentFlagSrc}
           width={40}
           height={40}
           alt={switchLabel}

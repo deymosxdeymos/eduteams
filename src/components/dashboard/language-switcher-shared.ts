@@ -12,7 +12,8 @@ export function getLanguageSwitcherTarget(
 
   return {
     nextLocale,
+    currentLabel: currentLocale.toUpperCase(),
     switchLabel: nextLocale === "id" ? t("switchToIndonesia") : t("switchToEnglish"),
-    flagSrc: nextLocale === "id" ? "/indo.svg" : "/english.svg",
+    currentFlagSrc: currentLocale === "id" ? "/indo.svg" : "/english.svg",
   } as const;
 }

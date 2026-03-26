@@ -80,27 +80,27 @@ describe("LanguageSwitcher", () => {
     mock.restore();
   });
 
-  it("shows the destination locale in the client switcher", async () => {
+  it("shows the current locale in the client switcher", async () => {
     const { LanguageSwitcher } = await import("../language-switcher");
 
     render(<LanguageSwitcher />);
 
     const button = screen.getByRole("button", { name: translations.switchToEnglish });
-    expect(button.textContent).toContain("EN");
+    expect(button.textContent).toContain("ID");
     expect(screen.getByRole("img", { name: translations.switchToEnglish })).toBeTruthy();
 
     fireEvent.click(button);
     expect(replaceMock).toHaveBeenCalledWith("/dashboard", { locale: "en" });
   });
 
-  it("shows the destination locale in the server switcher", async () => {
+  it("shows the current locale in the server switcher", async () => {
     const { LanguageSwitcherServer } = await import("../language-switcher-server");
 
     const html = renderToStaticMarkup(await LanguageSwitcherServer({}));
 
     expect(html).toContain("Switch to Indonesian");
     expect(html).toContain('data-locale="id"');
-    expect(html).toContain(">ID<");
-    expect(html).toContain("/indo.svg");
+    expect(html).toContain(">EN<");
+    expect(html).toContain("/english.svg");
   });
 });

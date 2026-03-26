@@ -12,7 +12,10 @@ interface LanguageSwitcherServerProps {
 export async function LanguageSwitcherServer({ className }: LanguageSwitcherServerProps) {
   const current = (await getLocale()) as "id" | "en";
   const t = await getTranslations("dashboard.languageSwitcher");
-  const { nextLocale, switchLabel, flagSrc } = getLanguageSwitcherTarget(current, t);
+  const { nextLocale, currentLabel, switchLabel, currentFlagSrc } = getLanguageSwitcherTarget(
+    current,
+    t,
+  );
 
   return (
     <Button
@@ -26,10 +29,10 @@ export async function LanguageSwitcherServer({ className }: LanguageSwitcherServ
     >
       <Link href="/" locale={nextLocale} aria-label={switchLabel} title={switchLabel}>
         <span className="text-sm sm:text-lg lg:text-2xl text-stone-950 font-semibold">
-          {nextLocale.toUpperCase()}
+          {currentLabel}
         </span>
         <Image
-          src={flagSrc}
+          src={currentFlagSrc}
           width={40}
           height={40}
           alt={switchLabel}
