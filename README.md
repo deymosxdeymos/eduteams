@@ -76,11 +76,6 @@ BETTER_AUTH_SECRET=""
 BETTER_AUTH_URL=""
 NEXT_PUBLIC_APP_URL=""
 CRON_SECRET=""
-```
-
-Optional:
-
-```env
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 TEAM_FORMATION_PROVIDER="local|edu2com"
@@ -88,11 +83,10 @@ EDU2COM_WEBHOOK_SECRET=""
 EDU2COM_WEBHOOK_BASE_URL=""
 ```
 
-For containerized deployment:
+Docker is optional and only used to run PostgreSQL in development:
 
 ```bash
-docker build -t eduteams .
-docker run -p 3000:3000 eduteams
+docker compose up -d
 ```
 
 ## Contributing
