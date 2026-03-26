@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import { useAnimatedMascot } from "./use-animated-mascot";
 
 const moodFloatClass = {
@@ -37,16 +38,13 @@ type MobileBlockedScreenProps = {
   hideOnDesktop?: boolean;
 };
 
-export function MobileBlockedScreen({ hideOnDesktop = false }: MobileBlockedScreenProps = {}) {
+export function MobileBlockedScreen({ hideOnDesktop = false }: MobileBlockedScreenProps) {
   const t = useTranslations("mobileBlocker");
   const { mood, returning, svgRef, handlePoke } = useAnimatedMascot();
   const [showMascot, setShowMascot] = useState(!hideOnDesktop);
 
   useEffect(() => {
-    if (!hideOnDesktop) {
-      setShowMascot(true);
-      return;
-    }
+    if (!hideOnDesktop) return;
 
     const mql = window.matchMedia(DESKTOP_QUERY);
     setShowMascot(!mql.matches);
@@ -59,15 +57,16 @@ export function MobileBlockedScreen({ hideOnDesktop = false }: MobileBlockedScre
     return () => mql.removeEventListener("change", onChange);
   }, [hideOnDesktop]);
 
-  const containerClassName = hideOnDesktop
-    ? "fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-muted p-6 lg:hidden"
-    : "fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-muted p-6";
-
   return (
     <div
-      className={containerClassName}
+      className={cn(
+        "fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-muted p-6",
+        hideOnDesktop && "lg:hidden",
+      )}
       onClick={handlePoke}
-      onKeyDown={handlePoke}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") handlePoke();
+      }}
       role="dialog"
       aria-modal="true"
       aria-label={t("title")}

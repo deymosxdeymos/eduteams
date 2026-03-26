@@ -1,7 +1,7 @@
 "use client";
 
 import { useAnimate } from "framer-motion";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useWebHaptics } from "web-haptics/react";
 
 export type MascotMood = "idle" | "annoyed" | "furious" | "defeated";
@@ -142,6 +142,12 @@ export function useAnimatedMascot() {
       springToIdle();
     }, COOLDOWNS[nextMood]);
   }, [springToIdle, haptic, scope]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return { mood, returning, svgRef: scope, handlePoke };
 }
