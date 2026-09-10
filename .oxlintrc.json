@@ -1,43 +1,4 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "react", "nextjs", "jsx-a11y", "import"],
-  "ignorePatterns": [
-    ".next/**",
-    "out/**",
-    "build/**",
-    "coverage/**",
-    "next-env.d.ts",
-    "src/generated/**",
-    "prisma/migrations/**"
-  ],
-  "rules": {
-    "no-useless-catch": "error",
-    "no-unused-vars": [
-      "error",
-      {
-        "argsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
-      }
-    ],
-    "no-extra-boolean-cast": "off",
-    "typescript/no-explicit-any": "error",
-    "jsx-a11y/no-autofocus": "off",
-    "jsx-a11y/prefer-tag-over-role": "off",
-    "jsx-a11y/role-has-required-aria-props": "off",
-    "jsx-a11y/role-supports-aria-props": "off"
-  },
-  "overrides": [
-    {
-      "files": [
-        "**/__tests__/**/*.{ts,tsx}",
-        "__tests__/**/*.{ts,tsx}",
-        "**/*.test.{ts,tsx}",
-        "**/*.spec.{ts,tsx}"
-      ],
-      "rules": {
-        "typescript/no-explicit-any": "off"
-      }
-    }
-  ]
+  "plugins": ["eslint", "typescript", "oxc", "unicorn", "import", "react", "jsx-a11y", "nextjs"]
 }

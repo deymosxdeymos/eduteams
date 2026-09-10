@@ -1,9 +1,0 @@
-{
-  "regions": ["sin1"],
-  "crons": [
-    {
-      "path": "/api/cron/cleanup-stale-requests",
-      "schedule": "0 2 * * *"
-    }
-  ]
-}

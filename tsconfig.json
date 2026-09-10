@@ -1,41 +1,34 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["ESNext", "dom", "dom.iterable"],
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext",
+    "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
-    "types": ["bun-types", "node"],
-    "allowImportingTsExtensions": true,
-    "moduleDetection": "force",
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@tests/*": ["./__tests__/*"],
-      "__tests__/*": ["./__tests__/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
     "next-env.d.ts",
-    "types/**/*.d.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "scripts/**/*.ts",
-    "prisma/**/*.ts",
-    "__tests__/**/*.ts",
-    ".next/types/**/*.ts"
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
   ],
-  "exclude": ["node_modules", "src/generated/prisma", "**/*.test.ts", "**/*.test.tsx"]
+  "exclude": ["node_modules"]
 }

@@ -1,107 +1,37 @@
-# EduTeams
+# EduTeams v2
 
-EduTeams is a Next.js application for personality-based team formation, class management, and assignment workflows.
+Fresh Next.js application for the EduTeams rebuild.
 
-## Stack
+## Toolchain
 
-- Next.js 15
-- TypeScript
-- Bun
-- PostgreSQL + Prisma
-- Tailwind CSS + shadcn/ui
-- better-auth
-- next-intl
+- Node.js 24.21.0
+- pnpm 12.3.4
+- Next.js 16.4.0-canary.25
+- TypeScript 5
+- Tailwind CSS 4
+- Oxlint
+- Oxfmt
 
-## Quick Start
+`.mise.toml` pins Node.js and pnpm. Run `mise install` to install both versions.
 
-Prerequisites:
+Next.js uses its Rust-based compiler and Turbopack defaults. The repository has no Babel configuration.
 
-- Bun
-- Node.js 22+
-- PostgreSQL
+## Development
 
 ```bash
-bun install
-cp .env.example .env.local
+pnpm install
+pnpm dev
 ```
 
-Set at least these variables in `.env.local`:
+Open [http://localhost:3000](http://localhost:3000).
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/eduteams"
-BETTER_AUTH_SECRET="your-secret"
-BETTER_AUTH_URL="http://localhost:3000"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
-
-Then run:
+## Checks
 
 ```bash
-bun prisma migrate dev
-bun dev
+pnpm lint
+pnpm format:check
+pnpm typecheck
+pnpm build
 ```
 
-Open `http://localhost:3000`.
-
-## Common Commands
-
-```bash
-bun dev
-bun run build
-bun start
-
-bun test
-bun run lint
-bun run format
-bun run tsgo
-
-bun prisma migrate dev
-bun prisma studio
-bun run db:seed
-```
-
-## Notes
-
-- `tsgo` is the default type checker.
-- Oxlint handles linting and Oxfmt handles formatting.
-- The CSS module declaration in `types/css.d.ts` is intentionally kept for Next CSS imports.
-
-## Deployment
-
-Required production variables:
-
-```env
-DATABASE_URL=""
-BETTER_AUTH_SECRET=""
-BETTER_AUTH_URL=""
-NEXT_PUBLIC_APP_URL=""
-CRON_SECRET=""
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-TEAM_FORMATION_PROVIDER="local|edu2com"
-EDU2COM_WEBHOOK_SECRET=""
-EDU2COM_WEBHOOK_BASE_URL=""
-```
-
-Docker is optional and only used to run PostgreSQL in development:
-
-```bash
-docker compose up -d
-```
-
-## Contributing
-
-Before opening a PR, run:
-
-```bash
-bun test
-bun run lint
-bun run tsgo
-```
-
-## License
-
-MIT
-
-Personality assessment items are adapted from Open Extended Jungian Type Scales 1.2 (CC BY-NC-SA 4.0):
-https://openpsychometrics.org/tests/OJTS/development/OEJTS1.2.pdf
+Run `pnpm format` to format the repository.
