@@ -2,6 +2,7 @@
   "name": "eduteams",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -25,6 +26,7 @@
     "@types/react-dom": "^19",
     "oxfmt": "^0.67.0",
     "oxlint": "1.82.0",
+    "oxlint-plugin-react-doctor": "0.9.13",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

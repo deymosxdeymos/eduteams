@@ -1,7 +1,9 @@
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["eslint", "typescript", "oxc", "unicorn", "import", "react", "jsx-a11y", "nextjs"],
-  "ignorePatterns": [
+import { defineConfig } from "oxlint";
+import { NEXTJS_RULES, RECOMMENDED_RULES } from "oxlint-plugin-react-doctor";
+
+export default defineConfig({
+  plugins: ["eslint", "typescript", "oxc", "unicorn", "import", "react", "jsx-a11y", "nextjs"],
+  ignorePatterns: [
     ".agent/**",
     ".agents/**",
     ".claude/**",
@@ -9,19 +11,29 @@
     ".continue/**",
     ".cursor/**",
     ".gemini/**",
+    ".goose/**",
+    ".husky/**",
+    ".kiro/**",
     ".opencode/**",
     ".pi/**",
     ".roo/**",
+    ".vibe/**",
     ".windsurf/**",
-    "tools/oxlint/anti-slop/**"
+    "tools/oxlint/anti-slop/**",
   ],
-  "jsPlugins": [
+  jsPlugins: [
     {
-      "name": "anti-slop",
-      "specifier": "./tools/oxlint/anti-slop/index.ts"
-    }
+      name: "anti-slop",
+      specifier: "./tools/oxlint/anti-slop/index.ts",
+    },
+    {
+      name: "react-doctor",
+      specifier: "oxlint-plugin-react-doctor",
+    },
   ],
-  "rules": {
+  rules: {
+    ...RECOMMENDED_RULES,
+    ...NEXTJS_RULES,
     "oxc/no-accumulating-spread": "error",
     "anti-slop/no-array-filter-map": "error",
     "anti-slop/no-reduce-accumulator-copy": "error",
@@ -39,6 +51,6 @@
     "anti-slop/no-unknown-type-aliases": "error",
     "anti-slop/no-unsafe-dictionary-type": "error",
     "anti-slop/no-widen-then-assert": "error",
-    "anti-slop/require-safety-comment-for-type-assertion": "error"
-  }
-}
+    "anti-slop/require-safety-comment-for-type-assertion": "error",
+  },
+});
