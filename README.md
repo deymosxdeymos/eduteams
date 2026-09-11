@@ -12,11 +12,12 @@ EduTeams is a Next.js application. The repository root is the only deployable ap
 ## Toolchain
 
 - Node.js 24.21.0
-- pnpm 12.3.4
+- pnpm 10.33.0
 - Next.js 16.4.0-canary.25
 - TypeScript 5
 - Tailwind CSS 4
 - Oxlint
+- Anti-slop Oxlint rules, vendored from `dmmulroy/anti-slop`
 - Oxfmt
 
 `.mise.toml` pins Node.js and pnpm. Run `mise install` to install both versions.
@@ -51,6 +52,6 @@ Do not add `vercel.json`, a deployment adapter, or custom install and build comm
 ## Agent workflow
 
 - Read the relevant guide in `node_modules/next/dist/docs/` before changing Next.js code.
-- Keep the managed Next.js block in `AGENTS.md` unchanged.
+- Keep the managed Next.js and Vercel blocks in `AGENTS.md` unchanged.
 - Use `browser-control` for browser verification. Do not use `agent-browser` or `next-dev-loop`.
 - Run `pnpm check` before merging.
