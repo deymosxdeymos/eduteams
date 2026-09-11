@@ -14,6 +14,7 @@
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm build"
   },
   "dependencies": {
+    "motion": "^13.2.0",
     "next": "16.4.0-canary.25",
     "react": "19.2.8",
     "react-dom": "19.2.8"
