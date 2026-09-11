@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${inter.variable} ${plusJakartaSans.variable} ${montserrat.variable} antialiased`}
+      className={`${inter.variable} ${plusJakartaSans.variable} ${montserrat.variable}`}
     >
       <body>{children}</body>
     </html>

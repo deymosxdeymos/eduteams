@@ -82,6 +82,7 @@ These adaptations preserve the frame's appearance:
 - Preserve the skip link, visible focus treatment, reduced-motion support, and explicit image dimensions.
 - Load above-the-fold images promptly. The flag uses a fixed circular wrapper with an aspect-preserving cover crop and eager loading.
 - Use fluid layout between the authoritative desktop and mobile widths; do not scale down the whole page.
+- Component styling lives in colocated StyleX modules. Keep `globals.css` limited to StyleX output injection and document-level defaults such as the reset, focus ring, and reduced-motion fallback.
 
 ## Verification
 
