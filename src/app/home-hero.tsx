@@ -42,7 +42,7 @@ function Brand() {
   return (
     <m.a className="brand" href="/" aria-label="EquiTeam, halaman utama" {...brandMotion}>
       <span className="brand-mark">
-        <Image src="/brand/hero-mark.svg" width={52} height={56} alt="" preload />
+        <Image src="/brand/hero-mark.svg" width={52} height={56} alt="" loading="eager" />
       </span>
       <span>
         <strong>Equi</strong>Team
@@ -72,7 +72,7 @@ function GoogleSignIn() {
   return (
     <m.div className="hero-cta-motion" {...callToActionMotion}>
       <button className="hero-cta" type="button" disabled>
-        <Image src="/brand/google.svg" width={24} height={24} alt="" />
+        <Image src="/brand/google.svg" width={24} height={24} alt="" loading="eager" />
         Masuk dengan Google
       </button>
     </m.div>
@@ -104,7 +104,7 @@ function HeroScene() {
       </div>
       <HeroMascot />
       <div className="hero-curve" aria-hidden="true">
-        <Image src="/brand/hero-curve.svg" fill sizes="100vw" alt="" preload />
+        <Image src="/brand/hero-curve.svg" fill sizes="100vw" alt="" loading="eager" />
       </div>
     </section>
   );

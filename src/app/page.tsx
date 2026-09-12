@@ -35,8 +35,22 @@ function AboutSection() {
         <AboutHeading />
         <AboutCopy />
       </div>
-      <Image className="about-enfj" src="/mascots/about-enfj.png" width={206} height={195} alt="" />
-      <Image className="about-entj" src="/mascots/about-entj.png" width={196} height={245} alt="" />
+      <Image
+        className="about-enfj"
+        src="/mascots/about-enfj.png"
+        width={206}
+        height={195}
+        alt=""
+        loading="eager"
+      />
+      <Image
+        className="about-entj"
+        src="/mascots/about-entj.png"
+        width={196}
+        height={245}
+        alt=""
+        loading="eager"
+      />
     </section>
   );
 }

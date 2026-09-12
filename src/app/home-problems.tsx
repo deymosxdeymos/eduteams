@@ -55,6 +55,7 @@ function ProblemCardItem({ card }: { card: ProblemCard }) {
           height={card.mascot.height}
           sizes="(max-width: 767px) 50vw, (max-width: 1100px) 28vw, 18rem"
           alt=""
+          loading="eager"
         />
       </picture>
     </article>
