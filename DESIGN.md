@@ -11,7 +11,24 @@ The homepage follows Figma file `Kenj6nx1cHufhh1haMV64Y`, desktop Landing Page `
 | What is EquiTeam | `861:9028`       | `1133:37013` |
 | Problems         | `861:9026`       | `1133:37083` |
 
-The older Landing Page `271:187` and Family reference are not homepage authorities. Their cream surfaces, lime transition, purple logo, scientist-only hero, white cards, and inset outlines do not apply to these frames. Later Solution, Benefits, Call-out, and Footer sections are not implemented.
+The older Landing Page `271:187` is not a homepage authority. Family is a supporting style reference for whitespace, illustration emphasis, and restrained interface details. The Figma frames above remain authoritative for colors, typography, artwork, and component geometry. Later Solution, Benefits, Call-out, and Footer sections are not implemented.
+
+## Style direction
+
+EquiTeam feels playful and welcoming through its characters, with clear typography and generous space for the content. Family informs the quiet treatment around those characters. Our deep-blue hero, white ground, and softly colored problem cards establish EquiTeam's own identity.
+
+| Family principle                    | EquiTeam adaptation                                                                                                                                        |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Characters carry the personality    | Use the exported EquiTeam mascots. Keep faces and key poses readable, with the hero trio anchored to the white curve.                                      |
+| Generous whitespace                 | Preserve the Figma section spacing and readable text widths. Allow content to grow on narrow screens and with enlarged text.                               |
+| Restrained interface details        | Keep surfaces free of added elevation and ornament. Use the Figma borders on controls; About remains unboxed and problem cards retain their gradients.     |
+| Calm text around expressive artwork | Use Plus Jakarta Sans for headings and most interface text, with Montserrat for desktop hero supporting copy. Preserve the existing hierarchy and weights. |
+| A small set of purposeful accents   | Use `#000098` for the hero and About heading, `#FEC84B` for Keadilan, and the documented green, amber, and violet card treatments.                         |
+| Clear primary action                | Preserve the light Google sign-in pill against the blue hero. Its label and icon carry the action without additional decoration.                           |
+
+Family's cream canvas, custom display font, black CTA, orange demo links, and crypto-specific components are not imported into EquiTeam. Its blanket ban on gradients does not apply to the Figma problem cards. Decorative mascot and card colors do not define success, warning, or error states.
+
+For components without a Figma specification, use the existing EquiTeam palette and type hierarchy, generous spacing, and minimal borders. New components require their own responsive and interaction decisions; this reference does not prescribe unimplemented screens.
 
 ## Colors and surfaces
 
@@ -39,18 +56,20 @@ Plus Jakarta Sans owns headings, navigation, controls, About, and Problems copy.
 | ----------------- | ---------------------------------- | ------------------------------------------- |
 | Hero heading      | 80px, 800 weight, -4px tracking    | 50px, 700 weight, -2px tracking; four lines |
 | About heading     | 82.416px, 800 weight               | 40px, 600 weight, -1.6px tracking           |
-| About copy        | 20px, 400 weight, justified        | 16px/24px, 400 weight, justified            |
+| About copy        | 20px, 400 weight, justified        | 16px/24px, 400 weight, left-aligned         |
 | Problems heading  | 48px, 800 weight                   | 40px/50px, 600 weight                       |
 | Problem title     | 48px, 700 weight, -1.92px tracking | 32px, 700 weight, -1.28px tracking          |
 | Closing statement | 28px italic, 500 weight            | 24px/30px italic, 500 weight                |
 
-At 1440px, About begins at y1031 and Problems at y1496. About has two 498px columns separated by 121px. Problems has three 352×389.5px cards with 32px gaps, beginning 245px into the section. Card corners are 9px.
+The dimensions below describe the reference viewports with loaded fonts and default text sizing. Section heights are minimums in the implementation; content growth takes precedence over fixed coordinates.
+
+At 1440px, About begins at y1031 and Problems at y1496. About has two 498px columns separated by 121px. Problems has three 352×389.5px cards with 32px gaps, beginning approximately 245px into the section. Card corners are 9px.
 
 At 412px, the hero is 772px tall. About includes the frame's following white gap and extends to y1344. Problems is 1421px tall, with 290×251px cards beginning 331px into the section and approximately 26.34px vertical gaps. Mobile card corners are approximately 7.408px.
 
-The hero uses the complete three-character illustration. Its exported visible footprint is about 730×289px on desktop and up to 353×139.5px on compact mobile. Scale it in three continuous ranges: fluid phone sizing through 480px, a 353–432px large-phone/small-tablet range through 768px, then 56vw up to the 730px desktop cap. Anchor the illustration and curve to the same bottom edge and keep an intentional 21–53px overlap so the characters never float above or separate from the white ground.
+The hero uses the complete three-character illustration. Its image box is about 730×289px on desktop and up to 353×139.5px on compact mobile. Scale it in three ranges: fluid phone sizing through 480px, a 353–432px large-phone/small-tablet range through 768px, then 56vw up to the 730px desktop cap. The current formulas produce a small width step from 432px at 768px to about 430.6px at 769px. Anchor the illustration and curve to the same bottom edge and keep an intentional 21–53px overlap so the characters never float above or separate from the white ground.
 
-Between 769px and 1088px, interpolate the hero height, curve height, and ground overlap together. At up to 896px, About becomes a single readable column and hides the overlapping left mascot. Problems becomes a two-column grid below 1088px and a single column below 768px.
+Between 769px and 1088px, interpolate the hero height, curve height, and ground overlap together. At up to 896px, About becomes a single readable column and hides the overlapping left mascot. Problems has two columns from 769px through 1088px, with the final card centered, and one column at 768px and below. These pixel equivalents assume the default 16px font size; the layout queries use rem units.
 
 ## Referenced assets
 
@@ -80,8 +99,11 @@ These adaptations preserve the frame's appearance:
 - Google sign-in and language switching are native disabled buttons until their behavior exists. Do not invent an authentication destination.
 - Decorative images use empty alternative text. Headings use one h1, section h2s, and card h3s.
 - Preserve the skip link, visible focus treatment, reduced-motion support, and explicit image dimensions.
-- Load above-the-fold images promptly. The flag uses a fixed circular wrapper with an aspect-preserving cover crop and eager loading.
+- All ten rendered homepage images currently use `loading="eager"`, including the About and Problems mascots. This loads them immediately even below the fold. The flag uses a fixed circular wrapper with an aspect-preserving cover crop.
+- About copy is left-aligned at 896px and below for readability. This is an intentional adaptation from the mobile frame's justified copy.
 - Use fluid layout between the authoritative desktop and mobile widths; do not scale down the whole page.
+- Component styling lives in colocated StyleX modules. Keep `globals.css` limited to StyleX output injection and document-level defaults such as the reset, focus ring, and reduced-motion fallback.
+- The white 3px seam cover above About prevents a subpixel gap at the hero boundary. It is not decorative elevation.
 
 ## Verification
 

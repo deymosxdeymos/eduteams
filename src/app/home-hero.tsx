@@ -1,7 +1,9 @@
 "use client";
 
+import * as stylex from "@stylexjs/stylex";
 import { LazyMotion, MotionConfig, domAnimation, m, type MotionProps } from "motion/react";
 import Image from "next/image";
+import { styles } from "./home-hero.styles";
 
 const enterTransition = {
   duration: 0.36,
@@ -40,12 +42,24 @@ const mascotMotion: MotionProps = {
 
 function Brand() {
   return (
-    <m.a className="brand" href="/" aria-label="EquiTeam, halaman utama" {...brandMotion}>
-      <span className="brand-mark">
-        <Image src="/brand/hero-mark.svg" width={52} height={56} alt="" loading="eager" />
+    <m.a
+      {...stylex.props(styles.brand)}
+      href="/"
+      aria-label="EquiTeam, halaman utama"
+      {...brandMotion}
+    >
+      <span {...stylex.props(styles.brandMark)}>
+        <Image
+          {...stylex.props(styles.brandImage)}
+          src="/brand/hero-mark.svg"
+          width={52}
+          height={56}
+          alt=""
+          loading="eager"
+        />
       </span>
       <span>
-        <strong>Equi</strong>Team
+        <strong {...stylex.props(styles.brandStrong)}>Equi</strong>Team
       </span>
     </m.a>
   );
@@ -54,11 +68,11 @@ function Brand() {
 function HeroCopy() {
   return (
     <>
-      <m.h1 id="hero-title" {...titleMotion}>
-        Di Mana <mark>Keadilan</mark>
-        <span>Menciptakan Keunggulan</span>
+      <m.h1 id="hero-title" {...stylex.props(styles.heading)} {...titleMotion}>
+        Di Mana <mark {...stylex.props(styles.headingHighlight)}>Keadilan</mark>
+        <span {...stylex.props(styles.headingSecondLine)}>Menciptakan Keunggulan</span>
       </m.h1>
-      <m.p className="hero-description" {...descriptionMotion}>
+      <m.p {...stylex.props(styles.description)} {...descriptionMotion}>
         Setiap tim hebat dimulai dari proses pembagian yang tepat.
         <br />
         Yuk, mulai petualangan seru kamu di sini.
@@ -70,9 +84,16 @@ function HeroCopy() {
 
 function GoogleSignIn() {
   return (
-    <m.div className="hero-cta-motion" {...callToActionMotion}>
-      <button className="hero-cta" type="button" disabled>
-        <Image src="/brand/google.svg" width={24} height={24} alt="" loading="eager" />
+    <m.div {...stylex.props(styles.ctaMotion)} {...callToActionMotion}>
+      <button {...stylex.props(styles.cta)} type="button" disabled>
+        <Image
+          {...stylex.props(styles.ctaImage)}
+          src="/brand/google.svg"
+          width={24}
+          height={24}
+          alt=""
+          loading="eager"
+        />
         Masuk dengan Google
       </button>
     </m.div>
@@ -81,8 +102,9 @@ function GoogleSignIn() {
 
 function HeroMascot() {
   return (
-    <m.div className="hero-mascot" aria-hidden="true" {...mascotMotion}>
+    <m.div {...stylex.props(styles.mascot)} aria-hidden="true" {...mascotMotion}>
       <Image
+        {...stylex.props(styles.mascotImage)}
         src="/mascots/equiteam-hero-illustration.png"
         width={730}
         height={289}
@@ -96,15 +118,22 @@ function HeroMascot() {
 
 function HeroScene() {
   return (
-    <section className="hero" aria-labelledby="hero-title">
+    <section {...stylex.props(styles.hero)} aria-labelledby="hero-title">
       <Brand />
       <LanguageControl />
-      <div className="hero-content">
+      <div {...stylex.props(styles.content)}>
         <HeroCopy />
       </div>
       <HeroMascot />
-      <div className="hero-curve" aria-hidden="true">
-        <Image src="/brand/hero-curve.svg" fill sizes="100vw" alt="" loading="eager" />
+      <div {...stylex.props(styles.curve)} aria-hidden="true">
+        <Image
+          {...stylex.props(styles.curveImage)}
+          src="/brand/hero-curve.svg"
+          fill
+          sizes="100vw"
+          alt=""
+          loading="eager"
+        />
       </div>
     </section>
   );
@@ -112,10 +141,18 @@ function HeroScene() {
 
 function LanguageControl() {
   return (
-    <button className="hero-language" type="button" aria-label="Bahasa Indonesia" disabled>
+    <button {...stylex.props(styles.language)} type="button" aria-label="Bahasa Indonesia" disabled>
+      <span {...stylex.props(styles.languagePill)} aria-hidden="true" />
       <span>ID</span>
-      <span className="hero-language-flag">
-        <Image src="/brand/indonesia.png" fill sizes="47px" alt="" loading="eager" />
+      <span {...stylex.props(styles.languageFlag)}>
+        <Image
+          {...stylex.props(styles.languageFlagImage)}
+          src="/brand/indonesia.png"
+          fill
+          sizes="47px"
+          alt=""
+          loading="eager"
+        />
       </span>
     </button>
   );

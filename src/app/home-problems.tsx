@@ -1,4 +1,6 @@
+import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
+import { styles } from "./home-problems.styles";
 
 type ProblemTone = "participation" | "exclusion" | "skills";
 
@@ -42,14 +44,39 @@ const problemCards = [
   },
 ] satisfies readonly ProblemCard[];
 
+const toneStyles = {
+  participation: styles.participation,
+  exclusion: styles.exclusion,
+  skills: styles.skills,
+} satisfies Record<ProblemTone, stylex.StyleXStyles>;
+
+const mascotStyles = {
+  participation: null,
+  exclusion: styles.exclusionMascot,
+  skills: styles.skillsMascot,
+} satisfies Record<ProblemTone, stylex.StyleXStyles | null>;
+
 function ProblemCardItem({ card }: { card: ProblemCard }) {
   return (
-    <article className="problem-card" data-tone={card.tone}>
-      <h3>{card.title}</h3>
+    <article
+      {...stylex.props(
+        styles.card,
+        toneStyles[card.tone],
+        card.tone === "skills" && styles.finalCard,
+      )}
+    >
+      <h3
+        {...stylex.props(
+          styles.cardTitle,
+          card.tone === "participation" && styles.participationTitle,
+        )}
+      >
+        {card.title}
+      </h3>
       <picture>
         <source media="(max-width: 768px)" srcSet={`/mascots/problem-${card.tone}-mobile.png`} />
         <Image
-          className="problem-mascot"
+          {...stylex.props(styles.mascot, mascotStyles[card.tone])}
           src={card.mascot.src}
           width={card.mascot.width}
           height={card.mascot.height}
@@ -64,21 +91,23 @@ function ProblemCardItem({ card }: { card: ProblemCard }) {
 
 export function HomeProblems() {
   return (
-    <section id="masalah" className="problems-section" aria-labelledby="problems-title">
-      <div className="problems-heading">
-        <h2 id="problems-title">Relate dengan permasalahan ini?</h2>
-        <p className="problems-intro">
+    <section id="masalah" {...stylex.props(styles.section)} aria-labelledby="problems-title">
+      <div {...stylex.props(styles.heading)}>
+        <h2 id="problems-title" {...stylex.props(styles.title)}>
+          Relate dengan permasalahan ini?
+        </h2>
+        <p {...stylex.props(styles.intro)}>
           Permasalahan-permasalahan ini pasti sering banget terjadi di perkuliahan kalian
         </p>
       </div>
 
-      <div className="problems-grid">
+      <div {...stylex.props(styles.grid)}>
         {problemCards.map((card) => (
           <ProblemCardItem card={card} key={card.tone} />
         ))}
       </div>
 
-      <p className="problems-outcome">
+      <p {...stylex.props(styles.outcome)}>
         Dengan adanya EquiTeam,
         <br />
         hal-hal tersebut akan teratasi dengan lebih mudah
