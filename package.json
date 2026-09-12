@@ -35,6 +35,7 @@
     "oxlint": "1.82.0",
     "oxlint-plugin-react-doctor": "0.9.13",
     "postcss": "^8.5.23",
+    "react-grab": "^0.2.0",
     "typescript": "^5"
   },
   "engines": {
