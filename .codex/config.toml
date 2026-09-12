@@ -1,0 +1,5 @@
+[mcp_servers.next-devtools]
+command = "pnpm"
+args = ["dlx", "next-devtools-mcp@0.4.0"]
+disabled_tools = ["browser_eval"]
+startup_timeout_sec = 30
