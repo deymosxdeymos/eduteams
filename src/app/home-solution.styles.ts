@@ -154,6 +154,7 @@ export const styles = stylex.create({
     left: "-17.9%",
     top: "0.34%",
     width: "117.81%",
+    height: "auto",
     maxWidth: "none",
   },
   preferenceArt: {
