@@ -10,34 +10,34 @@ const enterTransition = {
 } as const;
 
 const brandMotion: MotionProps = {
-  initial: { opacity: 0, y: -12 },
-  animate: { opacity: 1, y: 0 },
+  initial: { y: -12 },
+  animate: { y: 0 },
   transition: enterTransition,
 };
 
 const titleMotion: MotionProps = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
+  initial: { y: 20 },
+  animate: { y: 0 },
   transition: { ...enterTransition, delay: 0.06 },
 };
 
 const descriptionMotion: MotionProps = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
+  initial: { y: 16 },
+  animate: { y: 0 },
   transition: { ...enterTransition, delay: 0.12 },
 };
 
 const callToActionMotion: MotionProps = {
-  initial: { opacity: 0, y: 14 },
-  animate: { opacity: 1, y: 0 },
+  initial: { y: 14 },
+  animate: { y: 0 },
   whileHover: { y: -2 },
   whileTap: { scale: 0.98 },
   transition: { ...enterTransition, delay: 0.18 },
 };
 
 const mascotMotion: MotionProps = {
-  initial: { opacity: 0, y: 24, scale: 0.96 },
-  animate: { opacity: 1, y: 0, scale: 1 },
+  initial: { y: 24, scale: 0.96 },
+  animate: { y: 0, scale: 1 },
   transition: { ...enterTransition, delay: 0.22 },
 };
 
