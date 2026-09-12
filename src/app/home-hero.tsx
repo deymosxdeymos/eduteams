@@ -1,6 +1,5 @@
 "use client";
 
-// oxlint-disable react-doctor/anchor-target-exists -- AboutSection renders the target in page.tsx.
 import { LazyMotion, MotionConfig, domAnimation, m, type MotionProps } from "motion/react";
 import Image from "next/image";
 
@@ -30,8 +29,6 @@ const descriptionMotion: MotionProps = {
 const callToActionMotion: MotionProps = {
   initial: { y: 14 },
   animate: { y: 0 },
-  whileHover: { y: -2 },
-  whileTap: { scale: 0.98 },
   transition: { ...enterTransition, delay: 0.18 },
 };
 
@@ -44,7 +41,9 @@ const mascotMotion: MotionProps = {
 function Brand() {
   return (
     <m.a className="brand" href="/" aria-label="EquiTeam, halaman utama" {...brandMotion}>
-      <Image src="/equiteam-mascot.png" width={488} height={472} alt="" priority />
+      <span className="brand-mark">
+        <Image src="/brand/hero-mark.svg" width={52} height={56} alt="" loading="eager" />
+      </span>
       <span>
         <strong>Equi</strong>Team
       </span>
@@ -60,22 +59,37 @@ function HeroCopy() {
         <span>Menciptakan Keunggulan</span>
       </m.h1>
       <m.p className="hero-description" {...descriptionMotion}>
-        Setiap hasil yang hebat dimulai dengan tim yang hebat. Selamat datang di EquiTeam, mari kita
-        mulai sesuatu yang luar biasa.
+        Setiap tim hebat dimulai dari proses pembagian yang tepat.
+        <br />
+        Yuk, mulai petualangan seru kamu di sini.
       </m.p>
-      <m.div className="hero-cta-motion" {...callToActionMotion}>
-        <a className="hero-cta" href="#tentang">
-          Kenali EquiTeam
-        </a>
-      </m.div>
+      <GoogleSignIn />
     </>
+  );
+}
+
+function GoogleSignIn() {
+  return (
+    <m.div className="hero-cta-motion" {...callToActionMotion}>
+      <button className="hero-cta" type="button" disabled>
+        <Image src="/brand/google.svg" width={24} height={24} alt="" loading="eager" />
+        Masuk dengan Google
+      </button>
+    </m.div>
   );
 }
 
 function HeroMascot() {
   return (
     <m.div className="hero-mascot" aria-hidden="true" {...mascotMotion}>
-      <Image src="/equiteam-mascot.png" width={488} height={472} alt="" priority />
+      <Image
+        src="/mascots/equiteam-hero-illustration.png"
+        width={730}
+        height={289}
+        sizes="(max-width: 480px) 86vw, (max-width: 768px) calc(27.5vw + 221px), (max-width: 1304px) 56vw, 730px"
+        alt=""
+        loading="eager"
+      />
     </m.div>
   );
 }
@@ -84,20 +98,26 @@ function HeroScene() {
   return (
     <section className="hero" aria-labelledby="hero-title">
       <Brand />
+      <LanguageControl />
       <div className="hero-content">
         <HeroCopy />
-        <HeroMascot />
       </div>
-      <Image
-        className="hero-curve"
-        src="/equiteam-curve.svg"
-        width={1440}
-        height={614}
-        sizes="100vw"
-        alt=""
-        priority
-      />
+      <HeroMascot />
+      <div className="hero-curve" aria-hidden="true">
+        <Image src="/brand/hero-curve.svg" fill sizes="100vw" alt="" loading="eager" />
+      </div>
     </section>
+  );
+}
+
+function LanguageControl() {
+  return (
+    <button className="hero-language" type="button" aria-label="Bahasa Indonesia" disabled>
+      <span>ID</span>
+      <span className="hero-language-flag">
+        <Image src="/brand/indonesia.png" fill sizes="47px" alt="" loading="eager" />
+      </span>
+    </button>
   );
 }
 
