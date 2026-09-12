@@ -4,6 +4,7 @@ const tabletHero = "@media (min-width: 48.0625rem) and (max-width: 68rem)";
 const mobile = "@media (max-width: 48rem)";
 const compact = "@media (max-width: 30rem)";
 
+/** Hero copy can reflow independently of the decorative artwork. */
 export const styles = stylex.create({
   hero: {
     position: "relative",
@@ -17,9 +18,9 @@ export const styles = stylex.create({
       default: "3.5625rem",
       [mobile]: 0,
     },
-    paddingRight: "1.5rem",
+    paddingRight: "min(1.5rem, 24px)",
     paddingBottom: 0,
-    paddingLeft: "1.5rem",
+    paddingLeft: "min(1.5rem, 24px)",
     backgroundColor: "#000098",
     isolation: "isolate",
   },
@@ -95,15 +96,21 @@ export const styles = stylex.create({
       default: "4.1875rem",
       [mobile]: "7.25rem",
     },
+    paddingBottom: {
+      default: "20rem",
+      [mobile]: "12rem",
+    },
     flexDirection: "column",
     alignItems: "center",
     textAlign: "center",
   },
   heading: {
     maxWidth: {
-      default: "70rem",
-      [mobile]: "22.1875rem",
+      default: "min(100%, 70rem)",
+      [mobile]: "min(100%, 22.1875rem)",
     },
+    minWidth: 0,
+    overflowWrap: "anywhere",
     marginTop: 0,
     marginRight: 0,
     marginBottom: 0,

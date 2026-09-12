@@ -23,7 +23,6 @@ export const styles = stylex.create({
     marginBlock: "clamp(2.5rem, 5.7vw, 5rem)",
     fontSize: "clamp(2rem, 5vw, 4.5rem)",
     fontWeight: 800,
-    fontStyle: "italic",
     lineHeight: 1.369,
     letterSpacing: "-0.05em",
     textWrap: "balance",

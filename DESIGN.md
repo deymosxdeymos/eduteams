@@ -110,7 +110,7 @@ These adaptations preserve EquiTeam's identity while making the page usable on t
 - The white 3px seam cover above About prevents a subpixel gap at the hero boundary. It is not decorative elevation.
 - Solution uses two process panels above four illustrated aspects on desktop. Panels stack on phones; aspect details use two columns. Cards grow with their text, and the source's Personality spelling error is corrected.
 - Benefits retains the deep-blue band, green student mascot, and amber lecturer mascot. Semantic lists wrap naturally inside equal desktop cards and stacked mobile cards.
-- The closing statement uses fluid 32–72px type and balanced wrapping instead of a fixed-height frame. Its decorative emoji are hidden from assistive technology.
+- The closing statement uses upright, fluid 32–72px type and balanced wrapping instead of a fixed-height frame. Its decorative emoji are hidden from assistive technology.
 - The footer keeps its heading, brand, contact details, and back-to-top link on mobile. Phone and email links have at least 44px hit areas. Social buttons remain disabled until real destinations exist.
 - New sections have no entrance or scroll-reveal animations and are server-rendered. Their content does not depend on JavaScript becoming available.
 

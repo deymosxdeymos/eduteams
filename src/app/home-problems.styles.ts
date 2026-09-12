@@ -3,6 +3,7 @@ import * as stylex from "@stylexjs/stylex";
 const desktopNarrow = "@media (max-width: 68rem)";
 const mobile = "@media (max-width: 48rem)";
 
+/** Cards keep their reference minimum size but grow when text needs more room. */
 export const styles = stylex.create({
   section: {
     minHeight: {
@@ -10,9 +11,9 @@ export const styles = stylex.create({
       [mobile]: "88.8125rem",
     },
     paddingTop: "4rem",
-    paddingRight: "1.5rem",
+    paddingRight: "min(1.5rem, 24px)",
     paddingBottom: "4rem",
-    paddingLeft: "1.5rem",
+    paddingLeft: "min(1.5rem, 24px)",
     backgroundColor: "#f4f7f9",
     scrollMarginTop: "1rem",
     fontFamily: "var(--font-plus-jakarta-sans), Arial, sans-serif",
@@ -89,9 +90,13 @@ export const styles = stylex.create({
   },
   card: {
     position: "relative",
-    height: {
+    minHeight: {
       default: "24.34375rem",
       [mobile]: "15.6875rem",
+    },
+    paddingBottom: {
+      default: "9rem",
+      [mobile]: "6rem",
     },
     overflow: "hidden",
     borderRadius: {
@@ -144,18 +149,23 @@ export const styles = stylex.create({
       default: "calc(100% - 4.125rem)",
       [mobile]: "12.96rem",
     },
+    maxWidth: {
+      default: "calc(100% - 4.125rem)",
+      [mobile]: "calc(100% - min(4.42rem, 70.72px))",
+    },
+    overflowWrap: "anywhere",
     marginTop: {
       default: "2.375rem",
       [mobile]: "1.955rem",
     },
     marginRight: {
       default: "2.0625rem",
-      [mobile]: "2.21rem",
+      [mobile]: "min(2.21rem, 35.36px)",
     },
     marginBottom: 0,
     marginLeft: {
       default: "2.0625rem",
-      [mobile]: "2.21rem",
+      [mobile]: "min(2.21rem, 35.36px)",
     },
     fontSize: {
       default: "3rem",

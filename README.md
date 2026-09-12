@@ -15,19 +15,22 @@ EduTeams is a Next.js application. The repository root is the only deployable ap
 - pnpm 10.33.0
 - Next.js 16.4.0-canary.25
 - TypeScript 5
-- Tailwind CSS 4
+- StyleX 0.19 with Babel and PostCSS extraction
+- Motion for the hero animation
+- Playwright for browser regression tests
 - Oxlint
 - Anti-slop Oxlint rules, vendored from `dmmulroy/anti-slop`
 - Oxfmt
 
 `.mise.toml` pins Node.js and pnpm. Run `mise install` to install both versions.
 
-Next.js uses its Rust-based compiler and Turbopack defaults. The repository has no Babel configuration.
+Next.js uses Turbopack with `babel.config.json` for the StyleX transform. PostCSS extracts the generated styles into CSS; component styling lives in colocated `*.styles.ts` files.
 
 ## Develop locally
 
 ```bash
 pnpm install
+pnpm exec playwright install chromium
 pnpm dev
 ```
 
@@ -39,7 +42,11 @@ Open [http://localhost:3000](http://localhost:3000).
 pnpm check
 ```
 
-`pnpm check` runs linting, the format check, type checking, and the production build in sequence. Run individual checks with `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, or `pnpm build`. Run `pnpm format` to format the repository.
+`pnpm check` runs linting, the format check, type checking, the production build, and browser regression tests in sequence. Run individual checks with `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, or `pnpm build`. Run `pnpm format` to format the repository.
+
+After a production build, `pnpm test:browser` starts an isolated server on port 3101 and runs Chromium tests. Keep that port free. The tests cover heading containment at phone, tablet, desktop, and breakpoint widths with 16px and 32px root text, page content, image loading, disabled controls, and keyboard navigation. Root-text enlargement is not a substitute for native browser zoom or screen-reader testing.
+
+GitHub Actions runs the same gate for pull requests and pushes to `v2`, and uploads browser failure screenshots and traces. On Linux, install browser system dependencies with `pnpm exec playwright install --with-deps chromium`.
 
 Use `pnpm check` as the local and pre-merge gate.
 
