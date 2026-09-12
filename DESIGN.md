@@ -2,7 +2,7 @@
 
 ## Authority
 
-The homepage follows Figma file `Kenj6nx1cHufhh1haMV64Y`, desktop Landing Page `807:26390` and mobile Android Compact `1130:49253`. The linked frames and their local properties override general design-system tokens.
+The homepage uses Figma file `Kenj6nx1cHufhh1haMV64Y`, desktop Landing Page `807:26390` and mobile Android Compact `1130:49253`, for content, palette, typography, and original artwork. It is a web adaptation, not a pixel-for-pixel copy. This document, Emil design-engineering principles, and Web Interface Guidelines take precedence when fixed frame geometry would harm readability, accessibility, or responsive behavior.
 
 | Section          | Desktop node     | Mobile node  |
 | ---------------- | ---------------- | ------------ |
@@ -10,8 +10,12 @@ The homepage follows Figma file `Kenj6nx1cHufhh1haMV64Y`, desktop Landing Page `
 | Navigation       | Included in Hero | `1133:37462` |
 | What is EquiTeam | `861:9028`       | `1133:37013` |
 | Problems         | `861:9026`       | `1133:37083` |
+| Solution         | `883:8405`       | `1133:37246` |
+| Benefits         | `869:9235`       | `1133:37323` |
+| Call-out         | `883:8407`       | `1133:37398` |
+| Footer           | `883:8257`       | `1133:37403` |
 
-The older Landing Page `271:187` is not a homepage authority. Family is a supporting style reference for whitespace, illustration emphasis, and restrained interface details. The Figma frames above remain authoritative for colors, typography, artwork, and component geometry. Later Solution, Benefits, Call-out, and Footer sections are not implemented.
+The older Landing Page `271:187` is not a homepage authority. Family is a supporting style reference for whitespace, illustration emphasis, and restrained interface details. All seven homepage sections are implemented. Figma's absolute coordinates, fixed heights, and forced line breaks are reference measurements, not requirements.
 
 ## Style direction
 
@@ -20,7 +24,7 @@ EquiTeam feels playful and welcoming through its characters, with clear typograp
 | Family principle                    | EquiTeam adaptation                                                                                                                                        |
 | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Characters carry the personality    | Use the exported EquiTeam mascots. Keep faces and key poses readable, with the hero trio anchored to the white curve.                                      |
-| Generous whitespace                 | Preserve the Figma section spacing and readable text widths. Allow content to grow on narrow screens and with enlarged text.                               |
+| Generous whitespace                 | Use readable text widths and fluid section spacing. Allow content to grow on narrow screens and with enlarged text.                                        |
 | Restrained interface details        | Keep surfaces free of added elevation and ornament. Use the Figma borders on controls; About remains unboxed and problem cards retain their gradients.     |
 | Calm text around expressive artwork | Use Plus Jakarta Sans for headings and most interface text, with Montserrat for desktop hero supporting copy. Preserve the existing hierarchy and weights. |
 | A small set of purposeful accents   | Use `#000098` for the hero and About heading, `#FEC84B` for Keadilan, and the documented green, amber, and violet card treatments.                         |
@@ -93,18 +97,25 @@ All paths below are relative to `public/`. Keep exact exports; do not redraw vec
 
 ## Accessibility and implementation adaptations
 
-These adaptations preserve the frame's appearance:
+These adaptations preserve EquiTeam's identity while making the page usable on the web:
 
 - The mobile language pill retains its 28.36px visual height within a 44px hit area.
 - Google sign-in and language switching are native disabled buttons until their behavior exists. Do not invent an authentication destination.
 - Decorative images use empty alternative text. Headings use one h1, section h2s, and card h3s.
 - Preserve the skip link, visible focus treatment, reduced-motion support, and explicit image dimensions.
-- All ten rendered homepage images currently use `loading="eager"`, including the About and Problems mascots. This loads them immediately even below the fold. The flag uses a fixed circular wrapper with an aspect-preserving cover crop.
+- All homepage images use `loading="eager"`, including below-the-fold artwork, as explicitly requested. The flag uses a fixed circular wrapper with an aspect-preserving cover crop.
 - About copy is left-aligned at 896px and below for readability. This is an intentional adaptation from the mobile frame's justified copy.
 - Use fluid layout between the authoritative desktop and mobile widths; do not scale down the whole page.
 - Component styling lives in colocated StyleX modules. Keep `globals.css` limited to StyleX output injection and document-level defaults such as the reset, focus ring, and reduced-motion fallback.
 - The white 3px seam cover above About prevents a subpixel gap at the hero boundary. It is not decorative elevation.
+- Solution uses two process panels above four illustrated aspects on desktop. Panels stack on phones; aspect details use two columns. Cards grow with their text, and the source's Personality spelling error is corrected.
+- Benefits retains the deep-blue band, green student mascot, and amber lecturer mascot. Semantic lists wrap naturally inside equal desktop cards and stacked mobile cards.
+- The closing statement uses fluid 32–72px type and balanced wrapping instead of a fixed-height frame. Its decorative emoji are hidden from assistive technology.
+- The footer keeps its heading, brand, contact details, and back-to-top link on mobile. Phone and email links have at least 44px hit areas. Social buttons remain disabled until real destinations exist.
+- New sections have no entrance or scroll-reveal animations and are server-rendered. Their content does not depend on JavaScript becoming available.
+
+The additional artwork lives under `public/brand/`: `personality.png`, `skills.png`, `gender.png`, `preference-box.svg`, and `preference-check.svg` come from Solution. `student.svg` and `lecturer.svg` come from Benefits. `footer-shape.svg`, `footer-logo.svg`, `phone.svg`, `mail.svg`, and the four named social icons come from Footer. These are unchanged Figma exports.
 
 ## Verification
 
-Compare all implemented sections against the two authoritative frames at 1440px and 412px. Also test 320px, 390px, 480px, 768px, 820px iPad Air, 1024px, 1088px, and both sides of every breakpoint. Check heading wraps, local colors, mascot clipping, curve overlap, image loading, section positions, and horizontal overflow. Use browser-control; inspect browser and server warnings. Run `pnpm check`, React Doctor changed scope, and the focused design scan before review.
+Compare the page's visual identity and content against the reference frames at 1440px and 412px; evaluate layout adaptations against the rules above. Also test 320px, 390px, 480px, 768px, 820px iPad Air, 1024px, 1088px, and both sides of every breakpoint. Check heading wraps, local colors, mascot clipping, curve overlap, image loading, keyboard focus, text enlargement, and horizontal overflow. Use browser-control; inspect browser and server warnings. Run `pnpm check`, React Doctor changed scope, and the focused design scan before review.

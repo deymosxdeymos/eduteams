@@ -1,6 +1,10 @@
 import * as stylex from "@stylexjs/stylex";
 import { HomeHero } from "./home-hero";
 import { HomeProblems } from "./home-problems";
+import { HomeSolution } from "./home-solution";
+import { HomeBenefits } from "./home-benefits";
+import { HomeCallout } from "./home-callout";
+import { HomeFooter } from "./home-footer";
 import { styles } from "./page.styles";
 import Image from "next/image";
 
@@ -67,7 +71,11 @@ export default function Home() {
         <HomeHero />
         <AboutSection />
         <HomeProblems />
+        <HomeSolution />
+        <HomeBenefits />
+        <HomeCallout />
       </main>
+      <HomeFooter />
     </>
   );
 }
