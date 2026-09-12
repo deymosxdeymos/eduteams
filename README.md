@@ -44,7 +44,7 @@ pnpm check
 
 `pnpm check` runs linting, the format check, type checking, the production build, and browser regression tests in sequence. Run individual checks with `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, or `pnpm build`. Run `pnpm format` to format the repository.
 
-After a production build, `pnpm test:browser` starts an isolated server on port 3101 and runs Chromium tests. Keep that port free. The tests cover heading containment at phone, tablet, desktop, and breakpoint widths with 16px and 32px root text, page content, image loading, disabled controls, and keyboard navigation. Root-text enlargement is not a substitute for native browser zoom or screen-reader testing.
+After a production build, `pnpm test:browser` starts an isolated server on port 3101 and runs Chromium tests. Keep that port free. The tests cover visible, unclipped heading text at phone, tablet, desktop, and breakpoint widths with 16px and 32px root text, the upright fairness statement, and keyboard access to the skip and back-to-top links. They do not pin image counts, the full page copy, or intermediate tab order. Root-text enlargement is not a substitute for native browser zoom or screen-reader testing.
 
 GitHub Actions runs the same gate for pull requests and pushes to `v2`, and uploads browser failure screenshots and traces. On Linux, install browser system dependencies with `pnpm exec playwright install --with-deps chromium`.
 
